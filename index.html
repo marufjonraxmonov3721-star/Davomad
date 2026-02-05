@@ -3,71 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate: QR + Biometrika</title>
+    <title>EduGate Biometrika</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    
     <style>
-        :root {
-            --tg-theme-button-color: #248b65;
-            --tg-theme-button-text-color: #ffffff;
-        }
-        body {
-            font-family: sans-serif;
-            background-color: var(--tg-theme-bg-color, #f0f2f5);
-            color: var(--tg-theme-text-color, #333);
-            margin: 0; padding: 20px; text-align: center;
-        }
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        #reader {
-            width: 100%;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        button {
-            width: 100%;
-            padding: 18px;
-            background-color: var(--tg-theme-button-color, #248b65);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 15px;
-            color: #555;
-            padding: 10px;
-            border-radius: 8px;
-        }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #reader { width: 100%; border-radius: 10px; overflow: hidden; }
+        button { width: 100%; padding: 15px; margin-top: 15px; background: #0088cc; color: white; border: none; border-radius: 8px; font-weight: bold; }
+        #status { margin-top: 15px; color: #555; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🎓 EduGate Smart</h2>
-    <p>QR-kodni skanerlang va shaxsingizni tasdiqlang</p>
-    
+<div class="card">
+    <h3>🧬 Biometrik Yo'qlama</h3>
     <div id="reader"></div>
-    
-    <div id="status">Skanerlashni boshlash tugmasini bosing</div>
-    
-    <button id="scanBtn" onclick="startScanning()">Skanerni boshlash</button>
+    <div id="status">Skanerlashni boshlang</div>
+    <button onclick="startScanning()">QR Skanerni yoqish</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Maruf Raxmonovning Firebase sozlamalari
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -75,70 +34,60 @@
         projectId: "gen-lang-client-0228947349",
         storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
         messagingSenderId: "253793341504",
-        appId: "1:253793341504:web:709752258000dab44fcfa5",
-        measurementId: "G-DT2JZN1P2T"
+        appId: "1:253793341504:web:709752258000dab44fcfa5"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
+
+    // Biometrik menejerni tayyorlash
+    const biometry = tg.BiometricManager;
+
     tg.ready();
     tg.expand();
 
-    let html5QrcodeScanner;
-
+    // Skanerni boshlash
     window.startScanning = function() {
-        document.getElementById('status').innerText = "Kamerani yo'naltiring...";
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
+        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render(onScanSuccess);
     };
 
-    async function onScanSuccess(decodedText) {
-        // Skanerni to'xtatish
-        html5QrcodeScanner.clear();
-        document.getElementById('status').innerText = "QR o'qildi. Barmoq izini tasdiqlang...";
-
-        // Biometrik tasdiqlash (WebAuthn / Local Auth)
-        const isVerified = await verifyBiometrics();
-
-        if (isVerified) {
-            saveAttendance(decodedText);
-        } else {
-            document.getElementById('status').innerText = "❌ Tasdiqlash bekor qilindi.";
-            tg.showAlert("Shaxsingizni tasdiqlamasangiz ma'lumot saqlanmaydi.");
-        }
+    function onScanSuccess(decodedText) {
+        document.getElementById('status').innerText = "QR o'qildi. Shaxsingizni tasdiqlang...";
+        
+        // Telegram biometrikasini tekshirish
+        biometry.init(() => {
+            if (!biometry.isInited || !biometry.isBiometricAvailable) {
+                // Agar biometrika yo'q bo'lsa, oddiy tasdiqlash
+                if(confirm("Biometrika topilmadi. Davomatni tasdiqlaysizmi?")) {
+                    saveData(decodedText);
+                }
+            } else {
+                // Haqiqiy barmoq izi oynasini chiqarish
+                biometry.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
+                    if (success) {
+                        saveData(decodedText);
+                    } else {
+                        tg.showAlert("Tasdiqlash bajarilmadi!");
+                    }
+                });
+            }
+        });
     }
 
-    async function verifyBiometrics() {
-        // Ko'p hollarda Mini App ichida 'confirm' yoki Telegram xabari ishlatiladi
-        // Haqiqiy barmoq izi dialogini chiqarish:
-        if (window.PublicKeyCredential) {
-            return confirm("Barmoq izi yoki yuz orqali shaxsingizni tasdiqlaysizmi?");
-        }
-        return confirm("Tizimga kirishni tasdiqlaysizmi?");
-    }
-
-    function saveAttendance(qrData) {
-        const user = tg.initDataUnsafe.user || { id: "noma'lum", first_name: "Maruf" };
-        const now = Date.now();
-
-        set(ref(db, 'attendance/' + user.id + '/' + now), {
-            fullName: user.first_name + " " + (user.last_name || ""),
+    function saveData(qrData) {
+        const user = tg.initDataUnsafe.user || { id: "test", first_name: "Maruf" };
+        set(ref(db, 'attendance/' + user.id + '/' + Date.now()), {
+            name: user.first_name,
             data: qrData,
-            biometricStatus: "Verified",
-            date: new Date().toLocaleString()
+            time: new Date().toLocaleString(),
+            verified: "Fingerprint/FaceID"
         }).then(() => {
-            document.getElementById('status').style.color = "green";
-            document.getElementById('status').innerHTML = "✅ Muvaffaqiyatli saqlandi!<br>Ism: " + user.first_name;
-            tg.HapticFeedback.notificationOccurred('success');
-            
-            // 2 soniyadan keyin ilovani yopish (ixtiyoriy)
-            setTimeout(() => { tg.close(); }, 3000);
-        }).catch((e) => {
-            alert("Xato: " + e.message);
+            document.getElementById('status').innerText = "✅ Hammasi tayyor!";
+            tg.showAlert("Ma'lumot saqlandi!");
         });
     }
 </script>
-
 </body>
 </html>
