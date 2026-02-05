@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Smart</title>
+    <title>EduGate Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        #reader { width: 100%; border-radius: 10px; overflow: hidden; display: none; }
-        button { width: 100%; padding: 15px; margin-top: 15px; background: #248b65; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
-        #status { margin-top: 15px; font-weight: bold; color: #444; }
+        #reader { width: 100%; border-radius: 10px; overflow: hidden; display: none; margin-bottom: 20px; }
+        button { width: 100%; padding: 15px; margin-top: 10px; background: #248b65; color: white; border: none; border-radius: 10px; font-weight: bold; }
+        #debug { font-size: 12px; color: red; margin-top: 10px; text-align: left; background: #eee; padding: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h3>🎓 EduGate Pro</h3>
+    <h3>🎓 EduGate Smart v2</h3>
     <div id="reader"></div>
     <div id="status">Tizim yuklanmoqda...</div>
-    <button id="mainBtn" onclick="requestBiometrics()">Barmoq izini sozlash</button>
+    
+    <button id="authBtn" onclick="setupBiometrics()">1. Barmoq izini faollashtirish</button>
+    <button id="scanBtn" onclick="startScanning()" style="display:none;">2. QR Skanerni yoqish</button>
+    
+    <div id="debug"></div>
 </div>
 
 <script type="module">
@@ -45,24 +49,41 @@
     tg.ready();
     tg.expand();
 
-    // 1-QADAM: Biometrika ruxsatini so'rash
+    function log(msg) { document.getElementById('debug').innerText += "\n> " + msg; }
+
+    // Biometrika holatini tekshirish
     bm.init(() => {
-        if (bm.isInited && bm.isBiometricAvailable) {
+        log("Biometrika inited: " + bm.isInited);
+        log("Available: " + bm.isBiometricAvailable);
+        log("Access Granted: " + bm.isAccessGranted);
+        
+        if (bm.isAccessGranted) {
+            document.getElementById('authBtn').style.display = 'none';
+            document.getElementById('scanBtn').style.display = 'block';
             document.getElementById('status').innerText = "Biometrika tayyor ✅";
-            document.getElementById('mainBtn').innerText = "QR Skanerni yoqish";
-            document.getElementById('mainBtn').onclick = startScanning;
         } else {
-            document.getElementById('status').innerText = "Biometrika faol emas ❌";
-            document.getElementById('mainBtn').innerText = "Faqat QR Skaner";
-            document.getElementById('mainBtn').onclick = startScanning;
+            document.getElementById('status').innerText = "Ruxsat berilmagan ⚠️";
         }
     });
 
-    window.requestBiometrics = function() {
-        bm.requestAccess({ reason: "Darsga kelganingizni tasdiqlash uchun kerak" }, (allowed) => {
-            if (allowed) {
-                tg.showAlert("Ruxsat berildi!");
-                location.reload();
+    window.setupBiometrics = function() {
+        if (!bm.isBiometricAvailable) {
+            tg.showAlert("Qurilmangizda barmoq izi skaneri topilmadi yoki Telegram'ga ruxsat berilmagan.");
+            return;
+        }
+
+        bm.requestAccess({ reason: "Darsga kelganingizni tasdiqlash uchun barmoq izi kerak." }, (granted) => {
+            if (granted) {
+                log("Ruxsat berildi!");
+                // Ruxsat berilgach, biometrik tokenni saqlash uchun bir marta tekshirish kerak
+                bm.authenticate({ reason: "Sozlamani yakunlash uchun barmoq izini bosing" }, (success) => {
+                    if (success) {
+                        location.reload(); // Sahifani yangilab, skaner tugmasini chiqaramiz
+                    }
+                });
+            } else {
+                log("Ruxsat berilmadi.");
+                tg.showAlert("Ruxsat bermasangiz, barmoq izi ishlamaydi.");
             }
         });
     };
@@ -70,19 +91,18 @@
     window.startScanning = function() {
         document.getElementById('reader').style.display = 'block';
         const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        scanner.render(onScanSuccess);
-    };
-
-    function onScanSuccess(decodedText) {
-        if (bm.isBiometricTokenSaved) {
-            bm.authenticate({ reason: "Shaxsingizni tasdiqlang" }, (success) => {
-                if (success) saveData(decodedText);
+        scanner.render((text) => {
+            scanner.clear();
+            // QR o'qilgach, barmoq izini so'rash
+            bm.authenticate({ reason: "Davomatni tasdiqlang" }, (success) => {
+                if (success) {
+                    saveData(text);
+                } else {
+                    tg.showAlert("Tasdiqlash bajarilmadi ❌");
+                }
             });
-        } else {
-            // Agar barmoq izi hali saqlanmagan bo'lsa
-            if(confirm("Ma'lumotni saqlaysizmi?")) saveData(decodedText);
-        }
-    }
+        });
+    };
 
     function saveData(qrData) {
         const user = tg.initDataUnsafe.user || { id: "test", first_name: "Maruf" };
@@ -90,7 +110,7 @@
             name: user.first_name,
             data: qrData,
             time: new Date().toLocaleString(),
-            auth: "Biometric_Verified"
+            auth: "Biometric_Success"
         }).then(() => {
             tg.showAlert("Muvaffaqiyatli saqlandi! 🎓");
             tg.HapticFeedback.notificationOccurred('success');
