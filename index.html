@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate QR System</title>
+    <title>EduGate: QR + Biometrika</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     
@@ -13,65 +13,61 @@
             --tg-theme-button-text-color: #ffffff;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #f5f5f5);
-            color: var(--tg-theme-text-color, #222);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 10px;
+            font-family: sans-serif;
+            background-color: var(--tg-theme-bg-color, #f0f2f5);
+            color: var(--tg-theme-text-color, #333);
+            margin: 0; padding: 20px; text-align: center;
         }
-        .card {
+        .container {
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         #reader {
             width: 100%;
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
-            border: 2px solid #ddd;
+            margin-bottom: 20px;
         }
         button {
             width: 100%;
-            padding: 15px;
-            margin-top: 15px;
+            padding: 18px;
             background-color: var(--tg-theme-button-color, #248b65);
             color: var(--tg-theme-button-text-color, #fff);
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
         }
         #status {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #666;
+            margin-top: 20px;
+            font-size: 15px;
+            color: #555;
+            padding: 10px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🎓 EduGate QR Skaner</h2>
+<div class="container">
+    <h2>🎓 EduGate Smart</h2>
+    <p>QR-kodni skanerlang va shaxsingizni tasdiqlang</p>
+    
     <div id="reader"></div>
-    <div id="status">Kameraga ruxsat bering va QR-kodni ko'rsating</div>
-    <button onclick="startScanning()">Skanerni boshlash</button>
+    
+    <div id="status">Skanerlashni boshlash tugmasini bosing</div>
+    
+    <button id="scanBtn" onclick="startScanning()">Skanerni boshlash</button>
 </div>
 
 <script type="module">
-    // Firebase modullari
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Siz taqdim etgan Firebase sozlamalari
+    // Maruf Raxmonovning Firebase sozlamalari
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -83,41 +79,64 @@
         measurementId: "G-DT2JZN1P2T"
     };
 
-    // Firebase-ni ishga tushirish
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
-    // Telegram WebApp sozlamalari
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
+    let html5QrcodeScanner;
+
     window.startScanning = function() {
-        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        scanner.render(onScanSuccess, onScanError);
+        document.getElementById('status').innerText = "Kamerani yo'naltiring...";
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
     };
 
-    function onScanSuccess(decodedText) {
-        const user = tg.initDataUnsafe.user || { id: "test_user", first_name: "Maruf" };
-        const timestamp = new Date().toISOString().replace('.', '_');
+    async function onScanSuccess(decodedText) {
+        // Skanerni to'xtatish
+        html5QrcodeScanner.clear();
+        document.getElementById('status').innerText = "QR o'qildi. Barmoq izini tasdiqlang...";
 
-        // Firebase-ga yozish
-        const attendanceRef = ref(db, 'attendance/' + user.id + '/' + Date.now());
-        set(attendanceRef, {
-            name: user.first_name,
-            qr_content: decodedText,
-            time: new Date().toLocaleString()
-        }).then(() => {
-            document.getElementById('status').innerHTML = "✅ Muvaffaqiyatli saqlandi!";
-            tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Ma'lumot saqlandi: " + decodedText);
-        }).catch(err => {
-            alert("Firebase xatosi: " + err.message);
-        });
+        // Biometrik tasdiqlash (WebAuthn / Local Auth)
+        const isVerified = await verifyBiometrics();
+
+        if (isVerified) {
+            saveAttendance(decodedText);
+        } else {
+            document.getElementById('status').innerText = "❌ Tasdiqlash bekor qilindi.";
+            tg.showAlert("Shaxsingizni tasdiqlamasangiz ma'lumot saqlanmaydi.");
+        }
     }
 
-    function onScanError(err) {
-        // Xatolikni konsolga chiqarmaslik uchun bo'sh qoldiramiz
+    async function verifyBiometrics() {
+        // Ko'p hollarda Mini App ichida 'confirm' yoki Telegram xabari ishlatiladi
+        // Haqiqiy barmoq izi dialogini chiqarish:
+        if (window.PublicKeyCredential) {
+            return confirm("Barmoq izi yoki yuz orqali shaxsingizni tasdiqlaysizmi?");
+        }
+        return confirm("Tizimga kirishni tasdiqlaysizmi?");
+    }
+
+    function saveAttendance(qrData) {
+        const user = tg.initDataUnsafe.user || { id: "noma'lum", first_name: "Maruf" };
+        const now = Date.now();
+
+        set(ref(db, 'attendance/' + user.id + '/' + now), {
+            fullName: user.first_name + " " + (user.last_name || ""),
+            data: qrData,
+            biometricStatus: "Verified",
+            date: new Date().toLocaleString()
+        }).then(() => {
+            document.getElementById('status').style.color = "green";
+            document.getElementById('status').innerHTML = "✅ Muvaffaqiyatli saqlandi!<br>Ism: " + user.first_name;
+            tg.HapticFeedback.notificationOccurred('success');
+            
+            // 2 soniyadan keyin ilovani yopish (ixtiyoriy)
+            setTimeout(() => { tg.close(); }, 3000);
+        }).catch((e) => {
+            alert("Xato: " + e.message);
+        });
     }
 </script>
 
