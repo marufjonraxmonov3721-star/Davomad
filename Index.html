@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGate QR System</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <style>
+        :root {
+            --tg-theme-button-color: #248b65;
+            --tg-theme-button-text-color: #ffffff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #f5f5f5);
+            color: var(--tg-theme-text-color, #222);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        #reader {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background-color: var(--tg-theme-button-color, #248b65);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🎓 EduGate QR Skaner</h2>
+    <div id="reader"></div>
+    <div id="status">Kameraga ruxsat bering va QR-kodni ko'rsating</div>
+    <button onclick="startScanning()">Skanerni boshlash</button>
+</div>
+
+<script type="module">
+    // Firebase modullari
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Siz taqdim etgan Firebase sozlamalari
+    const firebaseConfig = {
+        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+        authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+        databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+        projectId: "gen-lang-client-0228947349",
+        storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+        messagingSenderId: "253793341504",
+        appId: "1:253793341504:web:709752258000dab44fcfa5",
+        measurementId: "G-DT2JZN1P2T"
+    };
+
+    // Firebase-ni ishga tushirish
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Telegram WebApp sozlamalari
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    window.startScanning = function() {
+        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render(onScanSuccess, onScanError);
+    };
+
+    function onScanSuccess(decodedText) {
+        const user = tg.initDataUnsafe.user || { id: "test_user", first_name: "Maruf" };
+        const timestamp = new Date().toISOString().replace('.', '_');
+
+        // Firebase-ga yozish
+        const attendanceRef = ref(db, 'attendance/' + user.id + '/' + Date.now());
+        set(attendanceRef, {
+            name: user.first_name,
+            qr_content: decodedText,
+            time: new Date().toLocaleString()
+        }).then(() => {
+            document.getElementById('status').innerHTML = "✅ Muvaffaqiyatli saqlandi!";
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert("Ma'lumot saqlandi: " + decodedText);
+        }).catch(err => {
+            alert("Firebase xatosi: " + err.message);
+        });
+    }
+
+    function onScanError(err) {
+        // Xatolikni konsolga chiqarmaslik uchun bo'sh qoldiramiz
+    }
+</script>
+
+</body>
+</html>
