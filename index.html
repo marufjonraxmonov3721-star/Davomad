@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Biometrika</title>
+    <title>EduGate Smart</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        #reader { width: 100%; border-radius: 10px; overflow: hidden; }
-        button { width: 100%; padding: 15px; margin-top: 15px; background: #0088cc; color: white; border: none; border-radius: 8px; font-weight: bold; }
-        #status { margin-top: 15px; color: #555; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        #reader { width: 100%; border-radius: 10px; overflow: hidden; display: none; }
+        button { width: 100%; padding: 15px; margin-top: 15px; background: #248b65; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
+        #status { margin-top: 15px; font-weight: bold; color: #444; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h3>🧬 Biometrik Yo'qlama</h3>
+    <h3>🎓 EduGate Pro</h3>
     <div id="reader"></div>
-    <div id="status">Skanerlashni boshlang</div>
-    <button onclick="startScanning()">QR Skanerni yoqish</button>
+    <div id="status">Tizim yuklanmoqda...</div>
+    <button id="mainBtn" onclick="requestBiometrics()">Barmoq izini sozlash</button>
 </div>
 
 <script type="module">
@@ -40,40 +40,48 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-
-    // Biometrik menejerni tayyorlash
-    const biometry = tg.BiometricManager;
+    const bm = tg.BiometricManager;
 
     tg.ready();
     tg.expand();
 
-    // Skanerni boshlash
+    // 1-QADAM: Biometrika ruxsatini so'rash
+    bm.init(() => {
+        if (bm.isInited && bm.isBiometricAvailable) {
+            document.getElementById('status').innerText = "Biometrika tayyor ✅";
+            document.getElementById('mainBtn').innerText = "QR Skanerni yoqish";
+            document.getElementById('mainBtn').onclick = startScanning;
+        } else {
+            document.getElementById('status').innerText = "Biometrika faol emas ❌";
+            document.getElementById('mainBtn').innerText = "Faqat QR Skaner";
+            document.getElementById('mainBtn').onclick = startScanning;
+        }
+    });
+
+    window.requestBiometrics = function() {
+        bm.requestAccess({ reason: "Darsga kelganingizni tasdiqlash uchun kerak" }, (allowed) => {
+            if (allowed) {
+                tg.showAlert("Ruxsat berildi!");
+                location.reload();
+            }
+        });
+    };
+
     window.startScanning = function() {
+        document.getElementById('reader').style.display = 'block';
         const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
         scanner.render(onScanSuccess);
     };
 
     function onScanSuccess(decodedText) {
-        document.getElementById('status').innerText = "QR o'qildi. Shaxsingizni tasdiqlang...";
-        
-        // Telegram biometrikasini tekshirish
-        biometry.init(() => {
-            if (!biometry.isInited || !biometry.isBiometricAvailable) {
-                // Agar biometrika yo'q bo'lsa, oddiy tasdiqlash
-                if(confirm("Biometrika topilmadi. Davomatni tasdiqlaysizmi?")) {
-                    saveData(decodedText);
-                }
-            } else {
-                // Haqiqiy barmoq izi oynasini chiqarish
-                biometry.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
-                    if (success) {
-                        saveData(decodedText);
-                    } else {
-                        tg.showAlert("Tasdiqlash bajarilmadi!");
-                    }
-                });
-            }
-        });
+        if (bm.isBiometricTokenSaved) {
+            bm.authenticate({ reason: "Shaxsingizni tasdiqlang" }, (success) => {
+                if (success) saveData(decodedText);
+            });
+        } else {
+            // Agar barmoq izi hali saqlanmagan bo'lsa
+            if(confirm("Ma'lumotni saqlaysizmi?")) saveData(decodedText);
+        }
     }
 
     function saveData(qrData) {
@@ -82,10 +90,10 @@
             name: user.first_name,
             data: qrData,
             time: new Date().toLocaleString(),
-            verified: "Fingerprint/FaceID"
+            auth: "Biometric_Verified"
         }).then(() => {
-            document.getElementById('status').innerText = "✅ Hammasi tayyor!";
-            tg.showAlert("Ma'lumot saqlandi!");
+            tg.showAlert("Muvaffaqiyatli saqlandi! 🎓");
+            tg.HapticFeedback.notificationOccurred('success');
         });
     }
 </script>
