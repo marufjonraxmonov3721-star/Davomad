@@ -3,28 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Pro</title>
+    <title>EduGate Biometric Only</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        #reader { width: 100%; border-radius: 10px; overflow: hidden; display: none; margin-bottom: 20px; }
-        button { width: 100%; padding: 15px; margin-top: 10px; background: #248b65; color: white; border: none; border-radius: 10px; font-weight: bold; }
-        #debug { font-size: 12px; color: red; margin-top: 10px; text-align: left; background: #eee; padding: 5px; }
+        :root {
+            --tg-theme-button-color: #248b65;
+            --tg-theme-button-text-color: #ffffff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #f0f2f5);
+            color: var(--tg-theme-text-color, #333);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 18px;
+            background-color: var(--tg-theme-button-color, #248b65);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+        .loader {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #248b65;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h3>🎓 EduGate Smart v2</h3>
-    <div id="reader"></div>
-    <div id="status">Tizim yuklanmoqda...</div>
+    <div class="icon">👤</div>
+    <h2 id="user-name">Xush kelibsiz!</h2>
+    <p>Davomatni tasdiqlash uchun pastdagi tugmani bosing</p>
     
-    <button id="authBtn" onclick="setupBiometrics()">1. Barmoq izini faollashtirish</button>
-    <button id="scanBtn" onclick="startScanning()" style="display:none;">2. QR Skanerni yoqish</button>
+    <div class="loader" id="loader"></div>
+    <div id="status">Tizim tayyor</div>
     
-    <div id="debug"></div>
+    <button id="actionBtn" onclick="handleAction()">Barmoq izini sozlash</button>
 </div>
 
 <script type="module">
@@ -49,73 +101,66 @@
     tg.ready();
     tg.expand();
 
-    function log(msg) { document.getElementById('debug').innerText += "\n> " + msg; }
+    const user = tg.initDataUnsafe.user || { first_name: "Talaba" };
+    document.getElementById('user-name').innerText = user.first_name + "!";
 
     // Biometrika holatini tekshirish
     bm.init(() => {
-        log("Biometrika inited: " + bm.isInited);
-        log("Available: " + bm.isBiometricAvailable);
-        log("Access Granted: " + bm.isAccessGranted);
-        
         if (bm.isAccessGranted) {
-            document.getElementById('authBtn').style.display = 'none';
-            document.getElementById('scanBtn').style.display = 'block';
-            document.getElementById('status').innerText = "Biometrika tayyor ✅";
-        } else {
-            document.getElementById('status').innerText = "Ruxsat berilmagan ⚠️";
+            document.getElementById('actionBtn').innerText = "Davomatni tasdiqlash";
+            document.getElementById('status').innerText = "Biometrika faol ✅";
         }
     });
 
-    window.setupBiometrics = function() {
-        if (!bm.isBiometricAvailable) {
-            tg.showAlert("Qurilmangizda barmoq izi skaneri topilmadi yoki Telegram'ga ruxsat berilmagan.");
-            return;
-        }
-
-        bm.requestAccess({ reason: "Darsga kelganingizni tasdiqlash uchun barmoq izi kerak." }, (granted) => {
-            if (granted) {
-                log("Ruxsat berildi!");
-                // Ruxsat berilgach, biometrik tokenni saqlash uchun bir marta tekshirish kerak
-                bm.authenticate({ reason: "Sozlamani yakunlash uchun barmoq izini bosing" }, (success) => {
-                    if (success) {
-                        location.reload(); // Sahifani yangilab, skaner tugmasini chiqaramiz
-                    }
-                });
-            } else {
-                log("Ruxsat berilmadi.");
-                tg.showAlert("Ruxsat bermasangiz, barmoq izi ishlamaydi.");
-            }
-        });
-    };
-
-    window.startScanning = function() {
-        document.getElementById('reader').style.display = 'block';
-        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        scanner.render((text) => {
-            scanner.clear();
-            // QR o'qilgach, barmoq izini so'rash
-            bm.authenticate({ reason: "Davomatni tasdiqlang" }, (success) => {
+    window.handleAction = function() {
+        if (!bm.isAccessGranted) {
+            // Ruxsat so'rash
+            bm.requestAccess({ reason: "Davomat uchun biometrika kerak" }, (granted) => {
+                if (granted) {
+                    bm.authenticate({ reason: "Sozlashni yakunlang" }, (success) => {
+                        if (success) location.reload();
+                    });
+                }
+            });
+        } else {
+            // Barmoq izi orqali davomat qilish
+            bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
                 if (success) {
-                    saveData(text);
+                    sendToFirebase();
                 } else {
                     tg.showAlert("Tasdiqlash bajarilmadi ❌");
                 }
             });
-        });
+        }
     };
 
-    function saveData(qrData) {
-        const user = tg.initDataUnsafe.user || { id: "test", first_name: "Maruf" };
-        set(ref(db, 'attendance/' + user.id + '/' + Date.now()), {
+    function sendToFirebase() {
+        document.getElementById('loader').style.display = "block";
+        document.getElementById('actionBtn').disabled = true;
+
+        const userId = user.id || "test_user";
+        const now = Date.now();
+
+        set(ref(db, 'attendance/' + userId + '/' + now), {
             name: user.first_name,
-            data: qrData,
+            lastName: user.last_name || "",
+            username: user.username || "",
             time: new Date().toLocaleString(),
-            auth: "Biometric_Success"
+            type: "Biometric_Verification"
         }).then(() => {
-            tg.showAlert("Muvaffaqiyatli saqlandi! 🎓");
+            document.getElementById('loader').style.display = "none";
+            document.getElementById('status').innerText = "✅ Davomat qilindi!";
+            document.getElementById('status').style.color = "green";
             tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert("Rahmat! Davomatingiz muvaffaqiyatli qayd etildi.");
+            
+            // 3 soniyadan keyin ilovani yopish
+            setTimeout(() => tg.close(), 3000);
+        }).catch(err => {
+            alert("Xato: " + err.message);
         });
     }
 </script>
+
 </body>
 </html>
