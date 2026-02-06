@@ -3,77 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Davomad.uz</title>
+    <title>Davomad.uz | Rasmiy</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; --red: #ff3b30; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 90px; }
         .container { padding: 15px; max-width: 450px; margin: 0 auto; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
+        
         .form-group { text-align: left; margin-bottom: 12px; }
-        label { font-size: 12px; font-weight: 600; color: #8e8e93; }
-        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; margin-top: 5px; outline: none; }
-        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        button:active { transform: scale(0.98); }
+        label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; }
+        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
+        
+        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:active { transform: scale(0.97); }
         .btn-primary { background: var(--blue); color: white; }
         .btn-main { background: var(--tg); color: white; }
         .btn-outline { background: white; color: var(--red); border: 1px solid var(--red); }
         .hidden { display: none !important; }
+
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #d1d1d6; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #8e8e93; font-size: 11px; cursor: pointer; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8e8e93; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--blue); }
         .nav-icon { font-size: 22px; }
+
+        .status-text { font-size: 14px; font-weight: bold; margin-top: 10px; }
+        .dist-info { font-size: 13px; color: #555; margin-top: 5px; background: #eee; display: inline-block; padding: 4px 12px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="view-loading" class="card">
-        <p>Tizim yuklanmoqda...</p>
+        <p>Yuklanmoqda...</p>
     </div>
 
     <div id="view-register" class="card hidden">
-        <h2 style="color: var(--blue)">Davomad.uz</h2>
-        <div class="form-group"><label>Ism</label><input type="text" id="reg-name"></div>
-        <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname"></div>
-        <div class="form-group"><label>Rol</label><select id="reg-role"><option value="student">Talaba</option><option value="teacher">O'qituvchi</option></select></div>
-        <button class="btn-primary" onclick="completeRegistration()">Ro'yxatdan o'tish</button>
+        <h2 style="color: var(--blue); margin-top: 0;">Davomad.uz</h2>
+        <div class="form-group"><label>Ism</label><input type="text" id="reg-name" placeholder="Ismingiz"></div>
+        <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname" placeholder="Familiyangiz"></div>
+        <div class="form-group">
+            <label>Rol</label>
+            <select id="reg-role">
+                <option value="student">Talaba</option>
+                <option value="teacher">O'qituvchi</option>
+            </select>
+        </div>
+        <button class="btn-primary" onclick="handleRegistration()">Ro'yxatdan o'tish</button>
     </div>
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <h2 id="st-welcome">Salom!</h2>
-            <div style="font-size: 60px; margin: 15px 0;">📍</div>
-            <div id="loc-status" style="font-size: 14px; font-weight: bold; color: var(--red);">GPS qidirilmoqda...</div>
-            <p id="dist-info" style="font-size: 12px; color: #888;"></p>
-            <button class="btn-main" onclick="processAttendance()">Borligimni tasdiqlash (Bio)</button>
+            <h2 id="st-welcome" style="margin-top:0">Xush kelibsiz!</h2>
+            <div style="font-size: 60px; margin: 10px 0;">📍</div>
+            <div id="loc-status" class="status-text" style="color: var(--red);">GPS qidirilmoqda...</div>
+            <div id="dist-display" class="dist-info">Masofa: --</div>
+            <p style="font-size: 11px; color: #999; margin-top: 8px;" id="accuracy-info"></p>
+            <button class="btn-main" onclick="tryAttendance()">Borligimni tasdiqlash (Bio)</button>
         </div>
     </div>
 
     <div id="tab-teacher" class="tab-content hidden">
         <div class="card">
-            <h2 style="margin-top:0">Bugun kelganlar</h2>
-            <div id="attendance-list" style="text-align: left;"></div>
+            <h2 style="margin-top:0">Bugungi davomat</h2>
+            <div id="attendance-list" style="text-align: left; min-height: 50px;"></div>
         </div>
     </div>
 
     <div id="tab-settings" class="tab-content hidden">
         <div class="card">
-            <h2>Profil</h2>
-            <div style="text-align: left; margin-bottom: 15px;">
-                <p><b>Foydalanuvchi:</b> <span id="set-full-name">...</span></p>
-                <p><b>Rol:</b> <span id="set-user-role">...</span></p>
+            <h2 style="margin-top:0">Sozlamalar</h2>
+            <div style="text-align: left; padding: 10px 0;">
+                <p><b>Ism:</b> <span id="set-name">...</span></p>
+                <p><b>Rol:</b> <span id="set-role">...</span></p>
             </div>
-            <button class="btn-outline" onclick="logout()">Tizimdan chiqish</button>
+            <button class="btn-outline" onclick="logoutSystem()">Tizimdan chiqish</button>
         </div>
     </div>
 </div>
 
 <nav id="bottom-nav" class="bottom-nav hidden">
-    <div class="nav-item active" id="nav-home" onclick="switchTab('main')">
+    <div class="nav-item active" id="nav-main" onclick="switchTab('main')">
         <span class="nav-icon">🏠</span><span>Asosiy</span>
     </div>
-    <div class="nav-item" onclick="tg.showAlert('Tarix bo\'limi tez kunda ishga tushadi!')">
+    <div class="nav-item" onclick="tg.showAlert('Tarix bo\'limi tez kunda...')">
         <span class="nav-icon">📊</span><span>Tarix</span>
     </div>
     <div class="nav-item" id="nav-set" onclick="switchTab('settings')">
@@ -100,128 +113,141 @@
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
 
-    const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "test_user_id";
     const UNI_LOC = { lat: 39.800911, lon: 64.426838 }; // Osiyo Xalqaro Universiteti
-    let globalUser = null;
-    let currentDist = 999;
+    const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "user_" + Math.floor(Math.random()*1000);
+    
+    let currentUser = null;
+    let currentDistKm = 999;
 
-    // ILOVANI ISHGA TUSHIRISH
-    (async function() {
+    (async function init() {
         tg.expand();
         const snap = await get(ref(db, `users/${userId}`));
         if (snap.exists()) {
-            globalUser = snap.val();
-            renderUI();
+            currentUser = snap.val();
+            showApp();
         } else {
             document.getElementById('view-loading').classList.add('hidden');
             document.getElementById('view-register').classList.remove('hidden');
         }
-        startFastTracking();
+        startGPS();
     })();
 
-    window.completeRegistration = async () => {
+    window.handleRegistration = async () => {
         const name = document.getElementById('reg-name').value;
         const surname = document.getElementById('reg-surname').value;
         const role = document.getElementById('reg-role').value;
-        if(!name || !surname) return tg.showAlert("Ma'lumotlarni to'liq kiriting!");
-        
-        globalUser = { name, surname, role, userId };
-        await set(ref(db, `users/${userId}`), globalUser);
-        renderUI();
+        if (!name || !surname) return tg.showAlert("Ma'lumotlarni to'ldiring!");
+        currentUser = { name, surname, role, userId };
+        await set(ref(db, `users/${userId}`), currentUser);
+        showApp();
     };
 
-    function renderUI() {
+    function showApp() {
         document.getElementById('view-loading').classList.add('hidden');
         document.getElementById('view-register').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
-        
-        document.getElementById('set-full-name').innerText = `${globalUser.name} ${globalUser.surname}`;
-        document.getElementById('set-user-role').innerText = globalUser.role === 'teacher' ? "O'qituvchi" : "Talaba";
-        
+        document.getElementById('set-name').innerText = `${currentUser.name} ${currentUser.surname}`;
+        document.getElementById('set-role').innerText = currentUser.role === 'teacher' ? "O'qituvchi" : "Talaba";
         switchTab('main');
     }
 
-    window.switchTab = (target) => {
+    window.switchTab = (tab) => {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-        if (target === 'main') {
-            document.getElementById('nav-home').classList.add('active');
-            if (globalUser.role === 'teacher') {
+        if (tab === 'main') {
+            document.getElementById('nav-main').classList.add('active');
+            if (currentUser.role === 'teacher') {
                 document.getElementById('tab-teacher').classList.remove('hidden');
-                watchAttendance();
+                loadTeacherList();
             } else {
                 document.getElementById('tab-student').classList.remove('hidden');
-                document.getElementById('st-welcome').innerText = `Salom, ${globalUser.name}!`;
+                document.getElementById('st-welcome').innerText = `Salom, ${currentUser.name}!`;
             }
-        } else if (target === 'settings') {
+        } else {
             document.getElementById('nav-set').classList.add('active');
             document.getElementById('tab-settings').classList.remove('hidden');
         }
     };
 
-    function watchAttendance() {
+    function startGPS() {
+        navigator.geolocation.watchPosition(pos => {
+            currentDistKm = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_LOC.lat, UNI_LOC.lon);
+            const statusEl = document.getElementById('loc-status');
+            const distEl = document.getElementById('dist-display');
+            const accEl = document.getElementById('accuracy-info');
+
+            // Masofani formatlash
+            let displayStr = "";
+            let meters = Math.round(currentDistKm * 1000);
+
+            if (currentDistKm >= 1) {
+                displayStr = `Masofa: ${currentDistKm.toFixed(2)} km`;
+            } else {
+                displayStr = `Masofa: ${meters} metr`;
+            }
+
+            if (distEl) distEl.innerText = displayStr;
+            if (accEl) accEl.innerText = `GPS aniqligi: ±${Math.round(pos.coords.accuracy)}m`;
+
+            if (statusEl) {
+                if (meters <= 150) {
+                    statusEl.innerText = "Siz universitetdasiz ✅";
+                    statusEl.style.color = "var(--tg)";
+                } else {
+                    statusEl.innerText = "Siz universitetda emassiz ❌";
+                    statusEl.style.color = "var(--red)";
+                }
+            }
+        }, null, { enableHighAccuracy: true, maximumAge: 0 });
+    }
+
+    window.tryAttendance = () => {
+        if (Math.round(currentDistKm * 1000) > 150) {
+            return tg.showAlert("Tasdiqlash uchun universitetga yaqinroq boring!");
+        }
+        bm.init(() => {
+            bm.authenticate({ reason: "Darsda ekaningizni tasdiqlang" }, async ok => {
+                if (ok) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const time = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+                    await set(ref(db, `attendance/${today}/${userId}`), {
+                        name: `${currentUser.name} ${currentUser.surname}`,
+                        time: time
+                    });
+                    tg.showAlert("Davomat qayd etildi! ✅");
+                }
+            });
+        });
+    };
+
+    function loadTeacherList() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
-            const listDiv = document.getElementById('attendance-list');
-            listDiv.innerHTML = snap.exists() ? "" : "<p style='color:#888'>Hali hech kim kelmadi.</p>";
+            const list = document.getElementById('attendance-list');
+            list.innerHTML = snap.exists() ? "" : "<p style='color:#888'>Hali hech kim kelmadi.</p>";
             snap.forEach(child => {
-                const val = child.val();
-                listDiv.innerHTML += `<div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                    <span><b>${val.name}</b></span>
-                    <span style="color:var(--tg); font-size: 13px;">${val.time}</span>
+                const data = child.val();
+                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                    <b>${data.name}</b> <span style="color:var(--tg)">${data.time}</span>
                 </div>`;
             });
         });
     }
 
-    window.processAttendance = () => {
-        if(currentDist > 0.15) return tg.showAlert("Siz universitet hududida emassiz!");
-        bm.init(() => {
-            bm.authenticate({ reason: "Darsda ekaningizni tasdiqlang" }, async ok => {
-                if(ok) {
-                    const today = new Date().toISOString().split('T')[0];
-                    await set(ref(db, `attendance/${today}/${userId}`), {
-                        name: `${globalUser.name} ${globalUser.surname}`,
-                        time: new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'})
-                    });
-                    tg.showAlert("Muvaffaqiyatli qayd etildi! ✅");
-                }
-            });
+    window.logoutSystem = async () => {
+        tg.showConfirm("Chiqmoqchimisiz?", async (yes) => {
+            if (yes) { await remove(ref(db, `users/${userId}`)); location.reload(); }
         });
     };
 
-    function startFastTracking() {
-        navigator.geolocation.watchPosition(pos => {
-            currentDist = getDistance(pos.coords.latitude, pos.coords.longitude, UNI_LOC.lat, UNI_LOC.lon);
-            const status = document.getElementById('loc-status');
-            const info = document.getElementById('dist-info');
-            if(status) {
-                if(currentDist <= 0.15) {
-                    status.innerText = "Siz universitetdasiz ✅";
-                    status.style.color = "var(--tg)";
-                } else {
-                    status.innerText = "Siz universitetda emassiz ❌";
-                    status.style.color = "var(--red)";
-                }
-                info.innerText = `Masofa: ${Math.round(currentDist * 1000)} metr`;
-            }
-        }, null, { enableHighAccuracy: true });
-    }
-
-    window.logout = async () => {
-        tg.showConfirm("Tizimdan chiqmoqchimisiz?", async (yes) => {
-            if(yes) {
-                await remove(ref(db, `users/${userId}`));
-                location.reload();
-            }
-        });
-    };
-
-    function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 </script>
 </body>
