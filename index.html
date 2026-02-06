@@ -15,9 +15,8 @@
         :root { --oxu-blue: #0047AB; --gold: #D4AF37; }
         body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; overflow: hidden; }
         .header { background: linear-gradient(135deg, #002147, #0047AB); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--gold); }
-        #map { height: calc(100vh - 170px); width: 100%; z-index: 1; }
+        #map { height: calc(100vh - 175px); width: 100%; z-index: 1; }
         
-        /* Profil rasmli marker stili */
         .custom-marker { 
             border-radius: 50%; 
             border: 3px solid var(--gold); 
@@ -28,8 +27,10 @@
         .my-marker { border-color: #007AFF; }
 
         .controls { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; background: var(--oxu-blue); color: white; }
-        .status-badge { position: absolute; top: 80px; left: 10px; z-index: 1001; padding: 5px 12px; border-radius: 15px; font-size: 11px; background: white; border: 1px solid #ddd; }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; background: var(--oxu-blue); color: white; cursor: pointer; }
+        .btn-main:disabled { background: #ccc; }
+        
+        .status-badge { position: absolute; top: 80px; left: 10px; z-index: 1001; padding: 5px 12px; border-radius: 15px; font-size: 11px; background: white; border: 1px solid #ddd; font-weight: bold; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -48,11 +49,11 @@
 </div>
 
 <div id="tab-main" class="hidden">
-    <div id="gps-status" class="status-badge">Joylashuv yuklanmoqda...</div>
+    <div id="gps-status" class="status-badge">GPS yuklanmoqda...</div>
     <div id="map"></div>
     <div class="controls">
         <p id="dist-info" style="margin:0 0 10px; font-size: 13px; color: #555; text-align: center; font-weight: bold;"></p>
-        <button class="btn-main" onclick="handleAttendance()">DAVOMATNI TASDIQLASH</button>
+        <button id="btn-action" class="btn-main" onclick="handleAttendance()">DAVOMATNI TASDIQLASH</button>
     </div>
 </div>
 
@@ -70,12 +71,14 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "debug_" + Math.floor(Math.random()*100);
+    const userId = tg.initDataUnsafe.user?.id || "user_" + Math.floor(Math.random()*1000);
     const photoUrl = tg.initDataUnsafe.user?.photo_url || "https://ui-avatars.com/api/?name=User";
 
-    const UNI = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; //
-    let user = null, map, routingControl, myMarker, firstLoad = true;
+    const UNI = { lat: 39.800911, lon: 64.426838, radius: 0.2 };
+    let user = null, map, routingControl, myMarker;
     let peerMarkers = {};
+    let firstLoad = true;
+    let myCurrentCoords = null;
 
     async function init() {
         tg.expand();
@@ -100,24 +103,47 @@
         
         map = L.map('map', { zoomControl: true }).setView([UNI.lat, UNI.lon], 16);
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-        L.circle([UNI.lat, UNI.lon], { color: 'cyan', radius: UNI.radius * 1000, fillOpacity: 0.1 }).addTo(map);
+        
+        // Universitet doirasi (Sariq rangda, rasmga mos)
+        L.circle([UNI.lat, UNI.lon], { color: '#D4AF37', radius: UNI.radius * 1000, fillOpacity: 0.1 }).addTo(map)
+            .bindPopup("OXU Markazi");
 
         navigator.geolocation.watchPosition(async pos => {
             const { latitude: lat, longitude: lon } = pos.coords;
-            const dist = calculateDist(lat, lon, UNI.lat, UNI.lon);
-            window.myPos = { lat, lon };
+            myCurrentCoords = { lat, lon };
+            const distToUni = calculateDist(lat, lon, UNI.lat, UNI.lon);
 
-            await set(ref(db, `live_locations/${userId}`), { lat, lon, name: user.name, photo: photoUrl });
-            onDisconnect(ref(db, `live_locations/${userId}`)).remove();
+            // Bazaga yangilash
+            const liveRef = ref(db, `live_locations/${userId}`);
+            await set(liveRef, { lat, lon, name: user.name, photo: photoUrl });
+            onDisconnect(liveRef).remove();
 
-            updateMyMarker(lat, lon, dist);
-            if(firstLoad) { map.panTo([lat, lon]); firstLoad = false; }
-        }, null, { enableHighAccuracy: true });
+            updateMyMarker(lat, lon, distToUni);
 
-        // Kursdoshlarni kuzatish
+            // Faqat birinchi marta xaritani markazga oladi (erkinlik uchun)
+            if(firstLoad) {
+                map.panTo([lat, lon]);
+                firstLoad = false;
+            }
+        }, err => tg.showAlert("GPS ruxsati kerak!"), { enableHighAccuracy: true });
+
+            // Boshqalarni real vaqtda kuzatish
         onValue(ref(db, `live_locations`), snap => {
+            if(!snap.exists()) return;
+            const currentLiveIds = [];
             snap.forEach(child => {
-                if(child.key !== userId.toString()) updatePeerMarker(child.key, child.val());
+                const id = child.key;
+                currentLiveIds.push(id);
+                if(id !== userId.toString()) {
+                    updatePeerMarker(id, child.val());
+                }
+            });
+            // Offline bo'lganlarni o'chirish
+            Object.keys(peerMarkers).forEach(id => {
+                if(!currentLiveIds.includes(id)) {
+                    map.removeLayer(peerMarkers[id]);
+                    delete peerMarkers[id];
+                }
             });
         });
     }
@@ -129,19 +155,39 @@
             html: `<div style="background-image: url(${photoUrl}); width:40px; height:40px; background-size:cover; border-radius:50%;"></div>`,
             iconSize: [46, 46]
         });
-        myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("Siz");
+        myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("Siz shu yerdasiz");
+
+        // Yo'l chizig'i (Dinamik)
+        if(routingControl) map.removeControl(routingControl);
+        routingControl = L.Routing.control({
+            waypoints: [ L.latLng(lat, lon), L.latLng(UNI.lat, UNI.lon) ],
+            lineOptions: { styles: [{ color: '#D4AF37', weight: 5, opacity: 0.7 }] },
+            show: false, addWaypoints: false, draggableWaypoints: false
+        }).addTo(map);
 
         document.getElementById('dist-info').innerText = `Universitetgacha: ${Math.round(dist*1000)} metr`;
         const badge = document.getElementById('gps-status');
-        badge.innerText = dist <= UNI.radius ? "✅ HUDUDDASIZ" : "❌ HUDUDDAN TASHQARIDA";
-        badge.style.color = dist <= UNI.radius ? "green" : "red";
+        const btn = document.getElementById('btn-action');
+
+        if(dist <= UNI.radius) {
+            badge.innerText = "✅ HUDUDDASIZ";
+            badge.style.color = "green";
+            btn.disabled = false;
+        } else {
+            badge.innerText = "❌ HUDUDDAN TASHQARIDA";
+            badge.style.color = "red";
+            btn.disabled = false; // Test uchun ochiq qoldirildi, lekin mantiqan bloklanadi
+        }
     }
 
     function updatePeerMarker(id, data) {
         if(peerMarkers[id]) map.removeLayer(peerMarkers[id]);
         
-        const distToPeer = calculateDist(window.myPos.lat, window.myPos.lon, data.lat, data.lon);
-        const distLabel = distToPeer < 1 ? `${Math.round(distToPeer*1000)} m` : `${distToPeer.toFixed(1)} km`;
+        let distLabel = "Noma'lum";
+        if(myCurrentCoords) {
+            const distToPeer = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, data.lat, data.lon);
+            distLabel = distToPeer < 1 ? `${Math.round(distToPeer*1000)} m` : `${distToPeer.toFixed(1)} km`;
+        }
 
         const icon = L.divIcon({
             className: 'custom-marker',
@@ -154,7 +200,7 @@
     }
 
     function calculateDist(lat1, lon1, lat2, lon2) {
-        const R = 6371;
+        const R = 6371; // km
         const dLat = (lat2-lat1) * Math.PI / 180;
         const dLon = (lon2-lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
@@ -162,13 +208,22 @@
     }
 
     window.handleAttendance = () => {
-        const dist = calculateDist(window.myPos.lat, window.myPos.lon, UNI.lat, UNI.lon);
-        if(dist > UNI.radius) return tg.showAlert("Siz hali uzoqdasiz!");
+        if(!myCurrentCoords) return;
+        const dist = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, UNI.lat, UNI.lon);
+        
+        if(dist > UNI.radius) {
+            return tg.showAlert(`Xatolik! Siz universitetdan ${Math.round(dist*1000)} metr uzoqdasiz.`);
+        }
+
         tg.showConfirm("Davomatni tasdiqlaysizmi?", async (ok) => {
             if(ok) {
                 const today = new Date().toISOString().split('T')[0];
-                await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time: new Date().toLocaleTimeString() });
-                tg.showAlert("Tasdiqlandi! ✅");
+                await set(ref(db, `attendance/${today}/${userId}`), { 
+                    name: user.name, 
+                    time: new Date().toLocaleTimeString(),
+                    id: userId
+                });
+                tg.showAlert("Davomat muvaffaqiyatli qayd etildi! ✅");
             }
         });
     };
