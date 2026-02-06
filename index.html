@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Pro: GPS + Bio</title>
+    <title>EduGate Pro: GPS + Biometrika</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg-color: #248b65; }
@@ -51,7 +51,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Firebase sozlamalaringiz
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -62,10 +61,11 @@
         appId: "1:253793341504:web:709752258000dab44fcfa5"
     };
 
-    // --- UNIVERSITET SOZLAMALARI ---
-    const UNI_LAT = 41.3111; // O'zingiznikiga o'zgartiring
-    const UNI_LON = 69.2797; // O'zingiznikiga o'zgartiring
-    const MAX_DIST = 0.3;     // Ruxsat etilgan radius (300 metr)
+    // --- UNIVERSITET KOORDINATALARI ---
+    // Bu yerga o'zingizning aniq koordinatalaringizni qo'ying
+    const UNI_LAT = 41.3111; 
+    const UNI_LON = 69.2797; 
+    const MAX_DIST = 0.3; // 300 metr radius
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -78,7 +78,6 @@
     document.getElementById('user-name').innerText = user.first_name;
     const today = new Date().toISOString().split('T')[0];
 
-    // 1. Dastlabki tekshiruv
     bm.init(() => {
         const checkRef = ref(db, `attendance/${user.id}/${today}`);
         get(checkRef).then((snapshot) => {
@@ -96,7 +95,6 @@
         document.getElementById('actionBtn').disabled = disabled;
     }
 
-    // 2. Asosiy jarayon
     window.handleAction = function() {
         if (!bm.isAccessGranted) {
             bm.requestAccess({ reason: "Biometrika kerak" }, (ok) => { if(ok) location.reload(); });
@@ -110,13 +108,13 @@
             const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_LAT, UNI_LON);
             
             if (dist <= MAX_DIST) {
-                bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
+                bm.authenticate({ reason: "Universitetda ekanligingiz tasdiqlandi. Barmoq izini qo'ying." }, (success) => {
                     if (success) saveAttendance(pos.coords.latitude, pos.coords.longitude);
                     else document.getElementById('loader').style.display = "none";
                 });
             } else {
                 document.getElementById('loader').style.display = "none";
-                tg.showAlert(`Siz universitet hududida emassiz! Masofa: ${dist.toFixed(2)} km`);
+                tg.showAlert(`Siz universitet hududida emassiz! \nMasofa: ${dist.toFixed(2)} km`);
                 document.getElementById('status').innerText = "❌ Hududdan tashqaridasiz";
             }
         }, (err) => {
@@ -125,7 +123,6 @@
         }, { enableHighAccuracy: true });
     };
 
-    // Masofa hisoblash
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -142,7 +139,7 @@
             verified: "GPS+Bio"
         }).then(() => {
             tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Muvaffaqiyatli! Bugun darsda ekansiz.");
+            tg.showAlert("Muvaffaqiyatli! Davomat qayd etildi.");
             location.reload();
         });
     }
