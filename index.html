@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU Davomat | QR & Gallery</title>
+    <title>OXU Davomat Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
         :root { 
             --oxu-blue: #0047AB; 
@@ -17,69 +15,73 @@
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
         .header { background: var(--oxu-gradient); color: white; padding: 30px 20px; text-align: center; border-bottom: 4px solid var(--gold); border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
         .container { padding: 15px; max-width: 500px; margin: -30px auto 0; }
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
+        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
         
-        button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        .btn-main { background: var(--oxu-blue); color: white; }
-        .btn-gallery { background: #6c757d; color: white; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-main { background: var(--oxu-blue); color: white; box-shadow: 0 4px 15px rgba(0,71,171,0.3); }
+        .btn-main:active { transform: scale(0.98); }
         .hidden { display: none !important; }
 
-        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; background: #fff3e0; color: #ef6c00; }
+        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 15px; }
+        .st-ok { background: #e8f5e9; color: #2e7d32; }
+        .st-err { background: #ffebee; color: #c62828; }
+        .st-wait { background: #e3f2fd; color: #1565c0; }
+
+        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 15px; color: #999; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--oxu-blue); font-weight: bold; }
         
-        input[type="file"] { display: none; }
-        #canvas-helper { display: none; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; box-sizing: border-box; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 id="header-name" style="margin:0; font-size: 18px;">OXU Davomat</h2>
-    <p id="header-role" style="margin:5px 0 0; font-size: 12px; opacity: 0.8;"></p>
+    <h2 id="header-name" style="margin:0; font-size: 20px; letter-spacing: 0.5px;">OSIYO XALQARO UNIVERSITETI</h2>
+    <p id="header-role" style="margin:5px 0 0; font-size: 13px; opacity: 0.9; font-weight: 300;"></p>
 </div>
 
 <div class="container">
     <div id="view-reg" class="card hidden">
-        <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
-        <input type="text" id="reg-name" placeholder="F.I.SH" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-        <select id="reg-role" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
+        <h3 style="color: var(--oxu-blue); margin-top: 0;">Ro'yxatdan o'tish</h3>
+        <input type="text" id="reg-name" placeholder="F.I.SH">
+        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" inputmode="numeric">
+        <select id="reg-role">
             <option value="student">Talaba</option>
             <option value="teacher">O'qituvchi</option>
         </select>
-        <button class="btn-main" onclick="saveUser()">Tizimga kirish</button>
+        <button class="btn-main" onclick="saveUser()">TIZIMGA KIRISH</button>
     </div>
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <div class="status-badge">TEKSHIRUV: QR SKANER</div>
-            <button class="btn-main" onclick="openQRScanner()">📷 JONLI SKANER</button>
-            <button class="btn-gallery" onclick="document.getElementById('gallery-input').click()">🖼️ GALERIYADAN TANLASH</button>
-            <input type="file" id="gallery-input" accept="image/*" onchange="readQRFromGallery(this)">
+            <div id="gps-status" class="status-badge st-wait">GPS: Tekshirilmoqda...</div>
+            <p id="dist-info" style="font-size: 13px; color: #666; margin-bottom: 15px;"></p>
+            <button id="btn-checkin" class="btn-main" onclick="startCheckIn()">DAVOMATNI TASDIQLASH</button>
+            <p style="font-size: 11px; color: #999; margin-top: 10px;">Hududni aniqlash uchun GPS yoqilgan bo'lishi shart.</p>
         </div>
-        <canvas id="canvas-helper"></canvas>
-        <div class="card">
-            <h4 style="margin:0 0 10px; text-align: left;">Oxirgi tarix</h4>
+        <div class="card" style="text-align: left;">
+            <h4 style="margin:0 0 15px; color: var(--oxu-blue);">Oxirgi 7 kunlik tarix</h4>
             <div id="history-list"></div>
         </div>
     </div>
 
     <div id="tab-teacher" class="tab-content hidden">
         <div class="card">
-            <h3>Dars QR-Kodi</h3>
-            <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0;"></div>
-            <button class="btn-main" onclick="exportToExcel()" style="background:#1D6F42">EXCEL YUKLASH</button>
+            <h3 style="margin-top:0;">Bugun kelganlar</h3>
+            <button class="btn-main" onclick="exportExcel()" style="background:#1D6F42; margin-bottom: 15px;">EXCEL YUKLASH (.xlsx)</button>
+            <div id="attendance-list" style="text-align: left;"></div>
         </div>
-        <div id="attendance-list" class="card" style="text-align:left; font-size:14px;"></div>
     </div>
 </div>
 
 <nav id="bottom-nav" class="nav hidden">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')">🏠<br>Asosiy</div>
-    <div class="nav-item" onclick="logout()">⚙️<br>Chiqish</div>
+    <div class="nav-item" onclick="logout()">🚪<br>Chiqish</div>
 </nav>
+
+<audio id="sound-success" src="https://www.myinstants.com/media/sounds/success-1-6297.mp3"></audio>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -95,7 +97,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "dev_user";
+    const userId = tg.initDataUnsafe.user?.id || "user_test";
+    
+    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; // 200 metr
     let user = null;
 
     async function init() {
@@ -114,7 +118,7 @@
         const name = document.getElementById('reg-name').value;
         const pin = document.getElementById('reg-pin').value;
         const role = document.getElementById('reg-role').value;
-        if(!name || pin.length < 4) return tg.showAlert("Ma'lumotlar to'liq emas!");
+        if(!name || pin.length < 4) return tg.showAlert("Ma'lumotlarni to'liq kiriting!");
         user = { name, pin, role, id: userId };
         await set(ref(db, `users/${userId}`), user);
         renderApp();
@@ -124,86 +128,97 @@
         document.getElementById('view-reg').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
         document.getElementById('header-name').innerText = user.name;
-        document.getElementById('header-role').innerText = user.role;
+        document.getElementById('header-role').innerText = user.role === 'teacher' ? "O'qituvchi paneli" : "Talaba paneli";
         switchTab('home');
-        if(user.role === 'teacher') startTeacherMode();
-        else loadHistory();
+        if(user.role === 'teacher') loadTeacherData();
+        else {
+            loadHistory();
+            checkGPSOnce();
+        }
     }
 
-    // --- TALABA: JONLI SKANER ---
-    window.openQRScanner = () => {
-        tg.showScanQrPopup({ text: "O'qituvchi QR kodini skanerlang" }, (data) => {
-            if(data === "OXU_VERIFIED_LESSON") {
-                processAttendance();
+    // --- GPS TEKSHIRUVI ---
+    function checkGPSOnce() {
+        const badge = document.getElementById('gps-status');
+        const info = document.getElementById('dist-info');
+        
+        navigator.geolocation.getCurrentPosition(pos => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            // Masofani hisoblash (km da)
+            const dist = Math.sqrt(Math.pow(lat - TARGET.lat, 2) + Math.pow(lon - TARGET.lon, 2)) * 111;
+            
+            if(dist <= TARGET.radius) {
+                badge.innerText = "✅ UNIVERSITET HUDUDIDASIZ";
+                badge.className = "status-badge st-ok";
+                info.innerText = `Masofa: ${Math.round(dist * 1000)}m`;
                 return true;
+            } else {
+                badge.innerText = "❌ HUDUDDAN TASHQARIDASIZ";
+                badge.className = "status-badge st-err";
+                info.innerText = `Masofa: ${Math.round(dist * 1000)}m. Davomat uchun hududga kiring.`;
+                return false;
             }
-            tg.showAlert("Noto'g'ri QR kod!");
-        });
-    };
-
-    // --- TALABA: GALERIYADAN O'QISH ---
-    window.readQRFromGallery = (input) => {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.getElementById('canvas-helper');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                
-                if (code && code.data === "OXU_VERIFIED_LESSON") {
-                    processAttendance();
-                } else {
-                    tg.showAlert("Rasmda yaroqli QR kod topilmadi!");
-                }
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    function processAttendance() {
-        tg.BiometricManager.init(() => {
-            tg.BiometricManager.authenticate({ reason: "OXU Davomat" }, async (ok) => {
-                if(ok) {
-                    const today = new Date().toISOString().split('T')[0];
-                    const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
-                    await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time, date: today });
-                    tg.showAlert("Davomat tasdiqlandi! ✅");
-                    loadHistory();
-                }
-            });
-        });
+        }, () => {
+            badge.innerText = "❌ GPS RUXSATI YO'Q";
+            badge.className = "status-badge st-err";
+        }, { enableHighAccuracy: true });
     }
 
-    // --- O'QITUVCHI ---
-    function startTeacherMode() {
-        new QRCode(document.getElementById("qrcode"), {
-            text: "OXU_VERIFIED_LESSON",
-            width: 200, height: 200,
-            colorDark : "#0047AB",
-        });
+    // --- DAVOMAT JARAYONI (QR-SKANERSIZ) ---
+    window.startCheckIn = () => {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // 1. Qayta GPS tekshiruvi (xavfsizlik uchun)
+        navigator.geolocation.getCurrentPosition(pos => {
+            const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
+            
+            if(dist > TARGET.radius) {
+                return tg.showAlert("Siz hali ham universitet hududida emassiz!");
+            }
+
+            // 2. Bir kunda bir marta tekshiruvi
+            get(ref(db, `attendance/${today}/${userId}`)).then(snap => {
+                if(snap.exists()) return tg.showAlert("Bugun allaqachon davomatdan o'tgansiz!");
+
+                // 3. Biometrik tasdiqlash
+                tg.BiometricManager.init(() => {
+                    tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik tizimi" }, async (ok) => {
+                        if(ok) {
+                            const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+                            await set(ref(db, `attendance/${today}/${userId}`), { 
+                                name: user.name, 
+                                time: time, 
+                                date: today 
+                            });
+                            document.getElementById('sound-success').play();
+                            tg.showAlert("Davomat muvaffaqiyatli qayd etildi! ✅");
+                            loadHistory();
+                        }
+                    });
+                });
+            });
+        }, () => tg.showAlert("GPS xatosi!"), { enableHighAccuracy: true });
+    };
+
+    // --- O'QITUVCHI FUNKSIYALARI ---
+    function loadTeacherData() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
-            list.innerHTML = "<b>Bugun kelganlar:</b><br>";
+            list.innerHTML = "";
+            if(!snap.exists()) list.innerHTML = "Bugun hali hech kim kelmadi.";
             snap.forEach(c => {
-                list.innerHTML += `<div style="padding:5px 0;">• ${c.val().name} (${c.val().time})</div>`;
+                list.innerHTML += `<div class="history-item"><span>${c.val().name}</span><b>${c.val().time}</b></div>`;
             });
         });
     }
 
-    window.exportToExcel = () => {
+    window.exportExcel = () => {
         const today = new Date().toISOString().split('T')[0];
         get(ref(db, `attendance/${today}`)).then(snap => {
             const data = [];
-            snap.forEach(c => data.push({ "F.I.SH": c.val().name, "Vaqt": c.val().time }));
+            snap.forEach(c => data.push({ "F.I.SH": c.val().name, "Kelgan vaqti": c.val().time }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Davomat");
@@ -211,29 +226,31 @@
         });
     };
 
+    // --- UMUMIY ---
+    function loadHistory() {
+        onValue(ref(db, `attendance`), snap => {
+            const list = document.getElementById('history-list');
+            list.innerHTML = "";
+            let items = [];
+            snap.forEach(day => {
+                if(day.hasChild(userId)) items.push(day.child(userId).val());
+            });
+            items.reverse().slice(0, 7).forEach(d => {
+                list.innerHTML += `<div class="history-item"><span>${d.date}</span><b>${d.time}</b></div>`;
+            });
+        });
+    }
+
     window.switchTab = (t) => {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         if(t === 'home') document.getElementById(user.role === 'teacher' ? 'tab-teacher' : 'tab-student').classList.remove('hidden');
     };
 
     window.logout = async () => {
-        tg.showConfirm("Chiqasizmi?", async (ok) => {
+        tg.showConfirm("Tizimdan chiqasizmi?", async (ok) => {
             if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
         });
     };
-
-    function loadHistory() {
-        onValue(ref(db, `attendance`), snap => {
-            const list = document.getElementById('history-list');
-            list.innerHTML = "";
-            snap.forEach(day => {
-                if(day.hasChild(userId)) {
-                    const d = day.child(userId).val();
-                    list.innerHTML = `<div style="padding:10px; border-bottom:1px solid #eee;">${d.date} - <b>${d.time}</b></div>` + list.innerHTML;
-                }
-            });
-        });
-    }
 </script>
 </body>
 </html>
