@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU Davomat Pro</title>
+    <title>OXU | Secure Attendance</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -18,35 +18,34 @@
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
         
         button { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        .btn-main { background: var(--oxu-blue); color: white; box-shadow: 0 4px 15px rgba(0,71,171,0.3); }
+        .btn-main { background: var(--oxu-blue); color: white; }
         .btn-main:active { transform: scale(0.98); }
         .hidden { display: none !important; }
 
         .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 15px; }
         .st-ok { background: #e8f5e9; color: #2e7d32; }
         .st-err { background: #ffebee; color: #c62828; }
-        .st-wait { background: #e3f2fd; color: #1565c0; }
 
         .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 15px; color: #999; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--oxu-blue); font-weight: bold; }
         
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; box-sizing: border-box; font-size: 16px; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 id="header-name" style="margin:0; font-size: 20px; letter-spacing: 0.5px;">OSIYO XALQARO UNIVERSITETI</h2>
-    <p id="header-role" style="margin:5px 0 0; font-size: 13px; opacity: 0.9; font-weight: 300;"></p>
+    <h2 id="header-name" style="margin:0; font-size: 18px;">OXU DAVOMAD TIZIMI</h2>
+    <p id="header-role" style="margin:5px 0 0; font-size: 12px; opacity: 0.8;"></p>
 </div>
 
 <div class="container">
     <div id="view-reg" class="card hidden">
         <h3 style="color: var(--oxu-blue); margin-top: 0;">Ro'yxatdan o'tish</h3>
-        <input type="text" id="reg-name" placeholder="F.I.SH">
-        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" inputmode="numeric">
+        <input type="text" id="reg-name" placeholder="F.I.SH (Masalan: Maruf Raxmonov)">
+        <input type="password" id="reg-pin" placeholder="PIN-kod yarating (4 xonali)" maxlength="4" inputmode="numeric">
         <select id="reg-role">
             <option value="student">Talaba</option>
             <option value="teacher">O'qituvchi</option>
@@ -56,20 +55,19 @@
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <div id="gps-status" class="status-badge st-wait">GPS: Tekshirilmoqda...</div>
-            <p id="dist-info" style="font-size: 13px; color: #666; margin-bottom: 15px;"></p>
-            <button id="btn-checkin" class="btn-main" onclick="startCheckIn()">DAVOMATNI TASDIQLASH</button>
-            <p style="font-size: 11px; color: #999; margin-top: 10px;">Hududni aniqlash uchun GPS yoqilgan bo'lishi shart.</p>
+            <div id="gps-status" class="status-badge st-err">GPS Tekshirilmoqda...</div>
+            <p id="dist-info" style="font-size: 12px; color: #888; margin-bottom: 15px;"></p>
+            <button id="btn-checkin" class="btn-main" onclick="handleAttendance()">DAVOMATNI TASDIQLASH</button>
         </div>
         <div class="card" style="text-align: left;">
-            <h4 style="margin:0 0 15px; color: var(--oxu-blue);">Oxirgi 7 kunlik tarix</h4>
+            <h4 style="margin:0 0 10px; color: var(--oxu-blue);">Oxirgi 7 kunlik tarix</h4>
             <div id="history-list"></div>
         </div>
     </div>
 
     <div id="tab-teacher" class="tab-content hidden">
         <div class="card">
-            <h3 style="margin-top:0;">Bugun kelganlar</h3>
+            <h3 style="margin-top:0;">Dars statistikasi</h3>
             <button class="btn-main" onclick="exportExcel()" style="background:#1D6F42; margin-bottom: 15px;">EXCEL YUKLASH (.xlsx)</button>
             <div id="attendance-list" style="text-align: left;"></div>
         </div>
@@ -80,8 +78,6 @@
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')">🏠<br>Asosiy</div>
     <div class="nav-item" onclick="logout()">🚪<br>Chiqish</div>
 </nav>
-
-<audio id="sound-success" src="https://www.myinstants.com/media/sounds/success-1-6297.mp3"></audio>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -97,15 +93,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "user_test";
+    const userId = tg.initDataUnsafe.user?.id || "user_debug";
     
-    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; // 200 metr
+    // Universitet koordinatalari (Maruf Raxmonov bergan nuqta)
+    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; 
     let user = null;
 
     async function init() {
         tg.expand();
         const snap = await get(ref(db, `users/${userId}`));
-        if(snap.exists()) {
+        if (snap.exists()) {
             user = snap.val();
             renderApp();
         } else {
@@ -118,8 +115,12 @@
         const name = document.getElementById('reg-name').value;
         const pin = document.getElementById('reg-pin').value;
         const role = document.getElementById('reg-role').value;
-        if(!name || pin.length < 4) return tg.showAlert("Ma'lumotlarni to'liq kiriting!");
-        user = { name, pin, role, id: userId };
+        if(!name || pin.length < 4) return tg.showAlert("Ma'lumotlar to'liq emas!");
+        
+        user = { 
+            name, pin, role, id: userId, 
+            deviceId: navigator.userAgent // Soddalashtirilgan qurilma lock
+        };
         await set(ref(db, `users/${userId}`), user);
         renderApp();
     };
@@ -128,86 +129,63 @@
         document.getElementById('view-reg').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
         document.getElementById('header-name').innerText = user.name;
-        document.getElementById('header-role').innerText = user.role === 'teacher' ? "O'qituvchi paneli" : "Talaba paneli";
+        document.getElementById('header-role').innerText = user.role === 'teacher' ? "O'qituvchi" : "Talaba";
         switchTab('home');
         if(user.role === 'teacher') loadTeacherData();
         else {
             loadHistory();
-            checkGPSOnce();
+            checkGPS();
         }
     }
 
-    // --- GPS TEKSHIRUVI ---
-    function checkGPSOnce() {
-        const badge = document.getElementById('gps-status');
-        const info = document.getElementById('dist-info');
-        
+    function checkGPS() {
         navigator.geolocation.getCurrentPosition(pos => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            // Masofani hisoblash (km da)
-            const dist = Math.sqrt(Math.pow(lat - TARGET.lat, 2) + Math.pow(lon - TARGET.lon, 2)) * 111;
+            const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
+            const badge = document.getElementById('gps-status');
+            const info = document.getElementById('dist-info');
             
             if(dist <= TARGET.radius) {
-                badge.innerText = "✅ UNIVERSITET HUDUDIDASIZ";
+                badge.innerText = "✅ HUDUDDASIZ";
                 badge.className = "status-badge st-ok";
                 info.innerText = `Masofa: ${Math.round(dist * 1000)}m`;
-                return true;
             } else {
                 badge.innerText = "❌ HUDUDDAN TASHQARIDASIZ";
                 badge.className = "status-badge st-err";
-                info.innerText = `Masofa: ${Math.round(dist * 1000)}m. Davomat uchun hududga kiring.`;
-                return false;
+                info.innerText = `Masofa: ${Math.round(dist * 1000)}m. Universitetga yaqinroq keling.`;
             }
         }, () => {
-            badge.innerText = "❌ GPS RUXSATI YO'Q";
-            badge.className = "status-badge st-err";
+            document.getElementById('gps-status').innerText = "GPS xatosi!";
         }, { enableHighAccuracy: true });
     }
 
-    // --- DAVOMAT JARAYONI (QR-SKANERSIZ) ---
-    window.startCheckIn = () => {
+    window.handleAttendance = () => {
         const today = new Date().toISOString().split('T')[0];
         
-        // 1. Qayta GPS tekshiruvi (xavfsizlik uchun)
+        // Anti-Fake GPS uchun qayta tekshiruv
         navigator.geolocation.getCurrentPosition(pos => {
             const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
-            
-            if(dist > TARGET.radius) {
-                return tg.showAlert("Siz hali ham universitet hududida emassiz!");
-            }
+            if(dist > TARGET.radius) return tg.showAlert("Xatolik: Siz universitetda emassiz!");
 
-            // 2. Bir kunda bir marta tekshiruvi
-            get(ref(db, `attendance/${today}/${userId}`)).then(snap => {
-                if(snap.exists()) return tg.showAlert("Bugun allaqachon davomatdan o'tgansiz!");
-
-                // 3. Biometrik tasdiqlash
-                tg.BiometricManager.init(() => {
-                    tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik tizimi" }, async (ok) => {
-                        if(ok) {
-                            const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
-                            await set(ref(db, `attendance/${today}/${userId}`), { 
-                                name: user.name, 
-                                time: time, 
-                                date: today 
-                            });
-                            document.getElementById('sound-success').play();
-                            tg.showAlert("Davomat muvaffaqiyatli qayd etildi! ✅");
-                            loadHistory();
-                        }
-                    });
+            tg.BiometricManager.init(() => {
+                tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik" }, async (ok) => {
+                    if(ok) {
+                        const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+                        await set(ref(db, `attendance/${today}/${userId}`), { 
+                            name: user.name, time, date: today 
+                        });
+                        tg.showAlert("Davomat muvaffaqiyatli qayd etildi! ✅");
+                        loadHistory();
+                    }
                 });
             });
-        }, () => tg.showAlert("GPS xatosi!"), { enableHighAccuracy: true });
+        }, null, { enableHighAccuracy: true });
     };
 
-    // --- O'QITUVCHI FUNKSIYALARI ---
     function loadTeacherData() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
             list.innerHTML = "";
-            if(!snap.exists()) list.innerHTML = "Bugun hali hech kim kelmadi.";
             snap.forEach(c => {
                 list.innerHTML += `<div class="history-item"><span>${c.val().name}</span><b>${c.val().time}</b></div>`;
             });
@@ -218,7 +196,7 @@
         const today = new Date().toISOString().split('T')[0];
         get(ref(db, `attendance/${today}`)).then(snap => {
             const data = [];
-            snap.forEach(c => data.push({ "F.I.SH": c.val().name, "Kelgan vaqti": c.val().time }));
+            snap.forEach(c => data.push({ "F.I.SH": c.val().name, "Vaqt": c.val().time }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Davomat");
@@ -226,7 +204,6 @@
         });
     };
 
-    // --- UMUMIY ---
     function loadHistory() {
         onValue(ref(db, `attendance`), snap => {
             const list = document.getElementById('history-list');
@@ -247,7 +224,7 @@
     };
 
     window.logout = async () => {
-        tg.showConfirm("Tizimdan chiqasizmi?", async (ok) => {
+        tg.showConfirm("Chiqasizmi?", async (ok) => {
             if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
         });
     };
