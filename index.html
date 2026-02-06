@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EduGate Pro: Ultimate Edition</title>
+    <title>Davomad.uz</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; }
@@ -14,27 +14,27 @@
         
         .form-group { text-align: left; margin-bottom: 12px; }
         label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; }
-        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
+        input { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
         
         button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-link { background: none; color: var(--blue); font-size: 13px; padding: 5px; }
         .hidden { display: none !important; }
-        
-        /* Dashboard Nav */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 100; }
-        .nav-item { flex: 1; text-align: center; font-size: 11px; color: #888; cursor: pointer; }
-        .nav-item.active { color: var(--blue); }
+
+        /* Dashboard & Progress bar */
+        .progress-container { background: #e5e5ea; border-radius: 10px; height: 10px; margin: 10px 0; overflow: hidden; }
+        .progress-bar { background: var(--tg); height: 100%; transition: width 0.5s; }
+        .stat-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container" id="app-container">
+<div class="container">
     <div id="view-check" class="card">
-        <h2 style="margin-top:0">Xush kelibsiz</h2>
-        <p style="color:#8e8e93; font-size: 14px;">Tizimda bor-yo'qligingizni tekshiramiz</p>
+        <h2 style="color:var(--blue)">Davomad.uz</h2>
+        <p style="color:#8e8e93; font-size: 14px;">Tizimga kirish uchun Gmail kiriting</p>
         <div class="form-group">
-            <label>Gmail manzilingiz</label>
+            <label>Gmail</label>
             <input type="email" id="target-email" placeholder="example@gmail.com">
         </div>
         <button class="btn-primary" onclick="checkUser()">Davom etish</button>
@@ -47,7 +47,7 @@
             <label>Parol</label>
             <input type="password" id="login-pass" placeholder="••••••">
         </div>
-        <button class="btn-primary" id="login-btn" onclick="processLogin()">Kirish</button>
+        <button class="btn-primary" onclick="processLogin()">Kirish</button>
         <button class="btn-link" onclick="forgotPassword()">Parolni unutdingizmi?</button>
         <button class="btn-link" style="color:#8e8e93" onclick="location.reload()">Orqaga</button>
     </div>
@@ -56,26 +56,24 @@
         <h2>Ro'yxatdan o'tish</h2>
         <div class="form-group"><label>Ism</label><input type="text" id="reg-name"></div>
         <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname"></div>
-        <div class="form-group"><label>Parol (min 6 ta)</label><input type="password" id="reg-pass"></div>
+        <div class="form-group"><label>Parol (kamida 6 ta)</label><input type="password" id="reg-pass"></div>
         <button class="btn-primary" onclick="processRegister()">Ro'yxatdan o'tish</button>
-        <button class="btn-link" style="color:#8e8e93" onclick="location.reload()">Orqaga</button>
     </div>
 
-    <div id="view-main" class="hidden" style="width:100%">
+    <div id="view-main" class="hidden">
         <div class="card">
-            <h2 id="user-greeting" style="text-align: left;">Assalomu alaykum!</h2>
-            <div style="font-size: 50px; margin: 20px 0;">🏛️</div>
-            <p style="text-align: left;">Sizning talabalik statusingiz faol. Bugungi darslar jadvalini ko'rishingiz mumkin.</p>
-            <button class="btn-primary" style="background:var(--tg)" onclick="tg.showAlert('Davomat qayd etildi!')">Darsda ekanimni tasdiqlash</button>
+            <h2 id="user-greeting" style="text-align: left;">Salom!</h2>
+            <p style="text-align: left; font-size: 13px;">Semestr maqsadi: Barcha fanlardan 70+ ball</p>
+            
+            <div class="list-item" style="text-align: left; margin-top: 20px;">
+                <div class="stat-item"><span>O'rtacha ball</span> <span>65/70</span></div>
+                <div class="progress-container"><div class="progress-bar" style="width: 92%"></div></div>
+            </div>
+
+            <button class="btn-primary" style="background:var(--tg); margin-top: 30px;" onclick="tg.close()">Ilovadan foydalanish</button>
         </div>
     </div>
 </div>
-
-<nav id="bottom-nav" class="bottom-nav hidden">
-    <div class="nav-item active">🏠<br>Asosiy</div>
-    <div class="nav-item" onclick="tg.showAlert('Tez kunda...')">📅<br>Jadval</div>
-    <div class="nav-item" onclick="location.reload()">👤<br>Profil</div>
-</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -98,15 +96,15 @@
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
 
-    // 🛡️ BIOMETRIKA INIT (Ruxsat so'rash uchun tayyorlash)
+    // 🛡️ BIOMETRIKA INIT
     bm.init(() => {
-        console.log("Biometrika menejeri ishga tushdi");
+        console.log("Biometrika menejeri tayyor.");
     });
 
-    // 1. Foydalanuvchi bormi?
+    // 1. Bazani tekshirish
     window.checkUser = async function() {
         const email = document.getElementById('target-email').value.trim();
-        if(!email.includes("@")) return tg.showAlert("Gmailni to'g'ri kiriting!");
+        if(!email.includes("@")) return tg.showAlert("Gmailni kiriting!");
 
         const emailPath = email.replace(/\./g, ',');
         const snap = await get(ref(db, `user_index/${emailPath}`));
@@ -126,55 +124,48 @@
         const pass = document.getElementById('login-pass').value;
 
         signInWithEmailAndPassword(auth, email, pass).then(() => {
-            // Ruxsat so'rash va autentifikatsiya
             if (bm.isBiometricAvailable) {
-                bm.authenticate({ reason: "Ilovaga kirish uchun barmoq izi yoki Face-ID ishlating" }, (ok) => {
+                bm.authenticate({ reason: "Davomad.uz ga kirishni tasdiqlang" }, (ok) => {
                     if(ok) showDashboard();
                     else tg.showAlert("Biometrika tasdiqlanmadi!");
                 });
             } else {
                 showDashboard();
             }
-        }).catch(() => tg.showAlert("Parol noto'g'ri!"));
+        }).catch(() => tg.showAlert("Parol xato!"));
     };
 
-    // 3. Ro'yxatdan o'tish + Biometrika ruxsatini yoqish
+    // 3. Ro'yxatdan o'tish
     window.processRegister = function() {
         const email = document.getElementById('target-email').value.trim();
         const pass = document.getElementById('reg-pass').value;
         const name = document.getElementById('reg-name').value;
         const surname = document.getElementById('reg-surname').value;
 
-        if(pass.length < 6) return tg.showAlert("Parol juda qisqa!");
-
         createUserWithEmailAndPassword(auth, email, pass).then(async (res) => {
             const emailPath = email.replace(/\./g, ',');
             await set(ref(db, `user_index/${emailPath}`), { uid: res.user.uid });
             await set(ref(db, `users/${res.user.uid}`), { name, surname, email });
             
-            // Birinchi marta kirganda ruxsat so'rash
             if (bm.isBiometricAvailable) {
-                bm.requestAccess({ reason: "Xavfsizlik uchun biometrikadan foydalanamiz" }, (ok) => {
-                    showDashboard();
-                });
+                bm.requestAccess({ reason: "Xavfsizlik uchun biometrika kerak" }, () => showDashboard());
             } else {
                 showDashboard();
             }
         }).catch(err => tg.showAlert(err.message));
     };
 
-    // 4. Parolni unutish (Link yuborish)
+    // 4. Parol tiklash
     window.forgotPassword = function() {
         const email = document.getElementById('display-email').innerText;
         sendPasswordResetEmail(auth, email).then(() => {
-            tg.showAlert("Parolni tiklash linki Gmailingizga yuborildi! 📧 \nIltimos, spam papkasini ham tekshiring.");
-        }).catch(err => tg.showAlert("Xatolik: " + err.message));
+            tg.showAlert("Parol tiklash linki Gmailingizga yuborildi! 📧");
+        }).catch(err => tg.showAlert(err.message));
     };
 
     function showDashboard() {
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
         document.getElementById('view-main').classList.remove('hidden');
-        document.getElementById('bottom-nav').classList.remove('hidden');
     }
 </script>
 </body>
