@@ -3,74 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Pro: Google & Email Auth</title>
+    <title>EduGate Pro: Final</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --tg-color: #248b65; --google-red: #ea4335; --accent: #0088cc; }
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; align-self: center; }
+        :root { --tg: #248b65; --blue: #0088cc; --bg: #f0f2f5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 75px; }
+        .container { padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); width: 100%; max-width: 400px; box-sizing: border-box; text-align: center; }
+        
+        /* Inputlar */
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 12px; box-sizing: border-box; font-size: 14px; }
+        label { display: block; text-align: left; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
+        
+        /* Tugmalar */
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; }
+        .btn-google { background: white; border: 1px solid #ddd; color: #555; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-main { background: var(--tg); color: white; }
+        
+        /* Navigatsiya */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 11px; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--tg); }
+        .nav-icon { font-size: 20px; }
+
         .hidden { display: none; }
-        
-        /* Form dizayni */
-        .form-group { text-align: left; margin-bottom: 12px; }
-        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #555; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        
-        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-email { background: var(--accent); color: white; }
-        .btn-google { background: white; color: #757575; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-main { background: var(--tg-color); color: white; }
-        
-        /* Asosiy ilova elementlari */
-        .status-box { background: #f9f9f9; padding: 15px; border-radius: 15px; margin: 15px 0; text-align: left; border-left: 5px solid var(--tg-color); }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; }
+        .list-item { background: #f9f9f9; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: left; border-left: 5px solid var(--tg); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="auth-view">
-        <h2 style="color: var(--accent);">EduGate Pro</h2>
-        <p style="font-size: 13px; color: #888;">Tizimga kirish usulini tanlang</p>
-
+<div class="container" id="app">
+    <div id="view-auth" class="card">
+        <h2 style="color: var(--blue); margin-top: 0;">EduGate Pro</h2>
+        <p style="font-size: 13px; color: #888; margin-bottom: 20px;">Tizimga kirish usulini tanlang</p>
+        
         <button class="btn-google" onclick="handleGoogleSignIn()">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+            <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiqySxDxW8SBy9_KlR966G98D74CByf703q5Ea6s4hKqSjN0-M" width="20" alt="Google Logo">
             Google orqali kirish
         </button>
-
-        <div style="margin: 20px 0; color: #ccc; font-size: 12px;">YOKI EMAIL ORQALI</div>
-
-        <div id="email-form">
-            <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="example@gmail.com"></div>
-            <div class="form-group"><label>Parol</label><input type="password" id="password" placeholder="******"></div>
-            <button class="btn-email" onclick="handleEmailSignIn()">Kirish / Ro'yxatdan o'tish</button>
-        </div>
-    </div>
-
-    <div id="complete-profile-view" class="hidden">
-        <h3>Profilni yakunlang</h3>
-        <div class="form-group"><label>Ism</label><input type="text" id="prof-name"></div>
-        <div class="form-group"><label>Familiya</label><input type="text" id="prof-surname"></div>
-        <div class="form-group"><label>Otasining ismi</label><input type="text" id="prof-patronymic"></div>
-        <button class="btn-main" onclick="saveProfileData()">Saqlash va Davom etish</button>
-    </div>
-
-    <div id="main-view" class="hidden">
-        <h3 id="welcome-text">Salom, Talaba!</h3>
-        <div class="status-box">
-            <b>📍 Universitet hududi:</b> <span id="loc-status">Tekshirilmoqda...</span><br>
-            <b>📅 Bugungi holat:</b> <span id="att-status">Hali qayd etilmagan</span>
-        </div>
         
+        <div style="margin: 20px 0; font-size: 12px; color: #ccc;">YOKI</div>
+        
+        <input type="email" id="email" placeholder="example@gmail.com">
+        <input type="password" id="password" placeholder="Parol">
+        <button class="btn-main" style="background: var(--blue);" onclick="handleEmailSignIn()">Kirish / Ro'yxatdan o'tish</button>
+    </div>
+
+    <div id="view-profile" class="card hidden">
+        <h3>Profilni yakunlang</h3>
+        <label>Ism</label><input type="text" id="p-name">
+        <label>Familiya</label><input type="text" id="p-surname">
+        <label>Otasining ismi</label><input type="text" id="p-patronymic">
+        <label>Sizning rolingiz</label>
+        <select id="p-role">
+            <option value="student">Talaba</option>
+            <option value="teacher">O'qituvchi</option>
+        </select>
+        <button class="btn-main" onclick="saveProfile()">Saqlash va Kirish</button>
+    </div>
+
+    <div id="view-student-main" class="card hidden">
+        <h3 id="st-welcome"></h3>
         <div style="font-size: 60px; margin: 20px 0;">🏫</div>
-        <button class="btn-main" id="checkin-btn" onclick="handleAttendance()">Davomatni qayd etish</button>
+        <button class="btn-main" id="btn-checkin" onclick="takeAttendance()">Davomatni tasdiqlash</button>
+    </div>
+
+    <div id="view-teacher-main" class="card hidden">
+        <h3>Bugun darsdagilar</h3>
+        <div id="attendance-list">Ma'lumotlar yuklanmoqda...</div>
+    </div>
+
+    <div id="view-history" class="card hidden">
+        <h3>Davomat tarixi</h3>
+        <p style="color: #888;">Oxirgi 7 kunlik ma'lumotlar bu yerda ko'rinadi.</p>
+    </div>
+
+    <div id="view-settings" class="card hidden">
+        <h3>Sozlamalar</h3>
+        <div id="user-info-box" class="list-item"></div>
+        <button class="btn-main" style="background: #e74c3c; margin-top: 20px;" onclick="logout()">Tizimdan chiqish</button>
     </div>
 </div>
 
+<nav id="bottom-nav" class="bottom-nav hidden">
+    <div class="nav-item active" onclick="switchTab('main')">
+        <span class="nav-icon">🏠</span><span>Asosiy</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('history')">
+        <span class="nav-icon">📊</span><span>Tarix</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('settings')">
+        <span class="nav-icon">⚙️</span><span>Sozlamalar</span>
+    </div>
+</nav>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -85,111 +115,124 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-    const tg = window.Telegram.WebApp;
     const provider = new GoogleAuthProvider();
+    const tg = window.Telegram.WebApp;
+    tg.ready(); tg.expand();
 
-    const UNI_COORDS = { lat: 39.800911, lon: 64.426838 }; // Osiyo Xalqaro Universiteti
+    const UNI_LOC = { lat: 39.800911, lon: 64.426838 };
+    let currentUserData = null;
 
-    // Foydalanuvchi holatini kuzatish
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            checkUserInDB(user);
+            get(ref(db, `users/${user.uid}`)).then(snap => {
+                if (snap.exists()) {
+                    currentUserData = snap.val();
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+                    switchTab('main');
+                } else {
+                    showView('view-profile');
+                    if (user.displayName) {
+                        const parts = user.displayName.split(' ');
+                        document.getElementById('p-name').value = parts[0] || "";
+                        document.getElementById('p-surname').value = parts[1] || "";
+                    }
+                }
+            });
+        } else {
+            showView('view-auth');
+            document.getElementById('bottom-nav').classList.add('hidden');
         }
     });
 
-    // Google orqali kirish
-    window.handleGoogleSignIn = function() {
-        signInWithPopup(auth, provider).catch(err => tg.showAlert(err.message));
+    window.handleGoogleSignIn = () => signInWithPopup(auth, provider).catch(e => tg.showAlert(e.message));
+    
+    window.handleEmailSignIn = () => {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
+        if(!e || p.length < 6) return tg.showAlert("Ma'lumotlar noto'g'ri");
+        signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     };
 
-    // Email orqali kirish/ro'yxatdan o'tish
-    window.handleEmailSignIn = function() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        
-        signInWithEmailAndPassword(auth, email, pass).catch(() => {
-            createUserWithEmailAndPassword(auth, email, pass).catch(err => tg.showAlert(err.message));
-        });
-    };
-
-    function checkUserInDB(user) {
-        get(ref(db, `users/${user.uid}`)).then(snap => {
-            if (snap.exists()) {
-                showDashboard(snap.val());
-            } else {
-                showProfileForm(user);
-            }
-        });
-    }
-
-    function showProfileForm(user) {
-        document.getElementById('auth-view').classList.add('hidden');
-        document.getElementById('complete-profile-view').classList.remove('hidden');
-        if(user.displayName) document.getElementById('prof-name').value = user.displayName;
-    }
-
-    window.saveProfileData = function() {
-        const user = auth.currentUser;
+    window.saveProfile = () => {
         const data = {
-            name: document.getElementById('prof-name').value,
-            surname: document.getElementById('prof-surname').value,
-            patronymic: document.getElementById('prof-patronymic').value,
-            email: user.email,
-            role: "student"
+            name: document.getElementById('p-name').value,
+            surname: document.getElementById('p-surname').value,
+            patronymic: document.getElementById('p-patronymic').value,
+            role: document.getElementById('p-role').value,
+            email: auth.currentUser.email
         };
-        set(ref(db, `users/${user.uid}`), data).then(() => showDashboard(data));
-    }
-
-    function showDashboard(userData) {
-        document.getElementById('auth-view').classList.add('hidden');
-        document.getElementById('complete-profile-view').classList.add('hidden');
-        document.getElementById('main-view').classList.remove('hidden');
-        document.getElementById('welcome-text').innerText = `Salom, ${userData.name}!`;
-        updateLocationStatus();
-    }
-
-    // Davomat mantiqi (GPS + Biometrika)
-    window.handleAttendance = function() {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_COORDS.lat, UNI_COORDS.lon);
-            if (dist <= 0.3) {
-                // Biometrika (Telegram Managers orqali)
-                const bm = tg.BiometricManager;
-                bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (ok) => {
-                    if (ok) saveAttendanceToDB();
-                });
-            } else {
-                tg.showAlert("Siz universitet hududida emassiz!");
-            }
-        }, null, {enableHighAccuracy: true});
+        set(ref(db, `users/${auth.currentUser.uid}`), data).then(() => location.reload());
     };
 
-    function saveAttendanceToDB() {
-        const today = new Date().toISOString().split('T')[0];
-        const uid = auth.currentUser.uid;
-        set(ref(db, `attendance/${today}/${uid}`), {
-            time: new Date().toLocaleTimeString(),
-            status: "Darsda"
-        }).then(() => {
-            document.getElementById('att-status').innerText = "Tasdiqlandi ✅";
-            document.getElementById('checkin-btn').disabled = true;
-            tg.showAlert("Davomat qayd etildi!");
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if (tab === 'main') {
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if (currentUserData.role === 'teacher') {
+                showView('view-teacher-main');
+                loadAttendance();
+            } else {
+                showView('view-student-main');
+                document.getElementById('st-welcome').innerText = "Salom, " + currentUserData.name;
+                checkTodayStatus();
+            }
+        } else if (tab === 'history') {
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+            showView('view-history');
+        } else if (tab === 'settings') {
+            document.querySelectorAll('.nav-item')[2].classList.add('active');
+            showView('view-settings');
+            document.getElementById('user-info-box').innerHTML = `<b>${currentUserData.surname} ${currentUserData.name}</b><br>${currentUserData.email}<br>Rol: ${currentUserData.role}`;
+        }
+    };
+
+    function showView(id) {
+        ['view-auth', 'view-profile', 'view-student-main', 'view-teacher-main', 'view-history', 'view-settings'].forEach(v => {
+            document.getElementById(v).classList.add('hidden');
         });
+        document.getElementById(id).classList.remove('hidden');
     }
 
-    function updateLocationStatus() {
+    window.takeAttendance = () => {
         navigator.geolocation.getCurrentPosition(pos => {
-            const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_COORDS.lat, UNI_COORDS.lon);
-            document.getElementById('loc-status').innerText = dist <= 0.3 ? "Universitetda ✅" : "Tashqarida ❌";
+            const dist = Math.sqrt(Math.pow(pos.coords.latitude - UNI_LOC.lat, 2) + Math.pow(pos.coords.longitude - UNI_LOC.lon, 2));
+            if (dist <= 0.003) {
+                tg.BiometricManager.authenticate({ reason: "Tasdiqlang" }, ok => {
+                    if (ok) {
+                        const today = new Date().toISOString().split('T')[0];
+                        set(ref(db, `attendance/${today}/${auth.currentUser.uid}`), {
+                            name: currentUserData.surname + " " + currentUserData.name,
+                            time: new Date().toLocaleTimeString()
+                        }).then(() => location.reload());
+                    }
+                });
+            } else tg.showAlert("Siz universitetda emassiz!");
+        }, null, {enableHighAccuracy:true});
+    };
+
+    function loadAttendance() {
+        const today = new Date().toISOString().split('T')[0];
+        onValue(ref(db, `attendance/${today}`), snap => {
+            const list = document.getElementById('attendance-list');
+            list.innerHTML = snap.exists() ? "" : "Hali hech kim kelmadi.";
+            snap.forEach(c => {
+                const d = c.val();
+                list.innerHTML += `<div class="list-item"><b>${d.name}</b><br><small>${d.time}</small></div>`;
+            });
         });
     }
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    function checkTodayStatus() {
+        const today = new Date().toISOString().split('T')[0];
+        get(ref(db, `attendance/${today}/${auth.currentUser.uid}`)).then(snap => {
+            if (snap.exists()) {
+                document.getElementById('btn-checkin').disabled = true;
+                document.getElementById('btn-checkin').innerText = "Bugun qayd etilgan ✅";
+            }
+        });
     }
+
+    window.logout = () => signOut(auth).then(() => location.reload());
 </script>
 </body>
 </html>
