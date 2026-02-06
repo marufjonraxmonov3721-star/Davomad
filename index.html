@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU Davomad Pro</title>
+    <title>OXU Davomad | Unlimited Time</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -13,7 +13,7 @@
             --oxu-gradient: linear-gradient(135deg, #002147, #0047AB);
             --gold: #D4AF37; --bg: #f4f7f9;
         }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; transition: 0.3s; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
         .header { background: var(--oxu-gradient); color: white; padding: 30px 20px; text-align: center; border-bottom: 4px solid var(--gold); border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
         .container { padding: 15px; max-width: 500px; margin: -30px auto 0; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
@@ -21,20 +21,21 @@
         
         button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-main { background: var(--oxu-blue); color: white; }
-        .btn-main:active { transform: scale(0.97); }
-        .btn-excel { background: #1D6F42; color: white; }
+        .btn-main:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-excel { background: #1D6F42; color: white; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
         .hidden { display: none !important; }
 
         .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
         .st-ok { background: #e8f5e9; color: #2e7d32; }
         .st-err { background: #ffebee; color: #c62828; }
 
-        .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 15px; color: #999; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--oxu-blue); font-weight: bold; }
         
         #qrcode { margin: 20px auto; display: flex; justify-content: center; }
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -48,9 +49,9 @@
 <div class="container">
     <div id="view-reg" class="card hidden">
         <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
-        <input type="text" id="reg-name" placeholder="F.I.SH" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-        <select id="reg-role" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
+        <input type="text" id="reg-name" placeholder="F.I.SH">
+        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" inputmode="numeric">
+        <select id="reg-role">
             <option value="student">Talaba</option>
             <option value="teacher">O'qituvchi</option>
         </select>
@@ -59,9 +60,8 @@
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <div id="gps-badge" class="status-badge st-err">GPS: Kutilmoqda...</div>
-            <div id="time-badge" class="status-badge st-err">Vaqt: 08:00–09:00</div>
-            <p id="dist-text" style="font-size: 12px; color: #888;"></p>
+            <div id="gps-badge" class="status-badge st-err">GPS: Aniqlanmoqda...</div>
+            <p id="dist-text" style="font-size: 12px; color: #888; margin-top: 5px;"></p>
             <button id="btn-checkin" class="btn-main" onclick="runCheckIn()" disabled>Davomatni tasdiqlash</button>
         </div>
         <div class="card">
@@ -79,7 +79,7 @@
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h4 style="margin:0">Bugun kelganlar</h4>
-                <button class="btn-excel" onclick="exportToExcel()" style="width:auto; padding:8px 15px; font-size:12px; margin:0;">Excel (.xlsx)</button>
+                <button class="btn-excel" onclick="exportToExcel()">Excel (.xlsx)</button>
             </div>
             <div id="attendance-list" style="text-align: left;"></div>
         </div>
@@ -88,7 +88,7 @@
     <div id="tab-settings" class="tab-content hidden">
         <div class="card">
             <h3>Sozlamalar</h3>
-            <p>Tizim production rejimida ishlamoqda.</p>
+            <p id="prof-detail"></p>
             <button style="background:transparent; color:red; border:1px solid red;" onclick="logout()">Hisobdan chiqish</button>
         </div>
     </div>
@@ -117,14 +117,11 @@
     const tg = window.Telegram.WebApp;
     const userId = tg.initDataUnsafe.user?.id || "dev_user";
     
-    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.15 }; // 150 metr
+    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; // 200 metr
     let user = null;
-    let canCheckIn = false;
 
-    // INITIALIZATION
     async function init() {
         tg.expand();
-        // Set profile pic
         if(tg.initDataUnsafe.user?.photo_url) {
             document.getElementById('profile-pic').src = tg.initDataUnsafe.user.photo_url;
         }
@@ -154,59 +151,46 @@
         document.getElementById('bottom-nav').classList.remove('hidden');
         document.getElementById('header-name').innerText = user.name;
         document.getElementById('header-role').innerText = user.role === 'teacher' ? "O'qituvchi" : "Talaba";
+        document.getElementById('prof-detail').innerText = `${user.name} | ${user.role}`;
         switchTab('home');
         if(user.role === 'student') startStudentLogic();
         else startTeacherLogic();
     }
 
-    // STUDENT LOGIC
+    // STUDENT
     function startStudentLogic() {
-        setInterval(checkRequirements, 5000);
+        setInterval(checkGPS, 4000);
         loadHistory();
     }
 
-    function checkRequirements() {
-        const now = new Date();
-        const hour = now.getHours();
-        const today = now.toISOString().split('T')[0];
-        
-        // 1. Vaqt limiti (08:00–09:00)
-        const isTimeOk = (hour >= 8 && hour < 9);
-        const timeBadge = document.getElementById('time-badge');
-        timeBadge.className = `status-badge ${isTimeOk ? 'st-ok' : 'st-err'}`;
-        
-        // 2. GPS tekshiruv
+    function checkGPS() {
         navigator.geolocation.getCurrentPosition(pos => {
             const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
             const gpsBadge = document.getElementById('gps-badge');
             const distText = document.getElementById('dist-text');
+            const isOk = (dist <= TARGET.radius);
             
-            const isGpsOk = (dist <= TARGET.radius);
-            gpsBadge.innerText = isGpsOk ? "✅ Hududdasiz" : "❌ Hududdan tashqarida";
-            gpsBadge.className = `status-badge ${isGpsOk ? 'st-ok' : 'st-err'}`;
+            gpsBadge.innerText = isOk ? "✅ Hududdasiz" : "❌ Hududdan tashqarida";
+            gpsBadge.className = `status-badge ${isOk ? 'st-ok' : 'st-err'}`;
             distText.innerText = `Masofa: ${Math.round(dist*1000)} metr`;
-
-            // Final check
-            canCheckIn = isTimeOk && isGpsOk;
-            document.getElementById('btn-checkin').disabled = !canCheckIn;
-        });
+            document.getElementById('btn-checkin').disabled = !isOk;
+        }, null, {enableHighAccuracy: true});
     }
 
     window.runCheckIn = () => {
         const today = new Date().toISOString().split('T')[0];
-        // Kuniga 1 marta tekshiruv
         get(ref(db, `attendance/${today}/${userId}`)).then(snap => {
-            if(snap.exists()) return tg.showAlert("Siz bugun davomatdan o'tgansiz!");
+            if(snap.exists()) return tg.showAlert("Bugun davomat qilingan!");
             
             tg.BiometricManager.init(() => {
                 tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik" }, (ok) => {
                     if(ok) {
-                        tg.showScanQrPopup({ text: "O'qituvchi QR-kodini skanerlang" }, (qrData) => {
-                            if(qrData === "OXU_VERIFIED_LESSON") {
+                        tg.showScanQrPopup({ text: "O'qituvchi kodini skanerlang" }, (qr) => {
+                            if(qr === "OXU_VERIFIED_LESSON") {
                                 saveAttendance();
                                 return true;
                             }
-                            tg.showAlert("Noto'g'ri QR kod!");
+                            tg.showAlert("Noto'g'ri QR!");
                         });
                     }
                 });
@@ -219,7 +203,7 @@
         const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
         await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time, date: today });
         document.getElementById('sound-success').play();
-        tg.showAlert("Muvaffaqiyatli qayd etildi! ✅");
+        tg.showAlert("Qayd etildi! ✅");
         loadHistory();
     }
 
@@ -235,21 +219,21 @@
                     count++;
                 }
             });
-            if(count === 0) list.innerHTML = "<p style='font-size:12px;color:#999'>Tarix mavjud emas.</p>";
+            if(count === 0) list.innerHTML = "<p style='font-size:12px;color:#999'>Hali davomat yo'q.</p>";
         });
     }
 
-    // TEACHER LOGIC
+    // TEACHER
     function startTeacherLogic() {
         new QRCode(document.getElementById("qrcode"), {
             text: "OXU_VERIFIED_LESSON",
             width: 180, height: 180,
             colorDark : "#0047AB",
         });
-        loadTeacherAttendance();
+        loadTeacherList();
     }
 
-    function loadTeacherAttendance() {
+    function loadTeacherList() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
@@ -268,15 +252,15 @@
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Davomat");
-            XLSX.writeFile(wb, `OXU_Davomat_${today}.xlsx`);
+            XLSX.writeFile(wb, `OXU_${today}.xlsx`);
         });
     };
 
     // GENERAL
-    window.switchTab = (tab) => {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    window.switchTab = (t) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(tab === 'home') {
+        if(t === 'home') {
             document.getElementById(user.role === 'teacher' ? 'tab-teacher' : 'tab-student').classList.remove('hidden');
             document.getElementById('nav-home').classList.add('active');
         } else {
@@ -286,7 +270,7 @@
     };
 
     window.logout = async () => {
-        tg.showConfirm("Chiqishni tasdiqlaysizmi?", async (ok) => {
+        tg.showConfirm("Chiqasizmi?", async (ok) => {
             if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
         });
     };
