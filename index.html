@@ -3,69 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Davomad.uz | Dual Auth</title>
+    <title>Davomad.uz | Final</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; padding-bottom: 90px; }
+        :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; --red: #ff3b30; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 90px; }
+        .container { padding: 15px; max-width: 450px; margin: 0 auto; }
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
         
+        /* Steps */
         .step-box { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .step { width: 30%; height: 5px; background: #ddd; border-radius: 5px; }
         .step.active { background: var(--blue); }
         .step.complete { background: var(--tg); }
 
-        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        /* Form */
+        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-bottom: 10px; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .btn-main { background: var(--tg); color: white; }
         .btn-blue { background: var(--blue); color: white; }
-        
-        #video-container { width: 100%; max-width: 300px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 4px solid var(--blue); display: none; height: 300px; position: relative; }
+        .btn-red { background: white; color: var(--red); border: 1px solid var(--red); }
+        .hidden { display: none !important; }
+
+        /* Camera */
+        #video-wrap { width: 200px; height: 200px; border-radius: 50%; overflow: hidden; border: 4px solid var(--blue); margin: 0 auto 15px; display: none; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { display: none; }
-        .hidden { display: none !important; }
+        .preview-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--tg); }
+
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
+        .nav-item { flex: 1; text-align: center; color: #8e8e93; font-size: 11px; cursor: pointer; }
+        .nav-item.active { color: var(--blue); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="view-reg" class="card">
-        <h2>Ro'yxatdan o'tish</h2>
-        <input type="text" id="reg-name" placeholder="Ism Familiya" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:10px;">
-        <select id="reg-role" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px;">
+    <div id="view-reg" class="card hidden">
+        <h2>Davomad.uz</h2>
+        <input type="text" id="reg-name" placeholder="Ism Familiya">
+        <select id="reg-role">
             <option value="student">Talaba</option>
             <option value="teacher">O'qituvchi</option>
         </select>
-        <button class="btn-blue" onclick="register()">Saqlash</button>
+        <button class="btn-blue" onclick="registerUser()">Ro'yxatdan o'tish</button>
     </div>
 
     <div id="view-student" class="card hidden">
-        <h2 id="welcome-txt">Salom!</h2>
+        <h2 id="st-name">Xush kelibsiz!</h2>
         <div class="step-box">
             <div id="step-1" class="step active"></div>
             <div id="step-2" class="step"></div>
             <div id="step-3" class="step"></div>
         </div>
-
-        <div id="status-text" style="margin-bottom:15px; font-weight:500;">1-bosqich: Yuzni tasdiqlang</div>
-        
-        <div id="video-container">
-            <video id="video" autoplay playsinline></video>
-        </div>
+        <p id="status-txt">1-bosqich: Yuzni tasdiqlang</p>
+        <div id="video-wrap"><video id="video" autoplay playsinline></video></div>
         <canvas id="canvas"></canvas>
-        <img id="photo-preview" style="width:150px; border-radius:15px; display:none; margin: 10px auto;">
-
-        <button id="main-btn" class="btn-main" onclick="startStep1()">Kamerani ochish</button>
+        <button id="main-btn" class="btn-main" onclick="handleStep1()">Kamerani ochish</button>
     </div>
 
     <div id="view-teacher" class="card hidden">
         <h2>Darsdagi talabalar</h2>
-        <div id="list" style="text-align:left;"></div>
+        <div id="attendance-list" style="text-align: left;"></div>
+    </div>
+
+    <div id="view-settings" class="card hidden">
+        <h2>Sozlamalar</h2>
+        <div style="text-align: left; margin-bottom: 20px;">
+            <p><b>Ism:</b> <span id="set-name">...</span></p>
+            <p><b>Rol:</b> <span id="set-role">...</span></p>
+        </div>
+        <button class="btn-red" onclick="logout()">Tizimdan chiqish</button>
     </div>
 </div>
 
+<nav id="bottom-nav" class="bottom-nav hidden">
+    <div class="nav-item active" id="nav-home" onclick="changeTab('home')">🏠<br>Asosiy</div>
+    <div class="nav-item" id="nav-settings" onclick="changeTab('settings')">⚙️<br>Sozlama</div>
+</nav>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -81,140 +101,160 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     const userId = tg.initDataUnsafe.user?.id || "dev_user";
-    let userData = null;
-    let userPhotoBase64 = "";
+    
+    let userProfile = null;
+    let base64Photo = "";
 
-    // Yuklash
-    get(ref(db, `users/${userId}`)).then(s => {
-        if(s.exists()){
-            userData = s.val();
-            showView();
-        }
-    });
-
-    window.register = () => {
-        const name = document.getElementById('reg-name').value;
-        const role = document.getElementById('reg-role').value;
-        if(!name) return alert("Ismni yozing");
-        userData = {name, role};
-        set(ref(db, `users/${userId}`), userData).then(showView);
-    };
-
-    function showView(){
-        document.getElementById('view-reg').classList.add('hidden');
-        if(userData.role === 'teacher'){
-            document.getElementById('view-teacher').classList.remove('hidden');
-            loadList();
+    // 1. Ilovani yuklash
+    async function initApp() {
+        tg.expand();
+        const snap = await get(ref(db, `users/${userId}`));
+        if(snap.exists()) {
+            userProfile = snap.val();
+            renderUI();
         } else {
-            document.getElementById('view-student').classList.remove('hidden');
-            document.getElementById('welcome-txt').innerText = userData.name;
+            showPage('view-reg');
         }
     }
+    initApp();
 
-    // 1-BOSQICH: YUZ (KAMERA)
-    window.startStep1 = async () => {
+    window.registerUser = async () => {
+        const name = document.getElementById('reg-name').value;
+        const role = document.getElementById('reg-role').value;
+        if(!name) return tg.showAlert("Ismni kiriting!");
+        userProfile = { name, role, id: userId };
+        await set(ref(db, `users/${userId}`), userProfile);
+        renderUI();
+    };
+
+    function renderUI() {
+        document.getElementById('bottom-nav').classList.remove('hidden');
+        document.getElementById('set-name').innerText = userProfile.name;
+        document.getElementById('set-role').innerText = userProfile.role === 'teacher' ? "O'qituvchi" : "Talaba";
+        changeTab('home');
+    }
+
+    // 2. Tablarni almashtirish
+    window.changeTab = (tab) => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        if(tab === 'home') {
+            document.getElementById('nav-home').classList.add('active');
+            if(userProfile.role === 'teacher') {
+                showPage('view-teacher');
+                loadAttendance();
+            } else {
+                showPage('view-student');
+                document.getElementById('st-name').innerText = userProfile.name;
+            }
+        } else {
+            document.getElementById('nav-settings').classList.add('active');
+            showPage('view-settings');
+        }
+    };
+
+    // 3. Talaba: 1-Bosqich (Yuz)
+    window.handleStep1 = async () => {
         const video = document.getElementById('video');
-        const container = document.getElementById('video-container');
+        const wrap = document.getElementById('video-wrap');
         const btn = document.getElementById('main-btn');
 
-        if(btn.innerText === "Kamerani ochish"){
+        if(btn.innerText === "Kamerani ochish") {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
-                container.style.display = "block";
+                wrap.style.display = "block";
                 btn.innerText = "Suratga tushish";
-            } catch (err) {
-                tg.showAlert("Kameraga ruxsat berilmadi!");
-            }
+            } catch(e) { tg.showAlert("Kameraga ruxsat yo'q!"); }
         } else {
-            // Suratga olish
             const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            userPhotoBase64 = canvas.toDataURL('image/jpeg', 0.5); // Base64 rasm
+            base64Photo = canvas.toDataURL('image/jpeg', 0.4);
+            video.srcObject.getTracks().forEach(t => t.stop());
+            wrap.style.display = "none";
             
-            // Kamerani yopish
-            video.srcObject.getTracks().forEach(track => track.stop());
-            container.style.display = "none";
-            document.getElementById('photo-preview').src = userPhotoBase64;
-            document.getElementById('photo-preview').style.display = "block";
-            
-            updateStep(1);
-            document.getElementById('status-text').innerText = "2-bosqich: Barmoq izini tasdiqlang";
-            btn.innerText = "Barmoq izini bosish";
-            btn.onclick = startStep2;
+            document.getElementById('step-1').classList.add('complete');
+            document.getElementById('step-2').classList.add('active');
+            document.getElementById('status-txt').innerText = "2-bosqich: Barmoq izi";
+            btn.innerText = "Barmoq izini tasdiqlash";
+            btn.onclick = handleStep2;
         }
     };
 
-    // 2-BOSQICH: BARMOQ IZI (BIOMETRIC)
-    window.startStep2 = () => {
+    // 4. Talaba: 2-Bosqich (Barmoq)
+    window.handleStep2 = () => {
         tg.BiometricManager.init(() => {
-            tg.BiometricManager.authenticate({ reason: "Barmoq izi kerak" }, (ok) => {
-                if(ok){
-                    updateStep(2);
-                    document.getElementById('status-text').innerText = "3-bosqich: QR-kodni skanerlang";
+            tg.BiometricManager.authenticate({ reason: "Tasdiqlang" }, (ok) => {
+                if(ok) {
+                    document.getElementById('step-2').classList.add('complete');
+                    document.getElementById('step-3').classList.add('active');
+                    document.getElementById('status-txt').innerText = "3-bosqich: QR Skaner";
                     const btn = document.getElementById('main-btn');
-                    btn.innerText = "QR Skaner";
-                    btn.onclick = startStep3;
-                } else {
-                    tg.showAlert("Barmoq izi xato!");
-                }
+                    btn.innerText = "QR Skanerlash";
+                    btn.onclick = handleStep3;
+                } else tg.showAlert("Xato!");
             });
         });
     };
 
-    // 3-BOSQICH: QR SKANER
-    window.startStep3 = () => {
-        tg.showScanQrPopup({ text: "Guvohnoma QR kodini ko'rsating" }, (data) => {
-            if(data){
+    // 5. Talaba: 3-Bosqich (QR)
+    window.handleStep3 = () => {
+        tg.showScanQrPopup({ text: "Guvohnoma QR kodini ko'rsating" }, async (data) => {
+            if(data) {
                 tg.closeScanQrPopup();
-                finish(data);
+                const today = new Date().toISOString().split('T')[0];
+                const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+                
+                await set(ref(db, `attendance/${today}/${userId}`), {
+                    userName: userProfile.name,
+                    userTime: time,
+                    userPhoto: base64Photo,
+                    userQr: data
+                });
+                
+                document.getElementById('step-3').classList.add('complete');
+                document.getElementById('status-txt').innerHTML = "<b style='color:var(--tg)'>Davomat qilindi! ✅</b>";
+                document.getElementById('main-btn').classList.add('hidden');
             }
             return true;
         });
     };
 
-    async function finish(qrData){
-        updateStep(3);
+    // 6. O'qituvchi: Ro'yxatni yuklash
+    function loadAttendance() {
         const today = new Date().toISOString().split('T')[0];
-        const time = new Date().toLocaleTimeString();
-        
-        await set(ref(db, `attendance/${today}/${userId}`), {
-            name: userData.name,
-            time: time,
-            photo: userPhotoBase64,
-            qr: qrData
-        });
-
-        document.getElementById('status-text').innerHTML = "<span style='color:green'>Davomat qilindi! ✅</span>";
-        document.getElementById('main-btn').classList.add('hidden');
-    }
-
-    function updateStep(n){
-        document.getElementById(`step-${n}`).classList.add('complete');
-        if(n<3) document.getElementById(`step-${n+1}`).classList.add('active');
-    }
-
-    function loadList(){
-        const today = new Date().toISOString().split('T')[0];
-        onValue(ref(db, `attendance/${today}`), s => {
-            const list = document.getElementById('list');
+        onValue(ref(db, `attendance/${today}`), (snap) => {
+            const list = document.getElementById('attendance-list');
             list.innerHTML = "";
-            s.forEach(child => {
+            if(!snap.exists()) return list.innerHTML = "Hali hech kim yo'q.";
+            snap.forEach(child => {
                 const v = child.val();
                 list.innerHTML += `
-                    <div style="border-bottom:1px solid #eee; padding:10px; display:flex; align-items:center;">
-                        <img src="${v.photo}" style="width:50px; height:50px; border-radius:50%; margin-right:10px;">
+                    <div style="display:flex; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+                        <img src="${v.userPhoto}" class="preview-img" style="margin-right:12px;">
                         <div>
-                            <b>${v.name}</b> <br>
-                            <small>${v.time} | QR: ${v.qr}</small>
+                            <b>${v.userName}</b> <br>
+                            <small>${v.userTime} | QR: ${v.userQr}</small>
                         </div>
                     </div>`;
             });
         });
     }
-</script>
 
+    // 7. Tizimdan chiqish
+    window.logout = () => {
+        tg.showConfirm("Tizimdan chiqishni xohlaysizmi?", async (ok) => {
+            if(ok) {
+                await remove(ref(db, `users/${userId}`));
+                location.reload();
+            }
+        });
+    };
+
+    function showPage(id) {
+        document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+</script>
 </body>
 </html>
