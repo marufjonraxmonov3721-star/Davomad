@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EduGate Pro: Smart Auth</title>
+    <title>EduGate Pro: Final Bio</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .container { padding: 20px; max-width: 450px; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        .container { padding: 20px; max-width: 450px; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; box-sizing: border-box;}
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .form-group { text-align: left; margin-bottom: 12px; }
@@ -18,14 +18,20 @@
         .btn-primary { background: var(--blue); color: white; }
         .btn-link { background: none; color: var(--blue); font-size: 13px; padding: 5px; }
         .hidden { display: none !important; }
+        #splash { position: fixed; top:0; left:0; width:100%; height:100%; background: white; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; }
     </style>
 </head>
 <body>
 
+<div id="splash">
+    <div style="width:30px; height:30px; border:3px solid #f3f3f3; border-top:3px solid var(--blue); border-radius:50%; animation:spin 1s linear infinite;"></div>
+    <p style="margin-top:10px; font-size:14px;">Xavfsizlik tizimi yuklanmoqda...</p>
+</div>
+
 <div class="container">
     <div id="view-check" class="card">
-        <h2>Xush kelibsiz</h2>
-        <p style="color:#8e8e93; font-size: 14px;">Gmail manzilingizni kiriting</p>
+        <h2 style="margin-top:0">Xush kelibsiz</h2>
+        <p style="color:#8e8e93; font-size: 14px;">Ro'yxatdan o'tgan Gmail manzilingizni kiriting</p>
         <div class="form-group">
             <label>Gmail</label>
             <input type="email" id="target-email" placeholder="example@gmail.com">
@@ -34,7 +40,7 @@
     </div>
 
     <div id="view-login" class="card hidden">
-        <h2>Tizimga kirish</h2>
+        <h2>Kirish</h2>
         <p id="display-email" style="color:var(--blue); font-weight:bold;"></p>
         <div class="form-group">
             <label>Parol</label>
@@ -47,7 +53,7 @@
 
     <div id="view-register" class="card hidden">
         <h2>Ro'yxatdan o'tish</h2>
-        <p>Ma'lumotlarni to'ldiring</p>
+        <p>Yangi foydalanuvchi hisobini oching</p>
         <div class="form-group"><label>Ism</label><input type="text" id="reg-name"></div>
         <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname"></div>
         <div class="form-group"><label>Parol yarating</label><input type="password" id="reg-pass"></div>
@@ -56,12 +62,14 @@
     </div>
 
     <div id="view-main" class="card hidden">
-        <h2 id="user-greeting">Muvaffaqiyatli!</h2>
-        <div style="font-size: 60px; margin: 20px 0;">🛡️</div>
-        <p>Biometrika va Gmail orqali tizimga kirdingiz.</p>
-        <button class="btn-primary" style="background:var(--tg)" onclick="tg.close()">Ilovaga kirish</button>
+        <h2>Tizim ochiq ✅</h2>
+        <div style="font-size: 80px; margin: 20px 0;">👤</div>
+        <p id="user-info-text"></p>
+        <button class="btn-primary" style="background:var(--tg)" onclick="tg.close()">Ilovadan foydalanish</button>
     </div>
 </div>
+
+<style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -82,11 +90,18 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
+    const bm = tg.BiometricManager;
 
-    // 1. Foydalanuvchi bor-yo'qligini tekshirish
+    // 1. Biometrika menejerini ishga tushirish (Splash yopiladi)
+    bm.init(() => {
+        document.getElementById('splash').style.display = 'none';
+        console.log("Biometrika menejeri tayyor.");
+    });
+
+    // Bazani tekshirish
     window.checkUser = async function() {
         const email = document.getElementById('target-email').value.trim();
-        if(!email.includes("@")) return tg.showAlert("Gmail manzilini to'g'ri kiriting!");
+        if(!email.includes("@")) return tg.showAlert("Gmailni to'g'ri kiriting!");
 
         const emailPath = email.replace(/\./g, ',');
         const snap = await get(ref(db, `user_index/${emailPath}`));
@@ -100,37 +115,54 @@
         }
     };
 
-    // 2. Kirish + Biometrika
+    // KIRISH + BIOMETRIKA
     window.processLogin = function() {
         const email = document.getElementById('display-email').innerText;
         const pass = document.getElementById('login-pass').value;
 
+        if(!pass) return tg.showAlert("Parolni kiriting!");
+
         signInWithEmailAndPassword(auth, email, pass).then(() => {
-            tg.BiometricManager.authenticate({ reason: "Shaxsingizni tasdiqlang" }, (ok) => {
-                if(ok) showDashboard();
-                else tg.showAlert("Biometrik tasdiqlash bajarilmadi!");
-            });
+            // Agar qurilma biometrikani qo'llab-quvvatlasa
+            if (bm.isBiometricAvailable) {
+                bm.authenticate({ reason: "Tizimga kirishni tasdiqlang" }, (ok) => {
+                    if(ok) showDashboard(email);
+                    else tg.showAlert("Biometrik tasdiqlash bajarilmadi. Iltimos qayta urinib ko'ring.");
+                });
+            } else {
+                // Biometrika yo'q bo'lsa faqat parol bilan kiradi
+                showDashboard(email);
+            }
         }).catch(() => tg.showAlert("Parol noto'g'ri!"));
     };
 
-    // 3. Ro'yxatdan o'tish
+    // RO'YXATDAN O'TISH
     window.processRegister = function() {
         const email = document.getElementById('target-email').value.trim();
         const pass = document.getElementById('reg-pass').value;
         const name = document.getElementById('reg-name').value;
         const surname = document.getElementById('reg-surname').value;
 
-        if(pass.length < 6) return tg.showAlert("Parol kamida 6 ta belgi bo'lsin!");
+        if(pass.length < 6) return tg.showAlert("Parol kamida 6 belgidan iborat bo'lsin!");
+        if(!name || !surname) return tg.showAlert("Ism va familiyani to'ldiring!");
 
         createUserWithEmailAndPassword(auth, email, pass).then(async (res) => {
             const emailPath = email.replace(/\./g, ',');
             await set(ref(db, `user_index/${emailPath}`), { uid: res.user.uid });
             await set(ref(db, `users/${res.user.uid}`), { name, surname, email });
-            showDashboard();
+            
+            // Ro'yxatdan o'tganda biometrika ruxsatini so'rash (kelgusida ishlatish uchun)
+            if (bm.isBiometricAvailable && !bm.isBiometricTokenSaved) {
+                bm.requestAccess({ reason: "Kelgusida kirish oson bo'lishi uchun biometrikadan foydalanamiz" }, (ok) => {
+                    showDashboard(email);
+                });
+            } else {
+                showDashboard(email);
+            }
         }).catch(err => tg.showAlert("Xatolik: " + err.message));
     };
 
-    // 4. Parolni unutish
+    // PAROLNI UNUTISH
     window.forgotPassword = function() {
         const email = document.getElementById('display-email').innerText;
         sendPasswordResetEmail(auth, email).then(() => {
@@ -138,9 +170,15 @@
         }).catch(err => tg.showAlert(err.message));
     };
 
-    function showDashboard() {
+    async function showDashboard(email) {
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
         document.getElementById('view-main').classList.remove('hidden');
+        
+        const uid = auth.currentUser.uid;
+        const userSnap = await get(ref(db, `users/${uid}`));
+        if(userSnap.exists()) {
+            document.getElementById('user-info-text').innerText = `${userSnap.val().name} ${userSnap.val().surname}`;
+        }
     }
 </script>
 </body>
