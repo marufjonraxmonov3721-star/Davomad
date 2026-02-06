@@ -3,30 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Davomad.uz | Universal</title>
+    <title>Davomad.uz | Secure Auth</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; --red: #ff3b30; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 90px; }
         .container { padding: 15px; max-width: 450px; margin: 0 auto; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
         
-        .form-group { text-align: left; margin-bottom: 12px; }
-        label { font-size: 12px; font-weight: 600; color: #8e8e93; }
-        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
-        
+        /* Inputs */
+        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-bottom: 12px; }
+        label { display: block; text-align: left; font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; margin-bottom: 4px; }
+
+        /* Buttons */
         button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-main { background: var(--tg); color: white; }
         .btn-outline { background: white; color: var(--blue); border: 1px solid var(--blue); }
+        .btn-red { background: white; color: var(--red); border: 1px solid var(--red); }
         .hidden { display: none !important; }
 
-        /* Camera & Selfie */
-        #camera-wrap { width: 180px; height: 180px; border-radius: 50%; overflow: hidden; border: 3px solid var(--tg); margin: 15px auto; display: none; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .preview-circle { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--tg); }
-
+        /* Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #d1d1d6; }
         .nav-item { flex: 1; text-align: center; color: #8e8e93; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--blue); }
@@ -39,51 +36,58 @@
 
     <div id="view-reg" class="card hidden">
         <h2 style="color: var(--blue); margin-top: 0;">Davomad.uz</h2>
-        <div class="form-group"><label>Ism</label><input type="text" id="reg-name"></div>
-        <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname"></div>
-        <div class="form-group"><label>PIN-kod yarating (4 xonali)</label><input type="password" id="reg-pin" maxlength="4" inputmode="numeric"></div>
-        <div class="form-group">
-            <label>Rol</label>
-            <select id="reg-role"><option value="student">Talaba</option><option value="teacher">O'qituvchi</option></select>
-        </div>
+        <label>Ismingiz</label><input type="text" id="reg-name">
+        <label>Familiyangiz</label><input type="text" id="reg-surname">
+        <label>Shaxsiy PIN-kod (4 xonali)</label><input type="password" id="reg-pin" maxlength="4" inputmode="numeric">
+        <label>Rol</label>
+        <select id="reg-role"><option value="student">Talaba</option><option value="teacher">O'qituvchi</option></select>
         <button class="btn-primary" onclick="handleRegistration()">Saqlash</button>
     </div>
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <h2 id="st-welcome">Xush kelibsiz!</h2>
-            <div style="font-size: 50px; margin: 10px 0;">🛡️</div>
-            
-            <div id="camera-wrap"><video id="video" autoplay playsinline></video></div>
-            <canvas id="canvas" class="hidden"></canvas>
+            <h2 id="st-welcome">Salom!</h2>
+            <div style="font-size: 80px; margin: 20px 0;">🔐</div>
+            <p style="color: #888; font-size: 14px; margin-bottom: 20px;">Tasdiqlash usulini tanlang:</p>
 
-            <button class="btn-main" onclick="tryBiometric()">Barmoq izi bilan tasdiqlash</button>
-            <p style="color: #888; margin: 10px 0;">yoki</p>
-            <button class="btn-outline" id="pin-btn" onclick="startPinAuth()">PIN-kod va Foto orqali</button>
+            <button class="btn-main" onclick="tryBiometric()">Barmoq izi bilan</button>
+            <p style="color: #ccc; margin: 10px 0;">— yoki —</p>
             
-            <div id="pin-input-area" class="hidden" style="margin-top: 15px;">
-                <input type="password" id="input-pin" placeholder="PIN-kodni kiriting" maxlength="4" inputmode="numeric">
-                <button class="btn-primary" onclick="confirmWithPin()">PIN-ni tasdiqlash</button>
+            <div id="pin-area">
+                <input type="password" id="input-pin" placeholder="PIN-kodni kiriting" maxlength="4" inputmode="numeric" style="text-align: center; letter-spacing: 5px;">
+                <button class="btn-outline" onclick="confirmWithPin()">PIN-kod bilan tasdiqlash</button>
             </div>
         </div>
     </div>
 
     <div id="tab-teacher" class="tab-content hidden">
         <div class="card">
-            <h2>Darsdagi talabalar</h2>
+            <h2 style="margin-top:0">Darsdagi talabalar</h2>
             <div id="attendance-list" style="text-align: left;"></div>
+        </div>
+    </div>
+
+    <div id="tab-settings" class="tab-content hidden">
+        <div class="card">
+            <h2>Sozlamalar</h2>
+            <div style="text-align: left; margin-bottom: 20px;">
+                <p><b>Ism:</b> <span id="set-name">...</span></p>
+                <p><b>Rol:</b> <span id="set-role">...</span></p>
+                <p><b>Telegram ID:</b> <span id="set-id">...</span></p>
+            </div>
+            <button class="btn-red" onclick="logout()">Tizimdan chiqish</button>
         </div>
     </div>
 </div>
 
 <nav id="bottom-nav" class="bottom-nav hidden">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')">🏠<br>Asosiy</div>
-    <div class="nav-item" onclick="location.reload()">⚙️<br>Sozlama</div>
+    <div class="nav-item" id="nav-set" onclick="switchTab('settings')">⚙️<br>Sozlama</div>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -98,16 +102,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "user_debug";
+    const userId = tg.initDataUnsafe.user?.id || "dev_user";
     let currentUser = null;
-    let selfieBase64 = "";
 
     (async function init() {
         tg.expand();
         const snap = await get(ref(db, `users/${userId}`));
         if (snap.exists()) {
             currentUser = snap.val();
-            renderUI();
+            showAppUI();
         } else {
             document.getElementById('view-loading').classList.add('hidden');
             document.getElementById('view-reg').classList.remove('hidden');
@@ -119,22 +122,29 @@
         const surname = document.getElementById('reg-surname').value;
         const pin = document.getElementById('reg-pin').value;
         const role = document.getElementById('reg-role').value;
-        if(!name || !pin) return tg.showAlert("Ism va PIN-kodni kiriting!");
+        if(!name || !pin) return tg.showAlert("Ma'lumotlarni to'ldiring!");
         
         currentUser = { name, surname, pin, role, userId };
         await set(ref(db, `users/${userId}`), currentUser);
-        renderUI();
+        showAppUI();
     };
 
-    function renderUI() {
+    function showAppUI() {
         document.getElementById('view-loading').classList.add('hidden');
         document.getElementById('view-reg').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
+        document.getElementById('set-name').innerText = `${currentUser.name} ${currentUser.surname}`;
+        document.getElementById('set-role').innerText = currentUser.role === 'teacher' ? "O'qituvchi" : "Talaba";
+        document.getElementById('set-id').innerText = userId;
         switchTab('home');
     }
 
     window.switchTab = (tab) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
         if(tab === 'home') {
+            document.getElementById('nav-home').classList.add('active');
             if(currentUser.role === 'teacher') {
                 document.getElementById('tab-teacher').classList.remove('hidden');
                 loadList();
@@ -142,58 +152,40 @@
                 document.getElementById('tab-student').classList.remove('hidden');
                 document.getElementById('st-welcome').innerText = `Salom, ${currentUser.name}!`;
             }
+        } else {
+            document.getElementById('nav-set').classList.add('active');
+            document.getElementById('tab-settings').classList.remove('hidden');
         }
     };
 
-    // --- USUL 1: BIOMETRIKA ---
     window.tryBiometric = () => {
         tg.BiometricManager.init(() => {
-            tg.BiometricManager.authenticate({ reason: "Tasdiqlang" }, async (ok) => {
-                if(ok) finishAttendance("Biometrika ✅");
-                else tg.showAlert("Barmoq izi xato!");
+            tg.BiometricManager.authenticate({ reason: "Barmoq izini tasdiqlang" }, async (ok) => {
+                if(ok) saveAttendance("Barmoq izi ✅");
+                else tg.showAlert("Tasdiqlanmadi!");
             });
         });
     };
 
-    // --- USUL 2: PIN + FOTO ---
-    window.startPinAuth = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            document.getElementById('video').srcObject = stream;
-            document.getElementById('camera-wrap').style.display = "block";
-            document.getElementById('pin-input-area').classList.remove('hidden');
-            document.getElementById('pin-btn').classList.add('hidden');
-        } catch(e) { tg.showAlert("Kameraga ruxsat berilmadi!"); }
-    };
-
     window.confirmWithPin = () => {
         const inputPin = document.getElementById('input-pin').value;
-        if(inputPin !== currentUser.pin) return tg.showAlert("PIN-kod noto'g'ri!");
-
-        // Suratga olish
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        selfieBase64 = canvas.toDataURL('image/jpeg', 0.4);
-        
-        // Kamerani yopish
-        video.srcObject.getTracks().forEach(t => t.stop());
-        document.getElementById('camera-wrap').style.display = "none";
-        
-        finishAttendance("PIN + Foto 📸", selfieBase64);
+        if(inputPin === currentUser.pin) {
+            saveAttendance("PIN-kod 🔑");
+        } else {
+            tg.showAlert("PIN-kod noto'g'ri!");
+        }
     };
 
-    async function finishAttendance(method, photo = "") {
+    async function saveAttendance(method) {
         const today = new Date().toISOString().split('T')[0];
-        const time = new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'});
+        const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
         
         await set(ref(db, `attendance/${today}/${userId}`), {
-            name: `${currentUser.name} ${currentUser.surname}`,
-            time, method, photo
+            fullName: `${currentUser.name} ${currentUser.surname}`,
+            time, method, id: userId
         });
-        tg.showAlert(`Davomat qayd etildi! (${method})`);
-        location.reload();
+        tg.showAlert("Muvaffaqiyatli qayd etildi!");
+        document.getElementById('input-pin').value = "";
     }
 
     function loadList() {
@@ -201,15 +193,22 @@
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
             list.innerHTML = "";
+            if(!snap.exists()) return list.innerHTML = "Hali hech kim yo'q.";
             snap.forEach(c => {
                 const v = c.val();
-                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; align-items:center;">
-                    ${v.photo ? `<img src="${v.photo}" class="preview-circle" style="margin-right:10px;">` : `<div class="preview-circle" style="background:#eee; margin-right:10px; display:flex; align-items:center; justify-content:center;">👤</div>`}
-                    <div><b>${v.name}</b><br><small>${v.time} | ${v.method}</small></div>
+                list.innerHTML += `<div style="padding:12px; border-bottom:1px solid #eee;">
+                    <b>${v.fullName}</b> <span style="float:right; color:var(--tg)">${v.time}</span><br>
+                    <small style="color:#888">ID: ${v.id} | Usul: ${v.method}</small>
                 </div>`;
             });
         });
     }
+
+    window.logout = () => {
+        tg.showConfirm("Chiqasizmi?", async (ok) => {
+            if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
+        });
+    };
 </script>
 </body>
 </html>
