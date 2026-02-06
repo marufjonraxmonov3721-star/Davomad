@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU Davomad | Test Mode</title>
+    <title>OXU Davomat | QR & Gallery</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
         :root { 
             --oxu-blue: #0047AB; 
@@ -17,51 +18,48 @@
         .header { background: var(--oxu-gradient); color: white; padding: 30px 20px; text-align: center; border-bottom: 4px solid var(--gold); border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
         .container { padding: 15px; max-width: 500px; margin: -30px auto 0; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
-        .user-pic { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 10px; }
         
         button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-main { background: var(--oxu-blue); color: white; }
-        .btn-excel { background: #1D6F42; color: white; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
+        .btn-gallery { background: #6c757d; color: white; }
         .hidden { display: none !important; }
 
-        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
-        .st-test { background: #fff3e0; color: #ef6c00; } /* Test rejimi uchun */
-
-        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; background: #fff3e0; color: #ef6c00; }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 15px; color: #999; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--oxu-blue); font-weight: bold; }
         
-        #qrcode { margin: 20px auto; display: flex; justify-content: center; }
-        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; box-sizing: border-box; }
+        input[type="file"] { display: none; }
+        #canvas-helper { display: none; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <img id="profile-pic" class="user-pic" src="https://via.placeholder.com/60" alt="Avatar">
-    <h2 id="header-name" style="margin:0; font-size: 18px;">OXU Davomad</h2>
+    <h2 id="header-name" style="margin:0; font-size: 18px;">OXU Davomat</h2>
     <p id="header-role" style="margin:5px 0 0; font-size: 12px; opacity: 0.8;"></p>
 </div>
 
 <div class="container">
     <div id="view-reg" class="card hidden">
         <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
-        <input type="text" id="reg-name" placeholder="F.I.SH">
-        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" inputmode="numeric">
-        <select id="reg-role">
+        <input type="text" id="reg-name" placeholder="F.I.SH" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
+        <input type="password" id="reg-pin" placeholder="PIN-kod (4 xonali)" maxlength="4" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
+        <select id="reg-role" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
             <option value="student">Talaba</option>
             <option value="teacher">O'qituvchi</option>
         </select>
-        <button class="btn-main" onclick="saveUser()">Tizimni ishga tushirish</button>
+        <button class="btn-main" onclick="saveUser()">Tizimga kirish</button>
     </div>
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <div class="status-badge st-test">⚠️ TEST REJIMI: GPS O'CHIRILGAN</div>
-            <p style="font-size: 12px; color: #888; margin-top: 5px;">Hozir istalgan joydan davomat qilishingiz mumkin.</p>
-            <button id="btn-checkin" class="btn-main" onclick="runCheckIn()">Davomatni tasdiqlash</button>
+            <div class="status-badge">TEKSHIRUV: QR SKANER</div>
+            <button class="btn-main" onclick="openQRScanner()">📷 JONLI SKANER</button>
+            <button class="btn-gallery" onclick="document.getElementById('gallery-input').click()">🖼️ GALERIYADAN TANLASH</button>
+            <input type="file" id="gallery-input" accept="image/*" onchange="readQRFromGallery(this)">
         </div>
+        <canvas id="canvas-helper"></canvas>
         <div class="card">
             <h4 style="margin:0 0 10px; text-align: left;">Oxirgi tarix</h4>
             <div id="history-list"></div>
@@ -71,33 +69,17 @@
     <div id="tab-teacher" class="tab-content hidden">
         <div class="card">
             <h3>Dars QR-Kodi</h3>
-            <div id="qrcode"></div>
-            <p style="font-size: 12px; color: #666;">Talabalar ushbu kodni skanerlashi shart</p>
+            <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0;"></div>
+            <button class="btn-main" onclick="exportToExcel()" style="background:#1D6F42">EXCEL YUKLASH</button>
         </div>
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h4 style="margin:0">Bugun kelganlar</h4>
-                <button class="btn-excel" onclick="exportToExcel()">Excel (.xlsx)</button>
-            </div>
-            <div id="attendance-list" style="text-align: left;"></div>
-        </div>
-    </div>
-
-    <div id="tab-settings" class="tab-content hidden">
-        <div class="card">
-            <h3>Sozlamalar</h3>
-            <p id="prof-detail"></p>
-            <button style="background:transparent; color:red; border:1px solid red;" onclick="logout()">Hisobdan chiqish</button>
-        </div>
+        <div id="attendance-list" class="card" style="text-align:left; font-size:14px;"></div>
     </div>
 </div>
 
 <nav id="bottom-nav" class="nav hidden">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')">🏠<br>Asosiy</div>
-    <div class="nav-item" id="nav-set" onclick="switchTab('settings')">⚙️<br>Sozlama</div>
+    <div class="nav-item" onclick="logout()">⚙️<br>Chiqish</div>
 </nav>
-
-<audio id="sound-success" src="https://www.myinstants.com/media/sounds/success-1-6297.mp3"></audio>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -114,15 +96,10 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     const userId = tg.initDataUnsafe.user?.id || "dev_user";
-    
     let user = null;
 
     async function init() {
         tg.expand();
-        if(tg.initDataUnsafe.user?.photo_url) {
-            document.getElementById('profile-pic').src = tg.initDataUnsafe.user.photo_url;
-        }
-
         const snap = await get(ref(db, `users/${userId}`));
         if(snap.exists()) {
             user = snap.val();
@@ -147,79 +124,77 @@
         document.getElementById('view-reg').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
         document.getElementById('header-name').innerText = user.name;
-        document.getElementById('header-role').innerText = user.role === 'teacher' ? "O'qituvchi" : "Talaba";
-        document.getElementById('prof-detail').innerText = `${user.name} | ${user.role}`;
+        document.getElementById('header-role').innerText = user.role;
         switchTab('home');
-        if(user.role === 'teacher') startTeacherLogic();
+        if(user.role === 'teacher') startTeacherMode();
         else loadHistory();
     }
 
-    // STUDENT
-    window.runCheckIn = () => {
-        const today = new Date().toISOString().split('T')[0];
-        
-        // GPS TEKSHIRUVI OLIB TASHLANDI
-        get(ref(db, `attendance/${today}/${userId}`)).then(snap => {
-            if(snap.exists()) return tg.showAlert("Bugun davomat qilingan!");
-            
-            tg.BiometricManager.init(() => {
-                tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik" }, (ok) => {
-                    if(ok) {
-                        tg.showScanQrPopup({ text: "O'qituvchi kodini skanerlang" }, (qr) => {
-                            if(qr === "OXU_VERIFIED_LESSON") {
-                                saveAttendance();
-                                return true;
-                            }
-                            tg.showAlert("Noto'g'ri QR!");
-                        });
-                    }
-                });
-            });
+    // --- TALABA: JONLI SKANER ---
+    window.openQRScanner = () => {
+        tg.showScanQrPopup({ text: "O'qituvchi QR kodini skanerlang" }, (data) => {
+            if(data === "OXU_VERIFIED_LESSON") {
+                processAttendance();
+                return true;
+            }
+            tg.showAlert("Noto'g'ri QR kod!");
         });
     };
 
-    async function saveAttendance() {
-        const today = new Date().toISOString().split('T')[0];
-        const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
-        await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time, date: today });
-        document.getElementById('sound-success').play();
-        tg.showAlert("Muvaffaqiyatli qayd etildi! ✅");
-        loadHistory();
-    }
+    // --- TALABA: GALERIYADAN O'QISH ---
+    window.readQRFromGallery = (input) => {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.getElementById('canvas-helper');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code && code.data === "OXU_VERIFIED_LESSON") {
+                    processAttendance();
+                } else {
+                    tg.showAlert("Rasmda yaroqli QR kod topilmadi!");
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
 
-    function loadHistory() {
-        onValue(ref(db, `attendance`), snap => {
-            const list = document.getElementById('history-list');
-            list.innerHTML = "";
-            let count = 0;
-            snap.forEach(day => {
-                if(day.hasChild(userId)) {
-                    const data = day.child(userId).val();
-                    list.innerHTML = `<div class="history-item"><span>${data.date}</span><b>${data.time}</b></div>` + list.innerHTML;
-                    count++;
+    function processAttendance() {
+        tg.BiometricManager.init(() => {
+            tg.BiometricManager.authenticate({ reason: "OXU Davomat" }, async (ok) => {
+                if(ok) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const time = new Date().toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+                    await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time, date: today });
+                    tg.showAlert("Davomat tasdiqlandi! ✅");
+                    loadHistory();
                 }
             });
-            if(count === 0) list.innerHTML = "<p style='font-size:12px;color:#999'>Hali davomat yo'q.</p>";
         });
     }
 
-    // TEACHER
-    function startTeacherLogic() {
+    // --- O'QITUVCHI ---
+    function startTeacherMode() {
         new QRCode(document.getElementById("qrcode"), {
             text: "OXU_VERIFIED_LESSON",
-            width: 180, height: 180,
+            width: 200, height: 200,
             colorDark : "#0047AB",
         });
-        loadTeacherList();
-    }
-
-    function loadTeacherList() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
-            list.innerHTML = "";
+            list.innerHTML = "<b>Bugun kelganlar:</b><br>";
             snap.forEach(c => {
-                list.innerHTML += `<div class="history-item"><span>${c.val().name}</span><b>${c.val().time}</b></div>`;
+                list.innerHTML += `<div style="padding:5px 0;">• ${c.val().name} (${c.val().time})</div>`;
             });
         });
     }
@@ -228,24 +203,17 @@
         const today = new Date().toISOString().split('T')[0];
         get(ref(db, `attendance/${today}`)).then(snap => {
             const data = [];
-            snap.forEach(c => { data.push({ "F.I.SH": c.val().name, "Vaqt": c.val().time }); });
+            snap.forEach(c => data.push({ "F.I.SH": c.val().name, "Vaqt": c.val().time }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Davomat");
-            XLSX.writeFile(wb, `OXU_Test_${today}.xlsx`);
+            XLSX.writeFile(wb, `OXU_Davomat_${today}.xlsx`);
         });
     };
 
     window.switchTab = (t) => {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(t === 'home') {
-            document.getElementById(user.role === 'teacher' ? 'tab-teacher' : 'tab-student').classList.remove('hidden');
-            document.getElementById('nav-home').classList.add('active');
-        } else {
-            document.getElementById('tab-settings').classList.remove('hidden');
-            document.getElementById('nav-set').classList.add('active');
-        }
+        if(t === 'home') document.getElementById(user.role === 'teacher' ? 'tab-teacher' : 'tab-student').classList.remove('hidden');
     };
 
     window.logout = async () => {
@@ -253,6 +221,19 @@
             if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
         });
     };
+
+    function loadHistory() {
+        onValue(ref(db, `attendance`), snap => {
+            const list = document.getElementById('history-list');
+            list.innerHTML = "";
+            snap.forEach(day => {
+                if(day.hasChild(userId)) {
+                    const d = day.child(userId).val();
+                    list.innerHTML = `<div style="padding:10px; border-bottom:1px solid #eee;">${d.date} - <b>${d.time}</b></div>` + list.innerHTML;
+                }
+            });
+        });
+    }
 </script>
 </body>
 </html>
