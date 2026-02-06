@@ -3,36 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate: Passport Smart Scanner</title>
+    <title>EduGate: Secure Bio-System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        :root { --tg-color: #248b65; --bg-color: #f0f2f5; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding-bottom: 75px; }
+        :root { --tg-color: #248b65; --error: #e74c3c; }
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding-bottom: 80px; }
         .container { padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; box-sizing: border-box; text-align: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         
-        /* Pasport skanerlash zonasi */
-        .scan-zone { border: 2px dashed var(--tg-color); padding: 20px; border-radius: 15px; background: #f9fdfb; margin-bottom: 20px; cursor: pointer; }
-        .scan-zone:hover { background: #f0f7f3; }
-        
-        .form-group { text-align: left; margin-bottom: 12px; width: 100%; }
-        label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; background: #fff; }
-        
-        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        .btn-main { background: var(--tg-color); color: white; margin-top: 10px; }
-        
+        .step-box { border: 2px solid #eee; border-radius: 15px; padding: 15px; margin-bottom: 15px; text-align: left; }
+        .step-box.active { border-color: var(--tg-color); background: #f0f9f4; }
+        .step-title { font-weight: bold; font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 5px; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-main { background: var(--tg-color); color: white; }
+        .btn-sec { background: #0088cc; color: white; }
+
+        #camera-feed { width: 100%; border-radius: 15px; transform: scaleX(-1); display: none; }
+        .hidden { display: none; }
         .loader { display: none; margin: 10px auto; border: 3px solid #f3f3f3; border-top: 3px solid var(--tg-color); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        #preview-img { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
-        .hidden { display: none; }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 11px; flex: 1; }
-        .nav-item.active { color: var(--tg-color); }
     </style>
 </head>
 <body>
@@ -41,47 +34,40 @@
     <div id="loader" class="loader"></div>
 
     <div id="view-registration" class="card hidden">
-        <h2 style="color: var(--tg-color);">Ro'yxatdan o'tish</h2>
-        <p style="font-size: 13px; color: #666;">Pasportingizning <b>QR-kodli (orqa)</b> tarafini yuklang</p>
+        <h2 style="color: var(--tg-color);">Xavfsiz Ro'yxatdan o'tish</h2>
         
-        <div class="scan-zone" onclick="document.getElementById('passport-file').click()">
-            <span id="scan-text">📸 Rasmni tanlash</span>
-            <input type="file" id="passport-file" accept="image/*" class="hidden" onchange="processImage(event)">
-            <img id="preview-img" src="">
+        <div class="step-box active" id="step1">
+            <div class="step-title">1. Pasport QR-skaner <span>📄</span></div>
+            <input type="file" id="pass-file" accept="image/*" onchange="secureScan(this)">
+            <p id="pass-res" style="font-size: 11px; margin: 5px 0;"></p>
         </div>
-        <div id="ocr-log" style="font-size: 11px; color: blue; margin-bottom: 10px;"></div>
 
-        <div class="form-group"><label>F.I.SH (Pasportdan)</label><input type="text" id="reg-name" readonly></div>
-        <div class="form-group"><label>Pasport Seriya va Raqam</label><input type="text" id="reg-pser" readonly></div>
-        <div class="form-group"><label>Telefon</label><input type="tel" id="reg-phone" placeholder="+998901234567"></div>
-        <div class="form-group">
-            <label>Rolingiz</label>
+        <div class="step-box" id="step2">
+            <div class="step-title">2. Jonli Selfie (Face-ID) <span>🤳</span></div>
+            <video id="camera-feed" autoplay playsinline></video>
+            <button class="btn-sec" id="btn-snap" onclick="takeSelfie()">Rasmga tushish</button>
+            <canvas id="photo-canvas" class="hidden"></canvas>
+        </div>
+
+        <div class="step-box" id="step3">
+            <div class="step-title">3. Shaxsiy ma'lumotlar <span>✏️</span></div>
+            <input type="text" id="reg-name" placeholder="F.I.SH (Avto)" readonly>
+            <input type="tel" id="reg-phone" placeholder="Telefon raqamingiz">
             <select id="reg-role">
                 <option value="student">Talaba</option>
                 <option value="teacher">O'qituvchi</option>
             </select>
         </div>
-        <button class="btn-main" onclick="saveUser()">Tizimga kirish</button>
+
+        <button class="btn-main" onclick="finalRegister()">Tizimni faollashtirish</button>
     </div>
 
     <div id="view-main" class="card hidden">
-        <h3 id="welcome-title">Xush kelibsiz!</h3>
-        <p id="today-info" style="font-size: 14px; color: #666;"></p>
-        <div id="student-area" class="hidden">
-            <div style="font-size: 50px; margin: 20px 0;">🛡️</div>
-            <button class="btn-main" id="btn-checkin" onclick="doAttendance()">Barmoq izi bilan tasdiqlash</button>
-        </div>
-        <div id="teacher-area" class="hidden">
-            <h4>Bugun kelganlar ro'yxati:</h4>
-            <div id="att-list" style="text-align: left; font-size: 13px;"></div>
-        </div>
+        <h3 id="user-display">Xush kelibsiz</h3>
+        <div id="status-area"></div>
+        <button class="btn-main" id="btn-action" onclick="secureCheckIn()">Biometrik Davomat</button>
     </div>
 </div>
-
-<nav id="nav-bar" class="bottom-nav hidden">
-    <div class="nav-item active"><span>🏠</span><span>Asosiy</span></div>
-    <div class="nav-item" onclick="location.reload()"><span>🔄</span><span>Yangilash</span></div>
-</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -103,144 +89,121 @@
     const bm = tg.BiometricManager;
     tg.ready(); tg.expand();
 
-    const user = tg.initDataUnsafe.user || { id: "test_id" };
-    const today = new Date().toISOString().split('T')[0];
-    const UNI_COORDS = { lat: 39.800911, lon: 64.426838 };
+    const telegramId = tg.initDataUnsafe.user?.id || "test_user";
+    const UNI_COORDS = { lat: 39.800911, lon: 64.426838 }; // Osiyo Xalqaro Universiteti
 
-    // Tizimga kirish tekshiruvi
-    get(ref(db, `users/${user.id}`)).then(snap => {
+    // Tizimga kirishni tekshirish
+    get(ref(db, `users/${telegramId}`)).then(snap => {
         if (!snap.exists()) {
             document.getElementById('view-registration').classList.remove('hidden');
+            startCamera();
         } else {
-            showMain(snap.val());
+            loadDashboard(snap.val());
         }
     });
 
-    // --- SMART SKANER (QR + OCR) ---
-    window.processImage = function(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-
+    // 1. Xavfsiz Skaner (Pasport + QR)
+    window.secureScan = function(input) {
+        const file = input.files[0];
+        document.getElementById('loader').style.display = 'block';
+        
         const reader = new FileReader();
         reader.onload = function() {
             const img = new Image();
             img.onload = function() {
-                document.getElementById('preview-img').src = reader.result;
-                document.getElementById('preview-img').style.display = 'block';
-                document.getElementById('scan-text').innerText = "Tahlil qilinmoqda...";
-                document.getElementById('loader').style.display = 'block';
-
-                // 1. QR-kodni tekshirish
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 canvas.width = img.width; canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const qr = jsQR(imageData.data, imageData.width, imageData.height);
-
-                if (qr) {
-                    parseData(qr.data); // QR orqali ma'lumot olish
+                const qr = jsQR(ctx.getImageData(0,0,canvas.width,canvas.height).data, canvas.width, canvas.height);
+                
+                if(qr) {
+                    const data = qr.data.split('|');
+                    document.getElementById('reg-name').value = data[0] + " " + (data[1] || "");
+                    document.getElementById('pass-res').innerText = "✅ Pasport tasdiqlandi";
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById('step2').classList.add('active');
                 } else {
-                    // 2. Agar QR bo'lmasa, OCR (MRZ qismini o'qish)
-                    Tesseract.recognize(reader.result, 'eng')
-                    .then(({ data: { text } }) => {
-                        document.getElementById('loader').style.display = 'none';
-                        parseMRZ(text);
-                    });
+                    tg.showAlert("QR-kod topilmadi. Iltimos, pasportni orqa tarafini aniqroq oling.");
                 }
+                document.getElementById('loader').style.display = 'none';
             };
             img.src = reader.result;
         };
         reader.readAsDataURL(file);
     };
 
-    function parseData(data) {
-        // Pasport QR-kodidagi ma'lumotlarni ajratish (Namuna: NAME|SURNAME|PASSPORT)
-        document.getElementById('ocr-log').innerText = "QR-kod muvaffaqiyatli o'qildi!";
-        const parts = data.split('|'); 
-        if(parts.length >= 2) {
-            document.getElementById('reg-name').value = parts[0] + " " + parts[1];
-            document.getElementById('reg-pser').value = parts[2] || "Aniqlanmadi";
-        }
-        document.getElementById('loader').style.display = 'none';
+    // 2. Jonli Selfie (Face-ID tahlili uchun poydevor)
+    async function startCamera() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        const video = document.getElementById('camera-feed');
+        video.srcObject = stream;
+        video.style.display = 'block';
     }
 
-    function parseMRZ(text) {
-        const lines = text.split('\n');
-        const mrzLine = lines.find(l => l.includes('<<'));
-        if (mrzLine) {
-            document.getElementById('reg-name').value = mrzLine.replace(/</g, ' ').trim();
-            document.getElementById('reg-pser').value = text.match(/[A-Z]{2}[0-9]{7}/)?.[0] || "";
-            document.getElementById('ocr-log').innerText = "MRZ zonasi aniqlandi!";
-        } else {
-            tg.showAlert("Rasm xira! Iltimos, pasportning QR-kodli qismini aniqroq oling.");
-        }
-    }
-
-    window.saveUser = function() {
-        const uData = {
-            fullName: document.getElementById('reg-name').value,
-            passport: document.getElementById('reg-pser').value,
-            phone: document.getElementById('reg-phone').value,
-            role: document.getElementById('reg-role').value
-        };
-        if(!uData.fullName || !uData.phone) return tg.showAlert("Ma'lumotlar yetarli emas!");
-        set(ref(db, `users/${user.id}`), uData).then(() => location.reload());
+    window.takeSelfie = function() {
+        const video = document.getElementById('camera-feed');
+        const canvas = document.getElementById('photo-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        
+        tg.HapticFeedback.notificationOccurred('success');
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step3').classList.add('active');
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+        document.getElementById('btn-snap').innerText = "✅ Selfie olindi";
     };
 
-    function showMain(data) {
-        document.getElementById('nav-bar').classList.remove('hidden');
-        document.getElementById('view-main').classList.remove('hidden');
-        document.getElementById('welcome-title').innerText = data.fullName;
-        
-        if (data.role === 'teacher') {
-            document.getElementById('teacher-area').classList.remove('hidden');
-            loadTeacherList();
-        } else {
-            document.getElementById('student-area').classList.remove('hidden');
-            checkStudentStatus(data);
-        }
-    }
+    // 3. Yakuniy ro'yxatdan o'tish
+    window.finalRegister = function() {
+        const name = document.getElementById('reg-name').value;
+        const phone = document.getElementById('reg-phone').value;
+        if(!name || !phone) return tg.showAlert("Ma'lumotlar to'liq emas!");
 
-    window.doAttendance = function() {
+        set(ref(db, `users/${telegramId}`), {
+            fullName: name,
+            phone: phone,
+            role: document.getElementById('reg-role').value,
+            verified: true,
+            regDate: new Date().toLocaleString()
+        }).then(() => location.reload());
+    };
+
+    // 4. Davomat (GPS + Biometrika)
+    window.secureCheckIn = function() {
         navigator.geolocation.getCurrentPosition(pos => {
-            const dist = getDist(pos.coords.latitude, pos.coords.longitude, UNI_COORDS.lat, UNI_COORDS.lon);
-            if (dist <= 0.3) {
-                bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, ok => {
+            const R = 6371;
+            const dLat = (pos.coords.latitude - UNI_COORDS.lat) * Math.PI / 180;
+            const dLon = (pos.coords.longitude - UNI_COORDS.lon) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(pos.coords.latitude*Math.PI/180)*Math.cos(UNI_COORDS.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+            const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            if(dist <= 0.3) {
+                bm.authenticate({ reason: "Davomatni tasdiqlang" }, ok => {
                     if(ok) {
-                        get(ref(db, `users/${user.id}`)).then(s => {
-                            set(ref(db, `attendance/${today}/${user.id}`), { name: s.val().fullName, time: new Date().toLocaleTimeString() })
-                            .then(() => location.reload());
-                        });
+                        const today = new Date().toISOString().split('T')[0];
+                        set(ref(db, `attendance/${today}/${telegramId}`), { name: document.getElementById('user-display').innerText, time: new Date().toLocaleTimeString() })
+                        .then(() => { tg.showAlert("Qabul qilindi! ✅"); location.reload(); });
                     }
                 });
-            } else tg.showAlert("Siz universitet hududida emassiz!");
+            } else tg.showAlert("Siz universitetda emassiz!");
         }, null, {enableHighAccuracy: true});
     };
 
-    function loadTeacherList() {
+    function loadDashboard(data) {
+        document.getElementById('view-main').classList.remove('hidden');
+        document.getElementById('user-display').innerText = data.fullName;
+        if(data.role === 'teacher') loadTeacherLive();
+    }
+
+    function loadTeacherLive() {
+        const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
-            const list = document.getElementById('att-list');
-            list.innerHTML = snap.exists() ? "" : "Hozircha hech kim kelmadi.";
-            if(snap.exists()) snap.forEach(c => {
-                list.innerHTML += `<div style="padding:8px; background:#f0f7f3; margin-top:5px; border-radius:5px;">✅ ${c.val().name} - ${c.val().time}</div>`;
-            });
-        });
-    }
-
-    function getDist(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    function checkStudentStatus(data) {
-        get(ref(db, `attendance/${today}/${user.id}`)).then(snap => {
-            if(snap.exists()) {
-                document.getElementById('btn-checkin').disabled = true;
-                document.getElementById('btn-checkin').innerText = "Bugun qayd etilgan ✅";
-            }
+            const area = document.getElementById('status-area');
+            area.innerHTML = "<h4>Bugungi ro'yxat:</h4>";
+            snap.forEach(c => { area.innerHTML += `<p>✅ ${c.val().name}</p>`; });
         });
     }
 </script>
