@@ -3,62 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU | Satellite Navigator</title>
+    <title>OXU | Real Navigator & Secure Attendance</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
     <style>
-        :root { --oxu-blue: #0047AB; --gold: #D4AF37; }
-        body { font-family: sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 80px; }
-        .header { background: linear-gradient(135deg, #002147, #0047AB); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        :root { --oxu-blue: #0047AB; --gold: #D4AF37; --bg: #f0f2f5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 20px; }
+        .header { background: linear-gradient(135deg, #002147, #0047AB); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; margin-bottom: 15px; }
+        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); text-align: center; }
         
-        /* Xarita Sputnik ko'rinishi uchun kengroq */
-        #map { height: 350px; width: 100%; border-radius: 15px; border: 2px solid var(--gold); }
+        /* Xarita stili */
+        #map { height: 400px; width: 100%; border-radius: 15px; border: 2px solid #ddd; margin-top: 10px; }
         
-        button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-main { background: var(--oxu-blue); color: white; }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; background: var(--oxu-blue); color: white; margin-top: 15px; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+        
+        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+        .st-ok { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
+        .st-err { background: #ffebee; color: #c62828; border: 1px solid #c62828; }
+        
+        .leaflet-routing-container { display: none !important; } /* Yo'riqnoma panelini yashirish */
         .hidden { display: none !important; }
-        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
-        
-        /* Routing panelini yashirish (faqat chiziq ko'rinsin) */
-        .leaflet-routing-container { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="header"><h2>OXU NAVIGATOR</h2></div>
+<div class="header"><h2 style="margin:0; letter-spacing: 1px;">OXU NAVIGATOR</h2></div>
 
 <div class="container">
     <div id="view-reg" class="card hidden">
-        <input type="text" id="reg-name" placeholder="Ism Familiya" style="width:90%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-        <select id="reg-role" style="width:90%; padding:12px; margin-bottom:10px;"><option value="student">Talaba</option><option value="teacher">O'qituvchi</option></select>
+        <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
+        <input type="text" id="reg-name" placeholder="Ism Familiya" style="width:100%; padding:14px; border-radius:12px; border:1px solid #ddd; box-sizing:border-box; margin-bottom:10px;">
+        <select id="reg-role" style="width:100%; padding:14px; border-radius:12px; border:1px solid #ddd; margin-bottom:15px;">
+            <option value="student">Talaba</option>
+            <option value="teacher">O'qituvchi</option>
+        </select>
         <button class="btn-main" onclick="saveUser()">KIRISH</button>
     </div>
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <div id="gps-status" class="status-badge" style="background:#eee;">Sputnik yuklanmoqda...</div>
+            <div id="gps-status" class="status-badge st-err">GPS yuklanmoqda...</div>
             <div id="map"></div>
-            <button class="btn-main" style="margin-top:15px;" onclick="confirmAttendance()">DAVOMATNI TASDIQLASH</button>
+            <p id="dist-info" style="font-size: 14px; color: #555; margin: 10px 0 0; font-weight: bold;"></p>
+            <button class="btn-main" onclick="confirmAttendance()">TASDIQLASH</button>
         </div>
     </div>
 
     <div id="tab-teacher" class="tab-content hidden">
-        <div class="card"><h3>Dars statistikasi</h3><div id="attendance-list"></div></div>
+        <div class="card">
+            <h3>Bugun kelganlar:</h3>
+            <div id="attendance-list" style="text-align: left;"></div>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -70,10 +80,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "user_debug";
+    const userId = tg.initDataUnsafe.user?.id || "dev_user";
 
-    const UNI = { lat: 39.800911, lon: 64.426838 }; //
-    let user = null, map, routingControl, userMarker;
+    const UNI = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; // 200 metr
+    let user = null, map, routingControl, userMarker, currentDist = 999;
 
     async function init() {
         tg.expand();
@@ -86,6 +96,7 @@
     window.saveUser = async () => {
         const name = document.getElementById('reg-name').value;
         const role = document.getElementById('reg-role').value;
+        if(!name) return tg.showAlert("Ismni yozing!");
         user = { name, role, id: userId };
         await set(ref(db, `users/${userId}`), user);
         renderApp();
@@ -95,56 +106,84 @@
         document.getElementById('view-reg').classList.add('hidden');
         if(user.role === 'student') {
             document.getElementById('tab-student').classList.remove('hidden');
-            initSputnikMap();
+            initSecureMap();
         } else {
             document.getElementById('tab-teacher').classList.remove('hidden');
             loadTeacherData();
         }
     }
 
-    function initSputnikMap() {
-        // Sputnik (Satellite) qatlami
-        map = L.map('map').setView([UNI.lat, UNI.lon], 17);
+    function initSecureMap() {
+        // Sputnik (Satellite) ko'rinishi
+        map = L.map('map').setView([UNI.lat, UNI.lon], 16);
         
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles © Esri & DigitalGlobe'
+            attribution: 'Esri Satellite'
         }).addTo(map);
 
-        L.marker([UNI.lat, UNI.lon]).addTo(map).bindPopup("OXU Markazi");
+        L.marker([UNI.lat, UNI.lon]).addTo(map).bindPopup("<b>OXU Markazi</b>").openPopup();
+        L.circle([UNI.lat, UNI.lon], { color: 'cyan', fillOpacity: 0.2, radius: UNI.radius * 1000 }).addTo(map);
 
         navigator.geolocation.watchPosition(pos => {
             const { latitude: lat, longitude: lon } = pos.coords;
-
-            // 1. Foydalanuvchi markerini yangilash
-            if(userMarker) map.removeLayer(userMarker);
-            userMarker = L.circleMarker([lat, lon], { radius: 8, color: 'white', fillColor: '#007AFF', fillOpacity: 1 }).addTo(map);
-
-            // 2. Haqiqiy yo'l (Road Routing) chizish
-            if(routingControl) map.removeControl(routingControl);
             
+            // Masofani o'lchash (Gavernus formulasi)
+            const R = 6371; // Yer radiusi
+            const dLat = (lat - UNI.lat) * Math.PI / 180;
+            const dLon = (lon - UNI.lon) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(UNI.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            currentDist = R * c; // km da
+
+            const badge = document.getElementById('gps-status');
+            const info = document.getElementById('dist-info');
+            
+            if(currentDist <= UNI.radius) {
+                badge.innerText = "✅ UNIVERSITET HUDUDIDASIZ"; badge.className = "status-badge st-ok";
+            } else {
+                badge.innerText = "❌ HUDUDDAN TASHQARIDASIZ"; badge.className = "status-badge st-err";
+            }
+            info.innerText = `Masofa: ${Math.round(currentDist * 1000)} metr`;
+
+            // Foydalanuvchi markerini yangilash
+            if(userMarker) map.removeLayer(userMarker);
+            userMarker = L.circleMarker([lat, lon], { radius: 10, color: 'white', fillColor: '#007AFF', fillOpacity: 1 }).addTo(map);
+
+            // REAL YO'L CHIZISH (ROUTING)
+            if(routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
                 waypoints: [ L.latLng(lat, lon), L.latLng(UNI.lat, UNI.lon) ],
-                routeWhileDragging: false,
+                router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                lineOptions: { styles: [{ color: '#D4AF37', weight: 6, opacity: 0.8 }] },
                 addWaypoints: false,
                 draggableWaypoints: false,
-                fitSelectedRoutes: false,
-                show: false,
-                lineOptions: { styles: [{ color: '#D4AF37', weight: 6, opacity: 0.9 }] }
+                show: false
             }).addTo(map);
 
-            document.getElementById('gps-status').innerText = "✅ Sputnik Navigator Faol";
-        }, null, { enableHighAccuracy: true });
+        }, err => tg.showAlert("GPS ruxsati berilmagan!"), { enableHighAccuracy: true });
     }
 
+    // --- QAT'IY TEKSHIRUV ---
     window.confirmAttendance = () => {
-        tg.BiometricManager.init(() => {
-            tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik" }, async (ok) => {
-                if(ok) {
-                    const today = new Date().toISOString().split('T')[0];
-                    await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time: new Date().toLocaleTimeString() });
-                    tg.showAlert("Tasdiqlandi! ✅");
-                }
-            });
+        // Anticheat: Agarda masofa radiusdan katta bo'lsa, funksiya to'xtaydi
+        if (currentDist > UNI.radius) {
+            tg.showAlert(`Xatolik! Siz universitetdan ${Math.round(currentDist*1000)} metr uzoqdasiz. Davomat uchun hududga kiring!`);
+            return; 
+        }
+
+        tg.showConfirm("Davomatni tasdiqlaysizmi?", async (ok) => {
+            if(ok) {
+                const today = new Date().toISOString().split('T')[0];
+                const time = new Date().toLocaleTimeString('uz-UZ');
+                
+                await set(ref(db, `attendance/${today}/${userId}`), { 
+                    name: user.name, 
+                    time: time,
+                    status: "verified" 
+                });
+                tg.showAlert("Muvaffaqiyatli qayd etildi! ✅");
+            }
         });
     };
 
@@ -153,7 +192,9 @@
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
             list.innerHTML = "";
-            snap.forEach(c => { list.innerHTML += `<div>• ${c.val().name}</div>`; });
+            snap.forEach(c => {
+                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;">• ${c.val().name} - ${c.val().time}</div>`;
+            });
         });
     }
 </script>
