@@ -3,62 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Davomad | GPS Test</title>
+    <title>OXU | Davomad</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; margin-bottom: 15px; }
+        :root { 
+            --oxu-blue: #0047AB; 
+            --oxu-gradient: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+            --white: #ffffff;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
+            background: var(--bg); 
+            margin: 0; padding: 0; 
+            background-color: #f0f2f5;
+        }
+
+        /* OXU Style Header */
+        .header { 
+            background: var(--oxu-gradient); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .container { padding: 20px; max-width: 450px; margin: -40px auto 0; }
+
+        .card { 
+            background: var(--white); 
+            border-radius: 20px; 
+            padding: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            text-align: center; 
+            margin-bottom: 20px;
+        }
+
+        /* Status & GPS */
+        .gps-box { font-size: 13px; color: #666; margin: 10px 0; padding: 8px; border-radius: 10px; background: #f8f9fa; }
+        .status-ok { color: #28a745; font-weight: bold; }
+        .status-err { color: #dc3545; font-weight: bold; }
+
+        /* Buttons */
+        button { 
+            width: 100%; padding: 16px; border: none; border-radius: 15px; 
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; 
+        }
+        .btn-bio { background: #1a8a5f; color: white; margin-bottom: 10px; }
+        .btn-pin { background: #007bff; color: white; }
+        .btn-reg { background: var(--oxu-blue); color: white; }
+        button:disabled { background: #ccc !important; }
+
+        /* Inputs */
+        input, select { 
+            width: 100%; padding: 14px; margin: 10px 0; 
+            border: 1.5px solid #e0e0e0; border-radius: 12px; 
+            box-sizing: border-box; font-size: 16px; outline: none;
+        }
+        input:focus { border-color: var(--oxu-blue); }
+
+        /* Nav Bar */
+        .nav { 
+            position: fixed; bottom: 0; width: 100%; height: 70px; 
+            background: white; display: flex; align-items: center; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); 
+        }
+        .nav-item { flex: 1; text-align: center; color: #8e8e93; font-size: 12px; cursor: pointer; }
+        .nav-item.active { color: var(--oxu-blue); font-weight: bold; }
+
         .hidden { display: none !important; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-main { background: var(--tg); color: white; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-out { background: white; color: red; border: 1px solid red; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; }
-        .nav div { flex: 1; text-align: center; padding: 15px; font-size: 12px; color: #888; }
-        .nav .active { color: var(--blue); font-weight: bold; }
+        
+        /* Attendance List */
+        .list-item { 
+            text-align: left; padding: 12px; border-bottom: 1px solid #eee; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
     </style>
 </head>
 <body>
 
-<div id="view-reg" class="card hidden">
-    <h2>Ro'yxatdan o'tish</h2>
-    <input type="text" id="reg-name" placeholder="Ismingiz">
-    <select id="reg-role">
-        <option value="student">Talaba</option>
-        <option value="teacher">O'qituvchi</option>
-    </select>
-    <button class="btn-blue" onclick="saveUser()">Saqlash</button>
+<div class="header">
+    <img src="https://oxu.uz/logo.png" alt="OXU" style="width: 60px; margin-bottom: 10px; filter: brightness(0) invert(1);">
+    <h2 style="margin:0; font-size: 18px; letter-spacing: 1px;">OSIYO XALQARO UNIVERSITETI</h2>
 </div>
 
-<div id="view-student" class="tab-content hidden">
-    <div class="card">
-        <h3 id="st-name">Salom</h3>
-        <p id="gps-status">GPS tekshirilmoqda...</p>
-        <button id="btn-auth" class="btn-main" onclick="startAuth()">Davomatni tasdiqlash</button>
+<div class="container">
+    <div id="view-reg" class="card hidden">
+        <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
+        <input type="text" id="reg-name" placeholder="F.I.SH (Masalan: Maruf Raxmonov)">
+        <input type="password" id="reg-pin" placeholder="PIN-kod yarating (4 xonali)" maxlength="4" inputmode="numeric">
+        <select id="reg-role">
+            <option value="student">Talaba</option>
+            <option value="teacher">O'qituvchi</option>
+        </select>
+        <button class="btn-reg" onclick="saveUser()">TIZIMGA KIRISH</button>
+    </div>
+
+    <div id="view-student" class="tab-content hidden">
+        <div class="card">
+            <h3 id="welcome-txt">Salom, Maruf!</h3>
+            <div id="gps-status" class="gps-box">GPS aniqlanmoqda...</div>
+            <div style="margin: 20px 0;">
+                <img src="https://cdn-icons-png.flaticon.com/512/2566/2566235.png" width="80" alt="Shield">
+            </div>
+            <button id="btn-bio" class="btn-bio" onclick="authBio()" disabled>BARMOQ IZI BILAN TASDIQLASH</button>
+            <p style="color: #999; font-size: 12px;">yoki</p>
+            <input type="password" id="login-pin" placeholder="PIN-kodni kiriting" maxlength="4" inputmode="numeric" style="text-align: center;">
+            <button id="btn-pin" class="btn-pin" onclick="authPin()" disabled>PIN-NI TASDIQLASH</button>
+        </div>
+    </div>
+
+    <div id="view-teacher" class="tab-content hidden">
+        <div class="card">
+            <h3 style="color: var(--oxu-blue)">Bugun darsdagilar</h3>
+            <div id="attendance-list"></div>
+        </div>
+    </div>
+
+    <div id="view-settings" class="tab-content hidden">
+        <div class="card">
+            <h3 style="color: var(--oxu-blue)">Sozlamalar</h3>
+            <p id="prof-info" style="font-weight: bold;"></p>
+            <button style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;" onclick="logout()">TIZIMDAN CHIQISH</button>
+        </div>
     </div>
 </div>
 
-<div id="view-teacher" class="tab-content hidden">
-    <div class="card">
-        <h3>Bugun kelganlar:</h3>
-        <div id="list" style="text-align: left;"></div>
-    </div>
-</div>
-
-<div id="view-settings" class="tab-content hidden">
-    <div class="card">
-        <h3>Sozlamalar</h3>
-        <p id="prof-info"></p>
-        <button class="btn-out" onclick="logout()">Tizimdan chiqish</button>
-    </div>
-</div>
-
-<div id="bottom-nav" class="nav hidden">
-    <div id="nav-home" class="active" onclick="showTab('home')">🏠<br>Asosiy</div>
-    <div id="nav-set" onclick="showTab('settings')">⚙️<br>Sozlama</div>
-</div>
+<nav id="bottom-nav" class="nav hidden">
+    <div class="nav-item active" id="nav-home" onclick="showTab('home')">🏠<br>Asosiy</div>
+    <div class="nav-item" id="nav-set" onclick="showTab('settings')">⚙️<br>Sozlama</div>
+</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -74,19 +150,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "test_id";
-    let user = null;
+    const userId = tg.initDataUnsafe.user?.id || "user_debug";
+    let userData = null;
 
-    // GPS koordinatalari (Siz bergan nuqta)
-    const UNI_LAT = 39.800911;
-    const UNI_LON = 64.426838;
-    const RADIUS = 0.5; // 500 metr atrofida
+    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.3 };
 
     async function init() {
         tg.expand();
         const s = await get(ref(db, `users/${userId}`));
         if(s.exists()){
-            user = s.val();
+            userData = s.val();
             render();
         } else {
             document.getElementById('view-reg').classList.remove('hidden');
@@ -96,17 +169,18 @@
 
     window.saveUser = async () => {
         const name = document.getElementById('reg-name').value;
+        const pin = document.getElementById('reg-pin').value;
         const role = document.getElementById('reg-role').value;
-        if(!name) return;
-        user = { name, role };
-        await set(ref(db, `users/${userId}`), user);
+        if(!name || pin.length < 4) return tg.showAlert("Ma'lumotlar xato!");
+        userData = { name, pin, role };
+        await set(ref(db, `users/${userId}`), userData);
         render();
     };
 
     function render() {
         document.getElementById('view-reg').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
-        document.getElementById('prof-info').innerText = `${user.name} (${user.role})`;
+        document.getElementById('prof-info').innerText = `${userData.name} (${userData.role})`;
         showTab('home');
     }
 
@@ -117,12 +191,12 @@
 
         if(tab === 'home') {
             document.getElementById('nav-home').classList.add('active');
-            if(user.role === 'teacher') {
+            if(userData.role === 'teacher') {
                 document.getElementById('view-teacher').classList.remove('hidden');
                 loadList();
             } else {
                 document.getElementById('view-student').classList.remove('hidden');
-                document.getElementById('st-name').innerText = user.name;
+                document.getElementById('welcome-txt').innerText = `Salom, ${userData.name}!`;
                 checkGPS();
             }
         } else {
@@ -133,43 +207,61 @@
 
     function checkGPS() {
         navigator.geolocation.getCurrentPosition(pos => {
-            const dist = Math.sqrt(Math.pow(pos.coords.latitude - UNI_LAT, 2) + Math.pow(pos.coords.longitude - UNI_LON, 2)) * 111;
-            if(dist <= RADIUS) {
-                document.getElementById('gps-status').innerHTML = "✅ Universitet hududidasiz";
-                document.getElementById('btn-auth').disabled = false;
+            const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
+            const status = document.getElementById('gps-status');
+            if(dist <= TARGET.radius) {
+                status.innerHTML = "<span class='status-ok'>✅ Universitet hududidasiz</span>";
+                document.getElementById('btn-bio').disabled = false;
+                document.getElementById('btn-pin').disabled = false;
             } else {
-                document.getElementById('gps-status').innerHTML = "❌ Universitetda emassiz";
-                document.getElementById('btn-auth').disabled = true;
+                status.innerHTML = `<span class='status-err'>❌ Hududdan tashqaridasiz (${Math.round(dist*1000)}m)</span>`;
             }
-        }, () => {
-            document.getElementById('gps-status').innerText = "GPS ruxsat berilmagan!";
-        });
+        }, () => { tg.showAlert("GPS ruxsatini yoqing!"); }, {enableHighAccuracy: true});
     }
 
-    window.startAuth = () => {
+    window.authBio = () => {
         tg.BiometricManager.init(() => {
-            tg.BiometricManager.authenticate({ reason: "Tasdiqlang" }, async (ok) => {
-                if(ok) {
-                    const today = new Date().toISOString().split('T')[0];
-                    await set(ref(db, `attendance/${today}/${userId}`), { name: user.name });
-                    tg.showAlert("Davomat qilindi! ✅");
-                }
+            tg.BiometricManager.authenticate({ reason: "OXU Davomat tizimi" }, async (ok) => {
+                if(ok) saveAttendance("Barmoq izi ✅");
             });
         });
     };
 
+    window.authPin = () => {
+        const pin = document.getElementById('login-pin').value;
+        if(pin === userData.pin) saveAttendance("PIN-kod 🔑");
+        else tg.showAlert("PIN-kod noto'g'ri!");
+    };
+
+    async function saveAttendance(method) {
+        const today = new Date().toISOString().split('T')[0];
+        await set(ref(db, `attendance/${today}/${userId}`), {
+            name: userData.name, 
+            time: new Date().toLocaleTimeString(),
+            method: method
+        });
+        tg.showAlert("Davomat qilindi! ✅");
+    }
+
     function loadList() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), s => {
-            const l = document.getElementById('list');
+            const l = document.getElementById('attendance-list');
             l.innerHTML = "";
-            s.forEach(c => { l.innerHTML += `• ${c.val().name}<br>`; });
+            if(!s.exists()) return l.innerHTML = "<p>Hali hech kim yo'q.</p>";
+            s.forEach(c => {
+                l.innerHTML += `<div class="list-item">
+                    <span><b>${c.val().name}</b><br><small>${c.val().method}</small></span>
+                    <span style="color:var(--oxu-blue)">${c.val().time}</span>
+                </div>`;
+            });
         });
     }
 
     window.logout = async () => {
-        await remove(ref(db, `users/${userId}`));
-        location.reload();
+        tg.showConfirm("Tizimdan chiqasizmi?", async (ok) => {
+            if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
+        });
     };
 </script>
 </body>
