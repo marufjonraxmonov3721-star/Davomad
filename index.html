@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Biometric Only</title>
+    <title>EduGate Smart System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -14,53 +14,28 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--tg-theme-bg-color, #f0f2f5);
             color: var(--tg-theme-text-color, #333);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0; padding: 20px;
         }
         .card {
-            background: white;
-            padding: 30px;
-            border-radius: 25px;
+            background: white; padding: 30px; border-radius: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 350px;
-            text-align: center;
+            width: 100%; max-width: 350px; text-align: center;
         }
-        .icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
+        .icon { font-size: 60px; margin-bottom: 20px; }
         button {
-            width: 100%;
-            padding: 18px;
+            width: 100%; padding: 18px;
             background-color: var(--tg-theme-button-color, #248b65);
             color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            border: none; border-radius: 15px;
+            font-size: 18px; font-weight: bold; cursor: pointer;
         }
-        button:active { transform: scale(0.98); }
-        #status {
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #666;
-        }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #status { margin-top: 20px; font-size: 15px; font-weight: 500; color: #666; }
         .loader {
-            display: none;
-            margin: 10px auto;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #248b65;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            display: none; margin: 10px auto;
+            border: 4px solid #f3f3f3; border-top: 4px solid #248b65;
+            border-radius: 50%; width: 25px; height: 25px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -69,20 +44,19 @@
 <body>
 
 <div class="card">
-    <div class="icon">👤</div>
-    <h2 id="user-name">Xush kelibsiz!</h2>
-    <p>Davomatni tasdiqlash uchun pastdagi tugmani bosing</p>
-    
+    <div class="icon">📜</div>
+    <h2 id="user-name">Yuklanmoqda...</h2>
+    <div id="status">Tizim holati tekshirilmoqda...</div>
     <div class="loader" id="loader"></div>
-    <div id="status">Tizim tayyor</div>
-    
-    <button id="actionBtn" onclick="handleAction()">Barmoq izini sozlash</button>
+    <br>
+    <button id="actionBtn" onclick="handleAction()">Tekshirilmoqda...</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // Firebase sozlamalaringiz
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -101,32 +75,43 @@
     tg.ready();
     tg.expand();
 
-    const user = tg.initDataUnsafe.user || { first_name: "Talaba" };
-    document.getElementById('user-name').innerText = user.first_name + "!";
+    const user = tg.initDataUnsafe.user || { id: "test_user", first_name: "Maruf" };
+    document.getElementById('user-name').innerText = user.first_name;
 
-    // Biometrika holatini tekshirish
+    // Bugungi sanani olish (YYYY-MM-DD formatida)
+    const today = new Date().toISOString().split('T')[0];
+
+    // Biometrika va Bugungi davomatni tekshirish
     bm.init(() => {
-        if (bm.isAccessGranted) {
-            document.getElementById('actionBtn').innerText = "Davomatni tasdiqlash";
-            document.getElementById('status').innerText = "Biometrika faol ✅";
-        }
+        const checkRef = ref(db, `attendance/${user.id}/${today}`);
+        
+        get(checkRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                document.getElementById('status').innerText = "✅ Bugun davomatdan o'tgansiz";
+                document.getElementById('status').style.color = "green";
+                document.getElementById('actionBtn').innerText = "Bugun uchun yopilgan";
+                document.getElementById('actionBtn').disabled = true;
+            } else {
+                if (bm.isAccessGranted) {
+                    document.getElementById('actionBtn').innerText = "Barmoq izi bilan tasdiqlash";
+                    document.getElementById('status').innerText = "Davomatga tayyor";
+                } else {
+                    document.getElementById('actionBtn').innerText = "Biometriyani sozlash";
+                    document.getElementById('status').innerText = "Ruxsat kerak ⚠️";
+                }
+            }
+        });
     });
 
     window.handleAction = function() {
         if (!bm.isAccessGranted) {
-            // Ruxsat so'rash
-            bm.requestAccess({ reason: "Davomat uchun biometrika kerak" }, (granted) => {
-                if (granted) {
-                    bm.authenticate({ reason: "Sozlashni yakunlang" }, (success) => {
-                        if (success) location.reload();
-                    });
-                }
+            bm.requestAccess({ reason: "Davomat uchun barmoq izi kerak" }, (granted) => {
+                if (granted) location.reload();
             });
         } else {
-            // Barmoq izi orqali davomat qilish
             bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
                 if (success) {
-                    sendToFirebase();
+                    saveAttendance();
                 } else {
                     tg.showAlert("Tasdiqlash bajarilmadi ❌");
                 }
@@ -134,30 +119,28 @@
         }
     };
 
-    function sendToFirebase() {
+    function saveAttendance() {
         document.getElementById('loader').style.display = "block";
         document.getElementById('actionBtn').disabled = true;
 
-        const userId = user.id || "test_user";
-        const now = Date.now();
-
-        set(ref(db, 'attendance/' + userId + '/' + now), {
+        const attendancePath = `attendance/${user.id}/${today}`;
+        
+        set(ref(db, attendancePath), {
             name: user.first_name,
             lastName: user.last_name || "",
             username: user.username || "",
-            time: new Date().toLocaleString(),
-            type: "Biometric_Verification"
+            fullTime: new Date().toLocaleString(),
+            timestamp: Date.now(),
+            verified: true
         }).then(() => {
             document.getElementById('loader').style.display = "none";
-            document.getElementById('status').innerText = "✅ Davomat qilindi!";
-            document.getElementById('status').style.color = "green";
+            document.getElementById('status').innerText = "✅ Muvaffaqiyatli saqlandi!";
             tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Rahmat! Davomatingiz muvaffaqiyatli qayd etildi.");
-            
-            // 3 soniyadan keyin ilovani yopish
-            setTimeout(() => tg.close(), 3000);
+            tg.showAlert("Rahmat, " + user.first_name + "! Bugungi dars qayd etildi.");
+            setTimeout(() => tg.close(), 2500);
         }).catch(err => {
             alert("Xato: " + err.message);
+            document.getElementById('actionBtn').disabled = false;
         });
     }
 </script>
