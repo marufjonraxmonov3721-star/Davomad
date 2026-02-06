@@ -40,7 +40,7 @@
             1-bosqich: Biometrik ma'lumotlarni tasdiqlang (Yuz/Barmoq)
         </div>
 
-        <div id="loc-info" style="font-size: 12px; color: #888; margin-bottom: 15px;">GPS tekshirilmoqda...</div>
+        <div id="loc-info" style="display:none;"></div>
 
         <button class="btn-main" id="action-btn" onclick="startTripleCheck()">Tasdiqlashni boshlash</button>
     </div>
@@ -75,16 +75,8 @@
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
 
-    const UNI_LOC = { lat: 39.800911, lon: 64.426838 };
     const userId = tg.initDataUnsafe.user?.id || "test_user";
-    let currentDist = 999;
     let userProfile = null;
-
-    // GPSni boshlash
-    navigator.geolocation.watchPosition(pos => {
-        currentDist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_LOC.lat, UNI_LOC.lon);
-        document.getElementById('loc-info').innerText = `Masofa: ${Math.round(currentDist * 1000)}m`;
-    }, null, {enableHighAccuracy: true});
 
     // Foydalanuvchini yuklash
     get(ref(db, `users/${userId}`)).then(snap => {
@@ -101,10 +93,9 @@
     });
 
     window.startTripleCheck = async function() {
-        if(currentDist > 0.15) return tg.showAlert("Siz universitetda emassiz!");
-
+        // GPS TEKSHIRUVI OLIB TASHLANDI
+        
         // 1 va 2-BOSQICH: BIOMETRIKA (Face + Fingerprint)
-        // Telegram BiometricManager ikkalasini bitta tizim orqali so'raydi
         bm.init(() => {
             bm.authenticate({ reason: "Yuz va barmoq izini tasdiqlang" }, (ok) => {
                 if(ok) {
@@ -123,8 +114,6 @@
     // 3-BOSQICH: QR SKANER
     window.scanQRCode = function() {
         tg.showScanQrPopup({ text: "Talabalik guvohnomangizdagi QR-kodni skanerlang" }, (data) => {
-            // Bu yerda data — skanerlangan QR kod ichidagi matn
-            // Agar guvohnoma ID-si mos kelsa yoki ma'lum bir formatda bo'lsa:
             if (data) {
                 tg.closeScanQrPopup();
                 completeFinalAttendance(data);
@@ -155,13 +144,6 @@
             el.classList.add('complete');
             if(num < 3) document.getElementById(`step-${num+1}`).classList.add('active');
         }
-    }
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
     function loadTeacherList() {
