@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU Davomad | Stable GPS</title>
+    <title>OXU Davomad | Test Mode</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -25,8 +25,7 @@
         .hidden { display: none !important; }
 
         .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
-        .st-ok { background: #e8f5e9; color: #2e7d32; }
-        .st-err { background: #ffebee; color: #c62828; }
+        .st-test { background: #fff3e0; color: #ef6c00; } /* Test rejimi uchun */
 
         .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
@@ -59,10 +58,9 @@
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <div id="gps-badge" class="status-badge st-err">GPS: Tekshirilmagan</div>
-            <p id="dist-text" style="font-size: 12px; color: #888; margin-top: 5px;"></p>
+            <div class="status-badge st-test">⚠️ TEST REJIMI: GPS O'CHIRILGAN</div>
+            <p style="font-size: 12px; color: #888; margin-top: 5px;">Hozir istalgan joydan davomat qilishingiz mumkin.</p>
             <button id="btn-checkin" class="btn-main" onclick="runCheckIn()">Davomatni tasdiqlash</button>
-            <p style="font-size: 11px; color: #999; margin-top: 5px;">Tugma bosilganda GPS bir marta aniqlanadi.</p>
         </div>
         <div class="card">
             <h4 style="margin:0 0 10px; text-align: left;">Oxirgi tarix</h4>
@@ -117,7 +115,6 @@
     const tg = window.Telegram.WebApp;
     const userId = tg.initDataUnsafe.user?.id || "dev_user";
     
-    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.2 }; // 200 metr
     let user = null;
 
     async function init() {
@@ -161,43 +158,24 @@
     window.runCheckIn = () => {
         const today = new Date().toISOString().split('T')[0];
         
-        // 1. Bir marta GPS aniqlash
-        document.getElementById('gps-badge').innerText = "⌛ GPS aniqlanmoqda...";
-        
-        navigator.geolocation.getCurrentPosition(pos => {
-            const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
-            const isOk = (dist <= TARGET.radius);
+        // GPS TEKSHIRUVI OLIB TASHLANDI
+        get(ref(db, `attendance/${today}/${userId}`)).then(snap => {
+            if(snap.exists()) return tg.showAlert("Bugun davomat qilingan!");
             
-            const gpsBadge = document.getElementById('gps-badge');
-            gpsBadge.innerText = isOk ? "✅ Hududdasiz" : "❌ Hududdan tashqarida";
-            gpsBadge.className = `status-badge ${isOk ? 'st-ok' : 'st-err'}`;
-            document.getElementById('dist-text').innerText = `Masofa: ${Math.round(dist*1000)} metr`;
-
-            if(!isOk) return tg.showAlert("Siz universitet hududida emassiz!");
-
-            // 2. Kuniga 1 marta tekshiruvi
-            get(ref(db, `attendance/${today}/${userId}`)).then(snap => {
-                if(snap.exists()) return tg.showAlert("Bugun davomat qilingan!");
-                
-                // 3. Biometrika va QR
-                tg.BiometricManager.init(() => {
-                    tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik" }, (ok) => {
-                        if(ok) {
-                            tg.showScanQrPopup({ text: "O'qituvchi kodini skanerlang" }, (qr) => {
-                                if(qr === "OXU_VERIFIED_LESSON") {
-                                    saveAttendance();
-                                    return true;
-                                }
-                                tg.showAlert("Noto'g'ri QR!");
-                            });
-                        }
-                    });
+            tg.BiometricManager.init(() => {
+                tg.BiometricManager.authenticate({ reason: "OXU Xavfsizlik" }, (ok) => {
+                    if(ok) {
+                        tg.showScanQrPopup({ text: "O'qituvchi kodini skanerlang" }, (qr) => {
+                            if(qr === "OXU_VERIFIED_LESSON") {
+                                saveAttendance();
+                                return true;
+                            }
+                            tg.showAlert("Noto'g'ri QR!");
+                        });
+                    }
                 });
             });
-        }, err => {
-            tg.showAlert("GPS ruxsatini yoqing!");
-            document.getElementById('gps-badge').innerText = "❌ GPS xatosi";
-        }, {enableHighAccuracy: true});
+        });
     };
 
     async function saveAttendance() {
@@ -254,11 +232,10 @@
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Davomat");
-            XLSX.writeFile(wb, `OXU_${today}.xlsx`);
+            XLSX.writeFile(wb, `OXU_Test_${today}.xlsx`);
         });
     };
 
-    // GENERAL
     window.switchTab = (t) => {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
