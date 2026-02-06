@@ -7,139 +7,106 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 85px; }
         
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 0; overflow-x: hidden; color: #000; }
-        
-        /* Animatsiyalar */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Splash Screen (Firebase yuklanishini yashirish uchun) */
+        /* Splash/Loading Screen */
         #splash { position: fixed; top:0; left:0; width:100%; height:100%; background: white; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 35px; height: 35px; border: 4px solid #f3f3f3; border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .container { padding: 20px; max-width: 450px; margin: 0 auto; }
-        .card { background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
+        .container { padding: 15px; max-width: 450px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h2 { font-weight: 700; margin-bottom: 8px; font-size: 24px; }
-        p { color: #8e8e93; font-size: 14px; margin-bottom: 25px; }
-
-        /* Inputlar */
-        .input-group { text-align: left; margin-bottom: 15px; }
-        label { font-size: 12px; font-weight: 600; color: #3a3a3c; margin-left: 5px; display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.2s; background: #fff; }
-        input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
-
-        /* Tugmalar */
-        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.98); opacity: 0.9; }
+        /* Form & Input */
+        .form-group { text-align: left; margin-bottom: 12px; }
+        label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; }
+        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
         
-        .btn-google { background: white; border: 1px solid #d1d1d6; color: #000; display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px; }
+        /* Buttons */
+        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn-google { background: white; border: 1px solid #d1d1d6; color: #000; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-checkin { background: var(--tg); color: white; margin-top: 20px; }
 
-        /* Navigatsiya */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #d1d1d6; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8e8e93; font-size: 11px; cursor: pointer; }
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #d1d1d6; z-index: 1000; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8e8e93; font-size: 11px; cursor: pointer; border: none; background: none; padding: 0; }
         .nav-item.active { color: var(--blue); }
         .nav-icon { font-size: 22px; }
 
         .hidden { display: none !important; }
-        .list-item { background: #f9f9fb; padding: 15px; border-radius: 15px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+        .list-item { background: #f9f9fb; padding: 15px; border-radius: 15px; margin-bottom: 10px; text-align: left; }
     </style>
 </head>
 <body>
 
-<div id="splash">
-    <div class="spinner"></div>
-    <p style="margin-top: 15px; color: #000; font-weight: 500;">EduGate Pro...</p>
-</div>
+<div id="splash"><div class="spinner"></div><p style="margin-top:10px;">EduGate yuklanmoqda...</p></div>
 
-<div class="container fade-in">
+<div class="container">
     <div id="view-auth" class="card hidden">
         <h2>EduGate Pro</h2>
-        <p>Ilovaga kirish uchun usulni tanlang</p>
+        <p style="color:#8e8e93; font-size: 14px;">Ilovaga kirish usulini tanlang</p>
         
         <button class="btn-google" onclick="handleGoogleSignIn()">
-            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNMTcuNjQgOS4yYyAwLS42My0uMDYtMS4yNS0uMTYtMS44NEg5djMuNTVoNC44NWMtLjIxIDEuMTItLjg0IDIuMDctMS44IDIuNzNsMy4wNSAyLjM3YzEuNzktMS42NSAyLjgxLTQuMDggMi44MS03LjAxeiIvPjxwYXRoIGZpbGw9IiMzNEE4NTMiIGQ9Ik05IDE4YzIuNDMgMCA0LjQ3LS44IDUuOTYtMi4xOGwtMy4wNS0yLjM3Yy0uODQuNTYtMS45Mi44OC0yLjkxLjg4LTIuMzQgMC00LjMzLTEuNTgtNS4wNC0zLjdMLjQ2IDEzLjA0QzEuOTYgMTUuOTggNS4xNyAxOCA5IDE4eiIvPjxwYXRoIGZpbGw9IiNGQkJDMDQiIGQ9Ik0zLjk2IDEwLjY1Yy0uMTgtLjU2LS4yOC0xLjE1LS4yOC0xLjc1cy4xLTEuMTkuMjgtMS43NWwtMy41LTEuNzRDLjE3IDYuMTggMCA3LjU1IDAgOWMwIDEuNDUuMTcgMi44Mi41MyA0LjM4bDMuNDMtMi43M3oiLz48cGF0aCBmaWxsPSIjRUExMzMzIiBkPSJNOSAzLjU4YzEuMzIgMCAyLjUxLjQ1IDMuNDQgMS4zMmwyLjU4LTIuNThDMTMuNDYgLjg5IDExLjQzIDAgOSAwIDUuMTcgMCAxLjk2IDIuMDMuNDYgNC45N2wzLjUgMi43M2MuNzEtMi4xMiAyLjctMy43IDUuMDQtMy43eiIvPjwvc3ZnPg==" width="20">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij48cGF0aCBmaWxsPSIjNDI4NUY0IiBkPSJNMTcuNjQgOS4yYyAwLS42My0uMDYtMS4yNS0uMTYtMS44NEg5djMuNTVoNC44NWMtLjIxIDEuMTIlLjg0IDIuMDctMS44IDIuNzNsMy4wNSAyLjM3YzEuNzktMS42NSAyLjgxLTQuMDggMi44MS03LjAxeiIvPjxwYXRoIGZpbGw9IiMzNEE4NTMiIGQ9Ik05IDE4YzIuNDMgMCA0LjQ3LS44IDUuOTYtMi4xOGwtMy4wNS0yLjM3Yy0uODQuNTYtMS45Mi44OC0yLjkxLjg4LTIuMzQgMC00LjMzLTEuNTgtNS4wNC0zLjdMLjQ2IDEzLjA0QzEuOTYgMTUuOTggNS4xNyAxOCA5IDE4eiIvPjxwYXRoIGZpbGw9IiNGQkJDMDQiIGQ9Ik0zLjk2IDEwLjY1Yy0uMTgtLjU2LS4yOC0xLjE1LS4yOC0xLjc1cy4xLTEuMTkuMjgtMS43NWwtMy41LTEuNzRDLjE3IDYuMTggMCA3LjU1IDAgOWMwIDEuNDUuMTcgMi44Mi41MyA0LjM4bDMuNDMtMi43M3oiLz48cGF0aCBmaWxsPSIjRUExMzMzIiBkPSJNOSAzLjU4YzEuMzIgMCAyLjUxLjQ1IDMuNDQgMS4zMmwyLjU4LTIuNThDMTMuNDYgLjg5IDExLjQzIDAgOSAwIDUuMTcgMCAxLjk2IDIuMDMuNDYgNC45N2wzLjUgMi43M2MuNzEtMi4xMiAyLjctMy43IDUuMDQtMy43eiIvPjwvc3ZnPg==" width="20">
             Google orqali kirish
         </button>
         
-        <div style="margin: 15px 0; color: #d1d1d6; font-size: 11px; font-weight: 700;">YOKI</div>
-        
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="email" placeholder="example@gmail.com">
-        </div>
-        <div class="input-group">
-            <label>Parol</label>
-            <input type="password" id="password" placeholder="••••••">
-        </div>
-        <button class="btn-primary" onclick="handleEmailSignIn()">Tizimga kirish</button>
+        <div style="margin: 15px 0; color: #d1d1d6; font-size: 11px; font-weight: 700;">YOKI EMAIL</div>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Parol" style="margin-top:10px;">
+        <button class="btn-primary" onclick="handleEmailSignIn()" style="margin-top:15px;">Kirish</button>
     </div>
 
     <div id="view-profile" class="card hidden">
         <h2>Profilni yakunlang</h2>
-        <p>Ma'lumotlaringizni tasdiqlang</p>
-        <div class="input-group"><label>Ism</label><input type="text" id="p-name"></div>
-        <div class="input-group"><label>Familiya</label><input type="text" id="p-surname"></div>
-        <div class="input-group"><label>Otasining ismi</label><input type="text" id="p-patronymic"></div>
-        <div class="input-group">
-            <label>Sizning rolingiz</label>
+        <div class="form-group"><label>Ism</label><input type="text" id="p-name"></div>
+        <div class="form-group"><label>Familiya</label><input type="text" id="p-surname"></div>
+        <div class="form-group"><label>Sizning rolingiz</label>
             <select id="p-role">
-                <option value="student">Talaba (Student)</option>
-                <option value="teacher">O'qituvchi (Teacher)</option>
+                <option value="student">Talaba</option>
+                <option value="teacher">O'qituvchi</option>
             </select>
         </div>
-        <button class="btn-primary" onclick="saveProfile()">Tayyor</button>
+        <button class="btn-primary" onclick="saveProfile()">Saqlash</button>
     </div>
 
     <div id="view-main" class="hidden">
-        <div class="card fade-in">
-            <h2 id="st-welcome" style="text-align: left; margin: 0;">Salom, Maruf!</h2>
-            <p style="text-align: left; margin: 5px 0 20px 0;">O'quv tizimiga xush kelibsiz.</p>
-            
-            <div id="student-only">
-                <div style="font-size: 80px; margin: 20px 0;">📍</div>
-                <div id="loc-indicator" style="font-weight: 600; font-size: 14px; color: #8e8e93;">Manzil aniqlanmoqda...</div>
+        <div class="card">
+            <h2 id="st-welcome" style="text-align: left;">Salom!</h2>
+            <div id="student-area">
+                <div style="font-size: 60px; margin: 20px 0;">📍</div>
+                <div id="loc-status" style="color: #8e8e93; font-size: 14px;">Manzil aniqlanmoqda...</div>
                 <button class="btn-checkin" id="btn-checkin" onclick="takeAttendance()">Davomatni qayd etish</button>
             </div>
-
-            <div id="teacher-only" class="hidden">
-                <h3 style="text-align: left; font-size: 18px; color: var(--blue);">Bugungi darsda:</h3>
-                <div id="attendance-list"></div>
+            <div id="teacher-area" class="hidden" style="text-align: left;">
+                <h3 style="color: var(--blue);">Bugungi davomat:</h3>
+                <div id="attendance-list">Ma'lumotlar yo'q</div>
             </div>
         </div>
     </div>
 
     <div id="view-history" class="hidden">
-        <div class="card fade-in">
+        <div class="card">
             <h2>Statistika</h2>
-            <p>Oxirgi davomat ma'lumotlari</p>
-            <div id="history-content">Hozircha ma'lumot yo'q.</div>
+            <div id="history-data">Oxirgi davomat ma'lumotlari yuklanmoqda...</div>
         </div>
     </div>
 
     <div id="view-settings" class="hidden">
-        <div class="card fade-in">
+        <div class="card">
             <h2>Profil sozlamalari</h2>
-            <div id="profile-box" class="list-item" style="flex-direction: column; align-items: flex-start; gap: 5px;"></div>
+            <div id="profile-box" class="list-item" style="display:block;"></div>
             <button onclick="logout()" style="background: #ff3b30; color: white; margin-top: 20px;">Tizimdan chiqish</button>
         </div>
     </div>
 </div>
 
 <nav id="bottom-nav" class="bottom-nav hidden">
-    <div class="nav-item" onclick="switchTab('main')">
-        <span class="nav-icon">🏠</span><span>Asosiy</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('history')">
-        <span class="nav-icon">📊</span><span>Tarix</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('settings')">
-        <span class="nav-icon">👤</span><span>Profil</span>
-    </div>
+    <button class="nav-item" onclick="switchTab('main')"><span class="nav-icon">🏠</span><span>Asosiy</span></button>
+    <button class="nav-item" onclick="switchTab('history')"><span class="nav-icon">📊</span><span>Tarix</span></button>
+    <button class="nav-item" onclick="switchTab('settings')"><span class="nav-icon">👤</span><span>Profil</span></button>
 </nav>
 
 <script type="module">
@@ -168,11 +135,12 @@
     let userProfile = null;
 
     onAuthStateChanged(auth, (user) => {
-        document.getElementById('splash').style.display = 'none'; // Firebase yuklanib bo'lgach splasni yopish
+        document.getElementById('splash').style.display = 'none';
         if (user) {
             get(ref(db, `users/${user.uid}`)).then(snap => {
                 if (snap.exists()) {
                     userProfile = snap.val();
+                    document.getElementById('view-auth').classList.add('hidden');
                     document.getElementById('bottom-nav').classList.remove('hidden');
                     switchTab('main');
                 } else {
@@ -190,12 +158,10 @@
         }
     });
 
-    window.handleGoogleSignIn = () => signInWithPopup(auth, provider).catch(e => tg.showAlert("Xatolik: " + e.message));
-
+    window.handleGoogleSignIn = () => signInWithPopup(auth, provider).catch(e => tg.showAlert(e.message));
     window.handleEmailSignIn = () => {
         const e = document.getElementById('email').value;
         const p = document.getElementById('password').value;
-        if(!e || p.length < 6) return tg.showAlert("Ma'lumotlar yetarli emas");
         signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     };
 
@@ -203,39 +169,35 @@
         const data = {
             name: document.getElementById('p-name').value,
             surname: document.getElementById('p-surname').value,
-            patronymic: document.getElementById('p-patronymic').value,
             role: document.getElementById('p-role').value,
-            email: auth.currentUser.email,
-            uid: auth.currentUser.uid
+            email: auth.currentUser.email
         };
         set(ref(db, `users/${auth.currentUser.uid}`), data).then(() => location.reload());
     };
 
     window.switchTab = (tab) => {
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        const views = ['view-main', 'view-history', 'view-settings'];
-        views.forEach(v => document.getElementById(v).classList.add('hidden'));
+        ['view-main', 'view-history', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
 
         if (tab === 'main') {
             document.querySelectorAll('.nav-item')[0].classList.add('active');
             document.getElementById('view-main').classList.remove('hidden');
             document.getElementById('st-welcome').innerText = `Salom, ${userProfile.name}!`;
-            
             if (userProfile.role === 'teacher') {
-                document.getElementById('student-only').classList.add('hidden');
-                document.getElementById('teacher-only').classList.remove('hidden');
-                loadTeacherDashboard();
+                document.getElementById('student-area').classList.add('hidden');
+                document.getElementById('teacher-area').classList.remove('hidden');
+                loadAttendance();
             } else {
                 updateLocation();
-                checkTodayStatus();
+                checkDailyStatus();
             }
         } else if (tab === 'history') {
             document.querySelectorAll('.nav-item')[1].classList.add('active');
             document.getElementById('view-history').classList.remove('hidden');
-        } else {
+        } else if (tab === 'settings') {
             document.querySelectorAll('.nav-item')[2].classList.add('active');
             document.getElementById('view-settings').classList.remove('hidden');
-            document.getElementById('profile-box').innerHTML = `<b>${userProfile.surname} ${userProfile.name}</b><span>${userProfile.email}</span><span style="color:var(--blue)">Rol: ${userProfile.role}</span>`;
+            document.getElementById('profile-box').innerHTML = `<b>${userProfile.surname} ${userProfile.name}</b><br>${userProfile.email}<br><span style="color:var(--blue)">Rol: ${userProfile.role}</span>`;
         }
     };
 
@@ -245,45 +207,35 @@
     }
 
     window.takeAttendance = () => {
-        const btn = document.getElementById('btn-checkin');
-        btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px"></div>';
-        
         navigator.geolocation.getCurrentPosition(pos => {
             const dist = getDistance(pos.coords.latitude, pos.coords.longitude, UNI_LOC.lat, UNI_LOC.lon);
-            if (dist <= 0.3) { // 300 metr radius
-                tg.BiometricManager.authenticate({ reason: "Darsda ekaningizni tasdiqlang" }, ok => {
+            if (dist <= 0.3) {
+                tg.BiometricManager.authenticate({ reason: "Darsni tasdiqlang" }, ok => {
                     if (ok) {
                         const today = new Date().toISOString().split('T')[0];
                         set(ref(db, `attendance/${today}/${auth.currentUser.uid}`), {
                             fullName: userProfile.surname + " " + userProfile.name,
-                            time: new Date().toLocaleTimeString(),
-                            email: userProfile.email
+                            time: new Date().toLocaleTimeString()
                         }).then(() => location.reload());
-                    } else {
-                        btn.innerText = "Qayta urinish";
                     }
                 });
-            } else {
-                tg.showAlert("Siz universitet hududida emassiz! Masofa: " + dist.toFixed(2) + " km");
-                btn.innerText = "Davomatni qayd etish";
-            }
-        }, () => tg.showAlert("GPS yoqilmagan"), {enableHighAccuracy: true});
+            } else tg.showAlert("Siz universitetda emassiz!");
+        }, null, {enableHighAccuracy: true});
     };
 
-    function loadTeacherDashboard() {
+    function loadAttendance() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
             list.innerHTML = "";
-            if (!snap.exists()) list.innerHTML = "<p>Hali hech kim kelmadi.</p>";
             snap.forEach(c => {
                 const d = c.val();
-                list.innerHTML += `<div class="list-item"><div><b>${d.fullName}</b><br><small>${d.time}</small></div> <span style="color:var(--tg)">✅</span></div>`;
+                list.innerHTML += `<div class="list-item"><b>${d.fullName}</b><br><small>${d.time}</small></div>`;
             });
         });
     }
 
-    function checkTodayStatus() {
+    function checkDailyStatus() {
         const today = new Date().toISOString().split('T')[0];
         get(ref(db, `attendance/${today}/${auth.currentUser.uid}`)).then(snap => {
             if (snap.exists()) {
@@ -298,7 +250,7 @@
     function updateLocation() {
         navigator.geolocation.getCurrentPosition(pos => {
             const dist = getDistance(pos.coords.latitude, pos.coords.longitude, UNI_LOC.lat, UNI_LOC.lon);
-            document.getElementById('loc-indicator').innerText = dist <= 0.3 ? "Universitetda (Tasdiqlangan) ✅" : "Universitet tashqarisida ⚠️";
+            document.getElementById('loc-status').innerText = dist <= 0.3 ? "Universitetda ✅" : "Tashqarida ⚠️";
         }, null, {enableHighAccuracy:true});
     }
 
