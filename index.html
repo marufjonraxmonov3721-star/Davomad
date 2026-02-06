@@ -6,59 +6,109 @@
     <title>Davomad.uz | Triple Security</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; }
+        :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; --red: #ff3b30; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 90px; }
         .container { padding: 15px; max-width: 450px; margin: 0 auto; }
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
         
+        /* Steps */
         .step-box { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .step { width: 30%; height: 5px; background: #ddd; border-radius: 5px; }
         .step.active { background: var(--blue); }
         .step.complete { background: var(--tg); }
 
-        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        /* Form */
+        .form-group { text-align: left; margin-bottom: 12px; }
+        label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; }
+        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
+
+        /* Buttons */
+        button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:active { transform: scale(0.97); }
+        .btn-primary { background: var(--blue); color: white; }
         .btn-main { background: var(--tg); color: white; }
+        .btn-outline { background: white; color: var(--red); border: 1px solid var(--red); }
+        
         .hidden { display: none !important; }
 
-        .status-msg { font-size: 14px; color: #8e8e93; margin-top: 10px; }
+        /* Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #d1d1d6; z-index: 1000; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8e8e93; font-size: 11px; cursor: pointer; }
+        .nav-item.active { color: var(--blue); }
+        .nav-icon { font-size: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="tab-student" class="card">
-        <h2 style="margin-top:0">Davomadni tasdiqlash</h2>
-        <p class="status-msg">Uch bosqichli xavfsizlik tizimi</p>
-
-        <div class="step-box">
-            <div id="step-1" class="step active"></div>
-            <div id="step-2" class="step"></div>
-            <div id="step-3" class="step"></div>
-        </div>
-
-        <div id="instruction-text" style="margin: 20px 0; font-weight: 500;">
-            1-bosqich: Biometrik ma'lumotlarni tasdiqlang (Yuz/Barmoq)
-        </div>
-
-        <div id="loc-info" style="display:none;"></div>
-
-        <button class="btn-main" id="action-btn" onclick="startTripleCheck()">Tasdiqlashni boshlash</button>
+    <div id="view-loading" class="card">
+        <p>Yuklanmoqda...</p>
     </div>
 
-    <div id="tab-teacher" class="card hidden">
-        <h2>Bugun darsdagilar</h2>
-        <div id="attendance-list" style="text-align: left;"></div>
+    <div id="view-register" class="card hidden">
+        <h2 style="color: var(--blue); margin-top: 0;">Davomad.uz</h2>
+        <div class="form-group"><label>Ism</label><input type="text" id="reg-name" placeholder="Ismingiz"></div>
+        <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname" placeholder="Familiyangiz"></div>
+        <div class="form-group">
+            <label>Rolni tanlang</label>
+            <select id="reg-role">
+                <option value="student">Talaba</option>
+                <option value="teacher">O'qituvchi</option>
+            </select>
+        </div>
+        <button class="btn-primary" onclick="handleRegistration()">Ro'yxatdan o'tish</button>
+    </div>
+
+    <div id="tab-student" class="tab-content hidden">
+        <div class="card">
+            <h2 id="st-welcome" style="margin-top:0">Salom!</h2>
+            <p style="font-size: 14px; color: #8e8e93;">Shaxsni tasdiqlash tizimi (GPSsiz)</p>
+
+            <div class="step-box">
+                <div id="step-1" class="step active"></div>
+                <div id="step-2" class="step"></div>
+                <div id="step-3" class="step"></div>
+            </div>
+
+            <div id="instruction-text" style="margin: 20px 0; font-weight: 500;">
+                1-bosqich: Biometrik tasdiqlash
+            </div>
+
+            <button class="btn-main" id="action-btn" onclick="startTripleCheck()">Tasdiqlashni boshlash</button>
+        </div>
+    </div>
+
+    <div id="tab-teacher" class="tab-content hidden">
+        <div class="card">
+            <h2 style="margin-top:0">Bugun kelganlar</h2>
+            <div id="attendance-list" style="text-align: left; min-height: 50px;"></div>
+        </div>
+    </div>
+
+    <div id="tab-settings" class="tab-content hidden">
+        <div class="card">
+            <h2 style="margin-top:0">Profil</h2>
+            <div style="text-align: left; margin-bottom: 20px;">
+                <p><b>F.I.SH:</b> <span id="set-name">...</span></p>
+                <p><b>Rol:</b> <span id="set-role">...</span></p>
+            </div>
+            <button class="btn-outline" onclick="logout()">Tizimdan chiqish</button>
+        </div>
     </div>
 </div>
 
-<nav id="bottom-nav" class="bottom-nav hidden" style="position:fixed; bottom:0; width:100%; background:white; display:flex; height:75px; border-top:1px solid #ddd; justify-content:space-around; align-items:center;">
-    <div onclick="location.reload()">🏠<br><small>Asosiy</small></div>
-    <div onclick="tg.showAlert('Sozlamalar')">⚙️<br><small>Sozlama</small></div>
+<nav id="bottom-nav" class="bottom-nav hidden">
+    <div class="nav-item active" id="nav-main" onclick="switchTab('main')">
+        <span class="nav-icon">🏠</span><span>Asosiy</span>
+    </div>
+    <div class="nav-item" id="nav-set" onclick="switchTab('settings')">
+        <span class="nav-icon">⚙️</span><span>Sozlama</span>
+    </div>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -76,26 +126,64 @@
     const bm = tg.BiometricManager;
 
     const userId = tg.initDataUnsafe.user?.id || "test_user";
-    let userProfile = null;
+    let currentUser = null;
 
-    // Foydalanuvchini yuklash
-    get(ref(db, `users/${userId}`)).then(snap => {
-        if(snap.exists()) {
-            userProfile = snap.val();
-            if(userProfile.role === 'teacher') {
-                document.getElementById('tab-student').classList.add('hidden');
+    // INITIAL LOAD
+    (async function init() {
+        tg.expand();
+        const snap = await get(ref(db, `users/${userId}`));
+        if (snap.exists()) {
+            currentUser = snap.val();
+            showApp();
+        } else {
+            document.getElementById('view-loading').classList.add('hidden');
+            document.getElementById('view-register').classList.remove('hidden');
+        }
+    })();
+
+    // REGISTRATION
+    window.handleRegistration = async () => {
+        const name = document.getElementById('reg-name').value;
+        const surname = document.getElementById('reg-surname').value;
+        const role = document.getElementById('reg-role').value;
+        if(!name || !surname) return tg.showAlert("Ma'lumotlarni to'liq kiriting!");
+        
+        currentUser = { name, surname, role, userId };
+        await set(ref(db, `users/${userId}`), currentUser);
+        showApp();
+    };
+
+    function showApp() {
+        document.getElementById('view-loading').classList.add('hidden');
+        document.getElementById('view-register').classList.add('hidden');
+        document.getElementById('bottom-nav').classList.remove('hidden');
+        document.getElementById('set-name').innerText = `${currentUser.name} ${currentUser.surname}`;
+        document.getElementById('set-role').innerText = currentUser.role === 'teacher' ? "O'qituvchi" : "Talaba";
+        switchTab('main');
+    }
+
+    // TABS
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+        if(tab === 'main') {
+            document.getElementById('nav-main').classList.add('active');
+            if(currentUser.role === 'teacher') {
                 document.getElementById('tab-teacher').classList.remove('hidden');
                 loadTeacherList();
+            } else {
+                document.getElementById('tab-student').classList.remove('hidden');
+                document.getElementById('st-welcome').innerText = `Salom, ${currentUser.name}!`;
             }
-        } else {
-            tg.showAlert("Avval ro'yxatdan o'ting!");
+        } else if(tab === 'settings') {
+            document.getElementById('nav-set').classList.add('active');
+            document.getElementById('tab-settings').classList.remove('hidden');
         }
-    });
+    };
 
-    window.startTripleCheck = async function() {
-        // GPS TEKSHIRUVI OLIB TASHLANDI
-        
-        // 1 va 2-BOSQICH: BIOMETRIKA (Face + Fingerprint)
+    // TRIPLE CHECK (NO GPS)
+    window.startTripleCheck = function() {
         bm.init(() => {
             bm.authenticate({ reason: "Yuz va barmoq izini tasdiqlang" }, (ok) => {
                 if(ok) {
@@ -109,55 +197,54 @@
                 }
             });
         });
-    }
+    };
 
-    // 3-BOSQICH: QR SKANER
     window.scanQRCode = function() {
-        tg.showScanQrPopup({ text: "Talabalik guvohnomangizdagi QR-kodni skanerlang" }, (data) => {
-            if (data) {
+        tg.showScanQrPopup({ text: "Guvohnomangizni skanerlang" }, (data) => {
+            if(data) {
                 tg.closeScanQrPopup();
-                completeFinalAttendance(data);
+                completeAttendance();
             }
             return true;
         });
-    }
+    };
 
-    async function completeFinalAttendance(qrCodeData) {
+    async function completeAttendance() {
         updateStep(3, true);
         const today = new Date().toISOString().split('T')[0];
         const time = new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'});
-
         await set(ref(db, `attendance/${today}/${userId}`), {
-            name: `${userProfile.name} ${userProfile.surname}`,
+            name: `${currentUser.name} ${currentUser.surname}`,
             time: time,
-            verifiedBy: "Face-Finger-QR"
+            method: "Triple-Sec"
         });
-
-        document.getElementById('instruction-text').innerHTML = "<span style='color:var(--tg)'>Davomat muvaffaqiyatli yakunlandi! ✅</span>";
+        document.getElementById('instruction-text').innerHTML = "<b style='color:var(--tg)'>Davomat yakunlandi! ✅</b>";
         document.getElementById('action-btn').classList.add('hidden');
-        tg.showAlert("Siz darsda deb qayd etildingiz!");
     }
 
     function updateStep(num, done) {
         const el = document.getElementById(`step-${num}`);
-        if(done) {
-            el.classList.add('complete');
-            if(num < 3) document.getElementById(`step-${num+1}`).classList.add('active');
-        }
+        if(done) el.classList.add('complete');
     }
 
     function loadTeacherList() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
-            list.innerHTML = "";
+            list.innerHTML = snap.exists() ? "" : "<p>Hali hech kim yo'q.</p>";
             snap.forEach(c => {
                 list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;">
-                    <b>${c.val().name}</b> <small style="color:blue;">(${c.val().verifiedBy})</small> <span style="float:right">${c.val().time}</span>
+                    <b>${c.val().name}</b> <span style="float:right; color:var(--tg)">${c.val().time}</span>
                 </div>`;
             });
         });
     }
+
+    window.logout = () => {
+        tg.showConfirm("Chiqasizmi?", async (yes) => {
+            if(yes) { await remove(ref(db, `users/${userId}`)); location.reload(); }
+        });
+    };
 </script>
 </body>
 </html>
