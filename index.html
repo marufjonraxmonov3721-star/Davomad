@@ -3,54 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate: AIU Edition</title>
+    <title>EduGate: Multi-User System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --tg-color: #248b65; }
-        body {
-            font-family: -apple-system, sans-serif;
-            background-color: var(--tg-theme-bg-color, #f0f2f5);
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; margin: 0; padding: 20px;
-        }
-        .card {
-            background: white; padding: 30px; border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 100%; max-width: 350px; text-align: center;
-        }
-        .icon { font-size: 50px; margin-bottom: 15px; }
-        button {
-            width: 100%; padding: 18px;
-            background-color: var(--tg-color); color: white;
-            border: none; border-radius: 15px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-        }
-        button:disabled { background-color: #ccc; }
-        #status { margin-top: 15px; font-size: 14px; color: #666; font-weight: 500; }
-        .loader {
-            display: none; margin: 10px auto;
-            border: 4px solid #f3f3f3; border-top: 4px solid var(--tg-color);
-            border-radius: 50%; width: 25px; height: 25px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        :root { --tg-color: #248b65; --bg-color: #f0f2f5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-color); color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .hidden { display: none; }
+        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; background: var(--tg-color); color: white; }
+        .role-btn { background: #0088cc; }
+        #attendance-list { text-align: left; margin-top: 20px; font-size: 14px; max-height: 200px; overflow-y: auto; }
+        .student-item { border-bottom: 1px solid #eee; padding: 5px 0; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="icon">🏛️</div>
-    <h2 id="user-name">EduGate Pro</h2>
-    <p id="uni-name" style="font-size: 12px; color: #888;">Osiyo Xalqaro Universiteti</p>
-    <div id="loader" class="loader"></div>
-    <div id="status">Tekshirilmoqda...</div>
-    <br>
-    <button id="actionBtn" onclick="handleAction()">Kuting...</button>
+    <h2 id="title">EduGate Pro</h2>
+    <div id="status" style="margin-bottom: 15px; font-size: 14px; color: #666;">Yuklanmoqda...</div>
+
+    <div id="registration-view" class="hidden">
+        <p>Rolingizni tanlang:</p>
+        <button class="role-btn" onclick="registerUser('teacher')">👨‍🏫 O'qituvchi</button>
+        <button class="role-btn" onclick="registerUser('student')">🎓 Talaba</button>
+    </div>
+
+    <div id="student-view" class="hidden">
+        <div id="student-info"></div>
+        <button id="checkInBtn" onclick="handleStudentCheckIn()">Davomatni tasdiqlash</button>
+    </div>
+
+    <div id="teacher-view" class="hidden">
+        <h3>Talabalar davomati</h3>
+        <div id="attendance-list">Ma'lumotlar yuklanmoqda...</div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -62,68 +53,77 @@
         appId: "1:253793341504:web:709752258000dab44fcfa5"
     };
 
-    // --- UNIVERSITET LOKATSIYASI ---
-    const UNI_LAT = 39.8009110; 
-    const UNI_LON = 64.4268380; 
-    const MAX_DIST = 0.25; // 250 metr radius (Universitet binosi uchun optimal)
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
-
     tg.ready(); tg.expand();
 
-    const user = tg.initDataUnsafe.user || { id: "test", first_name: "Maruf" };
-    document.getElementById('user-name').innerText = user.first_name;
+    const user = tg.initDataUnsafe.user || { id: "test_maruf", first_name: "Maruf" };
     const today = new Date().toISOString().split('T')[0];
+    const UNI_LAT = 39.800911; const UNI_LON = 64.426838; const MAX_DIST = 0.25;
 
-    // 1. Dastlabki tekshiruv: Bugun davomat qilganmi?
-    bm.init(() => {
-        const checkRef = ref(db, `attendance/${user.id}/${today}`);
-        get(checkRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                updateUI("✅ Bugun davomatdan o'tgansiz", "Yopiq", true);
-            } else {
-                updateUI("Davomat uchun tugmani bosing", bm.isAccessGranted ? "Tasdiqlash" : "Biometriyani sozlash", false);
-            }
-        });
+    // Tizimga kirish mantiqi
+    const userRef = ref(db, `users/${user.id}`);
+    get(userRef).then((snapshot) => {
+        if (!snapshot.exists()) {
+            document.getElementById('registration-view').classList.remove('hidden');
+            document.getElementById('status').innerText = "Ro'yxatdan o'ting";
+        } else {
+            const userData = snapshot.val();
+            showDashboard(userData.role);
+        }
     });
 
-    function updateUI(status, btnText, disabled) {
-        document.getElementById('status').innerText = status;
-        document.getElementById('actionBtn').innerText = btnText;
-        document.getElementById('actionBtn').disabled = disabled;
+    window.registerUser = function(role) {
+        set(userRef, { name: user.first_name, role: role, registeredAt: new Date().toLocaleString() })
+        .then(() => location.reload());
+    };
+
+    function showDashboard(role) {
+        document.getElementById('status').innerText = role === 'teacher' ? "👨‍🏫 O'qituvchi paneli" : "🎓 Talaba paneli";
+        if (role === 'teacher') {
+            document.getElementById('teacher-view').classList.remove('hidden');
+            loadAttendanceForTeacher();
+        } else {
+            document.getElementById('student-view').classList.remove('hidden');
+            checkTodayAttendance();
+        }
     }
 
-    // 2. Asosiy jarayon (GPS + Biometrika)
-    window.handleAction = function() {
-        if (!bm.isAccessGranted) {
-            bm.requestAccess({ reason: "Barmoq izi kerak" }, (ok) => { if(ok) location.reload(); });
-            return;
-        }
-
-        document.getElementById('loader').style.display = "block";
-        document.getElementById('status').innerText = "Lokatsiya tekshirilmoqda...";
-
+    // Talaba funksiyasi: GPS + Biometrika
+    window.handleStudentCheckIn = function() {
         navigator.geolocation.getCurrentPosition((pos) => {
             const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_LAT, UNI_LON);
-            
             if (dist <= MAX_DIST) {
-                bm.authenticate({ reason: "Universitetda ekanligingiz tasdiqlandi. Barmoq izini qo'ying" }, (success) => {
-                    if (success) saveAttendance(pos.coords.latitude, pos.coords.longitude);
-                    else document.getElementById('loader').style.display = "none";
+                bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (ok) => {
+                    if (ok) saveAttendance(pos.coords.latitude, pos.coords.longitude);
                 });
             } else {
-                document.getElementById('loader').style.display = "none";
-                tg.showAlert(`Siz universitet hududida emassiz! \nMasofa: ${dist.toFixed(2)} km`);
-                document.getElementById('status').innerText = "❌ Hududdan tashqaridasiz";
+                tg.showAlert("Siz universitetda emassiz!");
             }
-        }, (err) => {
-            document.getElementById('loader').style.display = "none";
-            tg.showAlert("GPS yoqilmagan yoki ruxsat berilmagan!");
-        }, { enableHighAccuracy: true });
+        });
     };
+
+    function saveAttendance(lat, lon) {
+        set(ref(db, `attendance/${today}/${user.id}`), { name: user.first_name, time: new Date().toLocaleTimeString() })
+        .then(() => { tg.showAlert("Qayd etildi!"); location.reload(); });
+    }
+
+    // O'qituvchi funksiyasi: Ro'yxatni ko'rish
+    function loadAttendanceForTeacher() {
+        const attRef = ref(db, `attendance/${today}`);
+        onValue(attRef, (snapshot) => {
+            const listDiv = document.getElementById('attendance-list');
+            listDiv.innerHTML = "";
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    const data = child.val();
+                    listDiv.innerHTML += `<div class="student-item">✅ ${data.name} - ${data.time}</div>`;
+                });
+            } else { listDiv.innerText = "Hozircha hech kim yo'q"; }
+        });
+    }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371;
@@ -133,17 +133,12 @@
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    function saveAttendance(lat, lon) {
-        set(ref(db, `attendance/${user.id}/${today}`), {
-            name: user.first_name,
-            time: new Date().toLocaleString(),
-            coords: `${lat},${lon}`,
-            university: "Osiyo Xalqaro Universiteti",
-            status: "Present"
-        }).then(() => {
-            tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Muvaffaqiyatli! Bugungi davomatingiz qayd etildi.");
-            location.reload();
+    function checkTodayAttendance() {
+        get(ref(db, `attendance/${today}/${user.id}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                document.getElementById('checkInBtn').disabled = true;
+                document.getElementById('checkInBtn').innerText = "Bugun qayd etilgan ✅";
+            }
         });
     }
 </script>
