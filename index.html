@@ -3,74 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate: Osiyo Xalqaro Universiteti</title>
+    <title>EduGate Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --tg-color: #248b65; --bg-secondary: #f4f7f6; }
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: var(--tg-color); margin-bottom: 5px; }
-        .status-text { font-size: 14px; color: #666; margin-bottom: 15px; }
+        :root { --tg-color: #248b65; --bg-color: #f0f2f5; --nav-bg: #ffffff; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 0; padding-bottom: 70px; }
         
-        /* Inputlar dizayni */
-        .form-group { text-align: left; margin-bottom: 15px; }
-        label { display: block; font-size: 12px; margin-bottom: 5px; color: #555; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; box-sizing: border-box; }
+        /* Sahifa konteyneri */
+        .container { padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 80vh; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; box-sizing: border-box; }
         
-        button { width: 100%; padding: 16px; margin: 10px 0; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-main { background: var(--tg-color); color: white; }
-        .btn-reg { background: #0088cc; color: white; margin-top: 20px; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        /* Navigatsiya paneli */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--nav-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #888; font-size: 12px; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--tg-color); }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+
+        /* Shakllar va tugmalar */
+        .form-group { text-align: left; margin-bottom: 15px; width: 100%; }
+        label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-main { background: var(--tg-color); color: white; margin-top: 10px; }
         
-        #attendance-list { text-align: left; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; max-height: 300px; overflow-y: auto; }
-        .student-item { background: var(--bg-secondary); padding: 12px; border-radius: 10px; margin-bottom: 8px; font-size: 13px; border-left: 4px solid var(--tg-color); }
+        /* Listlar */
+        .list-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; text-align: left; border-left: 5px solid var(--tg-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
         .hidden { display: none; }
-        .loader { display: none; margin: 10px auto; border: 3px solid #f3f3f3; border-top: 3px solid var(--tg-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .loader { display: none; margin: 20px auto; border: 3px solid #f3f3f3; border-top: 3px solid var(--tg-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>EduGate Pro</h2>
-    <p style="font-size: 11px; color: #999; margin-bottom: 15px;">Osiyo Xalqaro Universiteti</p>
-    <div id="status" class="status-text">Yuklanmoqda...</div>
+<div class="container">
     <div id="loader" class="loader"></div>
 
-    <div id="registration-view" class="hidden">
+    <div id="view-registration" class="card hidden">
+        <h2 style="color: var(--tg-color);">Ro'yxatdan o'tish</h2>
+        <p style="font-size: 13px; color: #666;">Ma'lumotlaringizni kiriting</p>
+        <div class="form-group"><label>Ism Familiya</label><input type="text" id="reg-name" placeholder="Maruf Raxmonov"></div>
+        <div class="form-group"><label>Telefon</label><input type="tel" id="reg-phone" placeholder="+998901234567"></div>
+        <div class="form-group"><label>Gmail</label><input type="email" id="reg-email" placeholder="example@gmail.com"></div>
         <div class="form-group">
-            <label>Ism va Familiya</label>
-            <input type="text" id="reg-name" placeholder="Masalan: Maruf Raxmonov">
-        </div>
-        <div class="form-group">
-            <label>Telefon raqam</label>
-            <input type="tel" id="reg-phone" placeholder="+998 90 123 45 67">
-        </div>
-        <div class="form-group">
-            <label>Gmail manzili</label>
-            <input type="email" id="reg-email" placeholder="example@gmail.com">
-        </div>
-        <div class="form-group">
-            <label>Rolingizni tanlang</label>
+            <label>Rolingiz</label>
             <select id="reg-role">
                 <option value="student">Talaba</option>
                 <option value="teacher">O'qituvchi</option>
             </select>
         </div>
-        <button class="btn-reg" onclick="handleRegistration()">Ro'yxatdan o'tish</button>
+        <button class="btn-main" onclick="handleRegistration()">Saqlash</button>
     </div>
 
-    <div id="student-view" class="hidden">
-        <p id="student-welcome" style="font-weight: bold;"></p>
-        <button id="checkInBtn" class="btn-main" onclick="handleStudentCheckIn()">Davomatni tasdiqlash</button>
-        <p style="font-size: 10px; color: #888;">Faqat universitet hududida va biometrika bilan ishlaydi</p>
+    <div id="view-student-main" class="card hidden">
+        <h3 id="st-name">Assalomu alaykum!</h3>
+        <p id="st-status" style="font-size: 14px; color: #666;">Bugun davomat qilmadingiz</p>
+        <div style="font-size: 60px; margin: 20px 0;">📍</div>
+        <button id="btn-checkin" class="btn-main" onclick="processAttendance()">Davomatni tasdiqlash</button>
     </div>
 
-    <div id="teacher-view" class="hidden">
-        <h3 style="font-size: 16px;">Bugun kelganlar ro'yxati</h3>
-        <div id="attendance-list">Yuklanmoqda...</div>
+    <div id="view-teacher-main" class="card hidden" style="max-width: 100%;">
+        <h3>Bugungi davomat</h3>
+        <div id="teacher-attendance-list"></div>
+    </div>
+
+    <div id="view-history" class="card hidden" style="max-width: 100%;">
+        <h3>Davomat tarixi</h3>
+        <div id="history-list">Tez kunda...</div>
+    </div>
+
+    <div id="view-settings" class="card hidden">
+        <h3>Sozlamalar</h3>
+        <div id="user-details" style="text-align: left; font-size: 14px; line-height: 2;"></div>
+        <button class="btn-main" style="background: #d9534f;" onclick="clearSession()">Tizimdan chiqish</button>
     </div>
 </div>
+
+<nav id="main-nav" class="bottom-nav hidden">
+    <div class="nav-item active" onclick="switchView('main')">
+        <span class="nav-icon">🏠</span><span>Asosiy</span>
+    </div>
+    <div class="nav-item" onclick="switchView('history')">
+        <span class="nav-icon">📊</span><span>Tarix</span>
+    </div>
+    <div class="nav-item" onclick="switchView('settings')">
+        <span class="nav-icon">⚙️</span><span>Sozlamalar</span>
+    </div>
+</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -92,146 +111,130 @@
     const bm = tg.BiometricManager;
     tg.ready(); tg.expand();
 
-    const telegramUser = tg.initDataUnsafe.user || { id: "test_user" };
+    const user = tg.initDataUnsafe.user || { id: "test_user", first_name: "Maruf" };
     const today = new Date().toISOString().split('T')[0];
-    
-    const UNI_LAT = 39.8009110; 
-    const UNI_LON = 64.4268380; 
-    const MAX_DIST = 0.3; // 300 metr
+    const UNI_LAT = 39.8009110; const UNI_LON = 64.4268380; const MAX_DIST = 0.3;
 
-    // Foydalanuvchini tekshirish
-    const userRef = ref(db, `users/${telegramUser.id}`);
-    get(userRef).then((snapshot) => {
-        if (!snapshot.exists()) {
-            document.getElementById('registration-view').classList.remove('hidden');
-            document.getElementById('status').innerText = "Ma'lumotlarni to'ldiring";
+    let currentUserData = null;
+
+    // TIZIMNI BOSHLASH
+    get(ref(db, `users/${user.id}`)).then(snap => {
+        if (!snap.exists()) {
+            showOnly('view-registration');
         } else {
-            const userData = snapshot.val();
-            showDashboard(userData);
+            currentUserData = snap.val();
+            document.getElementById('main-nav').classList.remove('hidden');
+            switchView('main');
         }
     });
 
     // RO'YXATDAN O'TISH
     window.handleRegistration = function() {
-        const name = document.getElementById('reg-name').value;
-        const phone = document.getElementById('reg-phone').value;
-        const email = document.getElementById('reg-email').value;
-        const role = document.getElementById('reg-role').value;
-
-        if (!name || !phone || !email) {
-            tg.showAlert("Iltimos, barcha maydonlarni to'ldiring!");
-            return;
-        }
-
-        document.getElementById('loader').style.display = "block";
-        set(userRef, {
-            fullName: name,
-            phone: phone,
-            email: email,
-            role: role,
-            tgId: telegramUser.id,
+        const data = {
+            fullName: document.getElementById('reg-name').value,
+            phone: document.getElementById('reg-phone').value,
+            email: document.getElementById('reg-email').value,
+            role: document.getElementById('reg-role').value,
             registeredAt: new Date().toLocaleString()
-        }).then(() => location.reload());
+        };
+        if(!data.fullName || !data.phone) return tg.showAlert("Maydonlarni to'ldiring!");
+        
+        set(ref(db, `users/${user.id}`), data).then(() => location.reload());
     };
 
-    function showDashboard(userData) {
-        if (userData.role === 'teacher') {
-            document.getElementById('status').innerText = "O'qituvchi: " + userData.fullName;
-            document.getElementById('teacher-view').classList.remove('hidden');
-            loadAttendanceForTeacher();
-        } else {
-            document.getElementById('status').innerText = "Talaba: " + userData.fullName;
-            document.getElementById('student-welcome').innerText = "Assalomu alaykum!";
-            document.getElementById('student-view').classList.remove('hidden');
-            checkTodayAttendance(telegramUser.id);
+    // NAVIGATSIYA MANTIQI
+    window.switchView = function(viewName) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if(viewName === 'main') {
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            currentUserData.role === 'teacher' ? showOnly('view-teacher-main') : showOnly('view-student-main');
+            if(currentUserData.role === 'teacher') loadTeacherLive(); else checkDailyStatus();
+        } else if(viewName === 'history') {
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+            showOnly('view-history');
+            loadHistory();
+        } else if(viewName === 'settings') {
+            document.querySelectorAll('.nav-item')[2].classList.add('active');
+            showOnly('view-settings');
+            document.getElementById('user-details').innerHTML = `
+                <b>Ism:</b> ${currentUserData.fullName}<br>
+                <b>Tel:</b> ${currentUserData.phone}<br>
+                <b>Email:</b> ${currentUserData.email}<br>
+                <b>Rol:</b> ${currentUserData.role === 'teacher' ? 'O\'qituvchi' : 'Talaba'}
+            `;
         }
+    };
+
+    function showOnly(id) {
+        ['view-registration', 'view-student-main', 'view-teacher-main', 'view-history', 'view-settings'].forEach(v => {
+            document.getElementById(v).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
     }
 
-    // TALABA DAVOMATI (GPS + BIO)
-    window.handleStudentCheckIn = function() {
-        if (!bm.isAccessGranted) {
-            bm.requestAccess({ reason: "Barmoq izi orqali tasdiqlash zarur" }, (ok) => { if(ok) location.reload(); });
-            return;
-        }
-
-        document.getElementById('loader').style.display = "block";
-        document.getElementById('status').innerText = "Joylashuv aniqlanmoqda...";
-
-        navigator.geolocation.getCurrentPosition((pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            const dist = calculateDistance(lat, lon, UNI_LAT, UNI_LON);
-
-            if (dist <= MAX_DIST) {
-                document.getElementById('status').innerText = "Joylashuv tasdiqlandi. Barmoq izini qo'ying.";
-                bm.authenticate({ reason: "Davomatni tasdiqlash uchun barmoq izi" }, (ok) => {
-                    if (ok) {
-                        get(userRef).then(snap => saveAttendance(snap.val(), lat, lon));
-                    } else {
-                        document.getElementById('loader').style.display = "none";
-                    }
+    // TALABA: DAVOMAT JARAYONI
+    window.processAttendance = function() {
+        document.getElementById('loader').style.display = 'block';
+        navigator.geolocation.getCurrentPosition(pos => {
+            const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_LAT, UNI_LON);
+            if(dist <= MAX_DIST) {
+                bm.authenticate({ reason: "Biometrik tasdiqlash" }, ok => {
+                    if(ok) {
+                        set(ref(db, `attendance/${today}/${user.id}`), {
+                            name: currentUserData.fullName,
+                            time: new Date().toLocaleTimeString('uz-UZ'),
+                            role: 'student'
+                        }).then(() => { tg.showAlert("Tasdiqlandi! ✅"); location.reload(); });
+                    } else document.getElementById('loader').style.display = 'none';
                 });
             } else {
-                document.getElementById('loader').style.display = "none";
-                tg.showAlert(`Siz universitet hududida emassiz! \nMasofa: ${dist.toFixed(2)} km`);
+                document.getElementById('loader').style.display = 'none';
+                tg.showAlert("Universitet hududida emassiz!");
             }
-        }, () => {
-            document.getElementById('loader').style.display = "none";
-            tg.showAlert("GPS xatosi! Iltimos, joylashuv xizmatini yoqing.");
-        }, { enableHighAccuracy: true });
+        }, err => { document.getElementById('loader').style.display = 'none'; tg.showAlert("GPS xatosi!"); }, {enableHighAccuracy:true});
     };
 
-    function saveAttendance(userData, lat, lon) {
-        set(ref(db, `attendance/${today}/${telegramUser.id}`), {
-            name: userData.fullName,
-            phone: userData.phone,
-            time: new Date().toLocaleTimeString('uz-UZ'),
-            coords: lat + "," + lon
-        }).then(() => {
-            tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Rahmat! Davomatingiz muvaffaqiyatli qayd etildi. ✅");
-            location.reload();
+    // O'QITUVCHI: LIVE RO'YXAT
+    function loadTeacherLive() {
+        onValue(ref(db, `attendance/${today}`), snap => {
+            const container = document.getElementById('teacher-attendance-list');
+            container.innerHTML = "";
+            if(snap.exists()) {
+                snap.forEach(child => {
+                    const d = child.val();
+                    container.innerHTML += `<div class="list-item"><b>${d.name}</b><br><small>Vaqt: ${d.time}</small></div>`;
+                });
+            } else container.innerHTML = "Hozircha hech kim yo'q";
         });
     }
 
-    // O'QITUVCHI UCHUN RO'YXAT
-    function loadAttendanceForTeacher() {
-        const attRef = ref(db, `attendance/${today}`);
-        onValue(attRef, (snapshot) => {
-            const listDiv = document.getElementById('attendance-list');
-            listDiv.innerHTML = "";
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    listDiv.innerHTML += `
-                        <div class="student-item">
-                            <b>👤 ${data.name}</b><br>
-                            📞 ${data.phone}<br>
-                            ⏰ Vaqt: ${data.time}
-                        </div>`;
-                });
-            } else {
-                listDiv.innerText = "Bugun hali hech kim ro'yxatdan o'tmadi.";
+    function loadHistory() {
+        // Bu yerda barcha kunlardagi davomatni yuklash mantiqi bo'ladi
+        document.getElementById('history-list').innerHTML = "Oxirgi 7 kunlik ma'lumotlar yuklanmoqda...";
+    }
+
+    function checkDailyStatus() {
+        get(ref(db, `attendance/${today}/${user.id}`)).then(snap => {
+            if(snap.exists()) {
+                document.getElementById('btn-checkin').disabled = true;
+                document.getElementById('btn-checkin').innerText = "Tasdiqlangan ✅";
+                document.getElementById('st-status').innerText = "Siz bugun davomatdan o'tdingiz";
             }
         });
     }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    function checkTodayAttendance(uid) {
-        get(ref(db, `attendance/${today}/${uid}`)).then((snapshot) => {
-            if (snapshot.exists()) {
-                document.getElementById('checkInBtn').disabled = true;
-                document.getElementById('checkInBtn').innerText = "Bugun tasdiqlangan ✅";
-            }
-        });
-    }
+    window.clearSession = function() {
+        if(confirm("Tizimdan chiqmoqchimisiz?")) {
+            set(ref(db, `users/${user.id}`), null).then(() => location.reload());
+        }
+    };
 </script>
 </body>
 </html>
