@@ -3,76 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate: OneID Login</title>
+    <title>EduGate: Secure SMS Auth</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --oneid-blue: #0052cc; --tg-color: #248b65; --bg: #f4f7f6; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .container { display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; box-sizing: border-box; text-align: center; }
+        :root { --tg-color: #248b65; --blue: #0088cc; }
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; margin: auto; text-align: center; }
         
-        /* OneID Branding */
-        .header-logo { color: var(--oneid-blue); font-weight: 800; font-size: 24px; margin-bottom: 20px; }
-        .header-logo span { color: #333; }
-
         .form-group { text-align: left; margin-bottom: 15px; }
         label { display: block; font-size: 13px; margin-bottom: 5px; color: #555; font-weight: 600; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; box-sizing: border-box; }
         
-        button { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-oneid { background: var(--oneid-blue); color: white; }
-        .btn-success { background: var(--tg-color); color: white; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-green { background: var(--tg-color); color: white; }
         
+        #recaptcha-container { margin: 10px 0; }
         .hidden { display: none; }
-        .status-msg { margin-top: 15px; font-size: 13px; color: #666; }
-        #loader { display: none; margin: 15px auto; border: 3px solid #f3f3f3; border-top: 3px solid var(--oneid-blue); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--blue); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 5px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="view-login" class="card">
-        <div class="header-logo">One<span>ID</span></div>
-        <h3>Tizimga kirish</h3>
-        <p style="font-size: 13px; color: #888; margin-bottom: 20px;">Shaxsingizni tasdiqlash uchun ma'lumotlarni kiriting</p>
+<div class="card">
+    <h2 style="color: var(--blue);">Ro'yxatdan o'tish</h2>
+    <p style="font-size: 13px; color: #888;">Ma'lumotlarni to'ldiring va raqamingizni tasdiqlang</p>
 
-        <div class="form-group">
-            <label>Pasport seriya va raqami</label>
-            <input type="text" id="id-pser" placeholder="AB1234567" maxlength="9">
-        </div>
-        <div class="form-group">
-            <label>Tug'ilgan sana</label>
-            <input type="date" id="id-dob">
-        </div>
-        <div class="form-group">
-            <label>Sizning rolingiz</label>
-            <select id="id-role">
-                <option value="student">Talaba</option>
-                <option value="teacher">O'qituvchi</option>
-            </select>
-        </div>
-
-        <div id="loader"></div>
-        <button class="btn-oneid" onclick="handleOneIDAuth()">OneID orqali tasdiqlash</button>
-        <p class="status-msg">Ma'lumotlar xavfsizligi kafolatlanadi</p>
+    <div id="step-info">
+        <div class="form-group"><label>Ism</label><input type="text" id="reg-firstname" placeholder="Masalan: Maruf"></div>
+        <div class="form-group"><label>Familiya</label><input type="text" id="reg-lastname" placeholder="Masalan: Toshpo'latov"></div>
+        <div class="form-group"><label>Otasining ismi</label><input type="text" id="reg-middlename" placeholder="Masalan: Akmalovich"></div>
+        <div class="form-group"><label>Telefon raqami</label><input type="tel" id="reg-phone" value="+998"></div>
+        
+        <div id="recaptcha-container"></div>
+        <button class="btn-blue" id="send-code-btn" onclick="onSendSMS()">SMS kod yuborish</button>
     </div>
 
-    <div id="view-main" class="card hidden">
-        <h2 style="color: var(--tg-color);">EduGate Pro</h2>
-        <div style="font-size: 50px; margin: 20px 0;">🏛️</div>
-        <h4 id="user-display"></h4>
-        <p id="user-role" style="font-size: 14px; color: #666;"></p>
-        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
-        <button class="btn-success" onclick="checkInAtUni()">Davomatni qayd etish (GPS + Bio)</button>
+    <div id="step-otp" class="hidden">
+        <div class="form-group">
+            <label>SMS kodni kiriting</label>
+            <input type="number" id="otp-code" placeholder="6 xonali kod">
+        </div>
+        <button class="btn-green" onclick="onVerifyCode()">Tasdiqlash va Kirish</button>
+        <p style="font-size: 12px; color: #666; cursor: pointer; margin-top: 10px;" onclick="location.reload()">Raqamni o'zgartirish</p>
+    </div>
+
+    <div id="view-main" class="hidden">
+        <h3 id="welcome-user">Xush kelibsiz!</h3>
+        <div style="font-size: 50px; margin: 20px 0;">✅</div>
+        <p>Sizning shaxsingiz real SMS orqali tasdiqlandi.</p>
+        <button class="btn-green" onclick="tg.close()">Ilovadan foydalanish</button>
     </div>
 </div>
 
 <script type="module">
+    // Firebase SDK larni import qilish
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Firebase sozlamalaringiz
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -84,93 +74,78 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const bm = tg.BiometricManager;
-    tg.ready(); tg.expand();
+    tg.ready();
 
-    const tid = tg.initDataUnsafe.user?.id || "test_id";
-    const UNI_COORDS = { lat: 39.800911, lon: 64.426838 }; // Osiyo Xalqaro Universiteti
+    let confirmationResult;
 
-    // 1. Tizimda mavjudligini tekshirish
-    get(ref(db, `users/${tid}`)).then(snap => {
-        if (snap.exists()) {
-            loadDashboard(snap.val());
-        }
-    });
-
-    // 2. OneID Avtorizatsiya jarayoni
-    window.handleOneIDAuth = function() {
-        const pSer = document.getElementById('id-pser').value;
-        const dob = document.getElementById('id-dob').value;
-        const role = document.getElementById('id-role').value;
-
-        if (!pSer || !dob) {
-            tg.showAlert("Iltimos, pasport ma'lumotlarini to'liq kiriting!");
-            return;
-        }
-
-        document.getElementById('loader').style.display = 'block';
-
-        // Biometrik menejerni tekshirish (OneID mantiqi: barmoq izi yoki Face-ID)
-        bm.init(() => {
-            bm.authenticate({ reason: "OneID orqali shaxsingizni tasdiqlang" }, (success) => {
-                document.getElementById('loader').style.display = 'none';
-                if (success) {
-                    const userData = {
-                        fullName: tg.initDataUnsafe.user?.first_name || "Foydalanuvchi",
-                        passport: pSer,
-                        birthDate: dob,
-                        role: role,
-                        oneIdVerified: true,
-                        registeredAt: new Date().toLocaleString()
-                    };
-                    
-                    set(ref(db, `users/${tid}`), userData).then(() => {
-                        tg.showAlert("OneID orqali muvaffaqiyatli tasdiqlandi! ✅");
-                        loadDashboard(userData);
-                    });
-                } else {
-                    tg.showAlert("Tasdiqlash bajarilmadi ❌");
-                }
-            });
+    // Recaptcha-ni sozlash
+    window.setupRecaptcha = function() {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'normal',
+            'callback': (response) => {}
         });
     };
 
-    function loadDashboard(data) {
-        document.getElementById('view-login').classList.add('hidden');
-        document.getElementById('view-main').classList.remove('hidden');
-        document.getElementById('user-display').innerText = data.fullName;
-        document.getElementById('user-role').innerText = data.role === 'teacher' ? "O'qituvchi" : "Talaba";
-    }
+    // SMS yuborish
+    window.onSendSMS = function() {
+        const phone = document.getElementById('reg-phone').value;
+        const name = document.getElementById('reg-firstname').value;
+        
+        if (phone.length < 12 || !name) {
+            tg.showAlert("Ma'lumotlarni to'g'ri kiriting!");
+            return;
+        }
 
-    // 3. Universitetda ekanligini GPS orqali tekshirish
-    window.checkInAtUni = function() {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_COORDS.lat, UNI_COORDS.lon);
-            
-            if (dist <= 0.3) { // 300 metr radius
-                bm.authenticate({ reason: "Davomatni qayd etish uchun biometrika" }, ok => {
-                    if (ok) {
-                        const today = new Date().toISOString().split('T')[0];
-                        set(ref(db, `attendance/${today}/${tid}`), {
-                            name: tg.initDataUnsafe.user?.first_name,
-                            time: new Date().toLocaleTimeString(),
-                            verified: "OneID+GPS+Bio"
-                        }).then(() => tg.showAlert("Bugun darsda ekansiz! ✅"));
-                    }
-                });
-            } else {
-                tg.showAlert(`Siz universitet hududida emassiz! \nMasofa: ${dist.toFixed(2)} km`);
-            }
-        }, err => tg.showAlert("GPS xatosi!"), {enableHighAccuracy: true});
+        if(!window.recaptchaVerifier) setupRecaptcha();
+
+        const btn = document.getElementById('send-code-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader"></span> Yuborilmoqda...';
+
+        signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
+            .then((result) => {
+                confirmationResult = result;
+                document.getElementById('step-info').classList.add('hidden');
+                document.getElementById('step-otp').classList.remove('hidden');
+            }).catch((error) => {
+                tg.showAlert("Xatolik: " + error.message);
+                btn.disabled = false;
+                btn.innerText = 'SMS kod yuborish';
+            });
     };
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    // Kodni tekshirish va ma'lumotlarni saqlash
+    window.onVerifyCode = function() {
+        const code = document.getElementById('otp-code').value;
+        confirmationResult.confirm(code).then((result) => {
+            const user = result.user;
+            const tid = tg.initDataUnsafe.user?.id || "test_user";
+
+            const finalData = {
+                firstName: document.getElementById('reg-firstname').value,
+                lastName: document.getElementById('reg-lastname').value,
+                middleName: document.getElementById('reg-middlename').value,
+                phone: user.phoneNumber,
+                uid: user.uid,
+                verified: true
+            };
+
+            // Firebase-ga saqlash
+            set(ref(db, `users/${tid}`), finalData).then(() => {
+                showMain(finalData);
+            });
+        }).catch(() => {
+            tg.showAlert("Kod noto'g'ri! Qayta urinib ko'ring.");
+        });
+    };
+
+    function showMain(data) {
+        document.getElementById('step-otp').classList.add('hidden');
+        document.getElementById('view-main').classList.remove('hidden');
+        document.getElementById('welcome-user').innerText = `Xush kelibsiz, ${data.firstName}!`;
     }
 </script>
 </body>
