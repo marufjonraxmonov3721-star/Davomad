@@ -1,268 +1,247 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU | Davomad</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root { 
-            --oxu-blue: #0047AB; 
-            --oxu-gradient: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
-            --white: #ffffff;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OXU Davomat PRO</title>
 
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
-            background: var(--bg); 
-            margin: 0; padding: 0; 
-            background-color: #f0f2f5;
-        }
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-        /* OXU Style Header */
-        .header { 
-            background: var(--oxu-gradient); 
-            color: white; 
-            padding: 30px 20px; 
-            text-align: center; 
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .container { padding: 20px; max-width: 450px; margin: -40px auto 0; }
-
-        .card { 
-            background: var(--white); 
-            border-radius: 20px; 
-            padding: 25px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            text-align: center; 
-            margin-bottom: 20px;
-        }
-
-        /* Status & GPS */
-        .gps-box { font-size: 13px; color: #666; margin: 10px 0; padding: 8px; border-radius: 10px; background: #f8f9fa; }
-        .status-ok { color: #28a745; font-weight: bold; }
-        .status-err { color: #dc3545; font-weight: bold; }
-
-        /* Buttons */
-        button { 
-            width: 100%; padding: 16px; border: none; border-radius: 15px; 
-            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; 
-        }
-        .btn-bio { background: #1a8a5f; color: white; margin-bottom: 10px; }
-        .btn-pin { background: #007bff; color: white; }
-        .btn-reg { background: var(--oxu-blue); color: white; }
-        button:disabled { background: #ccc !important; }
-
-        /* Inputs */
-        input, select { 
-            width: 100%; padding: 14px; margin: 10px 0; 
-            border: 1.5px solid #e0e0e0; border-radius: 12px; 
-            box-sizing: border-box; font-size: 16px; outline: none;
-        }
-        input:focus { border-color: var(--oxu-blue); }
-
-        /* Nav Bar */
-        .nav { 
-            position: fixed; bottom: 0; width: 100%; height: 70px; 
-            background: white; display: flex; align-items: center; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); 
-        }
-        .nav-item { flex: 1; text-align: center; color: #8e8e93; font-size: 12px; cursor: pointer; }
-        .nav-item.active { color: var(--oxu-blue); font-weight: bold; }
-
-        .hidden { display: none !important; }
-        
-        /* Attendance List */
-        .list-item { 
-            text-align: left; padding: 12px; border-bottom: 1px solid #eee; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-    </style>
+<style>
+:root{
+ --blue:#0047AB;
+ --grad:linear-gradient(135deg,#0052D4,#4364F7,#6FB1FC);
+}
+body{margin:0;font-family:system-ui;background:#f2f4f8}
+.header{background:var(--grad);color:#fff;text-align:center;padding:25px;border-radius:0 0 25px 25px}
+.container{padding:15px;max-width:430px;margin:auto}
+.card{background:#fff;border-radius:18px;padding:20px;margin:15px 0;box-shadow:0 8px 20px rgba(0,0,0,.1)}
+button{width:100%;padding:14px;border:none;border-radius:12px;font-weight:bold;margin-top:8px}
+.ok{background:#1a8a5f;color:#fff}
+.blue{background:var(--blue);color:#fff}
+.red{background:#dc3545;color:#fff}
+.hidden{display:none}
+.list{padding:8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
+.small{font-size:12px;color:#666}
+</style>
 </head>
 <body>
 
 <div class="header">
-    <img src="https://oxu.uz/logo.png" alt="OXU" style="width: 60px; margin-bottom: 10px; filter: brightness(0) invert(1);">
-    <h2 style="margin:0; font-size: 18px; letter-spacing: 1px;">OSIYO XALQARO UNIVERSITETI</h2>
+<h3>📚 OXU DAVOMAT PRO</h3>
 </div>
 
 <div class="container">
-    <div id="view-reg" class="card hidden">
-        <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
-        <input type="text" id="reg-name" placeholder="F.I.SH (Masalan: Maruf Raxmonov)">
-        <input type="password" id="reg-pin" placeholder="PIN-kod yarating (4 xonali)" maxlength="4" inputmode="numeric">
-        <select id="reg-role">
-            <option value="student">Talaba</option>
-            <option value="teacher">O'qituvchi</option>
-        </select>
-        <button class="btn-reg" onclick="saveUser()">TIZIMGA KIRISH</button>
-    </div>
 
-    <div id="view-student" class="tab-content hidden">
-        <div class="card">
-            <h3 id="welcome-txt">Salom, Maruf!</h3>
-            <div id="gps-status" class="gps-box">GPS aniqlanmoqda...</div>
-            <div style="margin: 20px 0;">
-                <img src="https://cdn-icons-png.flaticon.com/512/2566/2566235.png" width="80" alt="Shield">
-            </div>
-            <button id="btn-bio" class="btn-bio" onclick="authBio()" disabled>BARMOQ IZI BILAN TASDIQLASH</button>
-            <p style="color: #999; font-size: 12px;">yoki</p>
-            <input type="password" id="login-pin" placeholder="PIN-kodni kiriting" maxlength="4" inputmode="numeric" style="text-align: center;">
-            <button id="btn-pin" class="btn-pin" onclick="authPin()" disabled>PIN-NI TASDIQLASH</button>
-        </div>
-    </div>
-
-    <div id="view-teacher" class="tab-content hidden">
-        <div class="card">
-            <h3 style="color: var(--oxu-blue)">Bugun darsdagilar</h3>
-            <div id="attendance-list"></div>
-        </div>
-    </div>
-
-    <div id="view-settings" class="tab-content hidden">
-        <div class="card">
-            <h3 style="color: var(--oxu-blue)">Sozlamalar</h3>
-            <p id="prof-info" style="font-weight: bold;"></p>
-            <button style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;" onclick="logout()">TIZIMDAN CHIQISH</button>
-        </div>
-    </div>
+<!-- REG -->
+<div id="reg" class="card">
+<input id="name" placeholder="F.I.SH">
+<input id="pin" maxlength="4" placeholder="PIN (4 xonali)">
+<select id="role">
+<option value="student">Talaba</option>
+<option value="teacher">O'qituvchi</option>
+</select>
+<button class="blue" onclick="saveUser()">Kirish</button>
 </div>
 
-<nav id="bottom-nav" class="nav hidden">
-    <div class="nav-item active" id="nav-home" onclick="showTab('home')">🏠<br>Asosiy</div>
-    <div class="nav-item" id="nav-set" onclick="showTab('settings')">⚙️<br>Sozlama</div>
-</nav>
+<!-- STUDENT -->
+<div id="student" class="hidden">
+
+<div class="card" style="text-align:center">
+<img id="avatar" width="70" style="border-radius:50%">
+<h3 id="welcome"></h3>
+
+<p id="gps" class="small">GPS tekshirilmoqda...</p>
+
+<button id="bioBtn" class="ok" disabled onclick="bio()">Barmoq izi</button>
+<input id="loginPin" maxlength="4" placeholder="PIN">
+<button id="pinBtn" class="blue" disabled onclick="pinLogin()">PIN</button>
+</div>
+
+<div class="card">
+<h4>Oxirgi 7 kun</h4>
+<div id="history"></div>
+</div>
+
+</div>
+
+<!-- TEACHER -->
+<div id="teacher" class="hidden">
+
+<div class="card">
+<button class="blue" onclick="genQR()">QR yaratish</button>
+<canvas id="qr"></canvas>
+<button class="ok" onclick="exportExcel()">Excel yuklab olish</button>
+</div>
+
+<div class="card">
+<h4>Bugungi davomat</h4>
+<div id="list"></div>
+</div>
+
+</div>
+
+<audio id="okSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+</div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {getDatabase,ref,set,get,onValue} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-        databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-        projectId: "gen-lang-client-0228947349",
-        appId: "1:253793341504:web:709752258000dab44fcfa5"
-    };
+const firebaseConfig={
+ apiKey:"AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+ databaseURL:"https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+ projectId:"gen-lang-client-0228947349",
+ appId:"1:253793341504:web:709752258000dab44fcfa5"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "user_debug";
-    let userData = null;
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
 
-    const TARGET = { lat: 39.800911, lon: 64.426838, radius: 0.3 };
+const tg=window.Telegram.WebApp;
+tg.expand();
 
-    async function init() {
-        tg.expand();
-        const s = await get(ref(db, `users/${userId}`));
-        if(s.exists()){
-            userData = s.val();
-            render();
-        } else {
-            document.getElementById('view-reg').classList.remove('hidden');
-        }
-    }
-    init();
+const uid=tg.initDataUnsafe.user?.id || "debug";
+let user;
 
-    window.saveUser = async () => {
-        const name = document.getElementById('reg-name').value;
-        const pin = document.getElementById('reg-pin').value;
-        const role = document.getElementById('reg-role').value;
-        if(!name || pin.length < 4) return tg.showAlert("Ma'lumotlar xato!");
-        userData = { name, pin, role };
-        await set(ref(db, `users/${userId}`), userData);
-        render();
-    };
+const TARGET={lat:39.800911,lon:64.426838,radius:.3};
 
-    function render() {
-        document.getElementById('view-reg').classList.add('hidden');
-        document.getElementById('bottom-nav').classList.remove('hidden');
-        document.getElementById('prof-info').innerText = `${userData.name} (${userData.role})`;
-        showTab('home');
-    }
+init();
 
-    window.showTab = (tab) => {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        document.getElementById('nav-home').classList.remove('active');
-        document.getElementById('nav-set').classList.remove('active');
+async function init(){
+ const s=await get(ref(db,'users/'+uid));
+ if(s.exists()){ user=s.val(); render(); }
+}
 
-        if(tab === 'home') {
-            document.getElementById('nav-home').classList.add('active');
-            if(userData.role === 'teacher') {
-                document.getElementById('view-teacher').classList.remove('hidden');
-                loadList();
-            } else {
-                document.getElementById('view-student').classList.remove('hidden');
-                document.getElementById('welcome-txt').innerText = `Salom, ${userData.name}!`;
-                checkGPS();
-            }
-        } else {
-            document.getElementById('nav-set').classList.add('active');
-            document.getElementById('view-settings').classList.remove('hidden');
-        }
-    };
+window.saveUser=async()=>{
+ user={
+  name:name.value,
+  pin:pin.value,
+  role:role.value
+ };
+ await set(ref(db,'users/'+uid),user);
+ render();
+};
 
-    function checkGPS() {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const dist = Math.sqrt(Math.pow(pos.coords.latitude - TARGET.lat, 2) + Math.pow(pos.coords.longitude - TARGET.lon, 2)) * 111;
-            const status = document.getElementById('gps-status');
-            if(dist <= TARGET.radius) {
-                status.innerHTML = "<span class='status-ok'>✅ Universitet hududidasiz</span>";
-                document.getElementById('btn-bio').disabled = false;
-                document.getElementById('btn-pin').disabled = false;
-            } else {
-                status.innerHTML = `<span class='status-err'>❌ Hududdan tashqaridasiz (${Math.round(dist*1000)}m)</span>`;
-            }
-        }, () => { tg.showAlert("GPS ruxsatini yoqing!"); }, {enableHighAccuracy: true});
-    }
+function render(){
+ reg.classList.add("hidden");
 
-    window.authBio = () => {
-        tg.BiometricManager.init(() => {
-            tg.BiometricManager.authenticate({ reason: "OXU Davomat tizimi" }, async (ok) => {
-                if(ok) saveAttendance("Barmoq izi ✅");
-            });
-        });
-    };
+ if(user.role==="student"){
+  student.classList.remove("hidden");
+  welcome.innerText="Salom, "+user.name;
+  avatar.src=tg.initDataUnsafe.user.photo_url || "";
+  checkGPS();
+  loadHistory();
+ }
+ else{
+  teacher.classList.remove("hidden");
+  loadList();
+ }
+}
 
-    window.authPin = () => {
-        const pin = document.getElementById('login-pin').value;
-        if(pin === userData.pin) saveAttendance("PIN-kod 🔑");
-        else tg.showAlert("PIN-kod noto'g'ri!");
-    };
+/* ================= GPS ================= */
+function checkGPS(){
+ navigator.geolocation.getCurrentPosition(pos=>{
+  const d=Math.sqrt((pos.coords.latitude-TARGET.lat)**2+(pos.coords.longitude-TARGET.lon)**2)*111;
+  if(d<=TARGET.radius){
+   gps.innerText="✅ Hududdasiz";
+   bioBtn.disabled=false;
+   pinBtn.disabled=false;
+  } else gps.innerText="❌ Tashqarida";
+ });
+}
 
-    async function saveAttendance(method) {
-        const today = new Date().toISOString().split('T')[0];
-        await set(ref(db, `attendance/${today}/${userId}`), {
-            name: userData.name, 
-            time: new Date().toLocaleTimeString(),
-            method: method
-        });
-        tg.showAlert("Davomat qilindi! ✅");
-    }
+/* ================= TIME LIMIT ================= */
+function allowedTime(){
+ const h=new Date().getHours();
+ return h>=8 && h<=9;
+}
 
-    function loadList() {
-        const today = new Date().toISOString().split('T')[0];
-        onValue(ref(db, `attendance/${today}`), s => {
-            const l = document.getElementById('attendance-list');
-            l.innerHTML = "";
-            if(!s.exists()) return l.innerHTML = "<p>Hali hech kim yo'q.</p>";
-            s.forEach(c => {
-                l.innerHTML += `<div class="list-item">
-                    <span><b>${c.val().name}</b><br><small>${c.val().method}</small></span>
-                    <span style="color:var(--oxu-blue)">${c.val().time}</span>
-                </div>`;
-            });
-        });
-    }
+/* ================= SAVE ================= */
+async function save(method){
 
-    window.logout = async () => {
-        tg.showConfirm("Tizimdan chiqasizmi?", async (ok) => {
-            if(ok) { await remove(ref(db, `users/${userId}`)); location.reload(); }
-        });
-    };
+ if(!allowedTime()) return alert("Davomat vaqti 08:00–09:00");
+
+ const today=new Date().toISOString().split('T')[0];
+
+ const snap=await get(ref(db,'attendance/'+today+'/'+uid));
+ if(snap.exists()) return alert("Allaqachon bosgansiz");
+
+ await set(ref(db,'attendance/'+today+'/'+uid),{
+  name:user.name,
+  time:new Date().toLocaleTimeString(),
+  method
+ });
+
+ okSound.play();
+ alert("Qabul qilindi ✅");
+ loadHistory();
+}
+
+/* ================= AUTH ================= */
+window.pinLogin=()=> loginPin.value===user.pin?save("PIN"):alert("Xato");
+
+window.bio=()=>{
+ tg.BiometricManager.init(()=>{
+  tg.BiometricManager.authenticate({}, ok=>{
+   if(ok) save("BIO");
+  });
+ });
+};
+
+/* ================= HISTORY ================= */
+async function loadHistory(){
+ history.innerHTML="";
+ for(let i=0;i<7;i++){
+  const d=new Date();
+  d.setDate(d.getDate()-i);
+  const day=d.toISOString().split('T')[0];
+  const s=await get(ref(db,'attendance/'+day+'/'+uid));
+  history.innerHTML+=`<div class="list">${day}<b>${s.exists()?"✅":"❌"}</b></div>`;
+ }
+}
+
+/* ================= TEACHER ================= */
+function loadList(){
+ const today=new Date().toISOString().split('T')[0];
+ onValue(ref(db,'attendance/'+today),s=>{
+  list.innerHTML="";
+  if(!s.exists()) return list.innerText="Hali yo'q";
+  s.forEach(c=>{
+   const v=c.val();
+   list.innerHTML+=`<div class="list">${v.name}<span>${v.time}</span></div>`;
+  });
+ });
+}
+
+/* ================= EXCEL ================= */
+window.exportExcel=async()=>{
+ const today=new Date().toISOString().split('T')[0];
+ const s=await get(ref(db,'attendance/'+today));
+ if(!s.exists()) return;
+
+ const arr=[];
+ s.forEach(c=>arr.push(c.val()));
+
+ const ws=XLSX.utils.json_to_sheet(arr);
+ const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,ws,"Attendance");
+ XLSX.writeFile(wb,"attendance.xlsx");
+};
+
+/* ================= QR ================= */
+window.genQR=()=>{
+ const canvas=document.getElementById("qr");
+ const ctx=canvas.getContext("2d");
+ canvas.width=200;
+ canvas.height=200;
+ ctx.fillRect(0,0,200,200);
+ ctx.fillStyle="#fff";
+ ctx.fillText("OXU QR ACTIVE",30,100);
+};
+
 </script>
 </body>
 </html>
