@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU | Social Live Map</title>
+    <title>OXU | Social Call Map</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -17,31 +17,27 @@
         .header { background: linear-gradient(135deg, #002147, #0047AB); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--gold); }
         #map { height: calc(100vh - 175px); width: 100%; z-index: 1; }
         
-        .custom-marker { 
-            border-radius: 50%; 
-            border: 3px solid var(--gold); 
-            background-size: cover; 
-            background-position: center;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-        }
+        .custom-marker { border-radius: 50%; border: 3px solid var(--gold); background-size: cover; background-position: center; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
         .my-marker { border-color: #007AFF; }
 
         .controls { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; box-sizing: border-box; }
         .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; background: var(--oxu-blue); color: white; cursor: pointer; }
-        .btn-main:disabled { background: #ccc; }
+        .call-btn { background: #34c759; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; margin-top: 10px; display: block; text-decoration: none; text-align: center; }
         
         .status-badge { position: absolute; top: 80px; left: 10px; z-index: 1001; padding: 5px 12px; border-radius: 15px; font-size: 11px; background: white; border: 1px solid #ddd; font-weight: bold; }
         .hidden { display: none !important; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<div class="header"><h3 style="margin:0;">OXU SOCIAL MAP 🛰</h3></div>
+<div class="header"><h3 style="margin:0;">OXU LIVE CALL 🛰</h3></div>
 
-<div id="view-reg" class="hidden" style="padding: 40px 20px; text-align: center;">
+<div id="view-reg" class="hidden" style="padding: 30px 20px; text-align: center;">
     <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
-    <input type="text" id="reg-name" placeholder="Ismingiz" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-    <select id="reg-role" style="width:100%; padding:15px; border-radius:10px; margin-bottom:15px;">
+    <input type="text" id="reg-name" placeholder="Ism Familiya">
+    <input type="tel" id="reg-phone" placeholder="+998901234567">
+    <select id="reg-role">
         <option value="student">Talaba</option>
         <option value="teacher">O'qituvchi</option>
     </select>
@@ -75,10 +71,8 @@
     const photoUrl = tg.initDataUnsafe.user?.photo_url || "https://ui-avatars.com/api/?name=User";
 
     const UNI = { lat: 39.800911, lon: 64.426838, radius: 0.2 };
-    let user = null, map, routingControl, myMarker;
+    let user = null, map, routingControl, myMarker, firstLoad = true, myCurrentCoords = null;
     let peerMarkers = {};
-    let firstLoad = true;
-    let myCurrentCoords = null;
 
     async function init() {
         tg.expand();
@@ -90,9 +84,10 @@
 
     window.saveUser = async () => {
         const name = document.getElementById('reg-name').value;
+        const phone = document.getElementById('reg-phone').value;
         const role = document.getElementById('reg-role').value;
-        if(!name) return;
-        user = { name, role, id: userId, photo: photoUrl };
+        if(!name || !phone) return tg.showAlert("Ma'lumotlarni to'liq to'ldiring!");
+        user = { name, role, id: userId, photo: photoUrl, phone: phone };
         await set(ref(db, `users/${userId}`), user);
         startApp();
     };
@@ -102,48 +97,34 @@
         document.getElementById('tab-main').classList.remove('hidden');
         
         map = L.map('map', { zoomControl: true }).setView([UNI.lat, UNI.lon], 16);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
         
-        // Universitet doirasi (Sariq rangda, rasmga mos)
-        L.circle([UNI.lat, UNI.lon], { color: '#D4AF37', radius: UNI.radius * 1000, fillOpacity: 0.1 }).addTo(map)
-            .bindPopup("OXU Markazi");
+        // HYBRID MAP: Sun'iy yo'ldosh + Joy nomlari (Rabotak, Ko'cha nomlari va h.k)
+        L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains:['mt0','mt1','mt2','mt3']
+        }).addTo(map);
 
         navigator.geolocation.watchPosition(async pos => {
             const { latitude: lat, longitude: lon } = pos.coords;
             myCurrentCoords = { lat, lon };
             const distToUni = calculateDist(lat, lon, UNI.lat, UNI.lon);
 
-            // Bazaga yangilash
             const liveRef = ref(db, `live_locations/${userId}`);
-            await set(liveRef, { lat, lon, name: user.name, photo: photoUrl });
+            await set(liveRef, { lat, lon, name: user.name, photo: photoUrl, phone: user.phone });
             onDisconnect(liveRef).remove();
 
             updateMyMarker(lat, lon, distToUni);
+            if(firstLoad) { map.panTo([lat, lon]); firstLoad = false; }
+        }, null, { enableHighAccuracy: true });
 
-            // Faqat birinchi marta xaritani markazga oladi (erkinlik uchun)
-            if(firstLoad) {
-                map.panTo([lat, lon]);
-                firstLoad = false;
-            }
-        }, err => tg.showAlert("GPS ruxsati kerak!"), { enableHighAccuracy: true });
-
-            // Boshqalarni real vaqtda kuzatish
         onValue(ref(db, `live_locations`), snap => {
-            if(!snap.exists()) return;
-            const currentLiveIds = [];
+            const activeIds = [];
             snap.forEach(child => {
-                const id = child.key;
-                currentLiveIds.push(id);
-                if(id !== userId.toString()) {
-                    updatePeerMarker(id, child.val());
-                }
+                const id = child.key; activeIds.push(id);
+                if(id !== userId.toString()) updatePeerMarker(id, child.val());
             });
-            // Offline bo'lganlarni o'chirish
             Object.keys(peerMarkers).forEach(id => {
-                if(!currentLiveIds.includes(id)) {
-                    map.removeLayer(peerMarkers[id]);
-                    delete peerMarkers[id];
-                }
+                if(!activeIds.includes(id)) { map.removeLayer(peerMarkers[id]); delete peerMarkers[id]; }
             });
         });
     }
@@ -155,38 +136,21 @@
             html: `<div style="background-image: url(${photoUrl}); width:40px; height:40px; background-size:cover; border-radius:50%;"></div>`,
             iconSize: [46, 46]
         });
-        myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("Siz shu yerdasiz");
-
-        // Yo'l chizig'i (Dinamik)
-        if(routingControl) map.removeControl(routingControl);
-        routingControl = L.Routing.control({
-            waypoints: [ L.latLng(lat, lon), L.latLng(UNI.lat, UNI.lon) ],
-            lineOptions: { styles: [{ color: '#D4AF37', weight: 5, opacity: 0.7 }] },
-            show: false, addWaypoints: false, draggableWaypoints: false
-        }).addTo(map);
+        myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("<b>Siz</b>");
 
         document.getElementById('dist-info').innerText = `Universitetgacha: ${Math.round(dist*1000)} metr`;
         const badge = document.getElementById('gps-status');
-        const btn = document.getElementById('btn-action');
-
-        if(dist <= UNI.radius) {
-            badge.innerText = "✅ HUDUDDASIZ";
-            badge.style.color = "green";
-            btn.disabled = false;
-        } else {
-            badge.innerText = "❌ HUDUDDAN TASHQARIDA";
-            badge.style.color = "red";
-            btn.disabled = false; // Test uchun ochiq qoldirildi, lekin mantiqan bloklanadi
-        }
+        badge.innerText = dist <= UNI.radius ? "✅ HUDUDDASIZ" : "❌ HUDUDDAN TASHQARIDA";
+        badge.style.color = dist <= UNI.radius ? "green" : "red";
     }
 
     function updatePeerMarker(id, data) {
         if(peerMarkers[id]) map.removeLayer(peerMarkers[id]);
         
-        let distLabel = "Noma'lum";
+        let distLabel = "";
         if(myCurrentCoords) {
-            const distToPeer = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, data.lat, data.lon);
-            distLabel = distToPeer < 1 ? `${Math.round(distToPeer*1000)} m` : `${distToPeer.toFixed(1)} km`;
+            const d = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, data.lat, data.lon);
+            distLabel = d < 1 ? `${Math.round(d*1000)} m` : `${d.toFixed(1)} km`;
         }
 
         const icon = L.divIcon({
@@ -195,12 +159,19 @@
             iconSize: [42, 42]
         });
         
-        peerMarkers[id] = L.marker([data.lat, data.lon], {icon}).addTo(map)
-            .bindPopup(`<b>${data.name}</b><br>Sizdan: ${distLabel} uzoqda`);
+        const popupContent = `
+            <div style="text-align:center;">
+                <b>${data.name}</b><br>
+                Masofa: ${distLabel}<br>
+                <a href="tel:${data.phone}" class="call-btn">📞 Qo'ng'iroq qilish</a>
+            </div>
+        `;
+        
+        peerMarkers[id] = L.marker([data.lat, data.lon], {icon}).addTo(map).bindPopup(popupContent);
     }
 
     function calculateDist(lat1, lon1, lat2, lon2) {
-        const R = 6371; // km
+        const R = 6371;
         const dLat = (lat2-lat1) * Math.PI / 180;
         const dLon = (lon2-lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
@@ -210,20 +181,13 @@
     window.handleAttendance = () => {
         if(!myCurrentCoords) return;
         const dist = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, UNI.lat, UNI.lon);
+        if(dist > UNI.radius) return tg.showAlert("Xatolik! Hududga kiring.");
         
-        if(dist > UNI.radius) {
-            return tg.showAlert(`Xatolik! Siz universitetdan ${Math.round(dist*1000)} metr uzoqdasiz.`);
-        }
-
-        tg.showConfirm("Davomatni tasdiqlaysizmi?", async (ok) => {
+        tg.showConfirm("Davomat qilinsinmi?", async (ok) => {
             if(ok) {
                 const today = new Date().toISOString().split('T')[0];
-                await set(ref(db, `attendance/${today}/${userId}`), { 
-                    name: user.name, 
-                    time: new Date().toLocaleTimeString(),
-                    id: userId
-                });
-                tg.showAlert("Davomat muvaffaqiyatli qayd etildi! ✅");
+                await set(ref(db, `attendance/${today}/${userId}`), { name: user.name, time: new Date().toLocaleTimeString() });
+                tg.showAlert("Tasdiqlandi! ✅");
             }
         });
     };
