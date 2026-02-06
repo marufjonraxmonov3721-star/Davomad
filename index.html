@@ -3,37 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EduGate Pro: Final Bio</title>
+    <title>EduGate Pro: Ultimate Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .container { padding: 20px; max-width: 450px; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; box-sizing: border-box;}
+        .container { padding: 20px; max-width: 450px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .form-group { text-align: left; margin-bottom: 12px; }
         label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; }
-        input { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
+        input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
+        
         button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-link { background: none; color: var(--blue); font-size: 13px; padding: 5px; }
         .hidden { display: none !important; }
-        #splash { position: fixed; top:0; left:0; width:100%; height:100%; background: white; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; }
+        
+        /* Dashboard Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 100; }
+        .nav-item { flex: 1; text-align: center; font-size: 11px; color: #888; cursor: pointer; }
+        .nav-item.active { color: var(--blue); }
     </style>
 </head>
 <body>
 
-<div id="splash">
-    <div style="width:30px; height:30px; border:3px solid #f3f3f3; border-top:3px solid var(--blue); border-radius:50%; animation:spin 1s linear infinite;"></div>
-    <p style="margin-top:10px; font-size:14px;">Xavfsizlik tizimi yuklanmoqda...</p>
-</div>
-
-<div class="container">
+<div class="container" id="app-container">
     <div id="view-check" class="card">
         <h2 style="margin-top:0">Xush kelibsiz</h2>
-        <p style="color:#8e8e93; font-size: 14px;">Ro'yxatdan o'tgan Gmail manzilingizni kiriting</p>
+        <p style="color:#8e8e93; font-size: 14px;">Tizimda bor-yo'qligingizni tekshiramiz</p>
         <div class="form-group">
-            <label>Gmail</label>
+            <label>Gmail manzilingiz</label>
             <input type="email" id="target-email" placeholder="example@gmail.com">
         </div>
         <button class="btn-primary" onclick="checkUser()">Davom etish</button>
@@ -46,30 +47,35 @@
             <label>Parol</label>
             <input type="password" id="login-pass" placeholder="••••••">
         </div>
-        <button class="btn-primary" onclick="processLogin()">Kirish</button>
+        <button class="btn-primary" id="login-btn" onclick="processLogin()">Kirish</button>
         <button class="btn-link" onclick="forgotPassword()">Parolni unutdingizmi?</button>
         <button class="btn-link" style="color:#8e8e93" onclick="location.reload()">Orqaga</button>
     </div>
 
     <div id="view-register" class="card hidden">
         <h2>Ro'yxatdan o'tish</h2>
-        <p>Yangi foydalanuvchi hisobini oching</p>
         <div class="form-group"><label>Ism</label><input type="text" id="reg-name"></div>
         <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname"></div>
-        <div class="form-group"><label>Parol yarating</label><input type="password" id="reg-pass"></div>
+        <div class="form-group"><label>Parol (min 6 ta)</label><input type="password" id="reg-pass"></div>
         <button class="btn-primary" onclick="processRegister()">Ro'yxatdan o'tish</button>
         <button class="btn-link" style="color:#8e8e93" onclick="location.reload()">Orqaga</button>
     </div>
 
-    <div id="view-main" class="card hidden">
-        <h2>Tizim ochiq ✅</h2>
-        <div style="font-size: 80px; margin: 20px 0;">👤</div>
-        <p id="user-info-text"></p>
-        <button class="btn-primary" style="background:var(--tg)" onclick="tg.close()">Ilovadan foydalanish</button>
+    <div id="view-main" class="hidden" style="width:100%">
+        <div class="card">
+            <h2 id="user-greeting" style="text-align: left;">Assalomu alaykum!</h2>
+            <div style="font-size: 50px; margin: 20px 0;">🏛️</div>
+            <p style="text-align: left;">Sizning talabalik statusingiz faol. Bugungi darslar jadvalini ko'rishingiz mumkin.</p>
+            <button class="btn-primary" style="background:var(--tg)" onclick="tg.showAlert('Davomat qayd etildi!')">Darsda ekanimni tasdiqlash</button>
+        </div>
     </div>
 </div>
 
-<style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
+<nav id="bottom-nav" class="bottom-nav hidden">
+    <div class="nav-item active">🏠<br>Asosiy</div>
+    <div class="nav-item" onclick="tg.showAlert('Tez kunda...')">📅<br>Jadval</div>
+    <div class="nav-item" onclick="location.reload()">👤<br>Profil</div>
+</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -92,13 +98,12 @@
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
 
-    // 1. Biometrika menejerini ishga tushirish (Splash yopiladi)
+    // 🛡️ BIOMETRIKA INIT (Ruxsat so'rash uchun tayyorlash)
     bm.init(() => {
-        document.getElementById('splash').style.display = 'none';
-        console.log("Biometrika menejeri tayyor.");
+        console.log("Biometrika menejeri ishga tushdi");
     });
 
-    // Bazani tekshirish
+    // 1. Foydalanuvchi bormi?
     window.checkUser = async function() {
         const email = document.getElementById('target-email').value.trim();
         if(!email.includes("@")) return tg.showAlert("Gmailni to'g'ri kiriting!");
@@ -115,70 +120,61 @@
         }
     };
 
-    // KIRISH + BIOMETRIKA
+    // 2. Kirish + Biometrika
     window.processLogin = function() {
         const email = document.getElementById('display-email').innerText;
         const pass = document.getElementById('login-pass').value;
 
-        if(!pass) return tg.showAlert("Parolni kiriting!");
-
         signInWithEmailAndPassword(auth, email, pass).then(() => {
-            // Agar qurilma biometrikani qo'llab-quvvatlasa
+            // Ruxsat so'rash va autentifikatsiya
             if (bm.isBiometricAvailable) {
-                bm.authenticate({ reason: "Tizimga kirishni tasdiqlang" }, (ok) => {
-                    if(ok) showDashboard(email);
-                    else tg.showAlert("Biometrik tasdiqlash bajarilmadi. Iltimos qayta urinib ko'ring.");
+                bm.authenticate({ reason: "Ilovaga kirish uchun barmoq izi yoki Face-ID ishlating" }, (ok) => {
+                    if(ok) showDashboard();
+                    else tg.showAlert("Biometrika tasdiqlanmadi!");
                 });
             } else {
-                // Biometrika yo'q bo'lsa faqat parol bilan kiradi
-                showDashboard(email);
+                showDashboard();
             }
         }).catch(() => tg.showAlert("Parol noto'g'ri!"));
     };
 
-    // RO'YXATDAN O'TISH
+    // 3. Ro'yxatdan o'tish + Biometrika ruxsatini yoqish
     window.processRegister = function() {
         const email = document.getElementById('target-email').value.trim();
         const pass = document.getElementById('reg-pass').value;
         const name = document.getElementById('reg-name').value;
         const surname = document.getElementById('reg-surname').value;
 
-        if(pass.length < 6) return tg.showAlert("Parol kamida 6 belgidan iborat bo'lsin!");
-        if(!name || !surname) return tg.showAlert("Ism va familiyani to'ldiring!");
+        if(pass.length < 6) return tg.showAlert("Parol juda qisqa!");
 
         createUserWithEmailAndPassword(auth, email, pass).then(async (res) => {
             const emailPath = email.replace(/\./g, ',');
             await set(ref(db, `user_index/${emailPath}`), { uid: res.user.uid });
             await set(ref(db, `users/${res.user.uid}`), { name, surname, email });
             
-            // Ro'yxatdan o'tganda biometrika ruxsatini so'rash (kelgusida ishlatish uchun)
-            if (bm.isBiometricAvailable && !bm.isBiometricTokenSaved) {
-                bm.requestAccess({ reason: "Kelgusida kirish oson bo'lishi uchun biometrikadan foydalanamiz" }, (ok) => {
-                    showDashboard(email);
+            // Birinchi marta kirganda ruxsat so'rash
+            if (bm.isBiometricAvailable) {
+                bm.requestAccess({ reason: "Xavfsizlik uchun biometrikadan foydalanamiz" }, (ok) => {
+                    showDashboard();
                 });
             } else {
-                showDashboard(email);
+                showDashboard();
             }
-        }).catch(err => tg.showAlert("Xatolik: " + err.message));
-    };
-
-    // PAROLNI UNUTISH
-    window.forgotPassword = function() {
-        const email = document.getElementById('display-email').innerText;
-        sendPasswordResetEmail(auth, email).then(() => {
-            tg.showAlert("Parolni tiklash linki Gmailingizga yuborildi! 📧");
         }).catch(err => tg.showAlert(err.message));
     };
 
-    async function showDashboard(email) {
+    // 4. Parolni unutish (Link yuborish)
+    window.forgotPassword = function() {
+        const email = document.getElementById('display-email').innerText;
+        sendPasswordResetEmail(auth, email).then(() => {
+            tg.showAlert("Parolni tiklash linki Gmailingizga yuborildi! 📧 \nIltimos, spam papkasini ham tekshiring.");
+        }).catch(err => tg.showAlert("Xatolik: " + err.message));
+    };
+
+    function showDashboard() {
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
         document.getElementById('view-main').classList.remove('hidden');
-        
-        const uid = auth.currentUser.uid;
-        const userSnap = await get(ref(db, `users/${uid}`));
-        if(userSnap.exists()) {
-            document.getElementById('user-info-text').innerText = `${userSnap.val().name} ${userSnap.val().surname}`;
-        }
+        document.getElementById('bottom-nav').classList.remove('hidden');
     }
 </script>
 </body>
