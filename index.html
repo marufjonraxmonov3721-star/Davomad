@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Davomad.uz | QR-Intel</title>
+    <title>Davomad.uz | QR Image</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg: #248b65; --blue: #007AFF; --bg: #f2f2f7; --red: #ff3b30; }
@@ -11,15 +11,18 @@
         .container { padding: 15px; max-width: 450px; margin: 0 auto; }
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
         
+        /* Step Progress */
         .step-box { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .step { width: 30%; height: 5px; background: #ddd; border-radius: 5px; }
         .step.active { background: var(--blue); }
         .step.complete { background: var(--tg); }
 
+        /* Form Elements */
         .form-group { text-align: left; margin-bottom: 12px; }
         label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-left: 5px; }
         input, select { width: 100%; padding: 14px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
 
+        /* Action Buttons */
         button { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:active { transform: scale(0.97); }
         .btn-primary { background: var(--blue); color: white; }
@@ -28,12 +31,17 @@
         
         .hidden { display: none !important; }
 
+        /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #d1d1d6; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8e8e93; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--blue); }
         .nav-icon { font-size: 20px; }
 
-        .qr-data-badge { background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 10px; display: inline-block; border: 1px dashed #2e7d32; }
+        /* QR Info Box (for image or text) */
+        .qr-info-box { background: #f0f4f8; border: 1.5px solid #d1d9e6; border-radius: 12px; padding: 15px; margin-top: 15px; text-align: left; font-size: 13px; color: #333; line-height: 1.6; word-break: break-all; }
+        .qr-label { color: var(--tg); font-weight: bold; display: block; margin-bottom: 5px; }
+        .qr-image { max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px; border: 1px solid #ddd; }
+        .teacher-qr-image { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -51,31 +59,31 @@
 
     <div id="tab-student" class="tab-content hidden">
         <div class="card">
-            <h2 id="st-welcome">Xush kelibsiz!</h2>
+            <h2 id="st-welcome" style="margin-top:0">Xush kelibsiz!</h2>
             <div class="step-box">
                 <div id="step-1" class="step active"></div>
                 <div id="step-2" class="step"></div>
                 <div id="step-3" class="step"></div>
             </div>
             <div id="instruction-text" style="margin: 15px 0; font-weight: 500;">1-bosqich: Biometrik tasdiqlash</div>
-            <div id="qr-result-student" class="hidden"></div>
+            <div id="qr-data-student" class="hidden"></div>
             <button class="btn-main" id="action-btn" onclick="startTripleCheck()">Tasdiqlashni boshlash</button>
         </div>
     </div>
 
     <div id="tab-teacher" class="tab-content hidden">
         <div class="card">
-            <h2 style="margin-top:0">Davomad ro'yxati</h2>
+            <h2 style="margin-top:0">Bugungi davomat</h2>
             <div id="attendance-list" style="text-align: left;"></div>
         </div>
     </div>
 
     <div id="tab-settings" class="tab-content hidden">
         <div class="card">
-            <h2>Profil</h2>
+            <h2>Sozlamalar</h2>
             <div style="text-align: left; margin-bottom: 20px;">
-                <p><b>Talaba:</b> <span id="set-name">...</span></p>
-                <p><b>Rol:</b> <span id="set-role">...</span></p>
+                <p><b>Foydalanuvchi:</b> <span id="set-name">...</span></p>
+                <p><b>Status:</b> <span id="set-role">...</span></p>
             </div>
             <button class="btn-outline" onclick="logout()">Tizimdan chiqish</button>
         </div>
@@ -106,15 +114,16 @@
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
 
-    const userId = tg.initDataUnsafe.user?.id || "test_user";
+    const userId = tg.initDataUnsafe.user?.id || "user_" + Date.now();
     let currentUser = null;
 
+    // Initialization
     (async function init() {
         tg.expand();
         const snap = await get(ref(db, `users/${userId}`));
         if (snap.exists()) {
             currentUser = snap.val();
-            showApp();
+            showAppUI();
         } else {
             document.getElementById('view-loading').classList.add('hidden');
             document.getElementById('view-register').classList.remove('hidden');
@@ -125,13 +134,14 @@
         const name = document.getElementById('reg-name').value;
         const surname = document.getElementById('reg-surname').value;
         const role = document.getElementById('reg-role').value;
-        if(!name || !surname) return tg.showAlert("Ma'lumotni to'ldiring!");
+        if(!name || !surname) return tg.showAlert("Iltimos, ism-familiyangizni kiriting!");
+        
         currentUser = { name, surname, role, userId };
         await set(ref(db, `users/${userId}`), currentUser);
-        showApp();
+        showAppUI();
     };
 
-    function showApp() {
+    function showAppUI() {
         document.getElementById('view-loading').classList.add('hidden');
         document.getElementById('view-register').classList.add('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
@@ -147,7 +157,7 @@
             document.getElementById('nav-main').classList.add('active');
             if(currentUser.role === 'teacher') {
                 document.getElementById('tab-teacher').classList.remove('hidden');
-                loadTeacherList();
+                initTeacherLiveFeed();
             } else {
                 document.getElementById('tab-student').classList.remove('hidden');
                 document.getElementById('st-welcome').innerText = `Salom, ${currentUser.name}!`;
@@ -158,42 +168,90 @@
         }
     };
 
+    // Attendance Logic
     window.startTripleCheck = function() {
         bm.init(() => {
-            bm.authenticate({ reason: "Biometrik tasdiqlash" }, (ok) => {
+            bm.authenticate({ reason: "Biometrik ma'lumotlarni tasdiqlash" }, (ok) => {
                 if(ok) {
                     updateStep(1, true); updateStep(2, true);
-                    document.getElementById('instruction-text').innerText = "3-bosqich: Guvohnoma QR-kodini skanerlang";
-                    document.getElementById('action-btn').innerText = "QR-ni skanerlash";
+                    document.getElementById('instruction-text').innerText = "3-bosqich: Guvohnomadagi QR-kodni skanerlang";
+                    document.getElementById('action-btn').innerText = "QR-kodni skanerlash";
                     document.getElementById('action-btn').onclick = () => {
-                        tg.showScanQrPopup({ text: "Guvohnoma QR-kodini ko'rsating" }, (data) => {
+                        tg.showScanQrPopup({ text: "Guvohnoma QR-kodini kameraga ko'rsating" }, (data) => {
                             if(data) {
                                 tg.closeScanQrPopup();
-                                finishAttendance(data);
+                                saveAttendanceWithQR(data);
                             }
                             return true;
                         });
                     };
-                } else tg.showAlert("Xatolik!");
+                } else tg.showAlert("Biometrika tasdiqlanmadi!");
             });
         });
     };
 
-    async function finishAttendance(qrData) {
+    // Function to check if a string is a valid Base64 image
+    function isBase64Image(str) {
+        // Simple check for common Base64 image prefixes
+        return str.startsWith('data:image/png;base64,') ||
+               str.startsWith('data:image/jpeg;base64,') ||
+               str.startsWith('data:image/gif;base64,') ||
+               str.startsWith('data:image/webp;base64,');
+    }
+
+    async function saveAttendanceWithQR(fullQRData) {
         updateStep(3, true);
         const today = new Date().toISOString().split('T')[0];
         const time = new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'});
         
+        let qrContentToSave = fullQRData;
+        let qrIsImage = false;
+
+        if (isBase64Image(fullQRData)) {
+            qrContentToSave = fullQRData; // Keep the full Base64 string
+            qrIsImage = true;
+        } else {
+            // If it's not a Base64 image, check if it's a URL with 'humen='
+            try {
+                if (fullQRData.includes('humen=')) {
+                    const urlParams = new URLSearchParams(fullQRData.split('?')[1]);
+                    const humenId = urlParams.get('humen');
+                    qrContentToSave = humenId ? `Talaba ID: ${humenId.substring(0, 15)}...` : fullQRData;
+                }
+            } catch (e) {
+                // If parsing fails, just use the raw QR data
+                qrContentToSave = fullQRData;
+            }
+        }
+
+        // Save to Database
         await set(ref(db, `attendance/${today}/${userId}`), {
-            name: `${currentUser.name} ${currentUser.surname}`,
+            fullName: `${currentUser.name} ${currentUser.surname}`,
             time: time,
-            qrInfo: qrData
+            qrContent: qrContentToSave, // This will be the parsed text or the Base64 image string
+            qrIsImage: qrIsImage        // Boolean flag to know if it's an image
         });
 
-        const resDiv = document.getElementById('qr-result-student');
-        resDiv.innerHTML = `<div class="qr-data-badge"><b>Skanerlandi:</b> ${qrData}</div>`;
-        resDiv.classList.remove('hidden');
-        document.getElementById('instruction-text').innerHTML = "<b style='color:var(--tg)'>Davomat tasdiqlandi! ✅</b>";
+        // Show result to Student
+        const dataBox = document.getElementById('qr-data-student');
+        dataBox.innerHTML = ''; // Clear previous content
+
+        if (qrIsImage) {
+            dataBox.innerHTML = `
+                <div class="qr-info-box">
+                    <span class="qr-label">Guvohnoma rasmi:</span>
+                    <img src="${fullQRData}" class="qr-image" alt="QR Image from ID Card">
+                </div>`;
+        } else {
+            dataBox.innerHTML = `
+                <div class="qr-info-box">
+                    <span class="qr-label">Guvohnoma ma'lumotlari:</span>
+                    ${qrContentToSave}
+                </div>`;
+        }
+        dataBox.classList.remove('hidden');
+        
+        document.getElementById('instruction-text').innerHTML = "<b style='color:var(--tg)'>Davomat muvaffaqiyatli yakunlandi! ✅</b>";
         document.getElementById('action-btn').classList.add('hidden');
     }
 
@@ -202,23 +260,38 @@
         if(done) el.classList.add('complete');
     }
 
-    function loadTeacherList() {
+    // Teacher List
+    function initTeacherLiveFeed() {
         const today = new Date().toISOString().split('T')[0];
         onValue(ref(db, `attendance/${today}`), snap => {
             const list = document.getElementById('attendance-list');
-            list.innerHTML = snap.exists() ? "" : "<p>Hali hech kim yo'q.</p>";
+            list.innerHTML = snap.exists() ? "" : "<p style='color:#888'>Hali hech kim yo'q.</p>";
             snap.forEach(c => {
                 const val = c.val();
-                list.innerHTML += `<div style="padding:12px; border-bottom:1px solid #eee;">
-                    <b>${val.name}</b> <span style="float:right; color:var(--tg)">${val.time}</span>
-                    <div style="font-size:11px; color:#777; margin-top:4px;">🆔 QR Ma'lumot: ${val.qrInfo}</div>
-                </div>`;
+                let qrDisplayContent = '';
+
+                if (val.qrIsImage && val.qrContent) {
+                    qrDisplayContent = `<img src="${val.qrContent}" class="teacher-qr-image" alt="QR Image">`;
+                } else {
+                    qrDisplayContent = `<div style="font-size:11px; color:#666; word-break: break-all;"><b>Ma'lumot:</b> ${val.qrContent}</div>`;
+                }
+
+                list.innerHTML += `
+                    <div style="padding:15px; border-bottom:1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 10px; display:flex; align-items:center;">
+                        ${val.qrIsImage ? qrDisplayContent : ''}
+                        <div style="flex-grow:1;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <b>${val.fullName}</b> <span style="color:var(--tg); font-size:12px;">${val.time}</span>
+                            </div>
+                            ${val.qrIsImage ? '' : qrDisplayContent} 
+                        </div>
+                    </div>`;
             });
         });
     }
 
     window.logout = async () => {
-        tg.showConfirm("Chiqasizmi?", async (yes) => {
+        tg.showConfirm("Tizimdan chiqmoqchimisiz?", async (yes) => {
             if(yes) { await remove(ref(db, `users/${userId}`)); location.reload(); }
         });
     };
