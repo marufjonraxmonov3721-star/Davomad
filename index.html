@@ -3,63 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate: Tasdiqlash tizimi</title>
+    <title>EduGate: Limitsiz Tizim</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --tg-color: #248b65; --accent: #0088cc; }
         body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; }
         .form-group { text-align: left; margin-bottom: 15px; }
-        label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--accent); }
-        button { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-send { background: var(--accent); color: white; }
-        .btn-verify { background: var(--tg-color); color: white; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        #timer { font-size: 13px; color: #e74c3c; margin-top: 10px; font-weight: bold; }
+        label { display: block; font-size: 13px; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-reg { background: var(--accent); color: white; }
         .hidden { display: none; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid white; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 id="main-title">Ro'yxatdan o'tish</h2>
-    <p id="sub-title" style="font-size: 13px; color: #666; margin-bottom: 20px;">Ma'lumotlaringizni kiriting</p>
+    <h2 style="color: var(--accent);">Ro'yxatdan o'tish</h2>
+    <p style="font-size: 13px; color: #888; margin-bottom: 20px;">Email orqali limitsiz ro'yxatdan o'ting</p>
 
-    <div id="step-info">
-        <div class="form-group"><label>Ism</label><input type="text" id="reg-name" placeholder="Ismingiz"></div>
-        <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname" placeholder="Familiyangiz"></div>
-        <div class="form-group"><label>Otasining ismi</label><input type="text" id="reg-patronymic" placeholder="Otasining ismi"></div>
-        <div class="form-group"><label>Telefon raqami</label><input type="tel" id="reg-phone" value="+998"></div>
-        <div id="recaptcha-container"></div>
-        <button class="btn-send" id="btn-send-sms" onclick="sendSMS()">SMS kod yuborish</button>
+    <div id="reg-form">
+        <div class="form-group"><label>Ism</label><input type="text" id="reg-name" placeholder="Masalan: Maruf"></div>
+        <div class="form-group"><label>Familiya</label><input type="text" id="reg-surname" placeholder="Masalan: Raxmonov"></div>
+        <div class="form-group"><label>Otasining ismi</label><input type="text" id="reg-patronymic" placeholder="Masalan: Akmalovich"></div>
+        <div class="form-group"><label>Gmail / Email</label><input type="email" id="reg-email" placeholder="example@gmail.com"></div>
+        <div class="form-group"><label>Parol (kamida 6 ta belgi)</label><input type="password" id="reg-password" placeholder="******"></div>
+        
+        <button class="btn-reg" onclick="handleEmailReg()">Ro'yxatdan o'tish</button>
     </div>
 
-    <div id="step-verify" class="hidden">
-        <div class="form-group">
-            <label>SMS kodni kiriting</label>
-            <input type="number" id="otp-input" placeholder="6 xonali kod">
-        </div>
-        <div id="timer">Kodni kiritish vaqti: 60s</div>
-        <button class="btn-verify" id="btn-check-otp" onclick="verifyOTP()">Tasdiqlash</button>
-        <button id="resend-btn" class="hidden" style="background: none; color: var(--accent); font-size: 13px;" onclick="location.reload()">Kodni qayta yuborish</button>
-    </div>
-
-    <div id="step-success" class="hidden">
-        <div style="font-size: 60px; margin-bottom: 15px;">🎉</div>
-        <h3>Muvaffaqiyatli!</h3>
-        <p style="font-size: 14px; color: #666;">Sizning shaxsingiz tasdiqlandi.</p>
-        <button class="btn-verify" onclick="Telegram.WebApp.close()">Ilovaga kirish</button>
+    <div id="main-panel" class="hidden">
+        <h3 id="user-title">Xush kelibsiz!</h3>
+        <p>Siz muvaffaqiyatli ro'yxatdan o'tdingiz.</p>
+        <button style="background: var(--tg-color); color: white;" onclick="location.reload()">Asosiy sahifaga o'tish</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -75,73 +59,51 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    tg.ready();
 
-    let confirmResult;
-    let timerInterval;
+    const tid = tg.initDataUnsafe.user?.id || "test_id";
 
-    window.sendSMS = function() {
-        const phone = document.getElementById('reg-phone').value;
-        if (phone.length < 13) return tg.showAlert("Telefon raqamni to'liq yozing!");
+    // Tekshirish: Agar foydalanuvchi allaqachon ro'yxatdan o'tgan bo'lsa
+    get(ref(db, `users/${tid}`)).then(snap => {
+        if(snap.exists()){
+            showMain(snap.val());
+        }
+    });
 
-        document.getElementById('btn-send-sms').disabled = true;
-        document.getElementById('btn-send-sms').innerHTML = '<div class="loader"></div> Yuborilmoqda...';
+    window.handleEmailReg = function() {
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const name = document.getElementById('reg-name').value;
+        const surname = document.getElementById('reg-surname').value;
+        const patronymic = document.getElementById('reg-patronymic').value;
 
-        const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+        if(!email || password.length < 6 || !name) {
+            tg.showAlert("Iltimos, barcha maydonlarni to'g'ri to'ldiring (Parol min. 6 ta belgi)");
+            return;
+        }
 
-        signInWithPhoneNumber(auth, phone, verifier)
-            .then((result) => {
-                confirmResult = result;
-                document.getElementById('step-info').classList.add('hidden');
-                document.getElementById('step-verify').classList.remove('hidden');
-                document.getElementById('main-title').innerText = "Tasdiqlash";
-                document.getElementById('sub-title').innerText = phone + " raqamiga kod yuborildi";
-                startTimer();
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                const userData = {
+                    name, surname, patronymic, email, 
+                    role: "student",
+                    verified: true
+                };
+                
+                // Telegram ID bo'yicha bazaga saqlash
+                set(ref(db, `users/${tid}`), userData).then(() => {
+                    showMain(userData);
+                });
             })
-            .catch((err) => {
-                tg.showAlert("Xato: " + err.message);
-                document.getElementById('btn-send-sms').disabled = false;
-                document.getElementById('btn-send-sms').innerText = "SMS kod yuborish";
+            .catch((error) => {
+                tg.showAlert("Xatolik: " + error.message);
             });
     };
 
-    function startTimer() {
-        let timeLeft = 60;
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer').innerText = `Kodni kiritish vaqti: ${timeLeft}s`;
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                document.getElementById('timer').innerText = "Vaqt tugadi!";
-                document.getElementById('btn-check-otp').disabled = true;
-                document.getElementById('resend-btn').classList.remove('hidden');
-            }
-        }, 1000);
+    function showMain(data) {
+        document.getElementById('reg-form').classList.add('hidden');
+        document.getElementById('main-panel').classList.remove('hidden');
+        document.getElementById('user-title').innerText = `Assalomu alaykum, ${data.name}!`;
     }
-
-    window.verifyOTP = function() {
-        const code = document.getElementById('otp-input').value;
-        if (code.length !== 6) return tg.showAlert("6 xonali kodni kiriting!");
-
-        confirmResult.confirm(code).then((result) => {
-            clearInterval(timerInterval);
-            const tid = tg.initDataUnsafe.user?.id || "test_id";
-            const userData = {
-                name: document.getElementById('reg-name').value,
-                surname: document.getElementById('reg-surname').value,
-                patronymic: document.getElementById('reg-patronymic').value,
-                phone: result.user.phoneNumber,
-                verified: true
-            };
-
-            set(ref(db, `users/${tid}`), userData).then(() => {
-                document.getElementById('step-verify').classList.add('hidden');
-                document.getElementById('step-success').classList.remove('hidden');
-            });
-        }).catch(() => {
-            tg.showAlert("Kod noto'g'ri! Iltimos, qayta tekshiring.");
-        });
-    };
 </script>
 </body>
 </html>
