@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduGate Smart System</title>
+    <title>EduGate Pro: GPS + Bio</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --tg-theme-button-color: #248b65;
-            --tg-theme-button-text-color: #ffffff;
-        }
+        :root { --tg-color: #248b65; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, sans-serif;
             background-color: var(--tg-theme-bg-color, #f0f2f5);
-            color: var(--tg-theme-text-color, #333);
             display: flex; justify-content: center; align-items: center;
             height: 100vh; margin: 0; padding: 20px;
         }
@@ -22,19 +18,18 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             width: 100%; max-width: 350px; text-align: center;
         }
-        .icon { font-size: 60px; margin-bottom: 20px; }
+        .icon { font-size: 50px; margin-bottom: 15px; }
         button {
             width: 100%; padding: 18px;
-            background-color: var(--tg-theme-button-color, #248b65);
-            color: var(--tg-theme-button-text-color, #fff);
+            background-color: var(--tg-color); color: white;
             border: none; border-radius: 15px;
-            font-size: 18px; font-weight: bold; cursor: pointer;
+            font-size: 16px; font-weight: bold; cursor: pointer;
         }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-        #status { margin-top: 20px; font-size: 15px; font-weight: 500; color: #666; }
+        button:disabled { background-color: #ccc; }
+        #status { margin-top: 15px; font-size: 14px; color: #666; font-weight: 500; }
         .loader {
             display: none; margin: 10px auto;
-            border: 4px solid #f3f3f3; border-top: 4px solid #248b65;
+            border: 4px solid #f3f3f3; border-top: 4px solid var(--tg-color);
             border-radius: 50%; width: 25px; height: 25px;
             animation: spin 1s linear infinite;
         }
@@ -44,10 +39,10 @@
 <body>
 
 <div class="card">
-    <div class="icon">📜</div>
-    <h2 id="user-name">Yuklanmoqda...</h2>
-    <div id="status">Tizim holati tekshirilmoqda...</div>
-    <div class="loader" id="loader"></div>
+    <div class="icon">📍</div>
+    <h2 id="user-name">EduGate</h2>
+    <div id="loader" class="loader"></div>
+    <div id="status">Tizim tayyorlanmoqda...</div>
     <br>
     <button id="actionBtn" onclick="handleAction()">Tekshirilmoqda...</button>
 </div>
@@ -67,83 +62,90 @@
         appId: "1:253793341504:web:709752258000dab44fcfa5"
     };
 
+    // --- UNIVERSITET SOZLAMALARI ---
+    const UNI_LAT = 41.3111; // O'zingiznikiga o'zgartiring
+    const UNI_LON = 69.2797; // O'zingiznikiga o'zgartiring
+    const MAX_DIST = 0.3;     // Ruxsat etilgan radius (300 metr)
+
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     const bm = tg.BiometricManager;
 
-    tg.ready();
-    tg.expand();
+    tg.ready(); tg.expand();
 
-    const user = tg.initDataUnsafe.user || { id: "test_user", first_name: "Maruf" };
+    const user = tg.initDataUnsafe.user || { id: "test", first_name: "Maruf" };
     document.getElementById('user-name').innerText = user.first_name;
-
-    // Bugungi sanani olish (YYYY-MM-DD formatida)
     const today = new Date().toISOString().split('T')[0];
 
-    // Biometrika va Bugungi davomatni tekshirish
+    // 1. Dastlabki tekshiruv
     bm.init(() => {
         const checkRef = ref(db, `attendance/${user.id}/${today}`);
-        
         get(checkRef).then((snapshot) => {
             if (snapshot.exists()) {
-                document.getElementById('status').innerText = "✅ Bugun davomatdan o'tgansiz";
-                document.getElementById('status').style.color = "green";
-                document.getElementById('actionBtn').innerText = "Bugun uchun yopilgan";
-                document.getElementById('actionBtn').disabled = true;
+                updateUI("Siz bugun davomatdan o'tgansiz ✅", "Bugun uchun yopiq", true);
             } else {
-                if (bm.isAccessGranted) {
-                    document.getElementById('actionBtn').innerText = "Barmoq izi bilan tasdiqlash";
-                    document.getElementById('status').innerText = "Davomatga tayyor";
-                } else {
-                    document.getElementById('actionBtn').innerText = "Biometriyani sozlash";
-                    document.getElementById('status').innerText = "Ruxsat kerak ⚠️";
-                }
+                updateUI("Davomat uchun tugmani bosing", bm.isAccessGranted ? "Tasdiqlash" : "Biometriyani sozlash", false);
             }
         });
     });
 
+    function updateUI(status, btnText, disabled) {
+        document.getElementById('status').innerText = status;
+        document.getElementById('actionBtn').innerText = btnText;
+        document.getElementById('actionBtn').disabled = disabled;
+    }
+
+    // 2. Asosiy jarayon
     window.handleAction = function() {
         if (!bm.isAccessGranted) {
-            bm.requestAccess({ reason: "Davomat uchun barmoq izi kerak" }, (granted) => {
-                if (granted) location.reload();
-            });
-        } else {
-            bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
-                if (success) {
-                    saveAttendance();
-                } else {
-                    tg.showAlert("Tasdiqlash bajarilmadi ❌");
-                }
-            });
+            bm.requestAccess({ reason: "Biometrika kerak" }, (ok) => { if(ok) location.reload(); });
+            return;
         }
+
+        document.getElementById('loader').style.display = "block";
+        document.getElementById('status').innerText = "Joylashuv tekshirilmoqda...";
+
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, UNI_LAT, UNI_LON);
+            
+            if (dist <= MAX_DIST) {
+                bm.authenticate({ reason: "Darsda ekanligingizni tasdiqlang" }, (success) => {
+                    if (success) saveAttendance(pos.coords.latitude, pos.coords.longitude);
+                    else document.getElementById('loader').style.display = "none";
+                });
+            } else {
+                document.getElementById('loader').style.display = "none";
+                tg.showAlert(`Siz universitet hududida emassiz! Masofa: ${dist.toFixed(2)} km`);
+                document.getElementById('status').innerText = "❌ Hududdan tashqaridasiz";
+            }
+        }, (err) => {
+            document.getElementById('loader').style.display = "none";
+            tg.showAlert("GPS-ni yoqing va ruxsat bering!");
+        }, { enableHighAccuracy: true });
     };
 
-    function saveAttendance() {
-        document.getElementById('loader').style.display = "block";
-        document.getElementById('actionBtn').disabled = true;
+    // Masofa hisoblash
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
 
-        const attendancePath = `attendance/${user.id}/${today}`;
-        
-        set(ref(db, attendancePath), {
+    function saveAttendance(lat, lon) {
+        set(ref(db, `attendance/${user.id}/${today}`), {
             name: user.first_name,
-            lastName: user.last_name || "",
-            username: user.username || "",
-            fullTime: new Date().toLocaleString(),
-            timestamp: Date.now(),
-            verified: true
+            time: new Date().toLocaleString(),
+            coords: `${lat},${lon}`,
+            verified: "GPS+Bio"
         }).then(() => {
-            document.getElementById('loader').style.display = "none";
-            document.getElementById('status').innerText = "✅ Muvaffaqiyatli saqlandi!";
             tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Rahmat, " + user.first_name + "! Bugungi dars qayd etildi.");
-            setTimeout(() => tg.close(), 2500);
-        }).catch(err => {
-            alert("Xato: " + err.message);
-            document.getElementById('actionBtn').disabled = false;
+            tg.showAlert("Muvaffaqiyatli! Bugun darsda ekansiz.");
+            location.reload();
         });
     }
 </script>
-
 </body>
 </html>
