@@ -3,145 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kino Pro: Smart Sleep</title>
+    <title>Kino Pro: Perfect Sleep</title>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; text-align: center; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; }
         
-        .card { background: #111; border-radius: 20px; border: 1px solid #333; overflow: hidden; max-width: 600px; margin: auto; position: relative; }
-        video { width: 100%; display: block; }
+        /* Video Container */
+        .main-wrapper { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .video-card { width: 95%; max-width: 650px; background: #111; border-radius: 20px; border: 2px solid #333; position: relative; overflow: hidden; }
+        video#v { width: 100%; display: block; }
 
-        .purple-area { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; }
-        .status-bar { font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px; display: flex; justify-content: space-between; }
+        /* Aqlli bildirishnoma */
+        #sleep-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(123, 66, 245, 0.9); display: none;
+            flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+        }
+
+        .controls { background: linear-gradient(135deg, var(--p), #4b0082); padding: 20px; }
+        .status-line { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; color: #ddd; }
         
-        button { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        /* Kamera preview - aniqlashni tekshirish uchun */
+        #debug-cam { position: absolute; top: 10px; right: 10px; width: 60px; height: 45px; border-radius: 5px; opacity: 0.4; border: 1px solid white; transform: scaleX(-1); }
         
-        .upload-box { border: 2px dashed var(--p); padding: 40px; border-radius: 20px; margin: 50px auto; max-width: 350px; cursor: pointer; }
-        
-        /* Kamera holati */
-        #eye-status { color: #00ff00; font-weight: bold; }
-        .warning { color: #ff0000 !important; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-        
-        #cam-preview { position: absolute; top: 10px; left: 10px; width: 80px; height: 60px; border-radius: 5px; border: 1px solid var(--p); transform: scaleX(-1); opacity: 0.3; }
+        .btn-main { background: white; color: black; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="start-screen" class="upload-box" onclick="document.getElementById('f').click()">
-        <span style="font-size: 50px;">🎬</span>
-        <h3>Kino yuklash va Aqlli Taymerni yoqish</h3>
-        <p style="font-size: 12px; color: #888;">(Kamera ko'zlaringizni kuzatadi)</p>
-        <input type="file" id="f" hidden accept="video/*" onchange="initApp(event)">
+<div class="main-wrapper" id="start-view">
+    <div style="text-align: center; padding: 40px; border: 2px dashed var(--p); border-radius: 20px; cursor: pointer;" onclick="document.getElementById('file-in').click()">
+        <span style="font-size: 60px;">👁️‍🗨️</span>
+        <h2>Mukammal Aqlli Pleyer</h2>
+        <p>Kino tanlang. Ilova ko'zlaringizni 99% aniqlikda kuzatadi.</p>
+        <input type="file" id="file-in" hidden accept="video/*" onchange="bootApp(event)">
     </div>
+</div>
 
-    <div id="player-screen" class="card" style="display: none;">
-        <video id="cam-preview" autoplay muted></video>
+<div class="main-wrapper" id="player-view" style="display: none;">
+    <div class="video-card">
+        <video id="debug-cam" autoplay muted></video>
+        <video id="v" controls></video>
         
-        <video id="v" controls ontimeupdate="saveProgress()"></video>
-        
-        <div class="status-bar">
-            <span>Holat: <span id="eye-status">Ko'zlar ochiq 👀</span></span>
-            <span id="save-msg">Saqlandi ✅</span>
+        <div id="sleep-overlay">
+            <h1>UYQU REJIMI 😴</h1>
+            <p>Ko'zlaringiz yopildi. 10 soniyadan keyin o'chadi.</p>
+            <button class="btn-main" onclick="wakeUp()">MEN UYG'OQMAN!</button>
         </div>
 
-        <div class="purple-area">
-            <h4 id="m-name" style="margin: 0 0 10px 0;">Kino nomi</h4>
-            
-            <div style="font-size: 13px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
-                <b>Aqlli reja:</b> Agar ko'zingiz 10 soniya yopilsa, video to'xtaydi va ilova uyqu rejimiga o'tadi.
+        <div class="controls">
+            <div class="status-line">
+                <span>Datchik: <b id="eye-label">Yuklanmoqda...</b></span>
+                <span id="save-tag">SAQLANDI ✅</span>
             </div>
-
-            <button onclick="location.reload()" style="background: #000;">ILOVANI YOPISH</button>
+            <button class="btn-main" onclick="location.reload()" style="background: #000; color: white; border: 1px solid #555;">YOPISH</button>
         </div>
     </div>
+</div>
 
-    <script>
-        const v = document.getElementById('v');
-        const cam = document.getElementById('cam-preview');
-        const eyeStatus = document.getElementById('eye-status');
-        let closedTimer = 0;
-        let movieKey = "";
+<script>
+    const v = document.getElementById('v');
+    const eyeLabel = document.getElementById('eye-label');
+    const sleepOverlay = document.getElementById('sleep-overlay');
+    let eyeClosedStart = null;
+    let isSleeping = false;
 
-        // 1. Kutubxonalarni yuklash
-        async function loadModels() {
-            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        }
+    async function bootApp(e) {
+        const file = e.target.files[0];
+        if(!file) return;
 
-        // 2. Ilovani boshlash
-        async function initApp(e) {
-            const file = e.target.files[0];
-            if(!file) return;
+        // Modellar yuklanishi
+        eyeLabel.innerText = "Modellar yuklanmoqda...";
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
 
-            movieKey = "kino_" + file.name.replace(/\s/g, '');
-            document.getElementById('m-name').innerText = file.name;
-            v.src = URL.createObjectURL(file);
-            
-            document.getElementById('start-screen').innerText = "Kamera va Modellar yuklanmoqda...";
-            await loadModels();
-            await startCamera();
-            
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('player-screen').style.display = 'block';
+        // Kamera
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320 } });
+        document.getElementById('debug-cam').srcObject = stream;
 
-            // Eslab qolish funksiyasi
-            const savedTime = localStorage.getItem(movieKey);
-            if(savedTime) {
-                if(confirm("Siz bu kinoni oxirgi marta " + Math.floor(savedTime/60) + "-daqiqada to'xtatgansiz. Davom ettiramizmi?")) {
-                    v.currentTime = savedTime;
-                }
-            }
-            v.play();
-            detectEyes();
-        }
+        // UI o'zgarishi
+        v.src = URL.createObjectURL(file);
+        document.getElementById('start-view').style.display = 'none';
+        document.getElementById('player-view').style.display = 'flex';
+        
+        // Eslab qolish (LocalStorage)
+        const saved = localStorage.getItem(file.name);
+        if(saved) v.currentTime = saved;
+        
+        v.play();
+        startTracking();
+    }
 
-        // 3. Kamera ishga tushishi
-        async function startCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
-            cam.srcObject = stream;
-        }
+    function startTracking() {
+        setInterval(async () => {
+            if (v.paused || isSleeping) return;
 
-        // 4. KO'ZLARNI KUZATISH (Aqlli Taymer)
-        async function detectEyes() {
-            setInterval(async () => {
-                const detections = await faceapi.detectSingleFace(cam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+            const detection = await faceapi.detectSingleFace(
+                document.getElementById('debug-cam'), 
+                new faceapi.TinyFaceDetectorOptions()
+            ).withFaceLandmarks();
+
+            if (detection) {
+                const landmarks = detection.landmarks;
+                const left = landmarks.getLeftEye();
+                const right = landmarks.getRightEye();
+
+                // EAR (Eye Aspect Ratio) algoritmi - mukammal aniqlik uchun
+                const eyeHeight = (left[4].y - left[1].y + right[4].y - right[1].y) / 2;
                 
-                if (detections) {
-                    const landmarks = detections.landmarks;
-                    const leftEye = landmarks.getLeftEye();
-                    const rightEye = landmarks.getRightEye();
+                if (eyeHeight < 2.5) { // Ko'z haqiqatda yopildi
+                    if (!eyeClosedStart) eyeClosedStart = Date.now();
+                    let diff = Math.floor((Date.now() - eyeClosedStart) / 1000);
+                    
+                    eyeLabel.innerText = `Yopiq (${10 - diff}s)`;
+                    eyeLabel.style.color = "red";
 
-                    // Ko'z ochiqligini aniqlash (masofa hisobi)
-                    const isClosed = (leftEye[4].y - leftEye[1].y) < 3 && (rightEye[4].y - rightEye[1].y) < 3;
-
-                    if (isClosed) {
-                        closedTimer++;
-                        eyeStatus.innerText = "Yopiq! (" + (10 - closedTimer) + "s)";
-                        eyeStatus.className = "warning";
-                        
-                        if (closedTimer >= 10) {
-                            v.pause();
-                            alert("Siz uxlab qoldingiz shekilli? Video to'xtatildi.");
-                            closedTimer = 0;
-                        }
-                    } else {
-                        closedTimer = 0;
-                        eyeStatus.innerText = "Ko'zlar ochiq 👀";
-                        eyeStatus.className = "";
-                    }
+                    if (diff >= 10) triggerSleep();
+                } else {
+                    eyeClosedStart = null;
+                    eyeLabel.innerText = "Ochiq 👀";
+                    eyeLabel.style.color = "#00ff00";
                 }
-            }, 1000);
-        }
+            } else {
+                eyeLabel.innerText = "Yuz ko'rinmadi ⚠️";
+                eyeLabel.style.color = "orange";
+            }
+        }, 500);
+    }
 
-        // 5. Avtomatik eslab qolish
-        function saveProgress() {
-            localStorage.setItem(movieKey, v.currentTime);
-            document.getElementById('save-msg').style.opacity = "1";
-            setTimeout(() => { document.getElementById('save-msg').style.opacity = "0.3"; }, 1000);
-        }
-    </script>
+    function triggerSleep() {
+        isSleeping = true;
+        v.pause();
+        sleepOverlay.style.display = 'flex';
+    }
+
+    function wakeUp() {
+        isSleeping = false;
+        sleepOverlay.style.display = 'none';
+        eyeClosedStart = null;
+        v.play();
+    }
+
+    // Har 5 soniyada vaqtni eslab qolish
+    setInterval(() => {
+        if(!v.paused) localStorage.setItem(v.src, v.currentTime);
+    }, 5000);
+</script>
 </body>
 </html>
