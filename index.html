@@ -3,54 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Gaze Control</title>
+    <title>Kino Pro: Smart Focus</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        
-        .main-app { height: 100vh; display: flex; flex-direction: column; }
+        .app-box { height: 100vh; display: flex; flex-direction: column; }
         video#v { width: 100%; flex-grow: 1; background: #000; }
-
-        .purple-panel { 
-            background: linear-gradient(135deg, var(--p), #4b0082); 
-            padding: 15px; text-align: center; border-top: 1px solid #333;
-        }
-        
-        #gaze-dot { 
-            position: absolute; width: 10px; height: 10px; background: red; 
-            border-radius: 50%; pointer-events: none; display: none; z-index: 1000;
-            box-shadow: 0 0 10px red;
-        }
-
-        #debug-cam { position: absolute; top: 5px; left: 5px; width: 60px; height: 45px; opacity: 0.4; transform: scaleX(-1); border-radius: 5px; }
-        
-        .btn-tg { background: #fff; color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; width: 85%; cursor: pointer; }
+        .p-panel { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; }
+        #cam-view { position: absolute; top: 10px; right: 10px; width: 70px; border-radius: 8px; border: 1px solid #fff; opacity: 0.5; transform: scaleX(-1); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-<div id="setup" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
-    <h2 style="color: var(--p);">🎬 KINO PRO: GAZE</h2>
-    <p>Nigohingiz orqali uyg'oqlikni aniqlaydi</p>
-    <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
-    <input type="file" id="f" hidden accept="video/*" onchange="bootGazeApp(event)">
+<div id="loader" style="padding: 50px; text-align: center;">
+    <h2 style="color: var(--p);">🎬 KINO PRO</h2>
+    <p>Nigohingizni aniqlash tizimi ishga tushmoqda...</p>
+    <button style="padding: 15px 30px; border-radius: 10px; border: none; font-weight: bold;" onclick="document.getElementById('file').click()">KINO TANLASH</button>
+    <input type="file" id="file" hidden accept="video/*" onchange="startSmartApp(event)">
 </div>
 
-<div id="player-ui" class="main-app" style="display: none;">
-    <video id="debug-cam" autoplay muted></video>
-    <div id="gaze-dot"></div>
+<div id="player" class="app-box" style="display: none;">
+    <video id="cam-view" autoplay muted playsinline></video>
     <video id="v" controls playsinline></video>
-    
-    <div class="purple-panel" onclick="resetAll()">
-        <div style="display: flex; justify-content: space-between; font-size: 11px;">
-            <span>Nigoh: <b id="g-status">Aniqlanmoqda...</b></span>
-            <span>Ovoz: <b id="v-status">100%</b></span>
+    <div class="p-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span><span id="dot" class="status-dot" style="background: grey;"></span> <b id="s-text">Tayyorlanmoqda...</b></span>
+            <span id="vol-text">Ovoz: 100%</span>
         </div>
-        <div style="height: 4px; background: rgba(255,255,255,0.2); margin-top: 8px; border-radius: 2px;">
-            <div id="v-bar" style="height: 100%; background: #00ff00; width: 100%; transition: 0.5s;"></div>
-        </div>
+        <button onclick="Telegram.WebApp.close()" style="margin-top: 10px; width: 100%; background: #000; color: white; border: none; padding: 10px; border-radius: 8px;">YOPISH</button>
     </div>
 </div>
 
@@ -59,80 +42,66 @@
     tg.expand();
 
     const v = document.getElementById('v');
-    const gazeDot = document.getElementById('gaze-dot');
-    const gStatus = document.getElementById('g-status');
-    const vBar = document.getElementById('v-bar');
-    
-    let currentVol = 1.0;
-    let lookTimer = 0;
+    const sText = document.getElementById('s-text');
+    const dot = document.getElementById('dot');
+    let volume = 1.0;
+    let failCount = 0;
 
-    async function bootGazeApp(e) {
+    async function startSmartApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
-        // Modellar yuklanishi
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        // Modellar (faqat eng keraklisi)
+        const URL_MODEL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+        await faceapi.nets.tinyFaceDetector.loadFromUri(URL_MODEL);
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320 } });
-        document.getElementById('debug-cam').srcObject = stream;
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        document.getElementById('cam-view').srcObject = stream;
 
         v.src = URL.createObjectURL(file);
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('player-ui').style.display = 'flex';
-        
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('player').style.display = 'flex';
         v.play();
-        startGazeTracking();
+        
+        trackPresence();
     }
 
-    function startGazeTracking() {
+    function trackPresence() {
         setInterval(async () => {
             if (v.paused) return;
 
             const detection = await faceapi.detectSingleFace(
-                document.getElementById('debug-cam'), 
+                document.getElementById('cam-view'), 
                 new faceapi.TinyFaceDetectorOptions()
-            ).withFaceLandmarks();
+            );
 
             if (detection) {
-                const landmarks = detection.landmarks;
-                const nose = landmarks.getNose()[0];
-                
-                // Nigoh yo'nalishini burun va yuz holatidan taxmin qilish
-                gStatus.innerText = "Uyg'oq 👀";
-                gStatus.style.color = "#00ff00";
-                resetAll(); // Nigoh sezilsa hammasini tiklash
+                // Yuz aniqlandi - Uyg'oq
+                failCount = 0;
+                volume = 1.0;
+                v.volume = 1.0;
+                sText.innerText = "Nigohingiz ekranda ✅";
+                dot.style.background = "#00ff00";
             } else {
-                // Nigoh yo'qolsa (Ko'z yumilsa yoki yuz o'girilsa)
-                currentVol -= 0.1; // Har soniyada ovoz 10% pasayadi
-                if (currentVol < 0) currentVol = 0;
-                
-                v.volume = currentVol;
-                updateUI();
-                
-                gStatus.innerText = "Nigoh yo'qolgan! ⚠️";
-                gStatus.style.color = "red";
-
-                if (currentVol <= 0) {
-                    v.pause();
-                    tg.close();
+                // Yuz yo'qoldi (Ko'z yumildi yoki bosh egildi)
+                failCount++;
+                if (failCount > 3) { // 3 soniyadan keyin jazo boshlanadi
+                    volume -= 0.2;
+                    if (volume < 0) volume = 0;
+                    v.volume = volume;
+                    sText.innerText = `Uxladingizmi? (${Math.round(volume*100)}%)`;
+                    dot.style.background = "red";
                 }
             }
-        }, 1000); // Har 1 soniyada (test uchun tezlashtirilgan)
-    }
 
-    function resetAll() {
-        currentVol = 1.0;
-        v.volume = 1.0;
-        updateUI();
-    }
+            document.getElementById('vol-text').innerText = `Ovoz: ${Math.round(v.volume*100)}%`;
 
-    function updateUI() {
-        const p = Math.round(currentVol * 100);
-        vBar.style.width = p + "%";
-        document.getElementById('v-status').innerText = p + "%";
-        vBar.style.background = p < 40 ? "red" : "#00ff00";
+            if (v.volume <= 0) {
+                v.pause();
+                alert("Siz uxlab qoldingiz. Telegram yopiladi.");
+                tg.close();
+            }
+        }, 1000); // Har soniyada tekshiradi
     }
 </script>
 </body>
