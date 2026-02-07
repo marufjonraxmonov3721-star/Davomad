@@ -3,37 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Smart Focus</title>
+    <title>Kino Pro: Smart Pulse</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        .app-box { height: 100vh; display: flex; flex-direction: column; }
-        video#v { width: 100%; flex-grow: 1; background: #000; }
-        .p-panel { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; }
-        #cam-view { position: absolute; top: 10px; right: 10px; width: 70px; border-radius: 8px; border: 1px solid #fff; opacity: 0.5; transform: scaleX(-1); }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        
+        .main-container { height: 100vh; display: flex; flex-direction: column; }
+        video { width: 100%; flex-grow: 1; background: #000; }
+
+        /* Pulsatsiyalanuvchi doira */
+        #pulse-dot {
+            position: absolute; top: 20px; right: 20px;
+            width: 15px; height: 15px; background: var(--p);
+            border-radius: 50%; opacity: 0.4;
+            box-shadow: 0 0 10px var(--p);
+            animation: pulse-anim 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-anim {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.4; }
+        }
+
+        .p-footer { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; }
+        
+        .btn-action { background: #fff; color: #000; border: none; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
     </style>
 </head>
-<body>
+<body onclick="resetInactivity()">
 
-<div id="loader" style="padding: 50px; text-align: center;">
-    <h2 style="color: var(--p);">🎬 KINO PRO</h2>
-    <p>Nigohingizni aniqlash tizimi ishga tushmoqda...</p>
-    <button style="padding: 15px 30px; border-radius: 10px; border: none; font-weight: bold;" onclick="document.getElementById('file').click()">KINO TANLASH</button>
-    <input type="file" id="file" hidden accept="video/*" onchange="startSmartApp(event)">
+<div id="setup-view" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
+    <h2 style="color: var(--p);">🎬 KINO PRO: PULSE</h2>
+    <p>Har 10 soniyada harakatingizni kuzatadi</p>
+    <button class="btn-action" onclick="document.getElementById('f').click()">KINO TANLASH</button>
+    <input type="file" id="f" hidden accept="video/*" onchange="startApp(event)">
 </div>
 
-<div id="player" class="app-box" style="display: none;">
-    <video id="cam-view" autoplay muted playsinline></video>
-    <video id="v" controls playsinline></video>
-    <div class="p-panel">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span><span id="dot" class="status-dot" style="background: grey;"></span> <b id="s-text">Tayyorlanmoqda...</b></span>
-            <span id="vol-text">Ovoz: 100%</span>
+<div id="player-view" class="main-container" style="display: none;">
+    <div id="pulse-dot"></div>
+    <video id="v" controls playsinline onplay="startTracking()" onpause="stopTracking()"></video>
+    
+    <div class="p-footer">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px;">
+            <span id="stat">Holat: Uyg'oq ✅</span>
+            <span id="timer">Qoldi: 10s</span>
         </div>
-        <button onclick="Telegram.WebApp.close()" style="margin-top: 10px; width: 100%; background: #000; color: white; border: none; padding: 10px; border-radius: 8px;">YOPISH</button>
+        <button onclick="Telegram.WebApp.close()" style="background: #000; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 5px; width: 100%;">ILOVANI YOPISH</button>
     </div>
 </div>
 
@@ -42,67 +60,60 @@
     tg.expand();
 
     const v = document.getElementById('v');
-    const sText = document.getElementById('s-text');
-    const dot = document.getElementById('dot');
-    let volume = 1.0;
-    let failCount = 0;
+    let timeLeft = 10; // Test uchun 10 soniya
+    let pulseIdx;
 
-    async function startSmartApp(e) {
+    function startApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
-        // Modellar (faqat eng keraklisi)
-        const URL_MODEL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-        await faceapi.nets.tinyFaceDetector.loadFromUri(URL_MODEL);
-
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('cam-view').srcObject = stream;
-
         v.src = URL.createObjectURL(file);
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('player').style.display = 'flex';
-        v.play();
+        document.getElementById('setup-view').style.display = 'none';
+        document.getElementById('player-view').style.display = 'flex';
         
-        trackPresence();
+        // Eslab qolish (LocalStorage)
+        const savedTime = localStorage.getItem("kino_" + file.name);
+        if(savedTime) v.currentTime = savedTime;
+
+        v.play();
     }
 
-    function trackPresence() {
-        setInterval(async () => {
-            if (v.paused) return;
+    function startTracking() {
+        clearInterval(pulseIdx);
+        pulseIdx = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = `Qoldi: ${timeLeft}s`;
 
-            const detection = await faceapi.detectSingleFace(
-                document.getElementById('cam-view'), 
-                new faceapi.TinyFaceDetectorOptions()
-            );
-
-            if (detection) {
-                // Yuz aniqlandi - Uyg'oq
-                failCount = 0;
-                volume = 1.0;
-                v.volume = 1.0;
-                sText.innerText = "Nigohingiz ekranda ✅";
-                dot.style.background = "#00ff00";
-            } else {
-                // Yuz yo'qoldi (Ko'z yumildi yoki bosh egildi)
-                failCount++;
-                if (failCount > 3) { // 3 soniyadan keyin jazo boshlanadi
-                    volume -= 0.2;
-                    if (volume < 0) volume = 0;
-                    v.volume = volume;
-                    sText.innerText = `Uxladingizmi? (${Math.round(volume*100)}%)`;
-                    dot.style.background = "red";
-                }
-            }
-
-            document.getElementById('vol-text').innerText = `Ovoz: ${Math.round(v.volume*100)}%`;
-
-            if (v.volume <= 0) {
+            if (timeLeft <= 0) {
                 v.pause();
-                alert("Siz uxlab qoldingiz. Telegram yopiladi.");
-                tg.close();
+                document.getElementById('stat').innerText = "UYQU SEZILDI! 😴";
+                document.getElementById('stat').style.color = "yellow";
+                
+                // Agar 20 soniya ichida uyg'onmasa yopiladi
+                setTimeout(() => {
+                    if(v.paused) tg.close();
+                }, 20000);
             }
-        }, 1000); // Har soniyada tekshiradi
+        }, 1000);
     }
+
+    function stopTracking() {
+        clearInterval(pulseIdx);
+    }
+
+    function resetInactivity() {
+        timeLeft = 10;
+        document.getElementById('stat').innerText = "Holat: Uyg'oq ✅";
+        document.getElementById('stat').style.color = "white";
+        if (v.paused && document.getElementById('player-view').style.display === 'flex') {
+            v.play();
+        }
+    }
+
+    // Progresni saqlash
+    setInterval(() => {
+        if(!v.paused) localStorage.setItem("kino_" + v.src, v.currentTime);
+    }, 5000);
 </script>
 </body>
 </html>
