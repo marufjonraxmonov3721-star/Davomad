@@ -3,63 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Smart Shake</title>
+    <title>Kino Pro: Volume Fade</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         
         .main-app { height: 100vh; display: flex; flex-direction: column; }
-        video { width: 100%; flex-grow: 1; background: #000; outline: none; }
+        video { width: 100%; flex-grow: 1; background: #000; }
 
-        /* Uyg'oqlikni tekshirish oynasi */
-        #check-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(123, 66, 245, 0.95); display: none;
-            flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
+        .purple-bar { 
+            background: linear-gradient(135deg, var(--p), #4b0082); 
+            padding: 15px; text-align: center; border-top: 1px solid #333;
         }
-
-        .purple-bar { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; border-top: 1px solid #333; }
         
         .btn-tg { 
             background: #fff; color: #000; border: none; padding: 15px; 
             border-radius: 12px; font-weight: bold; width: 85%; cursor: pointer;
         }
 
-        .shake-icon { font-size: 50px; animation: shake-anim 0.5s infinite; }
-        @keyframes shake-anim {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(10deg); }
-            75% { transform: rotate(-10deg); }
-            100% { transform: rotate(0deg); }
+        .volume-indicator {
+            height: 4px; background: rgba(255,255,255,0.2); margin-top: 10px; border-radius: 2px; overflow: hidden;
         }
+        #v-bar { height: 100%; background: #00ff00; width: 100%; transition: width 0.5s; }
+        
+        #status-text { font-size: 11px; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
 <div id="setup" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
     <h1 style="color: var(--p);">🎬 KINO PRO</h1>
-    <p>10 soniyalik harakat datchigi tayyor</p>
+    <p>Ovoz pasayishi orqali uyqu nazorati (5s test)</p>
     <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
     <input type="file" id="f" hidden accept="video/*" onchange="startApp(event)">
 </div>
 
 <div id="player-ui" class="main-app" style="display: none;">
-    <video id="v" controls playsinline ontimeupdate="saveProgress()"></video>
+    <video id="v" controls playsinline></video>
     
-    <div id="check-overlay">
-        <div class="shake-icon">📳</div>
-        <h2>UYG'OQMISIZ?</h2>
-        <p>Tasdiqlash uchun telefonni silking yoki bosing!</p>
-        <div id="countdown" style="font-size: 40px; font-weight: bold; margin: 20px 0;">5</div>
-        <button class="btn-tg" onclick="confirmIdentity()">UYG'OQMAN!</button>
-    </div>
-
-    <div class="purple-bar">
-        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
-            <span id="move-status">Holat: Faol ✅</span>
-            <span id="timer-display">Tekshiruv: 0:10</span>
+    <div class="purple-bar" onclick="resetVolume()">
+        <span id="status-text">Ovoz nazorati: Faol ✅</span>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold;">
+            <span>Hozirgi ovoz balandligi:</span>
+            <span id="v-num">100%</span>
         </div>
+        <div class="volume-indicator">
+            <div id="v-bar"></div>
+        </div>
+        <p style="font-size: 10px; margin-top: 8px; opacity: 0.8;">Ovoz pasaysa, ekranga bosing!</p>
     </div>
 </div>
 
@@ -68,103 +60,81 @@
     tg.expand();
 
     const v = document.getElementById('v');
-    let checkInterval = 10; // 10 soniya test uchun
-    let countdownVal = 5; // Tasdiqlash uchun 5 soniya vaqt
-    let timerIdx, countIdx;
-    let movieName = "";
+    const vBar = document.getElementById('v-bar');
+    const vNum = document.getElementById('v-num');
+    const statusText = document.getElementById('status-text');
+    
+    let fadeTimer;
+    let currentVolume = 1.0;
 
     function startApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
-        movieName = file.name;
         v.src = URL.createObjectURL(file);
         document.getElementById('setup').style.display = 'none';
         document.getElementById('player-ui').style.display = 'flex';
         
-        // Oxirgi ko'rilgan joyidan davom ettirish
-        const saved = localStorage.getItem(movieName);
+        // Saqlangan joyidan davom etish
+        const saved = localStorage.getItem("kino_" + file.name);
         if(saved) v.currentTime = saved;
 
         v.play();
-        initShakeDetection();
-        startCheckTimer();
+        startFadeLogic();
     }
 
-    // 1. Silkitishni aniqlash (Shake Detection)
-    function initShakeDetection() {
-        let lastX, lastY, lastZ;
-        let threshold = 15; // Silkitish sezgirligi
-
-        window.addEventListener('devicemotion', (event) => {
-            let acc = event.accelerationIncludingGravity;
-            if (lastX) {
-                let diff = Math.abs(lastX - acc.x) + Math.abs(lastY - acc.y) + Math.abs(lastZ - acc.z);
-                if (diff > threshold) {
-                    resetTimer(); // Silkitilsa taymer yangilanadi
-                }
-            }
-            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
-        });
-
-        // Ekranga teginilganda ham yangilash
-        window.addEventListener('touchstart', resetTimer);
-    }
-
-    function resetTimer() {
-        if (document.getElementById('check-overlay').style.display === 'flex') {
-            confirmIdentity(); // Agar tekshiruv oynasi ochiq bo'lsa, silkitish tasdiqlaydi
-        }
-        checkInterval = 10;
-        document.getElementById('move-status').innerText = "Holat: Sezildi ⚡";
-        setTimeout(() => { document.getElementById('move-status').innerText = "Holat: Faol ✅"; }, 1000);
-    }
-
-    // 2. Taymer boshqaruvi
-    function startCheckTimer() {
-        clearInterval(timerIdx);
-        timerIdx = setInterval(() => {
+    // Har 5 soniyada ovozni pasaytirish mantiqi
+    function startFadeLogic() {
+        fadeTimer = setInterval(() => {
             if (v.paused) return;
-            
-            checkInterval--;
-            document.getElementById('timer-display').innerText = `Tekshiruv: 0:${checkInterval < 10 ? '0' : ''}${checkInterval}`;
 
-            if (checkInterval <= 0) {
-                triggerCheck();
+            currentVolume -= 0.1; // 10% ga pasaytirish
+            if (currentVolume < 0) currentVolume = 0;
+
+            v.volume = currentVolume;
+            updateUI();
+
+            // Agar ovoz nolga tushsa va foydalanuvchi uxlab qolgan bo'lsa
+            if (currentVolume <= 0) {
+                clearInterval(fadeTimer);
+                v.pause();
+                alert("Ovoz pasayishiga reaksiya bermadingiz. Video to'xtatildi.");
+                tg.close(); // Telegram Web Appni yopish
             }
-        }, 1000);
+        }, 5000); // 5 soniya (test uchun)
     }
 
-    function triggerCheck() {
-        clearInterval(timerIdx);
-        v.pause();
-        document.getElementById('check-overlay').style.display = 'flex';
-        
-        countdownVal = 5;
-        document.getElementById('countdown').innerText = countdownVal;
-        
-        countIdx = setInterval(() => {
-            countdownVal--;
-            document.getElementById('countdown').innerText = countdownVal;
-            if (countdownVal <= 0) {
-                clearInterval(countIdx);
-                tg.close(); // Javob bo'lmasa yopiladi
-            }
-        }, 1000);
+    function resetVolume() {
+        currentVolume = 1.0;
+        v.volume = 1.0;
+        updateUI();
+        statusText.innerText = "Ovoz tiklandi! ✅";
+        statusText.style.color = "#00ff00";
+        setTimeout(() => { 
+            statusText.innerText = "Ovoz nazorati: Faol ✅"; 
+            statusText.style.color = "white";
+        }, 2000);
     }
 
-    function confirmIdentity() {
-        clearInterval(countIdx);
-        document.getElementById('check-overlay').style.display = 'none';
-        checkInterval = 10;
-        startCheckTimer();
-        v.play();
+    function updateUI() {
+        const percent = Math.round(currentVolume * 100);
+        vBar.style.width = percent + "%";
+        vNum.innerText = percent + "%";
+        
+        // Rangni o'zgartirish (ogohlantirish uchun)
+        if (percent < 40) vBar.style.background = "red";
+        else if (percent < 70) vBar.style.background = "yellow";
+        else vBar.style.background = "#00ff00";
     }
+
+    // Videoga teginilganda ham ovozni tiklash
+    v.addEventListener('mousedown', resetVolume);
+    v.addEventListener('touchstart', resetVolume);
 
     // Progresni saqlash
-    function saveProgress() {
-        if(!v.paused) localStorage.setItem(movieName, v.currentTime);
-    }
+    setInterval(() => {
+        if(!v.paused) localStorage.setItem("kino_" + v.src, v.currentTime);
+    }, 5000);
 </script>
 </body>
 </html>
