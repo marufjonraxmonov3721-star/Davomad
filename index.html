@@ -3,101 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Platform Pro</title>
+    <title>Brain Pro | Maruf Raxmonov</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --gold: #f0b90b; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 80px; user-select: none; }
-        #auth, #app { display: none; padding: 25px; text-align: center; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: #fff; margin-bottom: 15px; outline: none; box-sizing: border-box; }
+        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --red: #dc3545; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; user-select: none; }
+        
+        /* Layout */
+        #auth, #app { display: none; padding: 20px; text-align: center; }
+        .container { max-width: 500px; margin: 0 auto; }
+
+        /* Auth & Forms */
+        input, select { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: #fff; margin-bottom: 15px; outline: none; box-sizing: border-box; font-size: 16px; }
         .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
-        .btn-p { background: var(--p); color: #fff; }
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { font-size: 10px; opacity: 0.5; cursor: pointer; text-align: center; }
+        .btn-p { background: var(--p); color: #fff; box-shadow: 0 4px 15px rgba(123, 66, 245, 0.3); }
+        .btn-p:active { transform: scale(0.98); }
+
+        /* Quiz UI */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px; background: var(--card); border-radius: 15px; }
+        .xp-badge { background: var(--p); padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+        
+        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; margin-top: 20px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+        #question { font-size: 20px; line-height: 1.4; margin-bottom: 20px; }
+        
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn { background: #222; color: #fff; padding: 15px; border-radius: 12px; border: 1px solid #444; text-align: left; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .option-btn:active { background: #333; }
+        .correct { background: var(--green) !important; border-color: var(--green); }
+        .wrong { background: var(--red) !important; border-color: var(--red); }
+
+        /* Navigation */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: #fff; text-decoration: none; }
         .nav-item.active { opacity: 1; color: var(--p); }
-        .panel { display: none; }
-        .active-p { display: block; }
-
-        /* Game Selection */
-        .game-menu { display: flex; gap: 10px; margin-bottom: 20px; }
-        .g-tab { flex: 1; padding: 10px; background: var(--card); border-radius: 10px; font-size: 12px; border: 1px solid #333; }
-        .g-tab.active { border-color: var(--p); background: #251b3d; }
-
-        /* Crash UI */
-        canvas { width: 100%; height: 180px; background: #000; border-radius: 15px; margin: 10px 0; border: 1px solid #222; }
-        #mult { font-size: 50px; font-weight: 800; color: var(--p); margin: 10px 0; }
-
-        /* 21 Achka UI */
-        .bj-area { background: #07470e; border-radius: 15px; padding: 15px; min-height: 200px; border: 4px solid #0a310e; position: relative; }
-        .cards-row { display: flex; justify-content: center; gap: 5px; min-height: 80px; margin: 10px 0; }
-        .card-img { width: 50px; height: 75px; background: #fff; border-radius: 5px; color: #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-        .score { font-size: 14px; background: rgba(0,0,0,0.5); padding: 2px 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div id="auth">
-    <h2 style="color: var(--p);">Ro'yxatdan o'tish</h2>
-    <input type="text" id="r-name" placeholder="Ism">
-    <input type="text" id="r-surname" placeholder="Familiya">
-    <select id="r-region"><option value="Toshkent">Toshkent</option><option value="Samarqand">Samarqand</option></select>
-    <select id="r-currency"><option value="UZS">UZS</option><option value="USD">USD</option></select>
-    <button class="btn btn-p" id="regBtn">BARMOQ IZI BILAN TASDIQLASH</button>
-</div>
-
-<div id="app">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <span id="u-name" style="font-weight: bold;">...</span>
-        <div style="background: var(--p); padding: 6px 14px; border-radius: 20px; font-size: 14px;">
-            <span id="u-bal">0</span> <span id="u-unit">UZS</span>
+    <div id="auth">
+        <div class="container">
+            <h1 style="color: var(--p); font-size: 32px;">Brain Pro 🧠</h1>
+            <p style="color: #888; margin-bottom: 30px;">Bilimingizni sinab ko'ring va XP yig'ing!</p>
+            <input type="text" id="r-name" placeholder="Ismingiz">
+            <select id="r-region">
+                <option value="">Viloyatni tanlang</option>
+            </select>
+            <button class="btn btn-p" id="regBtn">BARMOQ IZI BILAN KIRISH</button>
         </div>
     </div>
 
-    <div id="p-games" class="panel active-p">
-        <div class="game-menu">
-            <div class="g-tab active" onclick="switchGame('crash', this)">🚀 Crash</div>
-            <div class="g-tab" onclick="switchGame('21', this)">🃏 21 Achka</div>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <span id="u-name" style="font-weight: bold; font-size: 18px;">...</span>
+                <div class="xp-badge">XP: <span id="u-xp">0</span></div>
+            </div>
+
+            <div id="p-quiz" class="panel active-p">
+                <div class="card">
+                    <div id="question">Yuklanmoqda...</div>
+                    <div id="options" class="options-grid"></div>
+                </div>
+                <div id="feedback" style="margin-top: 20px; font-weight: bold; font-size: 18px;"></div>
+            </div>
+
+            <div id="p-leader" class="panel" style="display: none;">
+                <h2 style="color: var(--p);">🏆 Top Talabalar</h2>
+                <div id="leader-list" style="text-align: left; background: var(--card); border-radius: 15px; padding: 15px;"></div>
+            </div>
         </div>
 
-        <div id="game-crash">
-            <canvas id="gameCanvas"></canvas>
-            <div id="mult">1.00x</div>
-            <input type="number" id="bet-crash" placeholder="Tikish miqdori">
-            <button id="crashBtn" class="btn btn-p">TIKISH</button>
-        </div>
-
-        <div id="game-21" style="display: none;">
-            <div class="bj-area">
-                <div class="score">Diler: <span id="d-score">0</span></div>
-                <div id="d-cards" class="cards-row"></div>
-                <hr style="opacity: 0.2;">
-                <div id="p-cards" class="cards-row"></div>
-                <div class="score">Siz: <span id="p-score">0</span></div>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <input type="number" id="bet-21" placeholder="Tikish">
-                <button id="dealBtn" class="btn btn-p" style="width: 50%;">START</button>
-            </div>
-            <div id="bj-controls" style="display: none; gap: 10px; margin-top: 10px;">
-                <button class="btn" style="background: #28a745; color:#fff;" onclick="hit()">+ KARTA</button>
-                <button class="btn" style="background: #dc3545; color:#fff;" onclick="stand()">STOP</button>
-            </div>
+        <div class="nav">
+            <div class="nav-item active" onclick="nav('quiz', this)">🧠<br>Mashq</div>
+            <div class="nav-item" onclick="nav('leader', this)">🏆<br>Reyting</div>
         </div>
     </div>
-
-    <div id="p-dep" class="panel"><h3>💳 To'ldirish</h3><input type="number" id="dep-val" placeholder="Summa"><button class="btn btn-p" onclick="sendReq('dep')">TO'LADIM</button></div>
-    <div id="p-wit" class="panel"><h3>📤 Pul yechish</h3><input type="number" id="wit-val" placeholder="Summa"><button class="btn btn-p" onclick="sendReq('wit')">CHIQARISH</button></div>
-
-    <div class="nav">
-        <div class="nav-item active" onclick="nav('games', this)">🎮<br>O'yinlar</div>
-        <div class="nav-item" onclick="nav('dep', this)">💳<br>Hamyon</div>
-        <div class="nav-item" onclick="nav('wit', this)">📤<br>Chiqarish</div>
-    </div>
-</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -112,112 +96,145 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const bio = tg.BiometricManager;
-    bio.init();
+    const uid = tg.initDataUnsafe?.user?.id || "user_debug_123";
+    const userRef = ref(db, 'brain_users/' + uid);
+    
+    let userData = { xp: 0 };
+    let allQuestions = [];
+    let currentQuestion = null;
+    let isAnswering = false;
 
-    const uid = tg.initDataUnsafe?.user?.id || "user_8363919942";
-    const userRef = ref(db, 'users/' + uid);
-    let userData = { balance: 0 };
-
-    // --- INITIALIZATION ---
-    window.onload = async () => {
-        const s = await get(userRef);
-        if(s.exists()) loadApp(s.val());
-        else document.getElementById('auth').style.display = 'block';
-    };
-
-    function loadApp(data) {
-        userData = data;
-        document.getElementById('auth').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('u-name').innerText = data.name;
-        document.getElementById('u-unit').innerText = data.cur;
-        onValue(ref(db, `users/${uid}/balance`), (s) => {
-            userData.balance = s.val() || 0;
-            document.getElementById('u-bal').innerText = Math.floor(userData.balance).toLocaleString();
-        });
-    }
+    // --- SETTINGS & REGIONS ---
+    onValue(ref(db, 'settings/regions'), (s) => {
+        const regions = s.val() || ["Toshkent", "Samarqand", "Buxoro", "Andijon"];
+        const sel = document.getElementById('r-region');
+        if(sel.options.length <= 1) {
+            regions.forEach(r => { let o = document.createElement('option'); o.value=r; o.innerText=r; sel.appendChild(o); });
+        }
+    });
 
     // --- REGISTRATION ---
     document.getElementById('regBtn').onclick = () => {
-        bio.requestAccess({ reason: "Skaner" }, (a) => {
-            if(a) bio.authenticate({ reason: "Tasdiqlang" }, async (s) => {
-                if(s) {
-                    const data = { name: document.getElementById('r-name').value, cur: document.getElementById('r-currency').value, balance: 0 };
-                    await set(userRef, data); loadApp(data);
+        const name = document.getElementById('r-name').value;
+        if(!name) return tg.showAlert("Ismingizni kiriting!");
+
+        tg.BiometricManager.init(() => {
+            tg.BiometricManager.requestAccess({ reason: "Profilni tasdiqlash" }, (ok) => {
+                if(ok) {
+                    tg.BiometricManager.authenticate({ reason: "Xavfsiz kirish" }, async (success) => {
+                        if(success) {
+                            const d = { name, xp: 0, region: document.getElementById('r-region').value, last_seen: Date.now() };
+                            await set(userRef, d);
+                            loadApp(d);
+                        }
+                    });
+                } else {
+                    tg.showAlert("Biometrika kerak!");
                 }
             });
         });
     };
 
-    // --- CRASH LOGIC ---
-    let isRunning = false; let currentMult = 1.0; let gameLoop;
-    const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
-    document.getElementById('crashBtn').onclick = () => {
-        if(!isRunning) startCrash(); else cashOut();
-    };
+    // --- LOAD APP ---
+    async function loadApp(data) {
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('u-name').innerText = data.name;
 
-    function startCrash() {
-        const bet = parseFloat(document.getElementById('bet-crash').value);
-        if(!bet || bet > userData.balance) return alert("Balans kam!");
-        isRunning = true; currentMult = 1.0; let crashPoint = (Math.random() * 4 + 1.1).toFixed(2);
-        set(ref(db, `users/${uid}/balance`), userData.balance - bet);
-        document.getElementById('crashBtn').innerText = "CASH OUT";
-        let start = Date.now();
-        gameLoop = setInterval(() => {
-            currentMult = Math.pow(1.07, (Date.now() - start)/100);
-            document.getElementById('mult').innerText = currentMult.toFixed(2) + "x";
-            draw( (Date.now() - start)/1000 );
-            if(currentMult >= crashPoint) { clearInterval(gameLoop); isRunning = false; document.getElementById('mult').innerText = "BOOM!"; document.getElementById('crashBtn').innerText = "TIKISH"; }
-        }, 60);
+        // Savollarni bazadan bir marta yuklab olamiz
+        const qSnap = await get(ref(db, 'brain_questions'));
+        if(qSnap.exists()) {
+            allQuestions = qSnap.val();
+            nextQuestion();
+        }
+
+        // Real-time XP yangilanishi
+        onValue(ref(db, `brain_users/${uid}/xp`), (s) => {
+            userData.xp = s.val() || 0;
+            document.getElementById('u-xp').innerText = userData.xp;
+        });
     }
-    function draw(t) { ctx.clearRect(0,0,300,200); ctx.strokeStyle="#7b42f5"; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(0,180); ctx.lineTo(t*20, 180-Math.pow(1.07, t*10)*5); ctx.stroke(); }
-    function cashOut() { clearInterval(gameLoop); isRunning = false; let win = parseFloat(document.getElementById('bet-crash').value) * currentMult; set(ref(db, `users/${uid}/balance`), userData.balance + win); alert("Yutdingiz!"); document.getElementById('crashBtn').innerText = "TIKISH"; }
 
-    // --- 21 ACHKA LOGIC ---
-    let pCards = []; let dCards = [];
-    document.getElementById('dealBtn').onclick = () => {
-        const bet = parseFloat(document.getElementById('bet-21').value);
-        if(!bet || bet > userData.balance) return alert("Balans kam!");
-        set(ref(db, `users/${uid}/balance`), userData.balance - bet);
-        pCards = [randCard(), randCard()]; dCards = [randCard()];
-        updateBJ(); document.getElementById('bj-controls').style.display = 'flex';
-    };
+    // --- QUIZ LOGIC ---
+    function nextQuestion() {
+        if(allQuestions.length === 0) return;
+        isAnswering = false;
+        document.getElementById('feedback').innerText = "";
+        
+        const idx = Math.floor(Math.random() * allQuestions.length);
+        currentQuestion = allQuestions[idx];
 
-    window.hit = () => { pCards.push(randCard()); updateBJ(); if(calc(pCards) > 21) finishBJ("YUTQAZDINGIZ!"); };
-    window.stand = () => { while(calc(dCards) < 17) dCards.push(randCard()); updateBJ(); 
-        let ps = calc(pCards), ds = calc(dCards);
-        if(ds > 21 || ps > ds) { finishBJ("YUTDINGIZ!"); set(ref(db, `users/${uid}/balance`), userData.balance + (document.getElementById('bet-21').value * 2)); }
-        else finishBJ("DILER YUTDI!");
-    };
+        document.getElementById('question').innerText = currentQuestion.q;
+        const optBox = document.getElementById('options');
+        optBox.innerHTML = "";
 
-    function randCard() { return Math.floor(Math.random() * 9) + 2; }
-    function calc(arr) { return arr.reduce((a,b) => a+b, 0); }
-    function updateBJ() {
-        document.getElementById('p-cards').innerHTML = pCards.map(c => `<div class="card-img">${c}</div>`).join('');
-        document.getElementById('d-cards').innerHTML = dCards.map(c => `<div class="card-img">${c}</div>`).join('');
-        document.getElementById('p-score').innerText = calc(pCards);
-        document.getElementById('d-score').innerText = calc(dCards);
+        currentQuestion.a.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i, btn);
+            optBox.appendChild(btn);
+        });
     }
-    function finishBJ(m) { alert(m); document.getElementById('bj-controls').style.display = 'none'; }
 
-    // --- UI HELPERS ---
-    window.switchGame = (g, el) => {
-        document.getElementById('game-crash').style.display = g === 'crash' ? 'block' : 'none';
-        document.getElementById('game-21').style.display = g === '21' ? 'block' : 'none';
-        document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-    };
+    async function checkAnswer(index, btn) {
+        if(isAnswering) return;
+        isAnswering = true;
+
+        const correctIndex = currentQuestion.c;
+        const allBtns = document.querySelectorAll('.option-btn');
+
+        if(index === correctIndex) {
+            btn.classList.add('correct');
+            document.getElementById('feedback').innerText = "✅ Juda yaxshi!";
+            document.getElementById('feedback').style.color = "var(--green)";
+            await set(ref(db, `brain_users/${uid}/xp`), userData.xp + 10);
+        } else {
+            btn.classList.add('wrong');
+            allBtns[correctIndex].classList.add('correct');
+            document.getElementById('feedback').innerText = "❌ Xato!";
+            document.getElementById('feedback').style.color = "var(--red)";
+        }
+
+        setTimeout(nextQuestion, 2000);
+    }
+
+    // --- NAVIGATION & LEADERBOARD ---
     window.nav = (p, el) => {
         document.querySelectorAll('.panel').forEach(x => x.style.display = 'none');
         document.getElementById('p-' + p).style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
         el.classList.add('active');
+
+        if(p === 'leader') loadLeaderboard();
     };
-    window.sendReq = async (t) => {
-        const amt = parseFloat(document.getElementById(t === 'dep' ? 'dep-val' : 'wit-val').value);
-        await set(ref(db, 'requests/' + uid), { name: userData.name, amount: amt, type: t, currency: userData.cur });
-        alert("So'rov yuborildi!");
+
+    async function loadLeaderboard() {
+        const leaderBox = document.getElementById('leader-list');
+        leaderBox.innerHTML = "Yuklanmoqda...";
+        
+        const topQuery = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
+        const snap = await get(topQuery);
+        
+        if(snap.exists()) {
+            let list = [];
+            snap.forEach(child => { list.push(child.val()); });
+            list.reverse(); // Eng yuqori XP tepada bo'lishi uchun
+            
+            leaderBox.innerHTML = list.map((u, i) => `
+                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;">
+                    <span>${i+1}. ${u.name}</span>
+                    <span style="color:var(--p); font-weight:bold;">${u.xp} XP</span>
+                </div>
+            `).join('');
+        }
+    }
+
+    // STARTUP
+    window.onload = async () => {
+        const s = await get(userRef);
+        if(s.exists()) loadApp(s.val());
+        else document.getElementById('auth').style.display = 'block';
     };
 </script>
 </body>
