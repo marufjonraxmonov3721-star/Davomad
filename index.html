@@ -3,95 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crash Platform Pro</title>
+    <title>Crash Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #0a0a0b; --txt: #fff; --card: #16161e; }
-        .light-mode { --bg: #f4f4f9; --txt: #000; --card: #fff; }
-        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; padding-bottom: 70px; }
-        #auth-screen, #main-app { display: none; min-height: 100vh; padding: 25px; box-sizing: border-box; text-align: center; }
-        .input-group { margin-bottom: 12px; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: var(--txt); box-sizing: border-box; outline: none; }
-        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; margin-top: 5px; }
-        .btn-p { background: var(--p); color: #fff; }
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
+        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
+        #auth, #app { display: none; padding: 25px; text-align: center; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: #fff; margin-bottom: 15px; outline: none; box-sizing: border-box; }
+        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+        .btn-p { background: var(--p); color: #fff; box-shadow: 0 4px 15px rgba(123, 66, 245, 0.3); }
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
         .nav-item { font-size: 10px; opacity: 0.5; cursor: pointer; text-align: center; }
         .nav-item.active { opacity: 1; color: var(--p); }
         .panel { display: none; }
         .active-p { display: block; }
-        canvas { width: 100%; height: 200px; background: #000; border-radius: 18px; margin: 15px 0; border: 1px solid #222; }
-        #multiplier { font-size: 55px; font-weight: 800; margin: 10px 0; color: var(--p); }
-        .card { background: var(--card); padding: 15px; border-radius: 15px; text-align: left; margin-bottom: 15px; border: 1px solid #222; }
+        canvas { width: 100%; height: 200px; background: #000; border-radius: 20px; margin: 20px 0; border: 1px solid #222; }
+        #mult { font-size: 60px; font-weight: 800; margin: 10px 0; color: var(--p); }
     </style>
 </head>
 <body>
 
-<div id="auth-screen">
+<div id="auth">
     <h2 style="color: var(--p);">Ro'yxatdan o'tish</h2>
-    <div class="input-group"><input type="text" id="r-name" placeholder="Ism"></div>
-    <div class="input-group"><input type="text" id="r-surname" placeholder="Familiya"></div>
-    <div class="input-group">
-        <select id="r-region">
-            <option value="">Viloyatni tanlang</option>
-            <option value="Toshkent">Toshkent</option>
-            <option value="Samarqand">Samarqand</option>
-            <option value="Buxoro">Buxoro</option>
-            <option value="Andijon">Andijon</option>
-        </select>
-    </div>
-    <div class="input-group">
-        <select id="r-currency">
-            <option value="UZS">O'zbek so'mi (UZS)</option>
-            <option value="USD">Dollar (USD)</option>
-        </select>
-    </div>
-    <button class="btn btn-p" id="biometricBtn">BARMOQ IZI BILAN TASDIQLASH</button>
+    <input type="text" id="r-name" placeholder="Ism">
+    <input type="text" id="r-surname" placeholder="Familiya">
+    <select id="r-region">
+        <option value="">Viloyatni tanlang</option>
+        <option value="Toshkent">Toshkent</option>
+        <option value="Samarqand">Samarqand</option>
+        <option value="Buxoro">Buxoro</option>
+    </select>
+    <select id="r-currency">
+        <option value="UZS">O'zbek so'mi (UZS)</option>
+        <option value="USD">Dollar (USD)</option>
+    </select>
+    <button class="btn btn-p" id="regBtn">BARMOQ IZI BILAN TASDIQLASH</button>
 </div>
 
-<div id="main-app">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <span id="user-name" style="font-weight: bold;">...</span>
-        <div style="background: var(--p); padding: 6px 14px; border-radius: 20px;">
-            <span id="bal">0</span> <span id="unit">UZS</span>
+<div id="app">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span id="u-name" style="font-weight: bold;">...</span>
+        <div style="background: var(--p); padding: 8px 15px; border-radius: 25px;">
+            <span id="u-bal">0</span> <span id="u-unit">UZS</span>
         </div>
     </div>
 
     <div id="p-games" class="panel active-p">
         <canvas id="gameCanvas"></canvas>
-        <div id="multiplier">1.00x</div>
-        <input type="number" id="bet-input" placeholder="Tikish miqdori" style="margin-bottom:10px;">
+        <div id="mult">1.00x</div>
+        <input type="number" id="bet" placeholder="Tikish miqdori">
         <button id="crashBtn" class="btn btn-p">TIKISH</button>
     </div>
 
-    <div id="p-deposit" class="panel">
-        <h3>Hisobni to'ldirish</h3>
-        <div class="card">
-            <p>Karta: <b id="copyCard" style="color:var(--p); cursor:pointer;">4073 4200 6816 5541</b></p>
-            <input type="number" id="dep-val" placeholder="Summa (Min 5,000)">
-            <button class="btn btn-p" id="sendDepBtn">TO'LADIM</button>
-        </div>
+    <div id="p-dep" class="panel">
+        <h3>💳 To'ldirish</h3>
+        <p>Karta: <b>4073 4200 6816 5541</b></p>
+        <input type="number" id="dep-val" placeholder="Summa">
+        <button class="btn btn-p" id="depBtn">TO'LADIM</button>
     </div>
 
-    <div id="p-withdraw" class="panel">
-        <h3>Pul chiqarish</h3>
-        <div class="card">
-            <input type="number" id="wit-val" placeholder="Chiqarish summasi">
-            <p style="font-size: 11px; margin-top: 5px; color: #888;">Min: 30,000 UZS / 3 USD</p>
-            <button class="btn btn-p" id="sendWitBtn">CHIQARISH</button>
-        </div>
-    </div>
-
-    <div id="p-settings" class="panel">
-        <h3>Sozlamalar</h3>
-        <button class="btn" style="background: var(--card); color: var(--txt);" id="themeBtn">TUNGI/KUNDUZGI REJIM</button>
-        <button class="btn" style="background: #dc3545; color: #fff; margin-top: 20px;" onclick="location.reload()">CHIQISH</button>
+    <div id="p-wit" class="panel">
+        <h3>📤 Pul chiqarish</h3>
+        <input type="number" id="wit-val" placeholder="Chiqarish summasi">
+        <button class="btn btn-p" id="witBtn">CHIQARISH</button>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" id="nav-games">🎮<br>O'yinlar</div>
-        <div class="nav-item" id="nav-dep">💳<br>To'ldirish</div>
-        <div class="nav-item" id="nav-wit">📤<br>Chiqarish</div>
-        <div class="nav-item" id="nav-set">⚙️<br>Sozlamalar</div>
+        <div class="nav-item active" onclick="nav('games', this)">🎮<br>O'yinlar</div>
+        <div class="nav-item" onclick="nav('dep', this)">💳<br>Hamyon</div>
+        <div class="nav-item" onclick="nav('wit', this)">📤<br>Chiqarish</div>
     </div>
 </div>
 
@@ -112,83 +92,80 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    // BIOMETRIKA SOZLAMALARI
+    const bio = tg.BiometricManager;
+    bio.init();
+
     const uid = tg.initDataUnsafe?.user?.id || "user_8363919942";
     const userRef = ref(db, 'users/' + uid);
     let userData = { balance: 0 };
 
-    // 1. BIOMETRIK RO'YXATDAN O'TISH
-    document.getElementById('biometricBtn').onclick = () => {
+    // RO'YXATDAN O'TISH
+    document.getElementById('regBtn').onclick = () => {
         const name = document.getElementById('r-name').value;
-        const currency = document.getElementById('r-currency').value;
-        if(!name) return alert("Ismingizni kiriting!");
+        const cur = document.getElementById('r-currency').value;
+        if(!name) return alert("Ismni kiriting!");
 
-        tg.BiometricManager.authenticate({ reason: "Tasdiqlang" }, async (success) => {
-            if (success) {
-                const data = {
-                    name, currency, balance: 0,
-                    surname: document.getElementById('r-surname').value,
-                    region: document.getElementById('r-region').value
-                };
-                await set(userRef, data);
-                initApp(data);
-            } else alert("Xato!");
+        // 1-QADAM: Telegramdan biometrika ruxsatini so'rash
+        bio.requestAccess({ reason: "Tizimga kirish uchun ruxsat bering" }, (allowed) => {
+            if (allowed) {
+                // 2-QADAM: Haqiqiy barmoq izi skanerini chiqarish
+                bio.authenticate({ reason: "Ma'lumotlarni tasdiqlang" }, async (success) => {
+                    if (success) {
+                        const data = {
+                            name, cur, balance: 0,
+                            surname: document.getElementById('r-surname').value,
+                            region: document.getElementById('r-region').value
+                        };
+                        await set(userRef, data);
+                        loadApp(data);
+                    } else alert("Tasdiqlash bajarilmadi!");
+                });
+            } else alert("Biometrikaga ruxsat bermadingiz!");
         });
     };
 
-    function initApp(data) {
+    function loadApp(data) {
         userData = data;
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-        document.getElementById('user-name').innerText = data.name;
-        document.getElementById('unit').innerText = data.currency;
-
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('u-name').innerText = data.name;
+        document.getElementById('u-unit').innerText = data.cur;
         onValue(ref(db, `users/${uid}/balance`), (s) => {
             userData.balance = s.val() || 0;
-            document.getElementById('bal').innerText = Math.floor(userData.balance).toLocaleString();
+            document.getElementById('u-bal').innerText = Math.floor(userData.balance).toLocaleString();
         });
     }
 
-    // 2. ADMIN PANELIGA SO'ROV YUBORISH (Depozit va Chiqarish)
+    // SO'ROV YUBORISH (ADMIN PANELGA)
     async function sendRequest(type) {
-        const valId = type === 'dep' ? 'dep-val' : 'wit-val';
-        const amount = parseFloat(document.getElementById(valId).value);
-        
-        if(!amount || amount <= 0) return alert("Summani kiriting!");
-        if(type === 'wit' && amount > userData.balance) return alert("Balans yetarli emas!");
+        const inputId = type === 'dep' ? 'dep-val' : 'wit-val';
+        const amt = parseFloat(document.getElementById(inputId).value);
+        if(!amt || amt <= 0) return alert("Summani yozing!");
+        if(type === 'wit' && amt > userData.balance) return alert("Mablag' yetarli emas!");
 
-        const reqRef = ref(db, 'requests/' + uid);
-        await set(reqRef, {
-            name: userData.name,
-            amount: amount,
-            currency: userData.currency,
-            type: type,
-            date: new Date().toLocaleString()
+        await set(ref(db, 'requests/' + uid), {
+            uid, name: userData.name, amount: amt, currency: userData.cur,
+            type: type, date: new Date().toLocaleString()
         });
-        alert("So'rov yuborildi! Admin tasdiqlashini kuting.");
+        alert("So'rov yuborildi!");
     }
 
-    document.getElementById('sendDepBtn').onclick = () => sendRequest('dep');
-    document.getElementById('sendWitBtn').onclick = () => sendRequest('wit');
+    document.getElementById('depBtn').onclick = () => sendRequest('dep');
+    document.getElementById('witBtn').onclick = () => sendRequest('wit');
 
-    // NAVIGATSIYA
-    function navTo(p, el) {
+    window.nav = (p, el) => {
         document.querySelectorAll('.panel').forEach(x => x.style.display = 'none');
         document.getElementById('p-' + p).style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
         el.classList.add('active');
-    }
+    };
 
-    document.getElementById('nav-games').onclick = function() { navTo('games', this); };
-    document.getElementById('nav-dep').onclick = function() { navTo('deposit', this); };
-    document.getElementById('nav-wit').onclick = function() { navTo('withdraw', this); };
-    document.getElementById('nav-set').onclick = function() { navTo('settings', this); };
-    document.getElementById('themeBtn').onclick = () => document.body.classList.toggle('light-mode');
-
-    window.addEventListener('load', async () => {
+    window.onload = async () => {
         const s = await get(userRef);
-        if(s.exists()) initApp(s.val());
-        else document.getElementById('auth-screen').style.display = 'block';
-    });
+        if(s.exists()) loadApp(s.val());
+        else document.getElementById('auth').style.display = 'block';
+    };
 </script>
 </body>
 </html>
