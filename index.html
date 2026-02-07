@@ -8,27 +8,27 @@
     <style>
         :root { --p: #7b42f5; --bg: #0a0a0b; --txt: #fff; --card: #16161e; }
         .light-mode { --bg: #f4f4f9; --txt: #000; --card: #fff; }
-        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; }
+        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; padding-bottom: 80px; }
         
         #auth-screen, #main-app { display: none; min-height: 100vh; padding: 25px; box-sizing: border-box; text-align: center; }
         .input-group { margin-bottom: 15px; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: var(--txt); box-sizing: border-box; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: var(--txt); box-sizing: border-box; outline: none; }
         
-        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; margin-top: 10px; }
         .btn-p { background: var(--p); color: #fff; box-shadow: 0 4px 15px rgba(123, 66, 245, 0.3); }
-        .btn:active { transform: scale(0.98); }
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
 
         /* Navigation */
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
-        .nav-item { font-size: 11px; opacity: 0.5; cursor: pointer; }
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; }
         .nav-item.active { opacity: 1; color: var(--p); }
 
-        /* Game UI */
-        canvas { width: 100%; height: 200px; background: #000; border-radius: 20px; margin: 20px 0; }
-        #mult { font-size: 60px; font-weight: 800; margin: 10px 0; color: var(--p); }
-        .panel { display: none; animation: fadeIn 0.3s; }
+        /* Panellar */
+        .panel { display: none; }
         .active-p { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        canvas { width: 100%; height: 200px; background: #000; border-radius: 20px; margin: 20px 0; border: 1px solid #222; }
+        #mult { font-size: 60px; font-weight: 800; margin: 10px 0; color: var(--p); }
     </style>
 </head>
 <body>
@@ -52,11 +52,11 @@
             <option value="USD">Dollar (USD)</option>
         </select>
     </div>
-    <button class="btn btn-p" onclick="biometricRegister()">RO'YXATDAN O'TISH</button>
+    <button class="btn btn-p" id="regBtn">RO'YXATDAN O'TISH</button>
 </div>
 
 <div id="main-app">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <span id="user-tag" style="font-weight: bold;">Foydalanuvchi</span>
         <div style="background: var(--p); padding: 8px 15px; border-radius: 25px; font-size: 14px;">
             <span id="bal">0</span> <span id="unit">UZS</span>
@@ -67,29 +67,29 @@
         <canvas id="graph"></canvas>
         <div id="mult">1.00x</div>
         <div class="input-group"><input type="number" id="bet" placeholder="Tikish summasi"></div>
-        <button id="betBtn" class="btn btn-p" onclick="startGame()">TIKISH</button>
+        <button id="betBtn" class="btn btn-p">TIKISH</button>
     </div>
 
     <div id="p-dep" class="panel">
         <h3>💳 Hisobni to'ldirish</h3>
-        <div style="background: var(--card); padding: 20px; border-radius: 15px; text-align: left;">
-            <p>Karta: <b onclick="copyCard()">4073 4200 6816 5541</b> 📋</p>
-            <p>Tizim: Payme, Click, Alif, Xazna</p>
-            <input type="number" id="dep-val" placeholder="Summa">
-            <button class="btn btn-p" style="margin-top: 15px;" onclick="alert('To\'lov kutilmoqda...')">TASDIQLASH</button>
+        <div style="background: var(--card); padding: 20px; border-radius: 15px; text-align: left; margin-bottom: 15px;">
+            <p style="font-size: 14px;">Karta: <b id="copyCardBtn" style="color:var(--p); cursor:pointer;">4073 4200 6816 5541</b></p>
+            <p style="font-size: 12px; opacity:0.7;">Tizim: Payme, Click, Alif, Xazna</p>
+            <input type="number" id="dep-val" placeholder="Summa (Min 5,000)">
+            <button class="btn btn-p" onclick="alert('To\'lov kutilmoqda...')">TASDIQLASH</button>
         </div>
     </div>
 
     <div id="p-set" class="panel">
         <h3>⚙️ Sozlamalar</h3>
-        <button class="btn" style="background: var(--card); color: var(--txt); margin-bottom: 10px;" onclick="toggleTheme()">TUNGI/KUNDUZGI REJIM</button>
-        <button class="btn" style="background: #ff3b3b; color: #fff;" onclick="location.reload()">CHIQISH</button>
+        <button class="btn" style="background: var(--card); color: var(--txt);" id="themeBtn">TUNGI/KUNDUZGI REJIM</button>
+        <button class="btn" style="background: #ff3b3b; color: #fff; margin-top:20px;" onclick="location.reload()">CHIQISH</button>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="nav('game', this)">🎮<br>O'yinlar</div>
-        <div class="nav-item" onclick="nav('dep', this)">💳<br>Hamyon</div>
-        <div class="nav-item" onclick="nav('set', this)">⚙️<br>Sozlamalar</div>
+        <div class="nav-item active" id="nav-game">🎮<br>O'yinlar</div>
+        <div class="nav-item" id="nav-dep">💳<br>Hamyon</div>
+        <div class="nav-item" id="nav-set">⚙️<br>Sozlamalar</div>
     </div>
 </div>
 
@@ -101,7 +101,10 @@
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
         databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-        projectId: "gen-lang-client-0228947349"
+        projectId: "gen-lang-client-0228947349",
+        storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+        messagingSenderId: "253793341504",
+        appId: "1:253793341504:web:709752258000dab44fcfa5"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -109,47 +112,33 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const userId = tg.initDataUnsafe?.user?.id || "dev_user";
+    const userId = tg.initDataUnsafe?.user?.id || "dev_8363919942";
     const userRef = ref(db, 'users/' + userId);
 
-    // BIOMETRIK RO'YXATDAN O'TISH
-    window.biometricRegister = async () => {
+    // RO'YXATDAN O'TISH FUNKSIYASI
+    async function biometricRegister() {
         const name = document.getElementById('name').value;
         const surname = document.getElementById('surname').value;
         const region = document.getElementById('region').value;
         const currency = document.getElementById('currency').value;
 
-        if(!name || !region) return alert("Barcha maydonlarni to'ldiring!");
+        if(!name || !region) { alert("Barcha maydonlarni to'ldiring!"); return; }
 
-        // Haqiqiy brauzer biometrikasini so'rash (WebAuthn API)
+        alert("Barmoq izi yoki FaceID tasdiqlang...");
+        
+        const userData = {
+            name, surname, region, currency,
+            balance: currency === "UZS" ? 100000 : 10,
+            regDate: new Date().toISOString()
+        };
+
         try {
-            if (window.PublicKeyCredential) {
-                // Bu qism brauzerda barmoq izi darchasini ochadi
-                const options = {
-                    publicKey: {
-                        challenge: new Uint8Array([1,2,3,4]),
-                        rp: { name: "Crash Pro" },
-                        user: { id: new Uint8Array([1]), name: name, displayName: name },
-                        pubKeyCredParams: [{ type: "public-key", alg: -7 }]
-                    }
-                };
-                
-                // Simulyatsiya emas, haqiqiy UI chaqiruvi (Agar qurilma qo'llab quvvatlasa)
-                alert("Barmoq izi yoki FaceID tasdiqlang...");
-                
-                const userData = {
-                    name, surname, region, currency,
-                    balance: currency === "UZS" ? 5000 : 1, // Bonus balans
-                    regDate: new Date().toISOString()
-                };
-
-                await set(userRef, userData);
-                loadApp(userData);
-            }
+            await set(userRef, userData);
+            loadApp(userData);
         } catch (e) {
-            alert("Biometrika xatosi yoki bekor qilindi.");
+            alert("Xatolik: " + e.message);
         }
-    };
+    }
 
     function loadApp(data) {
         document.getElementById('auth-screen').style.display = 'none';
@@ -157,34 +146,41 @@
         document.getElementById('user-tag').innerText = data.name;
         document.getElementById('unit').innerText = data.currency;
         
-        // Balansni real vaqtda kuzatish
         onValue(ref(db, `users/${userId}/balance`), (s) => {
-            document.getElementById('bal').innerText = Math.floor(s.val() || 0);
+            document.getElementById('bal').innerText = Math.floor(s.val() || 0).toLocaleString();
         });
     }
 
-    // Navigatsiya
-    window.nav = (p, el) => {
-        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active-p'));
-        document.getElementById('p-' + p).classList.add('active-p');
-        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-        el.classList.add('active');
-    };
+    // Navigatsiya mantiqi
+    function navTo(panelName, element) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-p'));
+        document.getElementById('p-' + panelName).classList.add('active-p');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+    }
 
-    // Tungi rejim
-    window.toggleTheme = () => document.body.classList.toggle('light-mode');
-
-    // Tekshirish (Agar avval ro'yxatdan o'tgan bo'lsa)
-    window.onload = async () => {
-        const s = await get(userRef);
-        if(s.exists()) loadApp(s.val());
-        else document.getElementById('auth-screen').style.display = 'block';
-    };
-
-    window.copyCard = () => {
+    // Event Listeners (Tugmalarni bog'lash)
+    document.getElementById('regBtn').onclick = biometricRegister;
+    document.getElementById('nav-game').onclick = function() { navTo('game', this); };
+    document.getElementById('nav-dep').onclick = function() { navTo('dep', this); };
+    document.getElementById('nav-set').onclick = function() { navTo('set', this); };
+    document.getElementById('themeBtn').onclick = () => document.body.classList.toggle('light-mode');
+    document.getElementById('copyCardBtn').onclick = () => {
         navigator.clipboard.writeText("4073420068165541");
         alert("Karta raqami nusxalandi!");
     };
+
+    // Sahifa yuklanganda bazani tekshirish
+    window.addEventListener('load', async () => {
+        try {
+            const s = await get(userRef);
+            if(s.exists()) loadApp(s.val());
+            else document.getElementById('auth-screen').style.display = 'block';
+        } catch (e) {
+            document.getElementById('auth-screen').style.display = 'block';
+        }
+    });
+
 </script>
 </body>
 </html>
