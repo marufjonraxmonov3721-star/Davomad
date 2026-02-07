@@ -3,57 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Smart Sensor</title>
+    <title>Kino Pro: Smart Shake</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         
         .main-app { height: 100vh; display: flex; flex-direction: column; }
-        video { width: 100%; flex-grow: 1; background: #000; }
+        video { width: 100%; flex-grow: 1; background: #000; outline: none; }
 
-        /* Aktivlik tekshiruvi oynasi */
+        /* Uyg'oqlikni tekshirish oynasi */
         #check-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); display: none;
+            background: rgba(123, 66, 245, 0.95); display: none;
             flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
         }
 
-        .purple-bar { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; }
+        .purple-bar { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; border-top: 1px solid #333; }
         
         .btn-tg { 
             background: #fff; color: #000; border: none; padding: 15px; 
-            border-radius: 12px; font-weight: bold; width: 80%; cursor: pointer;
+            border-radius: 12px; font-weight: bold; width: 85%; cursor: pointer;
         }
 
-        #sensor-info { font-size: 10px; color: #777; margin-top: 5px; }
+        .shake-icon { font-size: 50px; animation: shake-anim 0.5s infinite; }
+        @keyframes shake-anim {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+            100% { transform: rotate(0deg); }
+        }
     </style>
 </head>
 <body>
 
 <div id="setup" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
     <h1 style="color: var(--p);">🎬 KINO PRO</h1>
-    <p>Aqlli harakat datchigi yoqilgan</p>
+    <p>10 soniyalik harakat datchigi tayyor</p>
     <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
     <input type="file" id="f" hidden accept="video/*" onchange="startApp(event)">
 </div>
 
 <div id="player-ui" class="main-app" style="display: none;">
-    <video id="v" controls playsinline></video>
+    <video id="v" controls playsinline ontimeupdate="saveProgress()"></video>
     
     <div id="check-overlay">
-        <h2 style="color: var(--p);">UYG'OQMISIZ?</h2>
-        <p>Iltimos, tasdiqlang, aks holda video o'chadi.</p>
-        <button class="btn-tg" onclick="confirmIdentity()">HA, UYG'OQMAN</button>
-        <div id="countdown" style="margin-top: 15px; font-size: 20px;">20</div>
+        <div class="shake-icon">📳</div>
+        <h2>UYG'OQMISIZ?</h2>
+        <p>Tasdiqlash uchun telefonni silking yoki bosing!</p>
+        <div id="countdown" style="font-size: 40px; font-weight: bold; margin: 20px 0;">5</div>
+        <button class="btn-tg" onclick="confirmIdentity()">UYG'OQMAN!</button>
     </div>
 
     <div class="purple-bar">
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span id="move-status">Harakat: Barqaror ✅</span>
-            <span id="timer-display">Tekshiruv: 15:00</span>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
+            <span id="move-status">Holat: Faol ✅</span>
+            <span id="timer-display">Tekshiruv: 0:10</span>
         </div>
-        <div id="sensor-info">Giroskop faol...</div>
     </div>
 </div>
 
@@ -62,53 +68,67 @@
     tg.expand();
 
     const v = document.getElementById('v');
-    let lastMove = Date.now();
-    let checkInterval = 15 * 60; // Har 15 daqiqada
-    let countdownVal = 20;
+    let checkInterval = 10; // 10 soniya test uchun
+    let countdownVal = 5; // Tasdiqlash uchun 5 soniya vaqt
     let timerIdx, countIdx;
+    let movieName = "";
 
     function startApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
+        movieName = file.name;
         v.src = URL.createObjectURL(file);
         document.getElementById('setup').style.display = 'none';
         document.getElementById('player-ui').style.display = 'flex';
         
-        // Eslab qolish
-        const saved = localStorage.getItem(file.name);
+        // Oxirgi ko'rilgan joyidan davom ettirish
+        const saved = localStorage.getItem(movieName);
         if(saved) v.currentTime = saved;
 
         v.play();
-        initSensors();
+        initShakeDetection();
         startCheckTimer();
     }
 
-    // 1. Giroskop (Harakatni sezish)
-    function initSensors() {
-        window.addEventListener('deviceorientation', (event) => {
-            // Agar telefon burchagi keskin o'zgarsa (uxlab qolib qo'ldan tushsa yoki og'sa)
-            if (Math.abs(event.beta) > 45 || Math.abs(event.gamma) > 45) {
-                lastMove = Date.now();
-                document.getElementById('move-status').innerText = "Harakat: Sezildi ⚡";
+    // 1. Silkitishni aniqlash (Shake Detection)
+    function initShakeDetection() {
+        let lastX, lastY, lastZ;
+        let threshold = 15; // Silkitish sezgirligi
+
+        window.addEventListener('devicemotion', (event) => {
+            let acc = event.accelerationIncludingGravity;
+            if (lastX) {
+                let diff = Math.abs(lastX - acc.x) + Math.abs(lastY - acc.y) + Math.abs(lastZ - acc.z);
+                if (diff > threshold) {
+                    resetTimer(); // Silkitilsa taymer yangilanadi
+                }
             }
+            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
 
-        // Ekran bosilganda ham vaqtni yangilash
-        window.addEventListener('touchstart', () => { lastMove = Date.now(); });
+        // Ekranga teginilganda ham yangilash
+        window.addEventListener('touchstart', resetTimer);
     }
 
-    // 2. Aktivlik taymeri
+    function resetTimer() {
+        if (document.getElementById('check-overlay').style.display === 'flex') {
+            confirmIdentity(); // Agar tekshiruv oynasi ochiq bo'lsa, silkitish tasdiqlaydi
+        }
+        checkInterval = 10;
+        document.getElementById('move-status').innerText = "Holat: Sezildi ⚡";
+        setTimeout(() => { document.getElementById('move-status').innerText = "Holat: Faol ✅"; }, 1000);
+    }
+
+    // 2. Taymer boshqaruvi
     function startCheckTimer() {
+        clearInterval(timerIdx);
         timerIdx = setInterval(() => {
             if (v.paused) return;
             
             checkInterval--;
-            let mins = Math.floor(checkInterval / 60);
-            let secs = checkInterval % 60;
-            document.getElementById('timer-display').innerText = `Tekshiruv: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            document.getElementById('timer-display').innerText = `Tekshiruv: 0:${checkInterval < 10 ? '0' : ''}${checkInterval}`;
 
-            // Agar 15 daqiqa harakatsiz bo'lsa yoki vaqt tugasa
             if (checkInterval <= 0) {
                 triggerCheck();
             }
@@ -120,13 +140,15 @@
         v.pause();
         document.getElementById('check-overlay').style.display = 'flex';
         
-        countdownVal = 20;
+        countdownVal = 5;
+        document.getElementById('countdown').innerText = countdownVal;
+        
         countIdx = setInterval(() => {
             countdownVal--;
             document.getElementById('countdown').innerText = countdownVal;
             if (countdownVal <= 0) {
                 clearInterval(countIdx);
-                tg.close(); // Ilovani butunlay yopish
+                tg.close(); // Javob bo'lmasa yopiladi
             }
         }, 1000);
     }
@@ -134,16 +156,15 @@
     function confirmIdentity() {
         clearInterval(countIdx);
         document.getElementById('check-overlay').style.display = 'none';
-        checkInterval = 15 * 60; // Taymerni qayta tiklash
+        checkInterval = 10;
         startCheckTimer();
         v.play();
     }
 
-    // Har 5 soniyada eslab qolish
-    setInterval(() => {
-        if(!v.paused) localStorage.setItem(v.src, v.currentTime);
-    }, 5000);
-
+    // Progresni saqlash
+    function saveProgress() {
+        if(!v.paused) localStorage.setItem(movieName, v.currentTime);
+    }
 </script>
 </body>
 </html>
