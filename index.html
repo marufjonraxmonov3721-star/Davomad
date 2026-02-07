@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 80px; user-select: none; }
         #auth, #app { display: none; padding: 25px; text-align: center; }
         input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: #fff; margin-bottom: 15px; outline: none; box-sizing: border-box; }
         .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
@@ -92,7 +92,6 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // BIOMETRIKA SOZLAMALARI
     const bio = tg.BiometricManager;
     bio.init();
 
@@ -100,16 +99,24 @@
     const userRef = ref(db, 'users/' + uid);
     let userData = { balance: 0 };
 
+    // O'YIN O'ZGARUVCHILARI
+    let isRunning = false;
+    let currentMult = 1.00;
+    let crashPoint = 0;
+    let gameLoop;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const multEl = document.getElementById('mult');
+    const crashBtn = document.getElementById('crashBtn');
+
     // RO'YXATDAN O'TISH
     document.getElementById('regBtn').onclick = () => {
         const name = document.getElementById('r-name').value;
         const cur = document.getElementById('r-currency').value;
         if(!name) return alert("Ismni kiriting!");
 
-        // 1-QADAM: Telegramdan biometrika ruxsatini so'rash
         bio.requestAccess({ reason: "Tizimga kirish uchun ruxsat bering" }, (allowed) => {
             if (allowed) {
-                // 2-QADAM: Haqiqiy barmoq izi skanerini chiqarish
                 bio.authenticate({ reason: "Ma'lumotlarni tasdiqlang" }, async (success) => {
                     if (success) {
                         const data = {
@@ -137,7 +144,85 @@
         });
     }
 
-    // SO'ROV YUBORISH (ADMIN PANELGA)
+    // --- CRASH O'YINI MANTIQLARI ---
+    crashBtn.onclick = () => {
+        if(!isRunning) startCrash();
+        else cashOut();
+    };
+
+    function startCrash() {
+        const bet = parseFloat(document.getElementById('bet').value);
+        if(!bet || bet <= 0 || bet > userData.balance) return alert("Balans yetarli emas!");
+
+        isRunning = true;
+        currentMult = 1.00;
+        // Tasodifiy portlash nuqtasi (Algoritm)
+        crashPoint = (Math.random() * 5 + 1.1).toFixed(2); 
+        
+        updateBalance(userData.balance - bet);
+        
+        crashBtn.innerText = "CASH OUT";
+        crashBtn.style.background = "#ffbd00";
+        crashBtn.style.color = "#000";
+
+        let startTime = Date.now();
+        gameLoop = setInterval(() => {
+            let elapsed = (Date.now() - startTime) / 1000;
+            currentMult = Math.pow(1.07, elapsed * 10);
+            multEl.innerText = currentMult.toFixed(2) + "x";
+            multEl.style.color = "var(--p)";
+
+            drawGraph(elapsed);
+
+            if (currentMult >= crashPoint) {
+                stopGame(false);
+            }
+        }, 60);
+    }
+
+    function drawGraph(t) {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle = "#7b42f5";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(0, 200);
+        for(let i=0; i<t*10; i++) {
+            ctx.lineTo(i * 7, 200 - Math.pow(1.07, i) * 5);
+        }
+        ctx.stroke();
+    }
+
+    function cashOut() {
+        if(!isRunning) return;
+        const bet = parseFloat(document.getElementById('bet').value);
+        const win = bet * currentMult;
+        updateBalance(userData.balance + win);
+        stopGame(true);
+        alert("YUTDINGIZ: " + win.toFixed(2));
+    }
+
+    function stopGame(win) {
+        clearInterval(gameLoop);
+        isRunning = false;
+        crashBtn.innerText = "TIKISH";
+        crashBtn.style.background = "var(--p)";
+        crashBtn.style.color = "#fff";
+        
+        if(!win) {
+            multEl.innerText = "CRASHED!";
+            multEl.style.color = "#ff3b3b";
+        }
+        setTimeout(() => {
+            multEl.innerText = "1.00x";
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+        }, 2000);
+    }
+
+    async function updateBalance(newBal) {
+        await set(ref(db, `users/${uid}/balance`), newBal);
+    }
+
+    // --- SO'ROV VA NAVIGATSIYA ---
     async function sendRequest(type) {
         const inputId = type === 'dep' ? 'dep-val' : 'wit-val';
         const amt = parseFloat(document.getElementById(inputId).value);
