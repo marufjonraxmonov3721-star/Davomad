@@ -3,62 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brain Pro | Maruf Raxmonov</title>
+    <title>Brain Pro | Maruf Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --red: #dc3545; }
+        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --yellow: #f1c40f; --orange: #e67e22; --red: #ff00cc; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        #auth, #setup, #quiz, #leaderboard { display: none; text-align: center; }
+        #auth, #game, #leaderboard { display: none; text-align: center; }
         .active { display: block !important; }
 
-        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
-        input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; color: #fff; }
-        .btn-p { background: var(--p); box-shadow: 0 5px 15px rgba(123, 66, 245, 0.3); }
+        /* Level Card */
+        .level-card { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; position: relative; overflow: hidden; }
+        #level-label { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .xp-container { background: #222; height: 12px; border-radius: 6px; margin-top: 10px; overflow: hidden; }
+        #xp-bar { height: 100%; width: 0%; transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--p); }
 
-        .timer { font-size: 26px; font-weight: 900; color: var(--p); margin: 10px 0; }
-        .q-text { font-size: 20px; font-weight: 600; margin-bottom: 20px; min-height: 60px; }
+        /* Quiz UI */
+        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+        .q-text { font-size: 19px; font-weight: 600; line-height: 1.4; margin-bottom: 20px; text-align: left; }
         .options { display: grid; gap: 12px; }
-        .opt { background: #222; padding: 16px; border-radius: 12px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.2s; }
+        .opt { background: #222; padding: 16px; border-radius: 12px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.2s; font-size: 16px; }
         .opt.correct { background: var(--green) !important; border-color: var(--green); }
         .opt.wrong { background: var(--red) !important; border-color: var(--red); }
 
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
+        /* Navigation */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-item { font-size: 12px; opacity: 0.5; cursor: pointer; text-align: center; }
         .nav-item.active-nav { opacity: 1; color: var(--p); font-weight: bold; }
         
-        .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #222; }
+        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
+        .btn-login { background: var(--p); border: none; padding: 18px; border-radius: 15px; color: #fff; font-weight: bold; width: 100%; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--p); font-size: 40px;">Brain Pro</h1>
-        <p style="color:#888">Telegram orqali xavfsiz kirish</p>
-        <div class="card">
-            <button class="btn btn-p" id="loginBtn">TIZIMGA KIRISH</button>
-        </div>
+        <h1 style="color:var(--p); font-size: 45px; margin-top: 50px;">Brain Pro</h1>
+        <p style="color:#888; margin-bottom: 40px;">Aqlingizni darajama-daraja charxlang!</p>
+        <button class="btn-login" id="loginBtn">TIZIMGA KIRISH</button>
     </div>
 
-    <div id="setup">
-        <h3>Imtihon Parametrlari</h3>
-        <div class="card">
-            <label style="display:block; text-align:left; margin-bottom:5px; font-size:14px; color:#888;">Savollar soni:</label>
-            <input type="number" id="q-count" value="30" max="500">
-            <label style="display:block; text-align:left; margin-bottom:5px; font-size:14px; color:#888;">Vaqt (daqiqa):</label>
-            <input type="number" id="q-time" value="30">
-            <button class="btn btn-p" id="startBtn">TESTNI BOSHLASH</button>
+    <div id="game">
+        <div class="level-card" id="l-card">
+            <div id="level-label">OSON</div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
+                <span>Daraja foizi</span>
+                <span>XP: <b id="u-xp" style="color:#fff">0</b></span>
+            </div>
+            <div class="xp-container"><div id="xp-bar"></div></div>
         </div>
-    </div>
 
-    <div id="quiz">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b id="q-progress">1/30</b>
-            <div class="timer" id="timer">30:00</div>
-        </div>
         <div class="card">
             <div class="q-text" id="q-text">Savol yuklanmoqda...</div>
             <div class="options" id="options"></div>
@@ -66,13 +62,13 @@
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--p)">🏆 Top 10 Reyting</h2>
-        <div class="card" id="leader-list">Yuklanmoqda...</div>
+        <h2 style="color:var(--p)">🏆 Dunyo Reytingi</h2>
+        <div class="card" id="leader-list" style="padding: 10px; min-height: auto;">Yuklanmoqda...</div>
     </div>
 </div>
 
 <div class="nav" id="main-nav" style="display:none">
-    <div class="nav-item active-nav" id="nav-home" onclick="showPanel('setup')">🏠<br>Asosiy</div>
+    <div class="nav-item active-nav" id="nav-game" onclick="showPanel('game')">🎮<br>O'yin</div>
     <div class="nav-item" id="nav-rank" onclick="showPanel('leaderboard')">🏆<br>Reyting</div>
 </div>
 
@@ -93,22 +89,35 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id || "dev_user_1";
+    const uid = tg.initDataUnsafe?.user?.id || "dev_user_88";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let allQuestions = [];
-    let sessionQuestions = [];
-    let currentIdx = 0;
-    let timerInterval;
-    let userXp = 0;
-    let solvedIds = JSON.parse(localStorage.getItem('solved_ids') || "[]");
+    let userData = { xp: 0, level: 'oson' };
+    let currentQuestions = [];
+    let isAnswering = false;
 
-    // 1. INIT
+    // --- LEVEL CONFIG ---
+    const levels = {
+        oson: { name: "🟢 Oson", next: 500, color: "#28a745", key: "oson" },
+        ortacha: { name: "🟡 O'rtacha", next: 1500, color: "#f1c40f", key: "ortacha" },
+        qiyin: { name: "🟠 Qiyinroq", next: 3500, color: "#e67e22", key: "qiyin" },
+        juda_qiyin: { name: "🔴 Master", next: 10000, color: "#ff00cc", key: "juda_qiyin" }
+    };
+
+    function getLevel(xp) {
+        if (xp <= 500) return levels.oson;
+        if (xp <= 1500) return levels.ortacha;
+        if (xp <= 3500) return levels.qiyin;
+        return levels.juda_qiyin;
+    }
+
+    // --- INITIALIZATION ---
     window.onload = async () => {
         const snap = await get(userRef);
-        if(snap.exists()) {
-            userXp = Number(snap.val().xp) || 0;
-            showPanel('setup');
+        if (snap.exists()) {
+            userData.xp = Number(snap.val().xp) || 0;
+            showPanel('game');
+            updateLevelSystem();
         } else {
             document.getElementById('auth').classList.add('active');
         }
@@ -116,45 +125,46 @@
 
     document.getElementById('loginBtn').onclick = async () => {
         const user = tg.initDataUnsafe?.user;
-        const data = { name: user?.first_name || "Talaba", xp: 0 };
-        await set(userRef, data);
-        showPanel('setup');
+        const initialData = { name: user?.first_name || "Talaba", xp: 0 };
+        await set(userRef, initialData);
+        userData.xp = 0;
+        showPanel('game');
+        updateLevelSystem();
     };
 
-    // 2. START QUIZ
-    document.getElementById('startBtn').onclick = async () => {
-        const count = Number(document.getElementById('q-count').value);
-        const time = Number(document.getElementById('q-time').value);
+    // --- LEVEL SYSTEM CORE ---
+    async function updateLevelSystem() {
+        const levelInfo = getLevel(userData.xp);
+        document.getElementById('level-label').innerText = levelInfo.name;
+        document.getElementById('level-label').style.color = levelInfo.color;
+        document.getElementById('u-xp').innerText = userData.xp;
 
-        const qSnap = await get(ref(db, 'brain_questions'));
-        if(!qSnap.exists()) return alert("Bazada savollar topilmadi!");
+        // Progress bar calculation
+        const prevCap = Object.values(levels).find(l => l.next < levelInfo.next)?.next || 0;
+        const progress = ((userData.xp - prevCap) / (levelInfo.next - prevCap)) * 100;
+        document.getElementById('xp-bar').style.width = Math.min(progress, 100) + "%";
+        document.getElementById('xp-bar').style.background = levelInfo.color;
 
-        allQuestions = qSnap.val();
-        
-        // Takrorlanmaslik: Faqat yechilmagan savollarni olish
-        let available = allQuestions.filter((q, idx) => !solvedIds.includes(idx));
-        
-        if(available.length < count) {
-            alert("Barcha savollarni yechib bo'ldingiz! Baza qayta yangilanmoqda.");
-            solvedIds = [];
-            localStorage.setItem('solved_ids', "[]");
-            available = allQuestions;
+        // Savollarni darajaga qarab yuklash
+        if (userData.level !== levelInfo.key || currentQuestions.length === 0) {
+            userData.level = levelInfo.key;
+            const qSnap = await get(ref(db, 'brain_questions/' + levelInfo.key));
+            currentQuestions = qSnap.val() || [];
+            if(currentQuestions.length === 0) {
+                document.getElementById('q-text').innerText = "Bu daraja uchun savollar hali yuklanmagan!";
+                return;
+            }
         }
-
-        sessionQuestions = available.sort(() => 0.5 - Math.random()).slice(0, count);
-        currentIdx = 0;
-        showPanel('quiz');
         renderQuestion();
-        startTimer(time * 60);
-    };
+    }
 
     function renderQuestion() {
-        const q = sessionQuestions[currentIdx];
-        document.getElementById('q-progress').innerText = `${currentIdx + 1}/${sessionQuestions.length}`;
+        isAnswering = false;
+        const q = currentQuestions[Math.floor(Math.random() * currentQuestions.length)];
         document.getElementById('q-text').innerText = q.q;
-        
         const box = document.getElementById('options');
         box.innerHTML = "";
+        
         q.a.forEach((opt, i) => {
             const d = document.createElement('div');
             d.className = "opt";
@@ -165,55 +175,31 @@
     }
 
     async function checkAnswer(selected, correct, el) {
+        if (isAnswering) return;
+        isAnswering = true;
+
         const opts = document.querySelectorAll('.opt');
-        opts.forEach(o => o.style.pointerEvents = 'none');
-
-        // Savolni "yechilgan" deb belgilash (ID bo'yicha)
-        const originalId = allQuestions.findIndex(x => x.q === sessionQuestions[currentIdx].q);
-        if(!solvedIds.includes(originalId)) {
-            solvedIds.push(originalId);
-            localStorage.setItem('solved_ids', JSON.stringify(solvedIds));
-        }
-
-        if(selected === correct) {
+        if (selected === correct) {
             el.classList.add('correct');
-            userXp += 10;
-            await set(ref(db, `brain_users/${uid}/xp`), Number(userXp)); // Raqam sifatida saqlash
+            userData.xp += 10;
+            await set(ref(db, `brain_users/${uid}/xp`), Number(userData.xp));
+            tg.HapticFeedback.notificationOccurred('success');
         } else {
             el.classList.add('wrong');
             opts[correct].classList.add('correct');
+            tg.HapticFeedback.notificationOccurred('error');
         }
 
-        setTimeout(() => {
-            currentIdx++;
-            if(currentIdx < sessionQuestions.length) renderQuestion();
-            else finish("Tabriklaymiz! Test yakunlandi.");
-        }, 1200);
+        setTimeout(updateLevelSystem, 1200);
     }
 
-    // 3. UTILS
-    function startTimer(sec) {
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            let m = Math.floor(sec / 60);
-            let s = sec % 60;
-            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-            if(--sec < 0) finish("Vaqt tugadi!");
-        }, 1000);
-    }
-
-    function finish(msg) {
-        clearInterval(timerInterval);
-        alert(msg + "\nTo'plangan umumiy ball: " + userXp);
-        showPanel('setup');
-    }
-
+    // --- NAVIGATION ---
     window.showPanel = (id) => {
-        document.querySelectorAll('#auth, #setup, #quiz, #leaderboard').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.getElementById('main-nav').style.display = (id === 'auth' || id === 'quiz') ? 'none' : 'flex';
+        document.getElementById('main-nav').style.display = (id === 'auth') ? 'none' : 'flex';
         
-        document.getElementById('nav-home').classList.toggle('active-nav', id === 'setup');
+        document.getElementById('nav-game').classList.toggle('active-nav', id === 'game');
         document.getElementById('nav-rank').classList.toggle('active-nav', id === 'leaderboard');
 
         if(id === 'leaderboard') loadRank();
@@ -222,20 +208,16 @@
     async function loadRank() {
         const list = document.getElementById('leader-list');
         list.innerHTML = "Yuklanmoqda...";
-        
-        // XP bo'yicha tartiblash (Number formatda)
         const qRank = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
         const snap = await get(qRank);
-        
         if(snap.exists()) {
             let arr = [];
-            snap.forEach(child => { arr.push(child.val()); });
-            arr.sort((a, b) => b.xp - a.xp); // Katta ball tepaga
-            
+            snap.forEach(c => arr.push(c.val()));
+            arr.sort((a, b) => b.xp - a.xp);
             list.innerHTML = arr.map((u, i) => `
                 <div class="list-item">
-                    <span>${i+1}. ${u.name}</span>
-                    <b style="color:var(--p)">${u.xp} XP</b>
+                    <span><b>${i+1}.</b> ${u.name}</span>
+                    <span style="color:var(--p); font-weight:bold;">${u.xp} XP</span>
                 </div>
             `).join('');
         }
