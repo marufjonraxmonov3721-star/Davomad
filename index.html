@@ -6,122 +6,107 @@
     <title>Kino Pro System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        .app-container { height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Kirish va Link qismi */
-        .init-box { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; }
-        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--p); background: #111; color: white; margin-bottom: 15px; outline: none; }
-        
-        /* Pleyer */
-        #video-box { display: none; flex-grow: 1; background: #000; position: relative; }
-        video { width: 100%; height: 100%; background: #000; }
-
-        /* Nazorat Modal */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .card { background: var(--p); padding: 35px; border-radius: 25px; width: 80%; text-align: center; box-shadow: 0 0 30px var(--p); }
-        .btn { background: #fff; color: #000; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 18px; cursor: pointer; margin-top: 20px; }
+        :root { --p: #7b42f5; }
+        body { background: #000; color: white; font-family: sans-serif; margin: 0; text-align: center; }
+        .main { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        video { width: 100%; display: none; background: #000; }
+        .btn { background: var(--p); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="init-view" class="init-box">
-        <h1 style="color: var(--p); margin-bottom: 5px;">🎬 KINO PRO</h1>
-        <p style="opacity: 0.6; font-size: 14px;">Botdagi xabar linkini yoki Direct linkni joylang</p>
-        
-        <input type="text" id="inputUrl" placeholder="https://t.me/c/..." autocomplete="off">
-        
-        <button class="btn" style="background: var(--p); color: #fff;" onclick="startSystem()">TIZIMNI ISHLATISH</button>
-        
-        <p style="font-size: 10px; margin-top: 20px; color: #444;">Osiyo International University | Maruf Raxmonov Edition</p>
-    </div>
+<div id="setup" class="main">
+    <h2 style="color: var(--p);">🎬 KINO PRO BOT</h2>
+    <p id="status">Botga video yuborgan bo'lsangiz, tugmani bosing:</p>
+    <button class="btn" onclick="fetchLastVideo()">VIDEONI ILOVAGA OLISH</button>
+    <p style="font-size: 10px; color: #444; margin-top: 20px;">8363919942:AAER4yhTO... Bot tizimi</p>
+</div>
 
-    <div id="video-box">
-        <video id="mainVideo" controls playsinline></video>
-        
-        <div id="sleepModal" class="modal">
-            <div class="card">
-                <h2 style="margin: 0;">UYG'OQMISIZ? 😴</h2>
-                <p>Kino to'xtatildi. Tasdiqlang!</p>
-                <div id="timer" style="font-size: 60px; font-weight: bold; margin: 10px 0;">30</div>
-                <button class="btn" onclick="confirmAwake()">HA, UYG'OQMAN!</button>
-            </div>
-        </div>
+<div id="player-box" style="display: none;">
+    <video id="v" controls playsinline></video>
+</div>
+
+<div id="modal" class="modal">
+    <div style="background: var(--p); padding: 30px; border-radius: 20px; width: 80%;">
+        <h2>UYG'OQMISIZ? 😴</h2>
+        <h1 id="timer">30</h1>
+        <button class="btn" style="background: white; color: black;" onclick="wakeUp()">HA, UYG'OQMAN!</button>
     </div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
+    const botToken = "8363919942:AAER4yhTO_QnEPQlrYCzfAYkulDUuB3OMlU";
     tg.expand();
 
-    const v = document.getElementById('mainVideo');
-    const modal = document.getElementById('sleepModal');
-    let points = [];
-    let currentPoint = 0;
-    let clock;
+    const v = document.getElementById('v');
+    let pts = []; let cur = 0; let clk;
 
-    function startSystem() {
-        let url = document.getElementById('inputUrl').value.trim();
-        if(!url) return alert("Linkni kiriting!");
+    // BOTDAN VIDEONI OLISH FUNKSIYASI
+    async function fetchLastVideo() {
+        document.getElementById('status').innerText = "Qidirilmoqda...";
+        
+        try {
+            // Botga kelgan oxirgi xabarlarni tekshirish
+            const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=-1`);
+            const data = await res.json();
+            
+            const lastMsg = data.result[0].message;
+            let fileId = "";
 
-        // 1. Agar xabar linki bo'lsa (t.me), uni embed qilib ochishga urinadi
-        // 2. Agar .mp4 bo'lsa, to'g'ridan-to'g'ri ochadi
-        if(url.includes("t.me/")) {
-            // Telegram bot xabari bo'lsa, uni bizga kerakli oqimga aylantirish mantiqi
-            url = url.replace("t.me/", "t.me/s/") + "?embed=1";
-            // Bu holda biz iframe ishlatishimiz kerak bo'ladi
-            document.getElementById('video-box').innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
-            setupIframeTimer();
-        } else {
-            v.src = url;
-            v.onloadedmetadata = () => {
-                const d = v.duration;
-                points = [d/3, (d/3)*2, d-20];
-                v.play();
-            };
+            if (lastMsg.video) fileId = lastMsg.video.file_id;
+            else if (lastMsg.document) fileId = lastMsg.document.file_id;
+
+            if (fileId) {
+                // Fayl yo'lini olish
+                const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+                const fileData = await fileRes.json();
+                const filePath = fileData.result.file_path;
+                
+                // To'g'ridan-to'g'ri MP4 link yaratish
+                const directLink = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+                
+                startVideo(directLink);
+            } else {
+                alert("Botga hali video yubormabsiz yoki video topilmadi!");
+                document.getElementById('status').innerText = "Video topilmadi. Qayta yuboring.";
+            }
+        } catch (e) {
+            alert("Xatolik! Bot sozlamalarini tekshiring.");
         }
-
-        document.getElementById('init-view').style.display = 'none';
-        document.getElementById('video-box').style.display = 'block';
     }
 
-    // Video vaqtini kuzatish (3 bosqichli nazorat)
+    function startVideo(url) {
+        v.src = url;
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('player-box').style.display = 'block';
+        v.style.display = 'block';
+
+        v.onloadedmetadata = () => {
+            let d = v.duration;
+            pts = [d/3, (d/3)*2, d-15]; // 3 BOSQICHLI NAZORAT
+            v.play();
+        };
+    }
+
     v.ontimeupdate = () => {
-        if (currentPoint < points.length && v.currentTime >= points[currentPoint]) {
-            triggerCheck();
-            currentPoint++;
+        if(cur < pts.length && v.currentTime >= pts[cur]) {
+            v.pause();
+            document.getElementById('modal').style.display = 'flex';
+            let s = 30;
+            clk = setInterval(() => {
+                s--; document.getElementById('timer').innerText = s;
+                if(s <= 0) { clearInterval(clk); tg.close(); }
+            }, 1000);
+            cur++;
         }
     };
 
-    function setupIframeTimer() {
-        // Iframe ichidagi vaqtni bilolmaganimiz uchun har 30 daqiqada tekshiramiz
-        setInterval(() => {
-            triggerCheck();
-        }, 30 * 60 * 1000);
-    }
-
-    function triggerCheck() {
-        v.pause();
-        modal.style.display = 'flex';
-        let sec = 30;
-        document.getElementById('timer').innerText = sec;
-        
-        clock = setInterval(() => {
-            sec--;
-            document.getElementById('timer').innerText = sec;
-            if(sec <= 0) {
-                clearInterval(clock);
-                tg.close();
-            }
-        }, 1000);
-    }
-
-    function confirmAwake() {
-        clearInterval(clock);
-        modal.style.display = 'none';
-        v.play();
+    function wakeUp() { 
+        clearInterval(clk); 
+        document.getElementById('modal').style.display = 'none'; 
+        v.play(); 
     }
 </script>
 </body>
