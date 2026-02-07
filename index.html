@@ -3,61 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crash Pro Platform</title>
+    <title>Crash Platform Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #0a0a0b; --txt: #fff; --card: #16161e; }
         .light-mode { --bg: #f4f4f9; --txt: #000; --card: #fff; }
-        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; padding-bottom: 70px; user-select: none; }
-        
-        #auth-screen, #main-app { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; text-align: center; }
+        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; padding-bottom: 70px; }
+        #auth-screen, #main-app { display: none; min-height: 100vh; padding: 25px; box-sizing: border-box; text-align: center; }
         .input-group { margin-bottom: 12px; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: var(--txt); box-sizing: border-box; outline: none; font-size: 16px; }
-        
-        .btn { border: none; padding: 16px; border-radius: 14px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; margin-top: 5px; }
-        .btn-p { background: var(--p); color: #fff; box-shadow: 0 4px 15px rgba(123, 66, 245, 0.3); }
-        .btn:active { transform: scale(0.97); opacity: 0.9; }
-
-        /* Navigatsiya */
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: var(--txt); box-sizing: border-box; outline: none; }
+        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; margin-top: 5px; }
+        .btn-p { background: var(--p); color: #fff; }
         .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-item { font-size: 10px; opacity: 0.5; cursor: pointer; text-align: center; }
         .nav-item.active { opacity: 1; color: var(--p); }
-
-        /* Game Box */
-        .panel { display: none; }
-        .active-p { display: block; }
         canvas { width: 100%; height: 200px; background: #000; border-radius: 18px; margin: 15px 0; border: 1px solid #222; }
-        #multiplier { font-size: 55px; font-weight: 800; margin: 10px 0; color: var(--p); font-variant-numeric: tabular-nums; }
-        
+        #multiplier { font-size: 55px; font-weight: 800; margin: 10px 0; color: var(--p); }
         .card { background: var(--card); padding: 15px; border-radius: 15px; text-align: left; margin-bottom: 15px; border: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <h2 style="margin-bottom: 25px; color: var(--p);">Ro'yxatdan o'tish</h2>
-    <div class="input-group"><input type="text" id="reg-name" placeholder="Ism"></div>
-    <div class="input-group"><input type="text" id="reg-surname" placeholder="Familiya"></div>
+    <h2 style="color: var(--p);">Ro'yxatdan o'tish</h2>
+    <div class="input-group"><input type="text" id="r-name" placeholder="Ism"></div>
+    <div class="input-group"><input type="text" id="r-surname" placeholder="Familiya"></div>
     <div class="input-group">
-        <select id="reg-region">
+        <select id="r-region">
             <option value="">Viloyatni tanlang</option>
             <option value="Toshkent">Toshkent</option>
             <option value="Samarqand">Samarqand</option>
-            <option value="Andijon">Andijon</option>
-            <option value="Farg'ona">Farg'ona</option>
-            <option value="Namangan">Namangan</option>
             <option value="Buxoro">Buxoro</option>
-            <option value="Xorazm">Xorazm</option>
-            <option value="Qashqadaryo">Qashqadaryo</option>
-            <option value="Surxondaryo">Surxondaryo</option>
-            <option value="Navoiy">Navoiy</option>
-            <option value="Jizzax">Jizzax</option>
-            <option value="Sirdaryo">Sirdaryo</option>
-            <option value="Qoraqalpog'iston">Qoraqalpog'iston</option>
         </select>
     </div>
     <div class="input-group">
-        <select id="reg-currency">
+        <select id="r-currency">
             <option value="UZS">O'zbek so'mi (UZS)</option>
             <option value="USD">Dollar (USD)</option>
         </select>
@@ -67,52 +47,48 @@
 
 <div id="main-app">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <span id="display-name" style="font-weight: bold; font-size: 18px;">...</span>
-        <div style="background: var(--p); padding: 6px 14px; border-radius: 20px; font-weight: bold;">
-            <span id="display-balance">0</span> <span id="display-unit">UZS</span>
+        <span id="user-name" style="font-weight: bold;">...</span>
+        <div style="background: var(--p); padding: 6px 14px; border-radius: 20px;">
+            <span id="bal">0</span> <span id="unit">UZS</span>
         </div>
     </div>
 
     <div id="p-games" class="panel active-p">
         <canvas id="gameCanvas"></canvas>
         <div id="multiplier">1.00x</div>
-        <div class="input-group">
-            <input type="number" id="bet-input" placeholder="Tikish miqdori">
-        </div>
+        <input type="number" id="bet-input" placeholder="Tikish miqdori" style="margin-bottom:10px;">
         <button id="crashBtn" class="btn btn-p">TIKISH</button>
     </div>
 
-    <div id="p-deposit" class="panel">
+    <div id="p-deposit" class="panel" style="display:none;">
         <h3>Hisobni to'ldirish</h3>
         <div class="card">
-            <p style="font-size: 13px; opacity: 0.8;">Karta raqami (Nusxa olish uchun bosing):</p>
-            <b id="copyCard" style="color: var(--p); font-size: 18px; cursor: pointer;">4073 4200 6816 5541</b>
-            <p style="font-size: 12px; margin-top: 10px;">To'lov turi: Payme, Click, Alif, Xazna</p>
-            <input type="number" id="dep-val" placeholder="Summa (Min 5,000)">
-            <button class="btn btn-p" onclick="alert('To\'lov simulyatsiyasi: So\'rov yuborildi!')">TO'LADIM</button>
+            <p>Karta: <b id="copyCard">4073 4200 6816 5541</b></p>
+            <input type="number" id="dep-val" placeholder="Summa">
+            <button class="btn btn-p" onclick="alert('So\'rov yuborildi')">TO'LADIM</button>
         </div>
     </div>
 
-    <div id="p-withdraw" class="panel">
+    <div id="p-withdraw" class="panel" style="display:none;">
         <h3>Pul chiqarish</h3>
         <div class="card">
             <input type="number" id="wit-val" placeholder="Chiqarish summasi">
-            <p style="font-size: 11px; margin-top: 5px;">Min: 30,000 | Max: 15,000,000</p>
-            <button class="btn btn-p" style="background: #28a745;" onclick="alert('Yechib olish simulyatsiyasi: Tasdiqlandi!')">CHIQARISH</button>
+            <p style="font-size: 11px; margin-top: 5px; color: #888;">Minimal: 30,000 UZS / 3 USD</p>
+            <button class="btn btn-p" id="withdrawBtn">CHIQARISH</button>
         </div>
     </div>
 
-    <div id="p-settings" class="panel">
+    <div id="p-settings" class="panel" style="display:none;">
         <h3>Sozlamalar</h3>
-        <button class="btn" style="background: var(--card); color: var(--txt);" id="toggleTheme">REJIM (TUN/KUN)</button>
-        <button class="btn" style="background: #dc3545; color: #fff; margin-top: 20px;" onclick="location.reload()">TIZIMDAN CHIQISH</button>
+        <button class="btn" style="background: var(--card); color: var(--txt);" onclick="document.body.classList.toggle('light-mode')">TUNGI/KUNDUZGI REJIM</button>
+        <button class="btn" style="background: #dc3545; color: #fff; margin-top: 20px;" onclick="location.reload()">CHIQISH</button>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" id="nav-games">🎮<br>O'yinlar</div>
-        <div class="nav-item" id="nav-deposit">💳<br>To'ldirish</div>
-        <div class="nav-item" id="nav-withdraw">📤<br>Chiqarish</div>
-        <div class="nav-item" id="nav-settings">⚙️<br>Sozlamalar</div>
+        <div class="nav-item active" onclick="nav('games', this)">🎮<br>O'yinlar</div>
+        <div class="nav-item" onclick="nav('deposit', this)">💳<br>To'ldirish</div>
+        <div class="nav-item" onclick="nav('withdraw', this)">📤<br>Chiqarish</div>
+        <div class="nav-item" onclick="nav('settings', this)">⚙️<br>Sozlamalar</div>
     </div>
 </div>
 
@@ -133,150 +109,77 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    // Biometrika menejerini ishga tushirish
+    const bio = tg.BiometricManager;
+    bio.init();
+
     const uid = tg.initDataUnsafe?.user?.id || "user_8363919942";
     const userRef = ref(db, 'users/' + uid);
+    let userData = { balance: 0 };
 
-    let userData = {};
-    let isRunning = false;
-    let currentMultiplier = 1.0;
-    let crashPoint = 0;
-    let gameInterval;
-    let points = [];
+    // 1. HAQIQIY BIOMETRIK RO'YXATDAN O'TISH
+    document.getElementById('biometricBtn').onclick = () => {
+        const name = document.getElementById('r-name').value;
+        const currency = document.getElementById('r-currency').value;
+        if(!name) return alert("Ismingizni kiriting!");
 
-    // --- RO'YXATDAN O'TISH ---
-    document.getElementById('biometricBtn').onclick = async () => {
-        const name = document.getElementById('reg-name').value;
-        const surname = document.getElementById('reg-surname').value;
-        const region = document.getElementById('reg-region').value;
-        const currency = document.getElementById('reg-currency').value;
-
-        if(!name || !region) return alert("Ma'lumotlarni to'ldiring!");
-
-        alert("Biometrika tasdiqlanmoqda..."); // Barmoq izi simulyatsiyasi
-        
-        const data = {
-            name, surname, region, currency,
-            balance: currency === "UZS" ? 50000 : 5,
-            regDate: new Date().toLocaleDateString()
-        };
-
-        await set(userRef, data);
-        initApp(data);
+        bio.authenticate({ reason: "Ro'yxatdan o'tishni tasdiqlang" }, async (success) => {
+            if (success) {
+                const data = {
+                    name, currency, balance: 0, // 50,000 bonus olib tashlandi
+                    surname: document.getElementById('r-surname').value,
+                    region: document.getElementById('r-region').value
+                };
+                await set(userRef, data);
+                initApp(data);
+            } else {
+                alert("Biometrik tasdiqlash bajarilmadi!");
+            }
+        });
     };
 
     function initApp(data) {
         userData = data;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
-        document.getElementById('display-name').innerText = data.name;
-        document.getElementById('display-unit').innerText = data.currency;
+        document.getElementById('user-name').innerText = data.name;
+        document.getElementById('unit').innerText = data.currency;
 
         onValue(ref(db, `users/${uid}/balance`), (s) => {
             userData.balance = s.val() || 0;
-            document.getElementById('display-balance').innerText = Math.floor(userData.balance).toLocaleString();
+            document.getElementById('bal').innerText = Math.floor(userData.balance).toLocaleString();
         });
     }
 
-    // --- CRASH O'YINI MANTIQI ---
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const multEl = document.getElementById('multiplier');
-    const crashBtn = document.getElementById('crashBtn');
+    // 2. QAT'IY PUL CHIQARISH MANTIQI
+    document.getElementById('withdrawBtn').onclick = async () => {
+        const amount = parseFloat(document.getElementById('wit-val').value);
+        const min = userData.currency === "UZS" ? 30000 : 3;
 
-    function startGame() {
-        const bet = parseFloat(document.getElementById('bet-input').value);
-        if(!bet || bet <= 0 || bet > userData.balance) return alert("Tikish miqdori noto'g'ri!");
-        
-        // Limitlar
-        if(userData.currency === "UZS" && (bet < 3000 || bet > 35000000)) return alert("Limit: 3,000 - 35 mln");
-
-        isRunning = true;
-        currentMultiplier = 1.0;
-        points = [];
-        crashPoint = (Math.random() * 5 + 1.1).toFixed(2); // Tasodifiy portlash
-        
-        updateBalance(userData.balance - bet);
-        
-        crashBtn.innerText = "CASH OUT";
-        crashBtn.style.background = "#ffbd00";
-        crashBtn.style.color = "#000";
-
-        let start = Date.now();
-        gameInterval = setInterval(() => {
-            let elapsed = (Date.now() - start) / 1000;
-            currentMultiplier = Math.pow(1.08, elapsed * 10);
-            multEl.innerText = currentMultiplier.toFixed(2) + "x";
-            multEl.style.color = "var(--p)";
-
-            drawGraph(elapsed);
-
-            if (currentMultiplier >= crashPoint) {
-                stopGame(false);
-            }
-        }, 60);
-    }
-
-    function drawGraph(t) {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.strokeStyle = "#7b42f5";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, 200);
-        for(let i=0; i<t*10; i++) {
-            ctx.lineTo(i * 8, 200 - Math.pow(1.08, i) * 4);
-        }
-        ctx.stroke();
-    }
-
-    function stopGame(isWin) {
-        clearInterval(gameInterval);
-        isRunning = false;
-        const bet = parseFloat(document.getElementById('bet-input').value);
-
-        if(isWin) {
-            const winAmount = bet * currentMultiplier;
-            updateBalance(userData.balance + winAmount);
-            multEl.style.color = "#28a745";
-            alert("YUTUQ: " + winAmount.toFixed(2));
-        } else {
-            multEl.innerText = "CRASHED!";
-            multEl.style.color = "#dc3545";
+        if (isNaN(amount) || amount < min) {
+            alert(`Minimal chiqarish: ${min} ${userData.currency}`);
+            return;
         }
 
-        crashBtn.innerText = "TIKISH";
-        crashBtn.style.background = "var(--p)";
-        crashBtn.style.color = "#fff";
-        setTimeout(() => { ctx.clearRect(0,0,canvas.width,canvas.height); multEl.innerText = "1.00x"; }, 2000);
-    }
+        if (amount > userData.balance) {
+            alert("Balansda mablag' yetarli emas!");
+            return;
+        }
 
-    async function updateBalance(nb) {
-        await set(ref(db, `users/${uid}/balance`), nb);
-    }
-
-    crashBtn.onclick = () => {
-        if(!isRunning) startGame();
-        else stopGame(true);
+        // Agar balans yetarli bo'lsa
+        const newBalance = userData.balance - amount;
+        await set(ref(db, `users/${uid}/balance`), newBalance);
+        alert(`Muvaffaqiyatli! ${amount} ${userData.currency} yechib olindi.`);
     };
 
-    // --- NAVIGATSIYA ---
-    function navTo(p, el) {
-        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active-p'));
-        document.getElementById('p-' + p).classList.add('active-p');
+    // NAVIGATSIYA
+    window.nav = (p, el) => {
+        document.querySelectorAll('.panel').forEach(x => x.style.display = 'none');
+        document.getElementById('p-' + p).style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
         el.classList.add('active');
-    }
-
-    document.getElementById('nav-games').onclick = function() { navTo('games', this); };
-    document.getElementById('nav-deposit').onclick = function() { navTo('deposit', this); };
-    document.getElementById('nav-withdraw').onclick = function() { navTo('withdraw', this); };
-    document.getElementById('nav-settings').onclick = function() { navTo('settings', this); };
-    document.getElementById('toggleTheme').onclick = () => document.body.classList.toggle('light-mode');
-    document.getElementById('copyCard').onclick = () => {
-        navigator.clipboard.writeText("4073420068165541");
-        alert("Karta raqami nusxalandi!");
     };
 
-    // --- CHECK USER ---
     window.addEventListener('load', async () => {
         const s = await get(userRef);
         if(s.exists()) initApp(s.val());
