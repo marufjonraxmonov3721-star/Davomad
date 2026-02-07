@@ -3,55 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Smart Pulse</title>
+    <title>Kino Pro: Triple Check</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         
         .main-container { height: 100vh; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; background: #000; }
 
-        /* Pulsatsiyalanuvchi doira */
-        #pulse-dot {
-            position: absolute; top: 20px; right: 20px;
-            width: 15px; height: 15px; background: var(--p);
-            border-radius: 50%; opacity: 0.4;
-            box-shadow: 0 0 10px var(--p);
-            animation: pulse-anim 2s infinite;
-            pointer-events: none;
+        /* Tasdiqlash oynasi */
+        #check-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.95); display: none;
+            flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
+            text-align: center;
         }
 
-        @keyframes pulse-anim {
-            0% { transform: scale(1); opacity: 0.4; }
-            50% { transform: scale(1.5); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 0.4; }
+        .check-card {
+            background: linear-gradient(135deg, var(--p), #4b0082);
+            padding: 30px; border-radius: 25px; width: 80%;
+            box-shadow: 0 0 30px rgba(123, 66, 245, 0.5);
         }
 
-        .p-footer { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; }
-        
-        .btn-action { background: #fff; color: #000; border: none; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        .btn-yes { 
+            background: #fff; color: #000; border: none; padding: 15px; 
+            border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .info-bar { background: #111; padding: 10px; font-size: 12px; border-top: 1px solid var(--p); }
     </style>
 </head>
-<body onclick="resetInactivity()">
+<body>
 
 <div id="setup-view" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
-    <h2 style="color: var(--p);">🎬 KINO PRO: PULSE</h2>
-    <p>Har 10 soniyada harakatingizni kuzatadi</p>
-    <button class="btn-action" onclick="document.getElementById('f').click()">KINO TANLASH</button>
-    <input type="file" id="f" hidden accept="video/*" onchange="startApp(event)">
+    <h1 style="color: var(--p);">🎬 KINO PRO</h1>
+    <p>Kino vaqti 3 ga bo'lib tekshiriladi</p>
+    <button style="background: var(--p); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold;" onclick="document.getElementById('f').click()">KINO TANLASH</button>
+    <input type="file" id="f" hidden accept="video/*" onchange="initApp(event)">
 </div>
 
 <div id="player-view" class="main-container" style="display: none;">
-    <div id="pulse-dot"></div>
-    <video id="v" controls playsinline onplay="startTracking()" onpause="stopTracking()"></video>
+    <video id="v" controls playsinline></video>
     
-    <div class="p-footer">
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px;">
-            <span id="stat">Holat: Uyg'oq ✅</span>
-            <span id="timer">Qoldi: 10s</span>
+    <div id="check-modal">
+        <div class="check-card">
+            <h2 style="margin: 0;">UXLADINGIZMI? 😴</h2>
+            <p style="opacity: 0.9;">Kino davom etishi uchun tugmani bosing</p>
+            <div id="countdown" style="font-size: 30px; font-weight: bold; margin: 10px 0;">30</div>
+            <button class="btn-yes" onclick="confirmWake()">HA, UYG'OQMAN!</button>
         </div>
-        <button onclick="Telegram.WebApp.close()" style="background: #000; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 5px; width: 100%;">ILOVANI YOPISH</button>
+    </div>
+
+    <div class="info-bar">
+        <div style="display: flex; justify-content: space-between;">
+            <span id="check-points">Tekshiruv nuqtalari: hisoblanmoqda...</span>
+            <span id="save-status">Vaqt saqlanmoqda...</span>
+        </div>
     </div>
 </div>
 
@@ -60,60 +69,87 @@
     tg.expand();
 
     const v = document.getElementById('v');
-    let timeLeft = 10; // Test uchun 10 soniya
-    let pulseIdx;
+    const modal = document.getElementById('check-modal');
+    const countdownEl = document.getElementById('countdown');
+    
+    let checkPoints = [];
+    let currentPointIdx = 0;
+    let autoCloseTimer;
+    let movieName = "";
 
-    function startApp(e) {
+    function initApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
+        movieName = file.name;
         v.src = URL.createObjectURL(file);
-        document.getElementById('setup-view').style.display = 'none';
-        document.getElementById('player-view').style.display = 'flex';
         
-        // Eslab qolish (LocalStorage)
-        const savedTime = localStorage.getItem("kino_" + file.name);
-        if(savedTime) v.currentTime = savedTime;
-
-        v.play();
+        v.onloadedmetadata = function() {
+            calculatePoints(v.duration);
+            
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('player-view').style.display = 'flex';
+            
+            // Saqlangan joyidan davom etish
+            const saved = localStorage.getItem("time_" + movieName);
+            if(saved) v.currentTime = saved;
+            
+            v.play();
+        };
     }
 
-    function startTracking() {
-        clearInterval(pulseIdx);
-        pulseIdx = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer').innerText = `Qoldi: ${timeLeft}s`;
+    function calculatePoints(duration) {
+        const part = duration / 3;
+        checkPoints = [part, part * 2, duration - 10]; // 33%, 66% va deyarli oxiri
+        document.getElementById('check-points').innerText = "3 bosqichli nazorat faol ✅";
+    }
 
+    // Videoni doimiy kuzatib borish
+    v.ontimeupdate = function() {
+        // Vaqtni saqlash
+        localStorage.setItem("time_" + movieName, v.currentTime);
+
+        // Tekshiruv nuqtasiga yetganini aniqlash
+        if (currentPointIdx < checkPoints.length) {
+            if (v.currentTime >= checkPoints[currentPointIdx]) {
+                triggerCheck();
+                currentPointIdx++; 
+            }
+        }
+    };
+
+    function triggerCheck() {
+        v.pause();
+        modal.style.display = 'flex';
+        
+        let timeLeft = 30;
+        countdownEl.innerText = timeLeft;
+        
+        autoCloseTimer = setInterval(() => {
+            timeLeft--;
+            countdownEl.innerText = timeLeft;
             if (timeLeft <= 0) {
-                v.pause();
-                document.getElementById('stat').innerText = "UYQU SEZILDI! 😴";
-                document.getElementById('stat').style.color = "yellow";
-                
-                // Agar 20 soniya ichida uyg'onmasa yopiladi
-                setTimeout(() => {
-                    if(v.paused) tg.close();
-                }, 20000);
+                clearInterval(autoCloseTimer);
+                tg.close(); // Javob bo'lmasa Telegram Web App yopiladi
             }
         }, 1000);
     }
 
-    function stopTracking() {
-        clearInterval(pulseIdx);
+    function confirmWake() {
+        clearInterval(autoCloseTimer);
+        modal.style.display = 'none';
+        v.play();
     }
 
-    function resetInactivity() {
-        timeLeft = 10;
-        document.getElementById('stat').innerText = "Holat: Uyg'oq ✅";
-        document.getElementById('stat').style.color = "white";
-        if (v.paused && document.getElementById('player-view').style.display === 'flex') {
-            v.play();
+    // Xatolik bo'lsa (masalan, kinoni orqaga qaytarsa) nuqtani qayta tekshirish uchun
+    v.onseeked = function() {
+        for (let i = 0; i < checkPoints.length; i++) {
+            if (v.currentTime < checkPoints[i]) {
+                currentPointIdx = i;
+                break;
+            }
         }
-    }
-
-    // Progresni saqlash
-    setInterval(() => {
-        if(!v.paused) localStorage.setItem("kino_" + v.src, v.currentTime);
-    }, 5000);
+    };
 </script>
 </body>
 </html>
