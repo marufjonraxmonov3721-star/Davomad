@@ -2,103 +2,122 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kino Pro: Perfect Sleep</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kino Pro TWA</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; }
+        :root { --p: #7b42f5; --bg: #000; }
+        body { 
+            background: var(--bg); color: white; font-family: sans-serif; 
+            margin: 0; padding: 0; overflow: hidden;
+            -webkit-touch-callout: none; -webkit-user-select: none;
+        }
         
-        /* Video Container */
-        .main-wrapper { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .video-card { width: 95%; max-width: 650px; background: #111; border-radius: 20px; border: 2px solid #333; position: relative; overflow: hidden; }
-        video#v { width: 100%; display: block; }
+        .tg-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        .player-card { width: 100%; max-width: 500px; background: #111; position: relative; }
+        video#v { width: 100%; display: block; aspect-ratio: 16/9; }
 
-        /* Aqlli bildirishnoma */
-        #sleep-overlay {
+        .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(123, 66, 245, 0.9); display: none;
+            background: rgba(123, 66, 245, 0.95); display: none;
             flex-direction: column; justify-content: center; align-items: center; z-index: 100;
         }
 
-        .controls { background: linear-gradient(135deg, var(--p), #4b0082); padding: 20px; }
-        .status-line { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; color: #ddd; }
+        .controls { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; }
         
-        /* Kamera preview - aniqlashni tekshirish uchun */
-        #debug-cam { position: absolute; top: 10px; right: 10px; width: 60px; height: 45px; border-radius: 5px; opacity: 0.4; border: 1px solid white; transform: scaleX(-1); }
-        
-        .btn-main { background: white; color: black; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        #debug-cam { 
+            position: absolute; top: 5px; right: 5px; width: 50px; height: 38px; 
+            border-radius: 4px; opacity: 0.5; border: 1px solid #fff; 
+            transform: scaleX(-1); pointer-events: none;
+        }
+
+        .btn-tg { 
+            background: #fff; color: #000; border: none; padding: 12px; 
+            border-radius: 8px; font-weight: bold; width: 90%; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper" id="start-view">
-    <div style="text-align: center; padding: 40px; border: 2px dashed var(--p); border-radius: 20px; cursor: pointer;" onclick="document.getElementById('file-in').click()">
-        <span style="font-size: 60px;">👁️‍🗨️</span>
-        <h2>Mukammal Aqlli Pleyer</h2>
-        <p>Kino tanlang. Ilova ko'zlaringizni 99% aniqlikda kuzatadi.</p>
-        <input type="file" id="file-in" hidden accept="video/*" onchange="bootApp(event)">
+<div class="tg-container" id="loader-view">
+    <div style="text-align: center; padding: 20px;">
+        <h2 style="color: var(--p);">🎬 KINO PRO</h2>
+        <p>Telegram uchun maxsus tayyorlandi</p>
+        <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
+        <input type="file" id="f" hidden accept="video/*" onchange="initTelegramApp(event)">
     </div>
 </div>
 
-<div class="main-wrapper" id="player-view" style="display: none;">
-    <div class="video-card">
-        <video id="debug-cam" autoplay muted></video>
-        <video id="v" controls></video>
+<div class="tg-container" id="player-view" style="display: none;">
+    <div class="player-card">
+        <video id="debug-cam" autoplay muted playsinline></video>
+        <video id="v" playsinline controls></video>
         
-        <div id="sleep-overlay">
-            <h1>UYQU REJIMI 😴</h1>
-            <p>Ko'zlaringiz yopildi. 10 soniyadan keyin o'chadi.</p>
-            <button class="btn-main" onclick="wakeUp()">MEN UYG'OQMAN!</button>
+        <div id="sleep-overlay" class="overlay">
+            <h2>UYQU REJIMI 😴</h2>
+            <p>Ko'zlar yopildi, video to'xtatildi.</p>
+            <button class="btn-tg" onclick="wakeUp()">DAVOM ETTIRISH</button>
         </div>
 
         <div class="controls">
-            <div class="status-line">
-                <span>Datchik: <b id="eye-label">Yuklanmoqda...</b></span>
-                <span id="save-tag">SAQLANDI ✅</span>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px;">
+                <span>👁️ <b id="e-status">Aniqlanmoqda...</b></span>
+                <span id="save-msg">AVTO-SAQLASH ✅</span>
             </div>
-            <button class="btn-main" onclick="location.reload()" style="background: #000; color: white; border: 1px solid #555;">YOPISH</button>
+            <button class="btn-tg" onclick="Telegram.WebApp.close()" style="background: #000; color: #fff;">ILOVANI YOPISH</button>
         </div>
     </div>
 </div>
 
 <script>
-    const v = document.getElementById('v');
-    const eyeLabel = document.getElementById('eye-label');
-    const sleepOverlay = document.getElementById('sleep-overlay');
-    let eyeClosedStart = null;
-    let isSleeping = false;
+    // Telegram Web App sozlamalari
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Ilovani to'liq ekranga yoyish
+    tg.ready();
 
-    async function bootApp(e) {
+    const v = document.getElementById('v');
+    const eStatus = document.getElementById('e-status');
+    let eyeTimer = null;
+
+    async function initTelegramApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
-        // Modellar yuklanishi
-        eyeLabel.innerText = "Modellar yuklanmoqda...";
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        eStatus.innerText = "Datchiklar yoqilmoqda...";
+        
+        // Modellar va Kamera (TWA uchun optimallashgan)
+        try {
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+            ]);
 
-        // Kamera
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320 } });
-        document.getElementById('debug-cam').srcObject = stream;
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user", width: 200 } 
+            });
+            document.getElementById('debug-cam').srcObject = stream;
+        } catch (err) {
+            alert("Kamera ruxsati berilmadi! Aqlli rejim ishlamaydi.");
+        }
 
-        // UI o'zgarishi
         v.src = URL.createObjectURL(file);
-        document.getElementById('start-view').style.display = 'none';
+        document.getElementById('loader-view').style.display = 'none';
         document.getElementById('player-view').style.display = 'flex';
         
-        // Eslab qolish (LocalStorage)
-        const saved = localStorage.getItem(file.name);
-        if(saved) v.currentTime = saved;
-        
+        // Eslab qolish
+        const savedTime = localStorage.getItem(file.name);
+        if(savedTime) v.currentTime = savedTime;
+
         v.play();
         startTracking();
     }
 
     function startTracking() {
         setInterval(async () => {
-            if (v.paused || isSleeping) return;
+            if (v.paused) return;
 
             const detection = await faceapi.detectSingleFace(
                 document.getElementById('debug-cam'), 
@@ -109,44 +128,33 @@
                 const landmarks = detection.landmarks;
                 const left = landmarks.getLeftEye();
                 const right = landmarks.getRightEye();
-
-                // EAR (Eye Aspect Ratio) algoritmi - mukammal aniqlik uchun
                 const eyeHeight = (left[4].y - left[1].y + right[4].y - right[1].y) / 2;
                 
-                if (eyeHeight < 2.5) { // Ko'z haqiqatda yopildi
-                    if (!eyeClosedStart) eyeClosedStart = Date.now();
-                    let diff = Math.floor((Date.now() - eyeClosedStart) / 1000);
-                    
-                    eyeLabel.innerText = `Yopiq (${10 - diff}s)`;
-                    eyeLabel.style.color = "red";
-
-                    if (diff >= 10) triggerSleep();
+                if (eyeHeight < 2.3) { 
+                    if (!eyeTimer) eyeTimer = Date.now();
+                    let diff = Math.floor((Date.now() - eyeTimer) / 1000);
+                    eStatus.innerText = `UYQU (${10 - diff}s)`;
+                    eStatus.style.color = "red";
+                    if (diff >= 10) { v.pause(); document.getElementById('sleep-overlay').style.display = 'flex'; }
                 } else {
-                    eyeClosedStart = null;
-                    eyeLabel.innerText = "Ochiq 👀";
-                    eyeLabel.style.color = "#00ff00";
+                    eyeTimer = null;
+                    eStatus.innerText = "OCHIQ 👀";
+                    eStatus.style.color = "#00ff00";
                 }
             } else {
-                eyeLabel.innerText = "Yuz ko'rinmadi ⚠️";
-                eyeLabel.style.color = "orange";
+                eStatus.innerText = "YUZ YO'Q ⚠️";
+                eStatus.style.color = "orange";
             }
-        }, 500);
-    }
-
-    function triggerSleep() {
-        isSleeping = true;
-        v.pause();
-        sleepOverlay.style.display = 'flex';
+        }, 600);
     }
 
     function wakeUp() {
-        isSleeping = false;
-        sleepOverlay.style.display = 'none';
-        eyeClosedStart = null;
+        document.getElementById('sleep-overlay').style.display = 'none';
+        eyeTimer = null;
         v.play();
     }
 
-    // Har 5 soniyada vaqtni eslab qolish
+    // Saqlash
     setInterval(() => {
         if(!v.paused) localStorage.setItem(v.src, v.currentTime);
     }, 5000);
