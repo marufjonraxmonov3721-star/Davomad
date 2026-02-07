@@ -3,72 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Smart Loader</title>
+    <title>Kino Pro: Telegram Embed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        :root { --p: #7b42f5; --bg: #000; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
+        .main { height: 100vh; display: flex; flex-direction: column; }
         
-        .main-container { height: 100vh; display: flex; flex-direction: column; }
-        video { width: 100%; flex-grow: 1; background: #000; }
+        /* Telegram xabarini chiqarish uchun oyna */
+        #tg-frame { width: 100%; flex-grow: 1; border: none; background: #000; }
 
-        .setup-area { 
-            display: flex; height: 100vh; justify-content: center; align-items: center; 
-            flex-direction: column; padding: 25px; text-align: center; 
-        }
-        
-        input[type="text"] {
-            width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--p);
-            background: #1a1a1a; color: white; margin-bottom: 15px; outline: none;
-        }
-
-        /* Tasdiqlash oynasi */
-        #check-modal {
+        .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.96); display: none;
+            background: rgba(0,0,0,0.9); display: none;
             flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
         }
-
-        .check-card {
-            background: linear-gradient(135deg, var(--p), #4b0082);
-            padding: 30px; border-radius: 25px; width: 85%; text-align: center;
-        }
-
-        .btn-yes { 
-            background: #fff; color: #000; border: none; padding: 15px; 
-            border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 15px;
-        }
-
-        .p-footer { background: #111; padding: 12px; font-size: 11px; border-top: 1px solid var(--p); }
-        .loading-text { font-size: 12px; color: var(--p); margin-top: 10px; display: none; }
+        .card { background: var(--p); padding: 30px; border-radius: 20px; text-align: center; width: 80%; }
+        .btn { background: #fff; color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 15px; }
+        .footer { background: #111; padding: 10px; font-size: 12px; text-align: center; border-top: 1px solid var(--p); }
     </style>
 </head>
 <body>
 
-<div id="setup-view" class="setup-area">
-    <h2 style="color: var(--p);">🎬 KINO PRO</h2>
-    <p style="font-size: 14px; opacity: 0.7;">To'g'ridan-to'g'ri video linkini kiriting</p>
-    
-    <input type="text" id="videoLink" placeholder="https://example.com/movie.mp4" autocomplete="off">
-    
-    <button style="background: var(--p); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold;" onclick="processLink()">KO'RISHNI BOSHLASH</button>
-    
-    <div id="loader" class="loading-text">Video yuklanmoqda, kuting...</div>
-</div>
+<div class="main">
+    <div id="video-container" style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+        <p id="msg">Link yuklanmoqda...</p>
+    </div>
 
-<div id="player-view" class="main-container" style="display: none;">
-    <video id="v" controls playsinline></video>
-    
-    <div id="check-modal">
-        <div class="check-card">
-            <h2>UXLADINGIZMI? 😴</h2>
-            <div id="countdown" style="font-size: 35px; font-weight: bold; margin: 15px 0;">30</div>
-            <button class="btn-yes" onclick="confirmWake()">HA, UYG'OQMAN!</button>
+    <div id="check-modal" class="overlay">
+        <div class="card">
+            <h2>UYG'OQMISIZ? 😴</h2>
+            <p>Davom etish uchun tasdiqlang</p>
+            <div id="timer" style="font-size: 30px; font-weight: bold;">30</div>
+            <button class="btn" onclick="confirmWake()">HA, UYG'OQMAN!</button>
         </div>
     </div>
 
-    <div class="p-footer">
-        <span id="p-info">Triple-Check faol ✅</span>
+    <div class="footer">
+        <span>3 bosqichli nazorat: <b>Har 30 daqiqada</b></span>
     </div>
 </div>
 
@@ -76,70 +48,49 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const v = document.getElementById('v');
-    const modal = document.getElementById('check-modal');
+    const link = "https://t.me/tungi_borilar_vampirlarbot/59";
+    const container = document.getElementById('video-container');
     
-    let checkPoints = [];
-    let currentPointIdx = 0;
-    let timer;
-
-    function processLink() {
-        let link = document.getElementById('videoLink').value.trim();
-        if (!link) return;
-
-        // Agar bu Telegram post linki bo'lsa, foydalanuvchini ogohlantirish
-        if (link.includes("t.me/") && !link.endsWith(".mp4")) {
-            alert("Diqqat! Bu Telegram post havolasi. Video ochilishi uchun havola .mp4 kabi faylga yo'naltirilgan bo'lishi shart.");
-            return;
-        }
-
-        document.getElementById('loader').style.display = 'block';
-        v.src = link;
-        
-        v.onloadedmetadata = function() {
-            const part = v.duration / 3;
-            checkPoints = [part, part * 2, v.duration - 20];
-            
-            document.getElementById('setup-view').style.display = 'none';
-            document.getElementById('player-view').style.display = 'flex';
-            v.play();
-        };
-
-        v.onerror = function() {
-            document.getElementById('loader').style.display = 'none';
-            alert("Xatolik! Bu havola orqali videoni oqimli (stream) ko'rib bo'lmaydi. Boshqa havola sinab ko'ring.");
-        };
+    // Telegram postini "Embed" qilish (Oynaga joylash)
+    function loadPost() {
+        const embedUrl = link + "?embed=1&dark=1";
+        container.innerHTML = `<iframe id="tg-frame" src="${embedUrl}"></iframe>`;
     }
 
-    v.ontimeupdate = function() {
-        if (currentPointIdx < checkPoints.length) {
-            if (v.currentTime >= checkPoints[currentPointIdx]) {
-                v.pause();
-                modal.style.display = 'flex';
-                startCountdown();
-                currentPointIdx++;
-            }
-        }
-    };
+    // Har 30 daqiqada tekshirish (Kino vaqtini bilolmaganimiz uchun taymer qo'yamiz)
+    let checkInterval = 30 * 60; 
+    let countdown;
 
-    function startCountdown() {
+    function startGlobalTimer() {
+        setInterval(() => {
+            checkInterval--;
+            if (checkInterval <= 0) {
+                triggerCheck();
+            }
+        }, 1000);
+    }
+
+    function triggerCheck() {
+        document.getElementById('check-modal').style.display = 'flex';
         let left = 30;
-        document.getElementById('countdown').innerText = left;
-        timer = setInterval(() => {
+        countdown = setInterval(() => {
             left--;
-            document.getElementById('countdown').innerText = left;
+            document.getElementById('timer').innerText = left;
             if (left <= 0) {
-                clearInterval(timer);
+                clearInterval(countdown);
                 tg.close();
             }
         }, 1000);
     }
 
     function confirmWake() {
-        clearInterval(timer);
-        modal.style.display = 'none';
-        v.play();
+        clearInterval(countdown);
+        document.getElementById('check-modal').style.display = 'none';
+        checkInterval = 30 * 60; // Taymerni yangilash
     }
+
+    loadPost();
+    startGlobalTimer();
 </script>
 </body>
 </html>
