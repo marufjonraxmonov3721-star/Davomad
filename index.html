@@ -2,231 +2,124 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OXU | Social Live Map</title>
-    
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kino Pro WebApp</title>
     <style>
-        :root { --oxu-blue: #0047AB; --gold: #D4AF37; }
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #002147, #0047AB); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--gold); }
-        #map { height: calc(100vh - 175px); width: 100%; z-index: 1; }
+        :root { --main-purple: #7b42f5; --bg-dark: #0a0a0a; }
+        body { background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
         
-        .custom-marker { 
-            border-radius: 50%; 
-            border: 3px solid var(--gold); 
-            background-size: cover; 
-            background-position: center;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-        }
-        .my-marker { border-color: #007AFF; }
+        .header { width: 100%; padding: 15px; text-align: center; background: #111; border-bottom: 2px solid var(--main-purple); font-weight: bold; }
 
-        .controls { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; background: var(--oxu-blue); color: white; cursor: pointer; }
-        .btn-main:disabled { background: #ccc; }
+        /* Video zona */
+        #player-container { width: 100%; max-width: 600px; position: relative; display: none; margin-top: 10px; }
+        video { width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(123, 66, 245, 0.4); }
+
+        /* Binafsha panel */
+        .controls-card { 
+            background: linear-gradient(145deg, #7b42f5, #4b0082); 
+            margin: 15px; padding: 20px; border-radius: 20px; width: 90%; max-width: 550px;
+        }
+
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         
-        .status-badge { position: absolute; top: 80px; left: 10px; z-index: 1001; padding: 5px 12px; border-radius: 15px; font-size: 11px; background: white; border: 1px solid #ddd; font-weight: bold; }
-        .hidden { display: none !important; }
+        select, .btn { 
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
+            color: white; padding: 10px; border-radius: 10px; cursor: pointer; outline: none;
+        }
+
+        .upload-area { 
+            margin-top: 50px; border: 2px dashed var(--main-purple); 
+            padding: 40px; border-radius: 20px; text-align: center; cursor: pointer;
+        }
+
+        /* Sifatni pasaytirish uchun filtr */
+        .low-res { filter: blur(1.2px) contrast(90%); }
+        .mid-res { filter: blur(0.5px); }
+        .high-res { filter: none; }
     </style>
 </head>
 <body>
 
-<div class="header"><h3 style="margin:0;">OXU SOCIAL MAP 🛰</h3></div>
+    <div class="header">🎬 KINO PRO APP</div>
 
-<div id="view-reg" class="hidden" style="padding: 40px 20px; text-align: center;">
-    <h3 style="color: var(--oxu-blue)">Ro'yxatdan o'tish</h3>
-    <input type="text" id="reg-name" placeholder="Ismingiz" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
-    <select id="reg-role" style="width:100%; padding:15px; border-radius:10px; margin-bottom:15px;">
-        <option value="student">Talaba</option>
-        <option value="teacher">O'qituvchi</option>
-    </select>
-    <button class="btn-main" onclick="saveUser()">KIRISH</button>
-</div>
-
-<div id="tab-main" class="hidden">
-    <div id="gps-status" class="status-badge">GPS yuklanmoqda...</div>
-    <div id="map"></div>
-    <div class="controls">
-        <p id="dist-info" style="margin:0 0 10px; font-size: 13px; color: #555; text-align: center; font-weight: bold;"></p>
-        <button id="btn-action" class="btn-main" onclick="handleAttendance()">DAVOMATNI TASDIQLASH</button>
+    <div id="upload-zone" class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <span style="font-size: 40px;">📂</span>
+        <p>Telefoningizdan kino tanlang</p>
+        <input type="file" id="fileInput" hidden accept="video/*" onchange="handleVideo(event)">
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-        databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-        projectId: "gen-lang-client-0228947349",
-        appId: "1:253793341504:web:709752258000dab44fcfa5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe.user?.id || "user_" + Math.floor(Math.random()*1000);
-    const photoUrl = tg.initDataUnsafe.user?.photo_url || "https://ui-avatars.com/api/?name=User";
-
-    const UNI = { lat: 39.800911, lon: 64.426838, radius: 0.2 };
-    let user = null, map, routingControl, myMarker;
-    let peerMarkers = {};
-    let firstLoad = true;
-    let myCurrentCoords = null;
-
-    async function init() {
-        tg.expand();
-        const snap = await get(ref(db, `users/${userId}`));
-        if (snap.exists()) { user = snap.val(); startApp(); }
-        else { document.getElementById('view-reg').classList.remove('hidden'); }
-    }
-    init();
-
-    window.saveUser = async () => {
-        const name = document.getElementById('reg-name').value;
-        const role = document.getElementById('reg-role').value;
-        if(!name) return;
-        user = { name, role, id: userId, photo: photoUrl };
-        await set(ref(db, `users/${userId}`), user);
-        startApp();
-    };
-
-    function startApp() {
-        document.getElementById('view-reg').classList.add('hidden');
-        document.getElementById('tab-main').classList.remove('hidden');
+    <div id="player-container">
+        <video id="mainVideo" controls controlsList="nodownload"></video>
         
-        map = L.map('map', { zoomControl: true }).setView([UNI.lat, UNI.lon], 16);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-        
-        // Universitet doirasi (Sariq rangda, rasmga mos)
-        L.circle([UNI.lat, UNI.lon], { color: '#D4AF37', radius: UNI.radius * 1000, fillOpacity: 0.1 }).addTo(map)
-            .bindPopup("OXU Markazi");
+        <div class="controls-card">
+            <div class="row">
+                <span id="fileName" style="font-size: 14px; opacity: 0.9;">Kino nomi...</span>
+                <span id="resBadge" style="background: red; padding: 2px 6px; border-radius: 5px; font-size: 10px;">HD</span>
+            </div>
 
-        navigator.geolocation.watchPosition(async pos => {
-            const { latitude: lat, longitude: lon } = pos.coords;
-            myCurrentCoords = { lat, lon };
-            const distToUni = calculateDist(lat, lon, UNI.lat, UNI.lon);
+            <div class="row">
+                <div>
+                    <label>Sifat: </label>
+                    <select id="resSelect" onchange="applyQuality()">
+                        <option value="high">1080p (Original)</option>
+                        <option value="mid">720p (O'rta)</option>
+                        <option value="low">480p (Past)</option>
+                    </select>
+                </div>
 
-            // Bazaga yangilash
-            const liveRef = ref(db, `live_locations/${userId}`);
-            await set(liveRef, { lat, lon, name: user.name, photo: photoUrl });
-            onDisconnect(liveRef).remove();
+                <div>
+                    <label>Tezlik: </label>
+                    <select onchange="document.getElementById('mainVideo').playbackRate = this.value">
+                        <option value="1">1x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="btn" style="width: 100%;" onclick="location.reload()">BOSHQA KINO TANLASH</button>
+        </div>
+    </div>
 
-            updateMyMarker(lat, lon, distToUni);
+    <script>
+        const video = document.getElementById('mainVideo');
+        const container = document.getElementById('player-container');
+        const uploadZone = document.getElementById('upload-zone');
 
-            // Faqat birinchi marta xaritani markazga oladi (erkinlik uchun)
-            if(firstLoad) {
-                map.panTo([lat, lon]);
-                firstLoad = false;
+        function handleVideo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                document.getElementById('fileName').innerText = file.name.substring(0, 30);
+                
+                uploadZone.style.display = 'none';
+                container.style.display = 'block';
+                video.play();
             }
-        }, err => tg.showAlert("GPS ruxsati kerak!"), { enableHighAccuracy: true });
-
-            // Boshqalarni real vaqtda kuzatish
-        onValue(ref(db, `live_locations`), snap => {
-            if(!snap.exists()) return;
-            const currentLiveIds = [];
-            snap.forEach(child => {
-                const id = child.key;
-                currentLiveIds.push(id);
-                if(id !== userId.toString()) {
-                    updatePeerMarker(id, child.val());
-                }
-            });
-            // Offline bo'lganlarni o'chirish
-            Object.keys(peerMarkers).forEach(id => {
-                if(!currentLiveIds.includes(id)) {
-                    map.removeLayer(peerMarkers[id]);
-                    delete peerMarkers[id];
-                }
-            });
-        });
-    }
-
-    function updateMyMarker(lat, lon, dist) {
-        if(myMarker) map.removeLayer(myMarker);
-        const icon = L.divIcon({
-            className: 'custom-marker my-marker',
-            html: `<div style="background-image: url(${photoUrl}); width:40px; height:40px; background-size:cover; border-radius:50%;"></div>`,
-            iconSize: [46, 46]
-        });
-        myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("Siz shu yerdasiz");
-
-        // Yo'l chizig'i (Dinamik)
-        if(routingControl) map.removeControl(routingControl);
-        routingControl = L.Routing.control({
-            waypoints: [ L.latLng(lat, lon), L.latLng(UNI.lat, UNI.lon) ],
-            lineOptions: { styles: [{ color: '#D4AF37', weight: 5, opacity: 0.7 }] },
-            show: false, addWaypoints: false, draggableWaypoints: false
-        }).addTo(map);
-
-        document.getElementById('dist-info').innerText = `Universitetgacha: ${Math.round(dist*1000)} metr`;
-        const badge = document.getElementById('gps-status');
-        const btn = document.getElementById('btn-action');
-
-        if(dist <= UNI.radius) {
-            badge.innerText = "✅ HUDUDDASIZ";
-            badge.style.color = "green";
-            btn.disabled = false;
-        } else {
-            badge.innerText = "❌ HUDUDDAN TASHQARIDA";
-            badge.style.color = "red";
-            btn.disabled = false; // Test uchun ochiq qoldirildi, lekin mantiqan bloklanadi
-        }
-    }
-
-    function updatePeerMarker(id, data) {
-        if(peerMarkers[id]) map.removeLayer(peerMarkers[id]);
-        
-        let distLabel = "Noma'lum";
-        if(myCurrentCoords) {
-            const distToPeer = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, data.lat, data.lon);
-            distLabel = distToPeer < 1 ? `${Math.round(distToPeer*1000)} m` : `${distToPeer.toFixed(1)} km`;
         }
 
-        const icon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div style="background-image: url(${data.photo}); width:36px; height:36px; background-size:cover; border-radius:50%;"></div>`,
-            iconSize: [42, 42]
-        });
-        
-        peerMarkers[id] = L.marker([data.lat, data.lon], {icon}).addTo(map)
-            .bindPopup(`<b>${data.name}</b><br>Sizdan: ${distLabel} uzoqda`);
-    }
-
-    function calculateDist(lat1, lon1, lat2, lon2) {
-        const R = 6371; // km
-        const dLat = (lat2-lat1) * Math.PI / 180;
-        const dLon = (lon2-lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    window.handleAttendance = () => {
-        if(!myCurrentCoords) return;
-        const dist = calculateDist(myCurrentCoords.lat, myCurrentCoords.lon, UNI.lat, UNI.lon);
-        
-        if(dist > UNI.radius) {
-            return tg.showAlert(`Xatolik! Siz universitetdan ${Math.round(dist*1000)} metr uzoqdasiz.`);
-        }
-
-        tg.showConfirm("Davomatni tasdiqlaysizmi?", async (ok) => {
-            if(ok) {
-                const today = new Date().toISOString().split('T')[0];
-                await set(ref(db, `attendance/${today}/${userId}`), { 
-                    name: user.name, 
-                    time: new Date().toLocaleTimeString(),
-                    id: userId
-                });
-                tg.showAlert("Davomat muvaffaqiyatli qayd etildi! ✅");
+        function applyQuality() {
+            const res = document.getElementById('resSelect').value;
+            const badge = document.getElementById('resBadge');
+            
+            // Sifatni o'zgartirish: Brauzerda bitta faylni haqiqiy o'lchamini o'zgartirib bo'lmaydi,
+            // lekin CSS Render orqali piksellarni qayta ishlash eng yaqin yo'li.
+            video.className = ""; // Eski klasni o'chirish
+            if (res === 'low') {
+                video.classList.add('low-res');
+                badge.innerText = "480p";
+                badge.style.background = "#555";
+            } else if (res === 'mid') {
+                video.classList.add('mid-res');
+                badge.innerText = "720p";
+                badge.style.background = "orange";
+            } else {
+                video.classList.add('high-res');
+                badge.innerText = "1080p";
+                badge.style.background = "red";
             }
-        });
-    };
-</script>
+        }
+    </script>
 </body>
 </html>
