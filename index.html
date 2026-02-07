@@ -3,45 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Triple Check</title>
+    <title>Kino Pro: Link Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #000; }
+        :root { --p: #7b42f5; --bg: #0a0a0a; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         
         .main-container { height: 100vh; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; background: #000; }
 
+        /* Link kiritish oynasi */
+        .setup-area { 
+            display: flex; height: 100vh; justify-content: center; align-items: center; 
+            flex-direction: column; padding: 25px; text-align: center; 
+        }
+        
+        input[type="text"] {
+            width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--p);
+            background: #1a1a1a; color: white; margin-bottom: 15px; outline: none;
+        }
+
         /* Tasdiqlash oynasi */
         #check-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 10, 0.95); display: none;
+            background: rgba(0, 0, 0, 0.96); display: none;
             flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
-            text-align: center;
         }
 
         .check-card {
             background: linear-gradient(135deg, var(--p), #4b0082);
-            padding: 30px; border-radius: 25px; width: 80%;
-            box-shadow: 0 0 30px rgba(123, 66, 245, 0.5);
+            padding: 30px; border-radius: 25px; width: 85%; text-align: center;
         }
 
         .btn-yes { 
             background: #fff; color: #000; border: none; padding: 15px; 
-            border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 20px;
-            font-size: 18px;
+            border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 15px;
         }
 
-        .info-bar { background: #111; padding: 10px; font-size: 12px; border-top: 1px solid var(--p); }
+        .p-footer { background: #111; padding: 12px; font-size: 11px; border-top: 1px solid var(--p); }
     </style>
 </head>
 <body>
 
-<div id="setup-view" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
-    <h1 style="color: var(--p);">🎬 KINO PRO</h1>
-    <p>Kino vaqti 3 ga bo'lib tekshiriladi</p>
-    <button style="background: var(--p); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold;" onclick="document.getElementById('f').click()">KINO TANLASH</button>
-    <input type="file" id="f" hidden accept="video/*" onchange="initApp(event)">
+<div id="setup-view" class="setup-area">
+    <h2 style="color: var(--p); margin-bottom: 5px;">🎬 KINO PRO</h2>
+    <p style="font-size: 14px; opacity: 0.7;">Kino linkini joylashtiring</p>
+    
+    <input type="text" id="videoLink" placeholder="https://site.com/video.mp4" autocomplete="off">
+    
+    <button style="background: var(--p); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold;" onclick="startWithLink()">KO'RISHNI BOSHLASH</button>
+    
+    <p style="font-size: 11px; margin-top: 20px; color: #666;">Eslatma: Video formati .mp4 bo'lishi kerak</p>
 </div>
 
 <div id="player-view" class="main-container" style="display: none;">
@@ -50,16 +62,16 @@
     <div id="check-modal">
         <div class="check-card">
             <h2 style="margin: 0;">UXLADINGIZMI? 😴</h2>
-            <p style="opacity: 0.9;">Kino davom etishi uchun tugmani bosing</p>
-            <div id="countdown" style="font-size: 30px; font-weight: bold; margin: 10px 0;">30</div>
+            <p>Video 30 soniyadan keyin yopiladi</p>
+            <div id="countdown" style="font-size: 35px; font-weight: bold; margin: 15px 0;">30</div>
             <button class="btn-yes" onclick="confirmWake()">HA, UYG'OQMAN!</button>
         </div>
     </div>
 
-    <div class="info-bar">
+    <div class="p-footer">
         <div style="display: flex; justify-content: space-between;">
-            <span id="check-points">Tekshiruv nuqtalari: hisoblanmoqda...</span>
-            <span id="save-status">Vaqt saqlanmoqda...</span>
+            <span id="p-info">Smart-Check: Faol ✅</span>
+            <span id="save-info">Vaqt saqlanmoqda...</span>
         </div>
     </div>
 </div>
@@ -70,50 +82,46 @@
 
     const v = document.getElementById('v');
     const modal = document.getElementById('check-modal');
-    const countdownEl = document.getElementById('countdown');
     
     let checkPoints = [];
     let currentPointIdx = 0;
-    let autoCloseTimer;
-    let movieName = "";
+    let timer;
 
-    function initApp(e) {
-        const file = e.target.files[0];
-        if(!file) return;
+    function startWithLink() {
+        const link = document.getElementById('videoLink').value.trim();
+        if (!link) { alert("Iltimos, linkni kiriting!"); return; }
 
-        movieName = file.name;
-        v.src = URL.createObjectURL(file);
+        v.src = link;
         
         v.onloadedmetadata = function() {
-            calculatePoints(v.duration);
+            // Vaqtni 3 ga bo'lish
+            const part = v.duration / 3;
+            checkPoints = [part, part * 2, v.duration - 15];
             
             document.getElementById('setup-view').style.display = 'none';
             document.getElementById('player-view').style.display = 'flex';
             
-            // Saqlangan joyidan davom etish
-            const saved = localStorage.getItem("time_" + movieName);
+            // LocalStorage orqali vaqtni eslab qolish
+            const saved = localStorage.getItem("link_time_" + link);
             if(saved) v.currentTime = saved;
             
             v.play();
         };
+
+        v.onerror = function() {
+            alert("Xatolik! Link noto'g'ri yoki video ochilmadi.");
+        };
     }
 
-    function calculatePoints(duration) {
-        const part = duration / 3;
-        checkPoints = [part, part * 2, duration - 10]; // 33%, 66% va deyarli oxiri
-        document.getElementById('check-points').innerText = "3 bosqichli nazorat faol ✅";
-    }
-
-    // Videoni doimiy kuzatib borish
     v.ontimeupdate = function() {
-        // Vaqtni saqlash
-        localStorage.setItem("time_" + movieName, v.currentTime);
+        // Avto-saqlash
+        localStorage.setItem("link_time_" + v.src, v.currentTime);
 
-        // Tekshiruv nuqtasiga yetganini aniqlash
+        // 3 bosqichli tekshiruv nuqtasi
         if (currentPointIdx < checkPoints.length) {
             if (v.currentTime >= checkPoints[currentPointIdx]) {
                 triggerCheck();
-                currentPointIdx++; 
+                currentPointIdx++;
             }
         }
     };
@@ -121,35 +129,24 @@
     function triggerCheck() {
         v.pause();
         modal.style.display = 'flex';
+        let left = 30;
+        document.getElementById('countdown').innerText = left;
         
-        let timeLeft = 30;
-        countdownEl.innerText = timeLeft;
-        
-        autoCloseTimer = setInterval(() => {
-            timeLeft--;
-            countdownEl.innerText = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(autoCloseTimer);
-                tg.close(); // Javob bo'lmasa Telegram Web App yopiladi
+        timer = setInterval(() => {
+            left--;
+            document.getElementById('countdown').innerText = left;
+            if (left <= 0) {
+                clearInterval(timer);
+                tg.close();
             }
         }, 1000);
     }
 
     function confirmWake() {
-        clearInterval(autoCloseTimer);
+        clearInterval(timer);
         modal.style.display = 'none';
         v.play();
     }
-
-    // Xatolik bo'lsa (masalan, kinoni orqaga qaytarsa) nuqtani qayta tekshirish uchun
-    v.onseeked = function() {
-        for (let i = 0; i < checkPoints.length; i++) {
-            if (v.currentTime < checkPoints[i]) {
-                currentPointIdx = i;
-                break;
-            }
-        }
-    };
 </script>
 </body>
 </html>
