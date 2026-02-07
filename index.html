@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Link Edition</title>
+    <title>Kino Pro: Smart Loader</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #0a0a0a; }
+        :root { --p: #7b42f5; --bg: #050505; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         
         .main-container { height: 100vh; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; background: #000; }
 
-        /* Link kiritish oynasi */
         .setup-area { 
             display: flex; height: 100vh; justify-content: center; align-items: center; 
             flex-direction: column; padding: 25px; text-align: center; 
@@ -41,19 +40,20 @@
         }
 
         .p-footer { background: #111; padding: 12px; font-size: 11px; border-top: 1px solid var(--p); }
+        .loading-text { font-size: 12px; color: var(--p); margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
 <div id="setup-view" class="setup-area">
-    <h2 style="color: var(--p); margin-bottom: 5px;">🎬 KINO PRO</h2>
-    <p style="font-size: 14px; opacity: 0.7;">Kino linkini joylashtiring</p>
+    <h2 style="color: var(--p);">🎬 KINO PRO</h2>
+    <p style="font-size: 14px; opacity: 0.7;">To'g'ridan-to'g'ri video linkini kiriting</p>
     
-    <input type="text" id="videoLink" placeholder="https://site.com/video.mp4" autocomplete="off">
+    <input type="text" id="videoLink" placeholder="https://example.com/movie.mp4" autocomplete="off">
     
-    <button style="background: var(--p); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold;" onclick="startWithLink()">KO'RISHNI BOSHLASH</button>
+    <button style="background: var(--p); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold;" onclick="processLink()">KO'RISHNI BOSHLASH</button>
     
-    <p style="font-size: 11px; margin-top: 20px; color: #666;">Eslatma: Video formati .mp4 bo'lishi kerak</p>
+    <div id="loader" class="loading-text">Video yuklanmoqda, kuting...</div>
 </div>
 
 <div id="player-view" class="main-container" style="display: none;">
@@ -61,18 +61,14 @@
     
     <div id="check-modal">
         <div class="check-card">
-            <h2 style="margin: 0;">UXLADINGIZMI? 😴</h2>
-            <p>Video 30 soniyadan keyin yopiladi</p>
+            <h2>UXLADINGIZMI? 😴</h2>
             <div id="countdown" style="font-size: 35px; font-weight: bold; margin: 15px 0;">30</div>
             <button class="btn-yes" onclick="confirmWake()">HA, UYG'OQMAN!</button>
         </div>
     </div>
 
     <div class="p-footer">
-        <div style="display: flex; justify-content: space-between;">
-            <span id="p-info">Smart-Check: Faol ✅</span>
-            <span id="save-info">Vaqt saqlanmoqda...</span>
-        </div>
+        <span id="p-info">Triple-Check faol ✅</span>
     </div>
 </div>
 
@@ -87,51 +83,48 @@
     let currentPointIdx = 0;
     let timer;
 
-    function startWithLink() {
-        const link = document.getElementById('videoLink').value.trim();
-        if (!link) { alert("Iltimos, linkni kiriting!"); return; }
+    function processLink() {
+        let link = document.getElementById('videoLink').value.trim();
+        if (!link) return;
 
+        // Agar bu Telegram post linki bo'lsa, foydalanuvchini ogohlantirish
+        if (link.includes("t.me/") && !link.endsWith(".mp4")) {
+            alert("Diqqat! Bu Telegram post havolasi. Video ochilishi uchun havola .mp4 kabi faylga yo'naltirilgan bo'lishi shart.");
+            return;
+        }
+
+        document.getElementById('loader').style.display = 'block';
         v.src = link;
         
         v.onloadedmetadata = function() {
-            // Vaqtni 3 ga bo'lish
             const part = v.duration / 3;
-            checkPoints = [part, part * 2, v.duration - 15];
+            checkPoints = [part, part * 2, v.duration - 20];
             
             document.getElementById('setup-view').style.display = 'none';
             document.getElementById('player-view').style.display = 'flex';
-            
-            // LocalStorage orqali vaqtni eslab qolish
-            const saved = localStorage.getItem("link_time_" + link);
-            if(saved) v.currentTime = saved;
-            
             v.play();
         };
 
         v.onerror = function() {
-            alert("Xatolik! Link noto'g'ri yoki video ochilmadi.");
+            document.getElementById('loader').style.display = 'none';
+            alert("Xatolik! Bu havola orqali videoni oqimli (stream) ko'rib bo'lmaydi. Boshqa havola sinab ko'ring.");
         };
     }
 
     v.ontimeupdate = function() {
-        // Avto-saqlash
-        localStorage.setItem("link_time_" + v.src, v.currentTime);
-
-        // 3 bosqichli tekshiruv nuqtasi
         if (currentPointIdx < checkPoints.length) {
             if (v.currentTime >= checkPoints[currentPointIdx]) {
-                triggerCheck();
+                v.pause();
+                modal.style.display = 'flex';
+                startCountdown();
                 currentPointIdx++;
             }
         }
     };
 
-    function triggerCheck() {
-        v.pause();
-        modal.style.display = 'flex';
+    function startCountdown() {
         let left = 30;
         document.getElementById('countdown').innerText = left;
-        
         timer = setInterval(() => {
             left--;
             document.getElementById('countdown').innerText = left;
