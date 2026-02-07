@@ -2,45 +2,37 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Telegram Embed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kino Pro: Player</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        .main { height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Telegram xabarini chiqarish uchun oyna */
-        #tg-frame { width: 100%; flex-grow: 1; border: none; background: #000; }
-
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none;
-            flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
-        }
-        .card { background: var(--p); padding: 30px; border-radius: 20px; text-align: center; width: 80%; }
-        .btn { background: #fff; color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 15px; }
-        .footer { background: #111; padding: 10px; font-size: 12px; text-align: center; border-top: 1px solid var(--p); }
+        body { background: #000; color: white; margin: 0; font-family: sans-serif; overflow: hidden; }
+        .player-container { height: 100vh; display: flex; flex-direction: column; }
+        iframe { width: 100%; flex-grow: 1; border: none; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        .p-btn { background: #7b42f5; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="main">
-    <div id="video-container" style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-        <p id="msg">Link yuklanmoqda...</p>
+<div class="player-container" id="main-ui">
+    <div id="input-screen" style="padding: 50px; text-align: center;">
+        <h2 style="color: #7b42f5;">🎬 KINO PRO</h2>
+        <input type="text" id="targetLink" placeholder="Admin yaratgan linkni qo'ying" style="width: 100%; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <button class="p-btn" onclick="startCinema()">KO'RISH</button>
     </div>
 
-    <div id="check-modal" class="overlay">
-        <div class="card">
-            <h2>UYG'OQMISIZ? 😴</h2>
-            <p>Davom etish uchun tasdiqlang</p>
-            <div id="timer" style="font-size: 30px; font-weight: bold;">30</div>
-            <button class="btn" onclick="confirmWake()">HA, UYG'OQMAN!</button>
-        </div>
+    <div id="video-area" style="display: none; flex-grow: 1;">
+        <iframe id="kino-frame" src=""></iframe>
+        <div style="background: #111; padding: 10px; text-align: center; font-size: 12px;">3 bosqichli nazorat faol ✅</div>
     </div>
+</div>
 
-    <div class="footer">
-        <span>3 bosqichli nazorat: <b>Har 30 daqiqada</b></span>
+<div id="check-modal" class="modal">
+    <div style="text-align: center; background: #222; padding: 30px; border-radius: 20px; border: 2px solid #7b42f5;">
+        <h2>UYG'OQMISIZ? 😴</h2>
+        <div id="timer" style="font-size: 40px; font-weight: bold; margin: 15px 0;">30</div>
+        <button class="p-btn" onclick="confirmWake()">HA, UYG'OQMAN!</button>
     </div>
 </div>
 
@@ -48,49 +40,40 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const link = "https://t.me/tungi_borilar_vampirlarbot/59";
-    const container = document.getElementById('video-container');
-    
-    // Telegram postini "Embed" qilish (Oynaga joylash)
-    function loadPost() {
-        const embedUrl = link + "?embed=1&dark=1";
-        container.innerHTML = `<iframe id="tg-frame" src="${embedUrl}"></iframe>`;
-    }
+    let checkCount = 0;
+    let timer;
 
-    // Har 30 daqiqada tekshirish (Kino vaqtini bilolmaganimiz uchun taymer qo'yamiz)
-    let checkInterval = 30 * 60; 
-    let countdown;
+    function startCinema() {
+        const url = document.getElementById('targetLink').value;
+        if (!url) return;
 
-    function startGlobalTimer() {
+        document.getElementById('kino-frame').src = url;
+        document.getElementById('input-screen').style.display = 'none';
+        document.getElementById('video-area').style.display = 'flex';
+
+        // Har 30 daqiqada (3 marta) tekshirish mantiqi
         setInterval(() => {
-            checkInterval--;
-            if (checkInterval <= 0) {
+            if (checkCount < 3) {
                 triggerCheck();
+                checkCount++;
             }
-        }, 1000);
+        }, 30 * 60 * 1000); 
     }
 
     function triggerCheck() {
         document.getElementById('check-modal').style.display = 'flex';
         let left = 30;
-        countdown = setInterval(() => {
+        timer = setInterval(() => {
             left--;
             document.getElementById('timer').innerText = left;
-            if (left <= 0) {
-                clearInterval(countdown);
-                tg.close();
-            }
+            if (left <= 0) { clearInterval(timer); tg.close(); }
         }, 1000);
     }
 
     function confirmWake() {
-        clearInterval(countdown);
+        clearInterval(timer);
         document.getElementById('check-modal').style.display = 'none';
-        checkInterval = 30 * 60; // Taymerni yangilash
     }
-
-    loadPost();
-    startGlobalTimer();
 </script>
 </body>
 </html>
