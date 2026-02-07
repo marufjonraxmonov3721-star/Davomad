@@ -7,77 +7,74 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --red: #dc3545; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; user-select: none; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        /* Layout */
-        #auth, #app { display: none; padding: 20px; text-align: center; }
-        .container { max-width: 500px; margin: 0 auto; }
+        /* Tizim panellari */
+        #auth, #app, #setup, #quiz { display: none; text-align: center; }
+        .active { display: block !important; }
 
-        /* Auth & Forms */
-        input, select { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: #fff; margin-bottom: 15px; outline: none; box-sizing: border-box; font-size: 16px; }
-        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
-        .btn-p { background: var(--p); color: #fff; box-shadow: 0 4px 15px rgba(123, 66, 245, 0.3); }
-        .btn-p:active { transform: scale(0.98); }
-
-        /* Quiz UI */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px; background: var(--card); border-radius: 15px; }
-        .xp-badge { background: var(--p); padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+        /* UI Elementlari */
+        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 15px; outline: none; }
+        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; color: #fff; }
+        .btn-p { background: var(--p); }
         
-        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; margin-top: 20px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
-        #question { font-size: 20px; line-height: 1.4; margin-bottom: 20px; }
-        
-        .options-grid { display: grid; gap: 12px; }
-        .option-btn { background: #222; color: #fff; padding: 15px; border-radius: 12px; border: 1px solid #444; text-align: left; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .option-btn:active { background: #333; }
-        .correct { background: var(--green) !important; border-color: var(--green); }
-        .wrong { background: var(--red) !important; border-color: var(--red); }
+        /* Quiz */
+        .timer { font-size: 24px; font-weight: 800; color: var(--p); margin-bottom: 10px; }
+        .q-text { font-size: 20px; font-weight: 600; margin-bottom: 20px; min-height: 80px; }
+        .options { display: grid; gap: 10px; }
+        .opt { background: #222; padding: 15px; border-radius: 12px; border: 1px solid #444; text-align: left; cursor: pointer; }
+        .opt.correct { background: var(--green) !important; }
+        .opt.wrong { background: var(--red) !important; }
 
-        /* Navigation */
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: #fff; text-decoration: none; }
-        .nav-item.active { opacity: 1; color: var(--p); }
+        /* Navigatsiya */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
+        .nav-item { font-size: 12px; opacity: 0.5; cursor: pointer; }
+        .nav-item.active-nav { opacity: 1; color: var(--p); }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div id="auth">
-        <div class="container">
-            <h1 style="color: var(--p); font-size: 32px;">Brain Pro 🧠</h1>
-            <p style="color: #888; margin-bottom: 30px;">Bilimingizni sinab ko'ring va XP yig'ing!</p>
-            <input type="text" id="r-name" placeholder="Ismingiz">
-            <select id="r-region">
-                <option value="">Viloyatni tanlang</option>
-            </select>
-            <button class="btn btn-p" id="regBtn">BARMOQ IZI BILAN KIRISH</button>
+        <h1 style="color:var(--p)">Brain Pro 🧠</h1>
+        <p>Telegram profili orqali tizimga kirish</p>
+        <button class="btn btn-p" id="loginBtn">KIRISH</button>
+    </div>
+
+    <div id="setup">
+        <h3>Imtihon sozlamalari</h3>
+        <div class="card">
+            <label>Savollar sonini tanlang:</label>
+            <input type="number" id="q-count" value="35" min="1" max="520">
+            <label>Vaqtni tanlang (daqiqa):</label>
+            <input type="number" id="q-time" value="30" min="1">
+            <button class="btn btn-p" id="startBtn">BOSHLASH</button>
         </div>
     </div>
 
-    <div id="app">
-        <div class="container">
-            <div class="header">
-                <span id="u-name" style="font-weight: bold; font-size: 18px;">...</span>
-                <div class="xp-badge">XP: <span id="u-xp">0</span></div>
-            </div>
-
-            <div id="p-quiz" class="panel active-p">
-                <div class="card">
-                    <div id="question">Yuklanmoqda...</div>
-                    <div id="options" class="options-grid"></div>
-                </div>
-                <div id="feedback" style="margin-top: 20px; font-weight: bold; font-size: 18px;"></div>
-            </div>
-
-            <div id="p-leader" class="panel" style="display: none;">
-                <h2 style="color: var(--p);">🏆 Top Talabalar</h2>
-                <div id="leader-list" style="text-align: left; background: var(--card); border-radius: 15px; padding: 15px;"></div>
-            </div>
+    <div id="quiz">
+        <div style="display:flex; justify-content:space-between">
+            <span id="q-progress">1/35</span>
+            <div class="timer" id="timer">30:00</div>
         </div>
-
-        <div class="nav">
-            <div class="nav-item active" onclick="nav('quiz', this)">🧠<br>Mashq</div>
-            <div class="nav-item" onclick="nav('leader', this)">🏆<br>Reyting</div>
+        <div class="card">
+            <div class="q-text" id="q-text">Savol yuklanmoqda...</div>
+            <div class="options" id="options"></div>
         </div>
     </div>
+
+    <div id="p-leader" style="display:none">
+        <h3>🏆 Top 10 Talaba</h3>
+        <div id="leader-list" class="card"></div>
+    </div>
+</div>
+
+<div class="nav" id="main-nav" style="display:none">
+    <div class="nav-item active-nav" onclick="showPanel('setup')">🎮 Mashq</div>
+    <div class="nav-item" onclick="showPanel('leader')">🏆 Reyting</div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -96,146 +93,173 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id || "user_debug_123";
+    const uid = tg.initDataUnsafe?.user?.id || "debug_user";
     const userRef = ref(db, 'brain_users/' + uid);
-    
-    let userData = { xp: 0 };
+
     let allQuestions = [];
-    let currentQuestion = null;
-    let isAnswering = false;
+    let sessionQuestions = [];
+    let currentIdx = 0;
+    let timerInterval;
+    let totalXp = 0;
 
-    // --- SETTINGS & REGIONS ---
-    onValue(ref(db, 'settings/regions'), (s) => {
-        const regions = s.val() || ["Toshkent", "Samarqand", "Buxoro", "Andijon"];
-        const sel = document.getElementById('r-region');
-        if(sel.options.length <= 1) {
-            regions.forEach(r => { let o = document.createElement('option'); o.value=r; o.innerText=r; sel.appendChild(o); });
+    // LocalStorage orqali yechilgan savollar ID sini saqlash
+    let solvedIds = JSON.parse(localStorage.getItem('solved_ids') || "[]");
+
+    // 1. TIZIMGA KIRISH
+    window.onload = async () => {
+        const snap = await get(userRef);
+        if(snap.exists()) {
+            totalXp = snap.val().xp || 0;
+            showPanel('setup');
+        } else {
+            document.getElementById('auth').classList.add('active');
         }
-    });
-
-    // --- REGISTRATION ---
-    document.getElementById('regBtn').onclick = () => {
-        const name = document.getElementById('r-name').value;
-        if(!name) return tg.showAlert("Ismingizni kiriting!");
-
-        tg.BiometricManager.init(() => {
-            tg.BiometricManager.requestAccess({ reason: "Profilni tasdiqlash" }, (ok) => {
-                if(ok) {
-                    tg.BiometricManager.authenticate({ reason: "Xavfsiz kirish" }, async (success) => {
-                        if(success) {
-                            const d = { name, xp: 0, region: document.getElementById('r-region').value, last_seen: Date.now() };
-                            await set(userRef, d);
-                            loadApp(d);
-                        }
-                    });
-                } else {
-                    tg.showAlert("Biometrika kerak!");
-                }
-            });
-        });
     };
 
-    // --- LOAD APP ---
-    async function loadApp(data) {
-        document.getElementById('auth').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('u-name').innerText = data.name;
+    document.getElementById('loginBtn').onclick = async () => {
+        const user = tg.initDataUnsafe?.user;
+        const data = {
+            name: user?.first_name || "Noma'lum",
+            username: user?.username || "",
+            xp: 0
+        };
+        await set(userRef, data);
+        showPanel('setup');
+    };
 
-        // Savollarni bazadan bir marta yuklab olamiz
+    // 2. O'YINNI BOSHLASH
+    document.getElementById('startBtn').onclick = async () => {
+        const count = parseInt(document.getElementById('q-count').value);
+        const time = parseInt(document.getElementById('q-time').value);
+        
         const qSnap = await get(ref(db, 'brain_questions'));
-        if(qSnap.exists()) {
-            allQuestions = qSnap.val();
-            nextQuestion();
+        if(!qSnap.exists()) return alert("Bazada savollar yo'q!");
+
+        allQuestions = qSnap.val();
+        
+        // Savollarni filtrlash (Oldin yechilmaganlarini olish)
+        let available = allQuestions.filter((q, idx) => !solvedIds.includes(idx));
+        
+        if(available.length < count) {
+            alert("Siz deyarli barcha savollarni yechib bo'ldingiz! Baza yangilanmoqda...");
+            solvedIds = []; // Qayta boshlash
+            available = allQuestions;
         }
 
-        // Real-time XP yangilanishi
-        onValue(ref(db, `brain_users/${uid}/xp`), (s) => {
-            userData.xp = s.val() || 0;
-            document.getElementById('u-xp').innerText = userData.xp;
-        });
-    }
-
-    // --- QUIZ LOGIC ---
-    function nextQuestion() {
-        if(allQuestions.length === 0) return;
-        isAnswering = false;
-        document.getElementById('feedback').innerText = "";
+        // Tasodifiy tanlab olish
+        sessionQuestions = available.sort(() => 0.5 - Math.random()).slice(0, count);
         
-        const idx = Math.floor(Math.random() * allQuestions.length);
-        currentQuestion = allQuestions[idx];
+        currentIdx = 0;
+        startTimer(time * 60);
+        showPanel('quiz');
+        renderQuestion();
+    };
 
-        document.getElementById('question').innerText = currentQuestion.q;
+    function renderQuestion() {
+        const q = sessionQuestions[currentIdx];
+        document.getElementById('q-progress').innerText = `${currentIdx + 1}/${sessionQuestions.length}`;
+        document.getElementById('q-text').innerText = q.q;
+        
         const optBox = document.getElementById('options');
         optBox.innerHTML = "";
-
-        currentQuestion.a.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = "option-btn";
-            btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i, btn);
-            optBox.appendChild(btn);
+        
+        q.a.forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = "opt";
+            div.innerText = opt;
+            div.onclick = () => checkAns(i, q.c, div);
+            optBox.appendChild(div);
         });
     }
 
-    async function checkAnswer(index, btn) {
-        if(isAnswering) return;
-        isAnswering = true;
+    async function checkAns(choosen, correct, el) {
+        const opts = document.querySelectorAll('.opt');
+        opts.forEach(o => o.style.pointerEvents = 'none');
 
-        const correctIndex = currentQuestion.c;
-        const allBtns = document.querySelectorAll('.option-btn');
-
-        if(index === correctIndex) {
-            btn.classList.add('correct');
-            document.getElementById('feedback').innerText = "✅ Juda yaxshi!";
-            document.getElementById('feedback').style.color = "var(--green)";
-            await set(ref(db, `brain_users/${uid}/xp`), userData.xp + 10);
-        } else {
-            btn.classList.add('wrong');
-            allBtns[correctIndex].classList.add('correct');
-            document.getElementById('feedback').innerText = "❌ Xato!";
-            document.getElementById('feedback').style.color = "var(--red)";
+        // Savol ID sini topish va saqlash
+        const originalIdx = allQuestions.findIndex(x => x.q === sessionQuestions[currentIdx].q);
+        if(!solvedIds.includes(originalIdx)) {
+            solvedIds.push(originalIdx);
+            localStorage.setItem('solved_ids', JSON.stringify(solvedIds));
         }
 
-        setTimeout(nextQuestion, 2000);
+        if(choosen === correct) {
+            el.classList.add('correct');
+            totalXp += 10;
+            await set(ref(db, `brain_users/${uid}/xp`), totalXp);
+        } else {
+            el.classList.add('wrong');
+            opts[correct].classList.add('correct');
+        }
+
+        setTimeout(() => {
+            currentIdx++;
+            if(currentIdx < sessionQuestions.length) {
+                renderQuestion();
+            } else {
+                finishGame("Tabriklaymiz! Savollar tugadi.");
+            }
+        }, 1500);
     }
 
-    // --- NAVIGATION & LEADERBOARD ---
-    window.nav = (p, el) => {
-        document.querySelectorAll('.panel').forEach(x => x.style.display = 'none');
-        document.getElementById('p-' + p).style.display = 'block';
-        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-        el.classList.add('active');
+    // 3. VAQT VA YORDAMCHI FUNKSIYALAR
+    function startTimer(duration) {
+        let timer = duration;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            let mins = Math.floor(timer / 60);
+            let secs = timer % 60;
+            document.getElementById('timer').innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
+            if (--timer < 0) {
+                clearInterval(timerInterval);
+                finishGame("Vaqt tugadi!");
+            }
+        }, 1000);
+    }
 
-        if(p === 'leader') loadLeaderboard();
+    function finishGame(msg) {
+        clearInterval(timerInterval);
+        alert(msg + "\nTo'plangan XP: " + totalXp);
+        showPanel('setup');
+    }
+
+    window.showPanel = (id) => {
+        document.getElementById('auth').classList.remove('active');
+        document.getElementById('setup').classList.remove('active');
+        document.getElementById('quiz').classList.remove('active');
+        document.getElementById('p-leader').style.display = 'none';
+        document.getElementById('main-nav').style.display = 'flex';
+
+        if(id === 'leader') {
+            document.getElementById('p-leader').style.display = 'block';
+            loadLeaderboard();
+        } else {
+            document.getElementById(id).classList.add('active');
+        }
+        
+        // Nav active style
+        const items = document.querySelectorAll('.nav-item');
+        items[0].classList.toggle('active-nav', id === 'setup');
+        items[1].classList.toggle('active-nav', id === 'leader');
     };
 
     async function loadLeaderboard() {
-        const leaderBox = document.getElementById('leader-list');
-        leaderBox.innerHTML = "Yuklanmoqda...";
-        
+        const box = document.getElementById('leader-list');
+        box.innerHTML = "Yuklanmoqda...";
         const topQuery = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
         const snap = await get(topQuery);
-        
         if(snap.exists()) {
             let list = [];
-            snap.forEach(child => { list.push(child.val()); });
-            list.reverse(); // Eng yuqori XP tepada bo'lishi uchun
-            
-            leaderBox.innerHTML = list.map((u, i) => `
-                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;">
+            snap.forEach(c => list.push(c.val()));
+            list.reverse();
+            box.innerHTML = list.map((u, i) => `
+                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333">
                     <span>${i+1}. ${u.name}</span>
-                    <span style="color:var(--p); font-weight:bold;">${u.xp} XP</span>
+                    <b style="color:var(--p)">${u.xp} XP</b>
                 </div>
             `).join('');
         }
     }
-
-    // STARTUP
-    window.onload = async () => {
-        const s = await get(userRef);
-        if(s.exists()) loadApp(s.val());
-        else document.getElementById('auth').style.display = 'block';
-    };
 </script>
 </body>
 </html>
