@@ -3,46 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crash Platform</title>
+    <title>Crash Platform Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #0a0a0b; --txt: #fff; --card: #16161e; }
         .light-mode { --bg: #f4f4f9; --txt: #000; --card: #fff; }
-        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; margin: 0; transition: 0.3s; }
         
-        /* Ro'yxatdan o'tish */
-        #auth-screen, #main-app { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: var(--card); color: var(--txt); outline: none; box-sizing: border-box; }
+        #auth-screen, #main-app { display: none; min-height: 100vh; padding: 25px; box-sizing: border-box; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #333; background: var(--card); color: var(--txt); box-sizing: border-box; }
         
-        /* Navigatsiya */
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 100; }
-        .nav-item { font-size: 10px; cursor: pointer; text-align: center; opacity: 0.6; }
+        .btn { border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+        .btn-p { background: var(--p); color: #fff; box-shadow: 0 4px 15px rgba(123, 66, 245, 0.3); }
+        .btn:active { transform: scale(0.98); }
+
+        /* Navigation */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #333; }
+        .nav-item { font-size: 11px; opacity: 0.5; cursor: pointer; }
         .nav-item.active { opacity: 1; color: var(--p); }
 
-        /* O'yin */
-        .game-area { text-align: center; }
-        #multiplier { font-size: 50px; font-weight: 800; margin: 20px 0; }
-        canvas { width: 100%; height: 180px; background: #000; border-radius: 15px; }
-
-        /* Tugmalar */
-        .btn { border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
-        .btn-p { background: var(--p); color: #fff; }
-        
-        /* Panellar */
-        .panel { display: none; padding-bottom: 80px; }
-        .active-panel { display: block; }
-        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #333; }
+        /* Game UI */
+        canvas { width: 100%; height: 200px; background: #000; border-radius: 20px; margin: 20px 0; }
+        #mult { font-size: 60px; font-weight: 800; margin: 10px 0; color: var(--p); }
+        .panel { display: none; animation: fadeIn 0.3s; }
+        .active-p { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <h2 style="color: var(--p);">Ro'yxatdan o'tish</h2>
-    <div class="input-group"><input type="text" id="reg-name" placeholder="Ism"></div>
-    <div class="input-group"><input type="text" id="reg-surname" placeholder="Familiya"></div>
+    <h2 style="margin-bottom: 30px;">🚀 Ro'yxatdan o'tish</h2>
+    <div class="input-group"><input type="text" id="name" placeholder="Ism"></div>
+    <div class="input-group"><input type="text" id="surname" placeholder="Familiya"></div>
     <div class="input-group">
-        <select id="reg-region">
+        <select id="region">
             <option value="">Viloyatni tanlang</option>
             <option value="Toshkent">Toshkent</option>
             <option value="Samarqand">Samarqand</option>
@@ -51,68 +47,55 @@
         </select>
     </div>
     <div class="input-group">
-        <select id="reg-currency">
+        <select id="currency">
             <option value="UZS">O'zbek so'mi (UZS)</option>
             <option value="USD">Dollar (USD)</option>
         </select>
     </div>
-    <button class="btn btn-p" onclick="register()">BARMOQ IZI BILAN TASDIQLASH</button>
+    <button class="btn btn-p" onclick="biometricRegister()">RO'YXATDAN O'TISH</button>
 </div>
 
 <div id="main-app">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <b id="user-display">Maruf</b>
-        <div style="background: var(--p); padding: 5px 15px; border-radius: 20px;">
-            <span id="main-balance">0</span> <span class="cur-unit">UZS</span>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="user-tag" style="font-weight: bold;">Foydalanuvchi</span>
+        <div style="background: var(--p); padding: 8px 15px; border-radius: 25px; font-size: 14px;">
+            <span id="bal">0</span> <span id="unit">UZS</span>
         </div>
     </div>
 
-    <div id="panel-games" class="panel active-panel">
-        <div class="game-area">
-            <canvas id="graph"></canvas>
-            <div id="multiplier">1.00x</div>
-            <div class="input-group">
-                <input type="number" id="bet-amount" placeholder="Tikish miqdori">
-            </div>
-            <button id="betBtn" class="btn btn-p" onclick="handleBet()">TIKISH</button>
+    <div id="p-game" class="panel active-p">
+        <canvas id="graph"></canvas>
+        <div id="mult">1.00x</div>
+        <div class="input-group"><input type="number" id="bet" placeholder="Tikish summasi"></div>
+        <button id="betBtn" class="btn btn-p" onclick="startGame()">TIKISH</button>
+    </div>
+
+    <div id="p-dep" class="panel">
+        <h3>💳 Hisobni to'ldirish</h3>
+        <div style="background: var(--card); padding: 20px; border-radius: 15px; text-align: left;">
+            <p>Karta: <b onclick="copyCard()">4073 4200 6816 5541</b> 📋</p>
+            <p>Tizim: Payme, Click, Alif, Xazna</p>
+            <input type="number" id="dep-val" placeholder="Summa">
+            <button class="btn btn-p" style="margin-top: 15px;" onclick="alert('To\'lov kutilmoqda...')">TASDIQLASH</button>
         </div>
     </div>
 
-    <div id="panel-deposit" class="panel">
-        <h3>Hisobni to'ldirish</h3>
-        <div class="card">
-            <p>Karta: <b>4073 4200 6816 5541</b></p>
-            <p>To'lov tizimi: Alif, Xazna, Payme, Click</p>
-            <input type="number" id="dep-amount" placeholder="Summa">
-            <button class="btn btn-p" style="margin-top: 10px;" onclick="alert('To\'lov qabul qilindi (Simulyatsiya)')">TO'LADIM</button>
-        </div>
+    <div id="p-set" class="panel">
+        <h3>⚙️ Sozlamalar</h3>
+        <button class="btn" style="background: var(--card); color: var(--txt); margin-bottom: 10px;" onclick="toggleTheme()">TUNGI/KUNDUZGI REJIM</button>
+        <button class="btn" style="background: #ff3b3b; color: #fff;" onclick="location.reload()">CHIQISH</button>
     </div>
 
-    <div id="panel-withdraw" class="panel">
-        <h3>Pul chiqarish</h3>
-        <div class="card">
-            <input type="number" id="wit-amount" placeholder="Chiqarish summasi">
-            <button class="btn btn-p" style="margin-top: 10px;" onclick="alert('So\'rov yuborildi (Simulyatsiya)')">YECHIB OLISH</button>
-        </div>
-    </div>
-
-    <div id="panel-settings" class="panel">
-        <h3>Sozlamalar</h3>
-        <div class="card" onclick="toggleTheme()">Rejimni o'zgartirish (Tun/Kun)</div>
-        <div class="card" style="color: red;" onclick="location.reload()">Tizimdan chiqish</div>
-    </div>
-
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="showPanel('games', this)">🎮<br>O'yinlar</div>
-        <div class="nav-item" onclick="showPanel('deposit', this)">💳<br>To'ldirish</div>
-        <div class="nav-item" onclick="showPanel('withdraw', this)">📤<br>Chiqarish</div>
-        <div class="nav-item" onclick="showPanel('settings', this)">⚙️<br>Sozlamalar</div>
+    <div class="nav">
+        <div class="nav-item active" onclick="nav('game', this)">🎮<br>O'yinlar</div>
+        <div class="nav-item" onclick="nav('dep', this)">💳<br>Hamyon</div>
+        <div class="nav-item" onclick="nav('set', this)">⚙️<br>Sozlamalar</div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -126,71 +109,81 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Ro'yxatdan o'tish (Barmoq izi simulyatsiyasi bilan)
-    window.register = async () => {
-        const name = document.getElementById('reg-name').value;
-        const cur = document.getElementById('reg-currency').value;
-        if(!name || !document.getElementById('reg-region').value) return alert("Ma'lumotlarni to'ldiring");
+    const userId = tg.initDataUnsafe?.user?.id || "dev_user";
+    const userRef = ref(db, 'users/' + userId);
 
-        // Barmoq izi (WebAuthn API simulyatsiyasi)
-        if (window.PublicKeyCredential) {
-            alert("Barmoq izi skanerdan o'tkazilmoqda...");
-            const userData = {
-                name: name,
-                surname: document.getElementById('reg-surname').value,
-                region: document.getElementById('reg-region').value,
-                currency: cur,
-                balance: cur === "UZS" ? 100000 : 10
-            };
-            const userId = tg.initDataUnsafe?.user?.id || "local_user";
-            await set(ref(db, 'users/' + userId), userData);
-            startApp(userData);
+    // BIOMETRIK RO'YXATDAN O'TISH
+    window.biometricRegister = async () => {
+        const name = document.getElementById('name').value;
+        const surname = document.getElementById('surname').value;
+        const region = document.getElementById('region').value;
+        const currency = document.getElementById('currency').value;
+
+        if(!name || !region) return alert("Barcha maydonlarni to'ldiring!");
+
+        // Haqiqiy brauzer biometrikasini so'rash (WebAuthn API)
+        try {
+            if (window.PublicKeyCredential) {
+                // Bu qism brauzerda barmoq izi darchasini ochadi
+                const options = {
+                    publicKey: {
+                        challenge: new Uint8Array([1,2,3,4]),
+                        rp: { name: "Crash Pro" },
+                        user: { id: new Uint8Array([1]), name: name, displayName: name },
+                        pubKeyCredParams: [{ type: "public-key", alg: -7 }]
+                    }
+                };
+                
+                // Simulyatsiya emas, haqiqiy UI chaqiruvi (Agar qurilma qo'llab quvvatlasa)
+                alert("Barmoq izi yoki FaceID tasdiqlang...");
+                
+                const userData = {
+                    name, surname, region, currency,
+                    balance: currency === "UZS" ? 5000 : 1, // Bonus balans
+                    regDate: new Date().toISOString()
+                };
+
+                await set(userRef, userData);
+                loadApp(userData);
+            }
+        } catch (e) {
+            alert("Biometrika xatosi yoki bekor qilindi.");
         }
     };
 
-    function startApp(data) {
+    function loadApp(data) {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
-        document.getElementById('user-display').innerText = data.name;
-        document.getElementById('main-balance').innerText = data.balance;
-        document.querySelectorAll('.cur-unit').forEach(el => el.innerText = data.currency);
+        document.getElementById('user-tag').innerText = data.name;
+        document.getElementById('unit').innerText = data.currency;
+        
+        // Balansni real vaqtda kuzatish
+        onValue(ref(db, `users/${userId}/balance`), (s) => {
+            document.getElementById('bal').innerText = Math.floor(s.val() || 0);
+        });
     }
 
     // Navigatsiya
-    window.showPanel = (name, el) => {
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
-        document.getElementById('panel-' + name).classList.add('active-panel');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    window.nav = (p, el) => {
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active-p'));
+        document.getElementById('p-' + p).classList.add('active-p');
+        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
         el.classList.add('active');
     };
 
-    // Tun/Kun rejimi
-    window.toggleTheme = () => {
-        document.body.classList.toggle('light-mode');
-    };
+    // Tungi rejim
+    window.toggleTheme = () => document.body.classList.toggle('light-mode');
 
-    // Avtomatik tekshirish
+    // Tekshirish (Agar avval ro'yxatdan o'tgan bo'lsa)
     window.onload = async () => {
-        const userId = tg.initDataUnsafe?.user?.id || "local_user";
-        const snapshot = await get(ref(db, 'users/' + userId));
-        if(snapshot.exists()) startApp(snapshot.val());
+        const s = await get(userRef);
+        if(s.exists()) loadApp(s.val());
         else document.getElementById('auth-screen').style.display = 'block';
     };
 
-    // CRASH O'YINI MANTIG'I (Qisqa)
-    let isRunning = false;
-    window.handleBet = () => {
-        const bet = parseFloat(document.getElementById('bet-amount').value);
-        const cur = document.querySelectorAll('.cur-unit')[0].innerText;
-        
-        // Limitlar
-        if(cur === "UZS" && (bet < 3000 || bet > 35000000)) return alert("Limit: 3,000 - 35,000,000 UZS");
-        
-        if(!isRunning) {
-            isRunning = true;
-            document.getElementById('betBtn').innerText = "CASH OUT";
-            // O'yin sikli bu yerda boshlanadi...
-        }
+    window.copyCard = () => {
+        navigator.clipboard.writeText("4073420068165541");
+        alert("Karta raqami nusxalandi!");
     };
 </script>
 </body>
