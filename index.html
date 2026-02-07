@@ -3,55 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro: Volume Fade</title>
+    <title>Kino Pro: Gaze Control</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
         
         .main-app { height: 100vh; display: flex; flex-direction: column; }
-        video { width: 100%; flex-grow: 1; background: #000; }
+        video#v { width: 100%; flex-grow: 1; background: #000; }
 
-        .purple-bar { 
+        .purple-panel { 
             background: linear-gradient(135deg, var(--p), #4b0082); 
             padding: 15px; text-align: center; border-top: 1px solid #333;
         }
         
-        .btn-tg { 
-            background: #fff; color: #000; border: none; padding: 15px; 
-            border-radius: 12px; font-weight: bold; width: 85%; cursor: pointer;
+        #gaze-dot { 
+            position: absolute; width: 10px; height: 10px; background: red; 
+            border-radius: 50%; pointer-events: none; display: none; z-index: 1000;
+            box-shadow: 0 0 10px red;
         }
 
-        .volume-indicator {
-            height: 4px; background: rgba(255,255,255,0.2); margin-top: 10px; border-radius: 2px; overflow: hidden;
-        }
-        #v-bar { height: 100%; background: #00ff00; width: 100%; transition: width 0.5s; }
+        #debug-cam { position: absolute; top: 5px; left: 5px; width: 60px; height: 45px; opacity: 0.4; transform: scaleX(-1); border-radius: 5px; }
         
-        #status-text { font-size: 11px; margin-bottom: 5px; display: block; }
+        .btn-tg { background: #fff; color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; width: 85%; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="setup" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
-    <h1 style="color: var(--p);">🎬 KINO PRO</h1>
-    <p>Ovoz pasayishi orqali uyqu nazorati (5s test)</p>
+    <h2 style="color: var(--p);">🎬 KINO PRO: GAZE</h2>
+    <p>Nigohingiz orqali uyg'oqlikni aniqlaydi</p>
     <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
-    <input type="file" id="f" hidden accept="video/*" onchange="startApp(event)">
+    <input type="file" id="f" hidden accept="video/*" onchange="bootGazeApp(event)">
 </div>
 
 <div id="player-ui" class="main-app" style="display: none;">
+    <video id="debug-cam" autoplay muted></video>
+    <div id="gaze-dot"></div>
     <video id="v" controls playsinline></video>
     
-    <div class="purple-bar" onclick="resetVolume()">
-        <span id="status-text">Ovoz nazorati: Faol ✅</span>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold;">
-            <span>Hozirgi ovoz balandligi:</span>
-            <span id="v-num">100%</span>
+    <div class="purple-panel" onclick="resetAll()">
+        <div style="display: flex; justify-content: space-between; font-size: 11px;">
+            <span>Nigoh: <b id="g-status">Aniqlanmoqda...</b></span>
+            <span>Ovoz: <b id="v-status">100%</b></span>
         </div>
-        <div class="volume-indicator">
-            <div id="v-bar"></div>
+        <div style="height: 4px; background: rgba(255,255,255,0.2); margin-top: 8px; border-radius: 2px;">
+            <div id="v-bar" style="height: 100%; background: #00ff00; width: 100%; transition: 0.5s;"></div>
         </div>
-        <p style="font-size: 10px; margin-top: 8px; opacity: 0.8;">Ovoz pasaysa, ekranga bosing!</p>
     </div>
 </div>
 
@@ -60,81 +59,81 @@
     tg.expand();
 
     const v = document.getElementById('v');
+    const gazeDot = document.getElementById('gaze-dot');
+    const gStatus = document.getElementById('g-status');
     const vBar = document.getElementById('v-bar');
-    const vNum = document.getElementById('v-num');
-    const statusText = document.getElementById('status-text');
     
-    let fadeTimer;
-    let currentVolume = 1.0;
+    let currentVol = 1.0;
+    let lookTimer = 0;
 
-    function startApp(e) {
+    async function bootGazeApp(e) {
         const file = e.target.files[0];
         if(!file) return;
+
+        // Modellar yuklanishi
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320 } });
+        document.getElementById('debug-cam').srcObject = stream;
 
         v.src = URL.createObjectURL(file);
         document.getElementById('setup').style.display = 'none';
         document.getElementById('player-ui').style.display = 'flex';
         
-        // Saqlangan joyidan davom etish
-        const saved = localStorage.getItem("kino_" + file.name);
-        if(saved) v.currentTime = saved;
-
         v.play();
-        startFadeLogic();
+        startGazeTracking();
     }
 
-    // Har 5 soniyada ovozni pasaytirish mantiqi
-    function startFadeLogic() {
-        fadeTimer = setInterval(() => {
+    function startGazeTracking() {
+        setInterval(async () => {
             if (v.paused) return;
 
-            currentVolume -= 0.1; // 10% ga pasaytirish
-            if (currentVolume < 0) currentVolume = 0;
+            const detection = await faceapi.detectSingleFace(
+                document.getElementById('debug-cam'), 
+                new faceapi.TinyFaceDetectorOptions()
+            ).withFaceLandmarks();
 
-            v.volume = currentVolume;
-            updateUI();
+            if (detection) {
+                const landmarks = detection.landmarks;
+                const nose = landmarks.getNose()[0];
+                
+                // Nigoh yo'nalishini burun va yuz holatidan taxmin qilish
+                gStatus.innerText = "Uyg'oq 👀";
+                gStatus.style.color = "#00ff00";
+                resetAll(); // Nigoh sezilsa hammasini tiklash
+            } else {
+                // Nigoh yo'qolsa (Ko'z yumilsa yoki yuz o'girilsa)
+                currentVol -= 0.1; // Har soniyada ovoz 10% pasayadi
+                if (currentVol < 0) currentVol = 0;
+                
+                v.volume = currentVol;
+                updateUI();
+                
+                gStatus.innerText = "Nigoh yo'qolgan! ⚠️";
+                gStatus.style.color = "red";
 
-            // Agar ovoz nolga tushsa va foydalanuvchi uxlab qolgan bo'lsa
-            if (currentVolume <= 0) {
-                clearInterval(fadeTimer);
-                v.pause();
-                alert("Ovoz pasayishiga reaksiya bermadingiz. Video to'xtatildi.");
-                tg.close(); // Telegram Web Appni yopish
+                if (currentVol <= 0) {
+                    v.pause();
+                    tg.close();
+                }
             }
-        }, 5000); // 5 soniya (test uchun)
+        }, 1000); // Har 1 soniyada (test uchun tezlashtirilgan)
     }
 
-    function resetVolume() {
-        currentVolume = 1.0;
+    function resetAll() {
+        currentVol = 1.0;
         v.volume = 1.0;
         updateUI();
-        statusText.innerText = "Ovoz tiklandi! ✅";
-        statusText.style.color = "#00ff00";
-        setTimeout(() => { 
-            statusText.innerText = "Ovoz nazorati: Faol ✅"; 
-            statusText.style.color = "white";
-        }, 2000);
     }
 
     function updateUI() {
-        const percent = Math.round(currentVolume * 100);
-        vBar.style.width = percent + "%";
-        vNum.innerText = percent + "%";
-        
-        // Rangni o'zgartirish (ogohlantirish uchun)
-        if (percent < 40) vBar.style.background = "red";
-        else if (percent < 70) vBar.style.background = "yellow";
-        else vBar.style.background = "#00ff00";
+        const p = Math.round(currentVol * 100);
+        vBar.style.width = p + "%";
+        document.getElementById('v-status').innerText = p + "%";
+        vBar.style.background = p < 40 ? "red" : "#00ff00";
     }
-
-    // Videoga teginilganda ham ovozni tiklash
-    v.addEventListener('mousedown', resetVolume);
-    v.addEventListener('touchstart', resetVolume);
-
-    // Progresni saqlash
-    setInterval(() => {
-        if(!v.paused) localStorage.setItem("kino_" + v.src, v.currentTime);
-    }, 5000);
 </script>
 </body>
 </html>
