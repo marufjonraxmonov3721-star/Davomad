@@ -6,58 +6,59 @@
     <title>Kino Pro: Player</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #000; color: white; margin: 0; font-family: sans-serif; overflow: hidden; }
+        body { background: #000; color: white; margin: 0; font-family: sans-serif; }
         .player-container { height: 100vh; display: flex; flex-direction: column; }
-        iframe { width: 100%; flex-grow: 1; border: none; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
-        .p-btn { background: #7b42f5; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        #video-frame { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #000; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        .card { background: #7b42f5; padding: 30px; border-radius: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="player-container" id="main-ui">
-    <div id="input-screen" style="padding: 50px; text-align: center;">
-        <h2 style="color: #7b42f5;">🎬 KINO PRO</h2>
-        <input type="text" id="targetLink" placeholder="Admin yaratgan linkni qo'ying" style="width: 100%; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-        <button class="p-btn" onclick="startCinema()">KO'RISH</button>
+<div class="player-container">
+    <div id="input-screen" style="padding: 40px; text-align: center;">
+        <h2>🎬 KINO PRO</h2>
+        <input type="text" id="linkIn" placeholder="Konvertor bergan linkni qo'ying" style="width: 100%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px;">
+        <button onclick="playMovie()" style="padding: 15px 30px; border-radius: 10px; border: none; background: #7b42f5; color: white; font-weight: bold;">KO'RISH</button>
     </div>
 
-    <div id="video-area" style="display: none; flex-grow: 1;">
-        <iframe id="kino-frame" src=""></iframe>
-        <div style="background: #111; padding: 10px; text-align: center; font-size: 12px;">3 bosqichli nazorat faol ✅</div>
-    </div>
+    <div id="video-frame" style="display: none;">
+        </div>
 </div>
 
 <div id="check-modal" class="modal">
-    <div style="text-align: center; background: #222; padding: 30px; border-radius: 20px; border: 2px solid #7b42f5;">
+    <div class="card">
         <h2>UYG'OQMISIZ? 😴</h2>
-        <div id="timer" style="font-size: 40px; font-weight: bold; margin: 15px 0;">30</div>
-        <button class="p-btn" onclick="confirmWake()">HA, UYG'OQMAN!</button>
+        <div id="timer" style="font-size: 40px; font-weight: bold;">30</div>
+        <button onclick="confirmWake()" style="background: white; color: black; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px;">HA!</button>
     </div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-
-    let checkCount = 0;
+    
     let timer;
+    let checkIdx = 0;
 
-    function startCinema() {
-        const url = document.getElementById('targetLink').value;
-        if (!url) return;
+    function playMovie() {
+        const link = document.getElementById('linkIn').value.trim();
+        if(!link) return;
 
-        document.getElementById('kino-frame').src = url;
         document.getElementById('input-screen').style.display = 'none';
-        document.getElementById('video-area').style.display = 'flex';
+        const frame = document.getElementById('video-frame');
+        frame.style.display = 'flex';
+        
+        // Telegram postini to'g'ri ko'rsatish uchun iframe yaratish
+        frame.innerHTML = `<iframe src="${link}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
 
-        // Har 30 daqiqada (3 marta) tekshirish mantiqi
+        // Har 30 daqiqada tekshirish (Kino vaqtini bilish imkoni bo'lmagani uchun taymer)
         setInterval(() => {
-            if (checkCount < 3) {
+            if(checkIdx < 3) {
                 triggerCheck();
-                checkCount++;
+                checkIdx++;
             }
-        }, 30 * 60 * 1000); 
+        }, 30 * 60 * 1000);
     }
 
     function triggerCheck() {
@@ -66,7 +67,7 @@
         timer = setInterval(() => {
             left--;
             document.getElementById('timer').innerText = left;
-            if (left <= 0) { clearInterval(timer); tg.close(); }
+            if(left <= 0) { clearInterval(timer); tg.close(); }
         }, 1000);
     }
 
