@@ -3,161 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kino Pro TWA</title>
+    <title>Kino Pro: Smart Sensor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
         :root { --p: #7b42f5; --bg: #000; }
-        body { 
-            background: var(--bg); color: white; font-family: sans-serif; 
-            margin: 0; padding: 0; overflow: hidden;
-            -webkit-touch-callout: none; -webkit-user-select: none;
-        }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
         
-        .tg-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        
-        .player-card { width: 100%; max-width: 500px; background: #111; position: relative; }
-        video#v { width: 100%; display: block; aspect-ratio: 16/9; }
+        .main-app { height: 100vh; display: flex; flex-direction: column; }
+        video { width: 100%; flex-grow: 1; background: #000; }
 
-        .overlay {
+        /* Aktivlik tekshiruvi oynasi */
+        #check-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(123, 66, 245, 0.95); display: none;
-            flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+            background: rgba(0, 0, 0, 0.85); display: none;
+            flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
         }
 
-        .controls { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; }
+        .purple-bar { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; text-align: center; }
         
-        #debug-cam { 
-            position: absolute; top: 5px; right: 5px; width: 50px; height: 38px; 
-            border-radius: 4px; opacity: 0.5; border: 1px solid #fff; 
-            transform: scaleX(-1); pointer-events: none;
+        .btn-tg { 
+            background: #fff; color: #000; border: none; padding: 15px; 
+            border-radius: 12px; font-weight: bold; width: 80%; cursor: pointer;
         }
 
-        .btn-tg { 
-            background: #fff; color: #000; border: none; padding: 12px; 
-            border-radius: 8px; font-weight: bold; width: 90%; cursor: pointer;
-        }
+        #sensor-info { font-size: 10px; color: #777; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div class="tg-container" id="loader-view">
-    <div style="text-align: center; padding: 20px;">
-        <h2 style="color: var(--p);">🎬 KINO PRO</h2>
-        <p>Telegram uchun maxsus tayyorlandi</p>
-        <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
-        <input type="file" id="f" hidden accept="video/*" onchange="initTelegramApp(event)">
-    </div>
+<div id="setup" style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; padding: 20px; text-align: center;">
+    <h1 style="color: var(--p);">🎬 KINO PRO</h1>
+    <p>Aqlli harakat datchigi yoqilgan</p>
+    <button class="btn-tg" onclick="document.getElementById('f').click()">KINO TANLASH</button>
+    <input type="file" id="f" hidden accept="video/*" onchange="startApp(event)">
 </div>
 
-<div class="tg-container" id="player-view" style="display: none;">
-    <div class="player-card">
-        <video id="debug-cam" autoplay muted playsinline></video>
-        <video id="v" playsinline controls></video>
-        
-        <div id="sleep-overlay" class="overlay">
-            <h2>UYQU REJIMI 😴</h2>
-            <p>Ko'zlar yopildi, video to'xtatildi.</p>
-            <button class="btn-tg" onclick="wakeUp()">DAVOM ETTIRISH</button>
-        </div>
+<div id="player-ui" class="main-app" style="display: none;">
+    <video id="v" controls playsinline></video>
+    
+    <div id="check-overlay">
+        <h2 style="color: var(--p);">UYG'OQMISIZ?</h2>
+        <p>Iltimos, tasdiqlang, aks holda video o'chadi.</p>
+        <button class="btn-tg" onclick="confirmIdentity()">HA, UYG'OQMAN</button>
+        <div id="countdown" style="margin-top: 15px; font-size: 20px;">20</div>
+    </div>
 
-        <div class="controls">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px;">
-                <span>👁️ <b id="e-status">Aniqlanmoqda...</b></span>
-                <span id="save-msg">AVTO-SAQLASH ✅</span>
-            </div>
-            <button class="btn-tg" onclick="Telegram.WebApp.close()" style="background: #000; color: #fff;">ILOVANI YOPISH</button>
+    <div class="purple-bar">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <span id="move-status">Harakat: Barqaror ✅</span>
+            <span id="timer-display">Tekshiruv: 15:00</span>
         </div>
+        <div id="sensor-info">Giroskop faol...</div>
     </div>
 </div>
 
 <script>
-    // Telegram Web App sozlamalari
     const tg = window.Telegram.WebApp;
-    tg.expand(); // Ilovani to'liq ekranga yoyish
-    tg.ready();
+    tg.expand();
 
     const v = document.getElementById('v');
-    const eStatus = document.getElementById('e-status');
-    let eyeTimer = null;
+    let lastMove = Date.now();
+    let checkInterval = 15 * 60; // Har 15 daqiqada
+    let countdownVal = 20;
+    let timerIdx, countIdx;
 
-    async function initTelegramApp(e) {
+    function startApp(e) {
         const file = e.target.files[0];
         if(!file) return;
 
-        eStatus.innerText = "Datchiklar yoqilmoqda...";
-        
-        // Modellar va Kamera (TWA uchun optimallashgan)
-        try {
-            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
-            ]);
-
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user", width: 200 } 
-            });
-            document.getElementById('debug-cam').srcObject = stream;
-        } catch (err) {
-            alert("Kamera ruxsati berilmadi! Aqlli rejim ishlamaydi.");
-        }
-
         v.src = URL.createObjectURL(file);
-        document.getElementById('loader-view').style.display = 'none';
-        document.getElementById('player-view').style.display = 'flex';
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('player-ui').style.display = 'flex';
         
         // Eslab qolish
-        const savedTime = localStorage.getItem(file.name);
-        if(savedTime) v.currentTime = savedTime;
+        const saved = localStorage.getItem(file.name);
+        if(saved) v.currentTime = saved;
 
         v.play();
-        startTracking();
+        initSensors();
+        startCheckTimer();
     }
 
-    function startTracking() {
-        setInterval(async () => {
-            if (v.paused) return;
-
-            const detection = await faceapi.detectSingleFace(
-                document.getElementById('debug-cam'), 
-                new faceapi.TinyFaceDetectorOptions()
-            ).withFaceLandmarks();
-
-            if (detection) {
-                const landmarks = detection.landmarks;
-                const left = landmarks.getLeftEye();
-                const right = landmarks.getRightEye();
-                const eyeHeight = (left[4].y - left[1].y + right[4].y - right[1].y) / 2;
-                
-                if (eyeHeight < 2.3) { 
-                    if (!eyeTimer) eyeTimer = Date.now();
-                    let diff = Math.floor((Date.now() - eyeTimer) / 1000);
-                    eStatus.innerText = `UYQU (${10 - diff}s)`;
-                    eStatus.style.color = "red";
-                    if (diff >= 10) { v.pause(); document.getElementById('sleep-overlay').style.display = 'flex'; }
-                } else {
-                    eyeTimer = null;
-                    eStatus.innerText = "OCHIQ 👀";
-                    eStatus.style.color = "#00ff00";
-                }
-            } else {
-                eStatus.innerText = "YUZ YO'Q ⚠️";
-                eStatus.style.color = "orange";
+    // 1. Giroskop (Harakatni sezish)
+    function initSensors() {
+        window.addEventListener('deviceorientation', (event) => {
+            // Agar telefon burchagi keskin o'zgarsa (uxlab qolib qo'ldan tushsa yoki og'sa)
+            if (Math.abs(event.beta) > 45 || Math.abs(event.gamma) > 45) {
+                lastMove = Date.now();
+                document.getElementById('move-status').innerText = "Harakat: Sezildi ⚡";
             }
-        }, 600);
+        });
+
+        // Ekran bosilganda ham vaqtni yangilash
+        window.addEventListener('touchstart', () => { lastMove = Date.now(); });
     }
 
-    function wakeUp() {
-        document.getElementById('sleep-overlay').style.display = 'none';
-        eyeTimer = null;
+    // 2. Aktivlik taymeri
+    function startCheckTimer() {
+        timerIdx = setInterval(() => {
+            if (v.paused) return;
+            
+            checkInterval--;
+            let mins = Math.floor(checkInterval / 60);
+            let secs = checkInterval % 60;
+            document.getElementById('timer-display').innerText = `Tekshiruv: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+            // Agar 15 daqiqa harakatsiz bo'lsa yoki vaqt tugasa
+            if (checkInterval <= 0) {
+                triggerCheck();
+            }
+        }, 1000);
+    }
+
+    function triggerCheck() {
+        clearInterval(timerIdx);
+        v.pause();
+        document.getElementById('check-overlay').style.display = 'flex';
+        
+        countdownVal = 20;
+        countIdx = setInterval(() => {
+            countdownVal--;
+            document.getElementById('countdown').innerText = countdownVal;
+            if (countdownVal <= 0) {
+                clearInterval(countIdx);
+                tg.close(); // Ilovani butunlay yopish
+            }
+        }, 1000);
+    }
+
+    function confirmIdentity() {
+        clearInterval(countIdx);
+        document.getElementById('check-overlay').style.display = 'none';
+        checkInterval = 15 * 60; // Taymerni qayta tiklash
+        startCheckTimer();
         v.play();
     }
 
-    // Saqlash
+    // Har 5 soniyada eslab qolish
     setInterval(() => {
         if(!v.paused) localStorage.setItem(v.src, v.currentTime);
     }, 5000);
+
 </script>
 </body>
 </html>
