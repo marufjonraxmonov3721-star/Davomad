@@ -3,122 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kino Pro WebApp</title>
+    <title>Kino Pro: Smart Sleep</title>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     <style>
-        :root { --main-purple: #7b42f5; --bg-dark: #0a0a0a; }
-        body { background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+        :root { --p: #7b42f5; --bg: #050505; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; text-align: center; }
         
-        .header { width: 100%; padding: 15px; text-align: center; background: #111; border-bottom: 2px solid var(--main-purple); font-weight: bold; }
+        .card { background: #111; border-radius: 20px; border: 1px solid #333; overflow: hidden; max-width: 600px; margin: auto; position: relative; }
+        video { width: 100%; display: block; }
 
-        /* Video zona */
-        #player-container { width: 100%; max-width: 600px; position: relative; display: none; margin-top: 10px; }
-        video { width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(123, 66, 245, 0.4); }
-
-        /* Binafsha panel */
-        .controls-card { 
-            background: linear-gradient(145deg, #7b42f5, #4b0082); 
-            margin: 15px; padding: 20px; border-radius: 20px; width: 90%; max-width: 550px;
-        }
-
-        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .purple-area { background: linear-gradient(135deg, var(--p), #4b0082); padding: 15px; }
+        .status-bar { font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px; display: flex; justify-content: space-between; }
         
-        select, .btn { 
-            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
-            color: white; padding: 10px; border-radius: 10px; cursor: pointer; outline: none;
-        }
-
-        .upload-area { 
-            margin-top: 50px; border: 2px dashed var(--main-purple); 
-            padding: 40px; border-radius: 20px; text-align: center; cursor: pointer;
-        }
-
-        /* Sifatni pasaytirish uchun filtr */
-        .low-res { filter: blur(1.2px) contrast(90%); }
-        .mid-res { filter: blur(0.5px); }
-        .high-res { filter: none; }
+        button { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        
+        .upload-box { border: 2px dashed var(--p); padding: 40px; border-radius: 20px; margin: 50px auto; max-width: 350px; cursor: pointer; }
+        
+        /* Kamera holati */
+        #eye-status { color: #00ff00; font-weight: bold; }
+        .warning { color: #ff0000 !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        
+        #cam-preview { position: absolute; top: 10px; left: 10px; width: 80px; height: 60px; border-radius: 5px; border: 1px solid var(--p); transform: scaleX(-1); opacity: 0.3; }
     </style>
 </head>
 <body>
 
-    <div class="header">🎬 KINO PRO APP</div>
-
-    <div id="upload-zone" class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <span style="font-size: 40px;">📂</span>
-        <p>Telefoningizdan kino tanlang</p>
-        <input type="file" id="fileInput" hidden accept="video/*" onchange="handleVideo(event)">
+    <div id="start-screen" class="upload-box" onclick="document.getElementById('f').click()">
+        <span style="font-size: 50px;">🎬</span>
+        <h3>Kino yuklash va Aqlli Taymerni yoqish</h3>
+        <p style="font-size: 12px; color: #888;">(Kamera ko'zlaringizni kuzatadi)</p>
+        <input type="file" id="f" hidden accept="video/*" onchange="initApp(event)">
     </div>
 
-    <div id="player-container">
-        <video id="mainVideo" controls controlsList="nodownload"></video>
+    <div id="player-screen" class="card" style="display: none;">
+        <video id="cam-preview" autoplay muted></video>
         
-        <div class="controls-card">
-            <div class="row">
-                <span id="fileName" style="font-size: 14px; opacity: 0.9;">Kino nomi...</span>
-                <span id="resBadge" style="background: red; padding: 2px 6px; border-radius: 5px; font-size: 10px;">HD</span>
-            </div>
+        <video id="v" controls ontimeupdate="saveProgress()"></video>
+        
+        <div class="status-bar">
+            <span>Holat: <span id="eye-status">Ko'zlar ochiq 👀</span></span>
+            <span id="save-msg">Saqlandi ✅</span>
+        </div>
 
-            <div class="row">
-                <div>
-                    <label>Sifat: </label>
-                    <select id="resSelect" onchange="applyQuality()">
-                        <option value="high">1080p (Original)</option>
-                        <option value="mid">720p (O'rta)</option>
-                        <option value="low">480p (Past)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Tezlik: </label>
-                    <select onchange="document.getElementById('mainVideo').playbackRate = this.value">
-                        <option value="1">1x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="2">2x</option>
-                    </select>
-                </div>
-            </div>
+        <div class="purple-area">
+            <h4 id="m-name" style="margin: 0 0 10px 0;">Kino nomi</h4>
             
-            <button class="btn" style="width: 100%;" onclick="location.reload()">BOSHQA KINO TANLASH</button>
+            <div style="font-size: 13px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
+                <b>Aqlli reja:</b> Agar ko'zingiz 10 soniya yopilsa, video to'xtaydi va ilova uyqu rejimiga o'tadi.
+            </div>
+
+            <button onclick="location.reload()" style="background: #000;">ILOVANI YOPISH</button>
         </div>
     </div>
 
     <script>
-        const video = document.getElementById('mainVideo');
-        const container = document.getElementById('player-container');
-        const uploadZone = document.getElementById('upload-zone');
+        const v = document.getElementById('v');
+        const cam = document.getElementById('cam-preview');
+        const eyeStatus = document.getElementById('eye-status');
+        let closedTimer = 0;
+        let movieKey = "";
 
-        function handleVideo(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                video.src = url;
-                document.getElementById('fileName').innerText = file.name.substring(0, 30);
-                
-                uploadZone.style.display = 'none';
-                container.style.display = 'block';
-                video.play();
-            }
+        // 1. Kutubxonalarni yuklash
+        async function loadModels() {
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
         }
 
-        function applyQuality() {
-            const res = document.getElementById('resSelect').value;
-            const badge = document.getElementById('resBadge');
+        // 2. Ilovani boshlash
+        async function initApp(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            movieKey = "kino_" + file.name.replace(/\s/g, '');
+            document.getElementById('m-name').innerText = file.name;
+            v.src = URL.createObjectURL(file);
             
-            // Sifatni o'zgartirish: Brauzerda bitta faylni haqiqiy o'lchamini o'zgartirib bo'lmaydi,
-            // lekin CSS Render orqali piksellarni qayta ishlash eng yaqin yo'li.
-            video.className = ""; // Eski klasni o'chirish
-            if (res === 'low') {
-                video.classList.add('low-res');
-                badge.innerText = "480p";
-                badge.style.background = "#555";
-            } else if (res === 'mid') {
-                video.classList.add('mid-res');
-                badge.innerText = "720p";
-                badge.style.background = "orange";
-            } else {
-                video.classList.add('high-res');
-                badge.innerText = "1080p";
-                badge.style.background = "red";
+            document.getElementById('start-screen').innerText = "Kamera va Modellar yuklanmoqda...";
+            await loadModels();
+            await startCamera();
+            
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('player-screen').style.display = 'block';
+
+            // Eslab qolish funksiyasi
+            const savedTime = localStorage.getItem(movieKey);
+            if(savedTime) {
+                if(confirm("Siz bu kinoni oxirgi marta " + Math.floor(savedTime/60) + "-daqiqada to'xtatgansiz. Davom ettiramizmi?")) {
+                    v.currentTime = savedTime;
+                }
             }
+            v.play();
+            detectEyes();
+        }
+
+        // 3. Kamera ishga tushishi
+        async function startCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+            cam.srcObject = stream;
+        }
+
+        // 4. KO'ZLARNI KUZATISH (Aqlli Taymer)
+        async function detectEyes() {
+            setInterval(async () => {
+                const detections = await faceapi.detectSingleFace(cam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+                
+                if (detections) {
+                    const landmarks = detections.landmarks;
+                    const leftEye = landmarks.getLeftEye();
+                    const rightEye = landmarks.getRightEye();
+
+                    // Ko'z ochiqligini aniqlash (masofa hisobi)
+                    const isClosed = (leftEye[4].y - leftEye[1].y) < 3 && (rightEye[4].y - rightEye[1].y) < 3;
+
+                    if (isClosed) {
+                        closedTimer++;
+                        eyeStatus.innerText = "Yopiq! (" + (10 - closedTimer) + "s)";
+                        eyeStatus.className = "warning";
+                        
+                        if (closedTimer >= 10) {
+                            v.pause();
+                            alert("Siz uxlab qoldingiz shekilli? Video to'xtatildi.");
+                            closedTimer = 0;
+                        }
+                    } else {
+                        closedTimer = 0;
+                        eyeStatus.innerText = "Ko'zlar ochiq 👀";
+                        eyeStatus.className = "";
+                    }
+                }
+            }, 1000);
+        }
+
+        // 5. Avtomatik eslab qolish
+        function saveProgress() {
+            localStorage.setItem(movieKey, v.currentTime);
+            document.getElementById('save-msg').style.opacity = "1";
+            setTimeout(() => { document.getElementById('save-msg').style.opacity = "0.3"; }, 1000);
         }
     </script>
 </body>
