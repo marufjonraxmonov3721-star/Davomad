@@ -119,7 +119,7 @@
             <span id="theme-icon-auth">🌙</span>
         </button>
 
-        <div class="text-6xl mb-4 text-yellow-500">🎓</div>
+        <div class="text-6xl mb-4 text-yellow-500">✅</div>
         <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar.uz</h1>
         
         <div class="space-y-4 text-left">
@@ -172,7 +172,7 @@
                 <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Imkoniyatlar</h2>
                 <div class="text-left space-y-3 text-sm mb-8">
                     <p>✅ <b>Moslashuvchan:</b> Savollar soni va vaqtni boshqaring.</p>
-                    <p>✅ <b>Random:</b> Har safar yangi variantlar.</p>
+                    <p>✅ <b>Random:</b> Har safar yeni variantlar.</p>
                     <p>✅ <b>Reyting:</b> O'z natijangizni dunyo bilan solishtiring.</p>
                     <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti.</p>
                 </div>
@@ -204,11 +204,33 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar soni</label>
-                    <input type="number" id="qAmount" value="20" max="50" min="5">
+                    <select id="qAmount">
+                        <option value="5">5 ta</option>
+                        <option value="10">10 ta</option>
+                        <option value="15">15 ta</option>
+                        <option value="20" selected>20 ta</option>
+                        <option value="25">25 ta</option>
+                        <option value="30">30 ta</option>
+                        <option value="35">35 ta</option>
+                        <option value="40">40 ta</option>
+                        <option value="45">45 ta</option>
+                        <option value="50">50 ta</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Daqiqa)</label>
-                    <input type="number" id="qTime" value="15">
+                    <select id="qTime">
+                        <option value="5">5 min</option>
+                        <option value="10">10 min</option>
+                        <option value="15" selected>15 min</option>
+                        <option value="20">20 min</option>
+                        <option value="25">25 min</option>
+                        <option value="30">30 min</option>
+                        <option value="35">35 min</option>
+                        <option value="40">40 min</option>
+                        <option value="45">45 min</option>
+                        <option value="50">50 min</option>
+                    </select>
                 </div>
             </div>
             <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl text-black">🚀 Testni Boshlash</button>
@@ -268,7 +290,7 @@
     </div>
 
     <div id="settings-screen" class="hidden p-6 text-center">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500">Sozlamalar</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Sozlamalar</h2>
         <div class="space-y-4">
             <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
                 <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
@@ -406,12 +428,24 @@
                 const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
                 const existingSnap = await get(ref(db, ratingPath));
                 const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
+                
+                // Faqat oldingi eng yaxshi balldan yuqori bo'lsagina yangilaydi
                 if(score > currentBest) {
-                    const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
+                    const res = { 
+                        name: `${currentUser.fName} ${currentUser.lName}`, 
+                        photo: currentUser.photo || "", 
+                        score, 
+                        subject: window.currentMeta.subj, 
+                        qCount: window.currentMeta.amount, 
+                        timeSet: window.currentMeta.time, 
+                        date: Date.now() 
+                    };
                     await set(ref(db, ratingPath), res);
                 }
                 alert(`Test yakunlandi! Natija: ${score}/${window.currentMeta.amount}`);
-            } else { alert("Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi."); }
+            } else { 
+                alert("Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi."); 
+            }
             showMenu('rating');
         }
 
