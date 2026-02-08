@@ -263,6 +263,11 @@
                 document.getElementById('reg-birth').style.display = 'none';
                 document.getElementById('reg-lang').style.display = 'none';
                 document.getElementById('txt-birth-label').style.display = 'none';
+                
+                // Qayta kirganda tilni tekshirish va o'yin savollari bo'lsa ularni yangilash
+                if(userLang !== 'uz') {
+                    changeLang(userLang, false);
+                }
             }
         } else {
             applyLanguage();
@@ -300,23 +305,29 @@
     };
 
     window.changeLang = async (lang, syncToDb = true) => {
-        const oldLang = userLang;
         userLang = lang;
         applyLanguage();
         if (syncToDb) {
             await update(userRef, { lang: lang });
             if (document.getElementById('profile').classList.contains('active')) loadProfile();
-            
-            // AGAR O'YIN KETAYOTGAN BO'LSA - SAVOLLARNI DARHOL TARJIMA QILISH
-            if (document.getElementById('game').classList.contains('active') && sessionQuestions.length > 0) {
+        }
+        
+        // AGAR O'YIN KETAYOTGAN BO'LSA YOKI QAYTA KIRILSA - JORIY SAVOLNI TARJIMA QILISH
+        if (sessionQuestions.length > 0 && currentIdx < sessionQuestions.length) {
+            const currentQ = sessionQuestions[currentIdx];
+            if (document.getElementById('game').classList.contains('active')) {
                 document.getElementById('question-text').innerText = translations[userLang].translating;
-                const currentQ = sessionQuestions[currentIdx];
-                // Joriy savolni tarjima qilish
-                currentQ.q = await translateText(currentQ.q, userLang);
-                for (let i = 0; i < currentQ.a.length; i++) {
-                    currentQ.a[i] = await translateText(currentQ.a[i], userLang);
-                }
-                showQuestion(); // Ekranni yangilash
+            }
+            
+            // Faqat bir marta tarjima qilish (qayta-qayta chaqirmaslik uchun)
+            const translatedQ = await translateText(currentQ.q, userLang);
+            currentQ.q = translatedQ;
+            for (let i = 0; i < currentQ.a.length; i++) {
+                currentQ.a[i] = await translateText(currentQ.a[i], userLang);
+            }
+            
+            if (document.getElementById('game').classList.contains('active')) {
+                showQuestion(); 
             }
         }
     };
@@ -389,6 +400,7 @@
         if (allQ.length === 0 && userLang !== 'uz') {
             const uzSnap = await get(ref(db, `brain_questions/uz/${userLevel}`));
             allQ = uzSnap.val() || [];
+            // Optimallashgan yuklash
             for (let item of allQ) {
                 item.q = await translateText(item.q, userLang);
                 for (let i = 0; i < item.a.length; i++) {
