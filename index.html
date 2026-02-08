@@ -23,17 +23,15 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes rotateGold { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotateGold 1s linear infinite; }
 
         .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: #050505; color: var(--gold); font-size: 16px; box-sizing: border-box; }
-        .reg-input::placeholder { color: #555; }
-
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
-        #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
         
-        .session-info { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; }
         .progress-container { background: #111; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #222; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
 
@@ -48,24 +46,23 @@
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
-        /* Profil Stili */
-        .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
-        .p-info { color: #fff; font-size: 18px; margin: 10px 0; font-weight: bold; }
-        .p-sub { color: #888; font-size: 14px; margin-bottom: 20px; }
-        .p-badge { background: #111; border: 1px solid var(--gold-dark); padding: 10px; border-radius: 10px; display: inline-block; margin: 5px; font-size: 12px; }
+        /* Onboarding Kengaytirilgan Stili */
+        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
+        .ob-card { background: #0a0a0a; border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
+        .ob-icon { font-size: 60px; margin-bottom: 20px; }
+        .ob-title { font-size: 28px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
+        .ob-desc { color: #fff; font-size: 17px; line-height: 1.6; margin-bottom: 25px; }
+        
+        .stat-line { display: flex; justify-content: space-between; background: #111; padding: 12px 20px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--gold); }
+        .stat-label { color: #888; font-size: 14px; }
+        .stat-value { color: var(--gold); font-weight: bold; font-size: 16px; }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #111; z-index: 1000; }
         .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
         .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; text-shadow: 0 0 5px var(--gold); }
         
-        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; align-items: center; color: #eee; }
-        b.gold-text { color: var(--gold); }
-
-        /* Onboarding stili */
-        .ob-step { animation: fadeIn 0.5s ease; }
-        .ob-icon { font-size: 50px; margin-bottom: 20px; }
-        .ob-title { color: var(--gold); font-size: 24px; margin-bottom: 15px; font-weight: bold; }
-        .ob-desc { color: #ccc; font-size: 16px; line-height: 1.6; }
+        .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; }
+        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; color: #eee; }
     </style>
 </head>
 <body>
@@ -86,22 +83,21 @@
         <button onclick="login()" class="btn-main">BOSHLASH</button>
     </div>
 
-    <div id="onboarding">
-        <div class="quiz-card ob-step">
-            <div id="ob-content">
-                </div>
-            <button onclick="nextObStep()" class="btn-main" id="ob-btn">KEYINGISI</button>
+    <div id="onboarding" class="ob-screen">
+        <div class="ob-card">
+            <div id="ob-content"></div>
+            <button onclick="nextObStep()" class="btn-main" id="ob-btn">TUSHUNARLI</button>
         </div>
     </div>
 
     <div id="game">
         <div class="level-header">
             <div id="level-title">OSON</div>
-            <div class="session-info">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-correct">0</b></div>
+            <div style="font-size: 14px; color: #888; margin-top: 10px; font-weight: bold;">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-correct">0</b></div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
         <div class="quiz-card">
-            <div class="question" id="question-text">Savol tayyorlanmoqda...</div>
+            <div class="question" id="question-text">Yuklanmoqda...</div>
             <div id="options-box" class="options-grid"></div>
         </div>
     </div>
@@ -124,15 +120,13 @@
         <h2 style="color:var(--gold)">👤 Mening Profilim</h2>
         <div class="quiz-card">
             <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-            <div id="p-full-name" class="p-info">Ism Familiya</div>
-            <div id="p-age-info" class="p-sub">Yoshingiz yuklanmoqda...</div>
-            <div style="margin-top:20px;">
-                <div class="p-badge">Daraja: <span id="p-level" class="gold-text">OSON</span></div>
-                <div class="p-badge">Umumiy Ball: <span id="p-points" class="gold-text">0</span></div>
+            <div id="p-full-name" style="color:#fff; font-size:18px; font-weight:bold; margin-bottom:5px;">Ism Familiya</div>
+            <div id="p-age-info" style="color:#888; font-size:14px; margin-bottom:20px;">0 yosh</div>
+            <div style="margin-top:10px;">
+                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;">Daraja: <span id="p-level" style="color:var(--gold)">OSON</span></div>
+                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;">Ball: <span id="p-points" style="color:var(--gold)">0</span></div>
             </div>
-            <div id="p-countdown" style="margin-top:20px; font-size:13px; color:var(--gold); font-family: monospace;">
-                Tug'ilgan kuningizga qolgan vaqt yuklanmoqda...
-            </div>
+            <div id="p-countdown" style="margin-top:20px; font-size:13px; color:var(--gold); font-family: monospace;"></div>
         </div>
     </div>
 </div>
@@ -172,17 +166,19 @@
     let obStep = 0;
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 10, title: "🟢 OSON", nextLvl: "ortacha" },
-        ortacha: { qCount: 25, passScore: 17, title: "🟡 O'RTACHA", nextLvl: "qiyin" },
-        qiyin: { qCount: 35, passScore: 24, title: "🟠 QIYINROQ", nextLvl: "juda_qiyin" },
-        juda_qiyin: { qCount: 45, passScore: 30, title: "🔴 JUDA QIYIN", nextLvl: "juda_qiyin" }
+        oson: { qCount: 15, passScore: 10, title: "🟢 OSON", nextLvl: "ortacha", icon: "🌱" },
+        ortacha: { qCount: 25, passScore: 17, title: "🟡 O'RTACHA", nextLvl: "qiyin", icon: "⚡" },
+        qiyin: { qCount: 35, passScore: 24, title: "🟠 QIYINROQ", nextLvl: "juda_qiyin", icon: "🔥" },
+        juda_qiyin: { qCount: 45, passScore: 30, title: "🔴 MASTER", nextLvl: "juda_qiyin", icon: "👑" }
     };
 
     const onboardingData = [
-        { icon: "🧠", title: "Aql Jangiga xush kelibsiz!", desc: "Bu ilovada siz o'z bilimingizni sinab, haqiqiy Master darajasiga ko'tarilishingiz mumkin." },
-        { icon: "📊", title: "Bosqichma-bosqich tizim", desc: "O'yin 4 bosqichdan iborat: Oson, O'rtacha, Qiyin va Master. Har bir bosqichda minimal ball to'plab yuqoriga chiqasiz." },
-        { icon: "🏆", title: "Dunyo Reytingi", desc: "Barcha foydalanuvchilar bilan bellashing! To'plagan umumiy ballaringiz reytingda aks etadi." },
-        { icon: "👤", title: "Sizning Profilingiz", desc: "Profilingizda ballaringiz, joriy darajangiz va tug'ilgan kuningizga qolgan vaqtni kuzatib borishingiz mumkin." }
+        { icon: "🧠", title: "AQL JANGI", desc: "Haqiqiy bilimlar to'qnashuviga xush kelibsiz! Keling, o'yin qoidalari bilan tanishamiz." },
+        { level: "oson" },
+        { level: "ortacha" },
+        { level: "qiyin" },
+        { level: "juda_qiyin" },
+        { icon: "🏆", title: "TAYYORMIZ!", desc: "Hamma qoidalarni bildingiz. Endi jangni boshlash vaqti keldi! Omad yor bo'lsin." }
     ];
 
     window.onload = async () => {
@@ -208,7 +204,7 @@
             const surname = document.getElementById('reg-surname').value.trim();
             const birth = document.getElementById('reg-birth').value;
             if(!name || !surname || !birth) { alert("Ma'lumotlarni to'liq kiriting!"); return; }
-            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, firstTime: true });
+            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0 });
             userLevel = "oson";
             startOnboarding();
         } else {
@@ -228,12 +224,31 @@
 
     function showObStep() {
         const step = onboardingData[obStep];
-        document.getElementById('ob-content').innerHTML = `
-            <div class="ob-icon">${step.icon}</div>
-            <div class="ob-title">${step.title}</div>
-            <div class="ob-desc">${step.desc}</div>
-        `;
-        document.getElementById('ob-btn').innerText = obStep === onboardingData.length - 1 ? "JANGNI BOSHLASH!" : "KEYINGISI";
+        const content = document.getElementById('ob-content');
+        
+        if (step.level) {
+            const config = gameConfig[step.level];
+            content.innerHTML = `
+                <div class="ob-icon">${config.icon}</div>
+                <div class="ob-title">${config.title}</div>
+                <div class="ob-desc">Ushbu bosqich shartlari:</div>
+                <div class="stat-line">
+                    <span class="stat-label">Savollar soni:</span>
+                    <span class="stat-value">${config.qCount} ta</span>
+                </div>
+                <div class="stat-line">
+                    <span class="stat-label">O'tish uchun:</span>
+                    <span class="stat-value">${config.passScore} ta to'g'ri</span>
+                </div>
+            `;
+        } else {
+            content.innerHTML = `
+                <div class="ob-icon">${step.icon}</div>
+                <div class="ob-title">${step.title}</div>
+                <div class="ob-desc">${step.desc}</div>
+            `;
+        }
+        document.getElementById('ob-btn').innerText = obStep === onboardingData.length - 1 ? "BOSHLADIK!" : "KEYINGISI";
     }
 
     window.nextObStep = () => {
@@ -330,7 +345,7 @@
         document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('link-' + (id === 'leaderboard' ? 'leaderboard' : id)).classList.add('active-link');
+        document.getElementById('link-' + id).classList.add('active-link');
         if (id === 'leaderboard') fetchRank();
         if (id === 'profile') loadProfile();
     };
@@ -339,7 +354,6 @@
         const snap = await get(userRef);
         const data = snap.val();
         if(!data) return;
-        document.getElementById('p-img').src = tg.initDataUnsafe?.user?.photo_url || "";
         document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
         document.getElementById('p-level').innerText = data.level.toUpperCase();
         document.getElementById('p-points').innerText = data.totalPoints;
@@ -350,17 +364,14 @@
             let age = now.getFullYear() - bDay.getFullYear();
             if (now.getMonth() < bDay.getMonth() || (now.getMonth() == bDay.getMonth() && now.getDate() < bDay.getDate())) age--;
             document.getElementById('p-age-info').innerText = `${age} yosh`;
-
             let nextBirth = new Date(now.getFullYear(), bDay.getMonth(), bDay.getDate());
             if (now > nextBirth) nextBirth.setFullYear(now.getFullYear() + 1);
-            
             const diff = nextBirth - now;
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const mins = Math.floor((diff / (1000 * 60)) % 60);
-            const secs = Math.floor((diff / 1000) % 60);
-            
-            document.getElementById('p-countdown').innerText = `Tug'ilgan kuningizga: ${days} kun, ${hours} soat, ${mins} daqiqa, ${secs} sekund`;
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+            document.getElementById('p-countdown').innerText = `Tug'ilgan kuningizga: ${d} kun, ${h} soat, ${m} min, ${s} sek`;
         };
         updateTimer();
         timerInterval = setInterval(updateTimer, 1000);
