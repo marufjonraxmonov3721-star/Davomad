@@ -43,7 +43,7 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 50px;">O'zbekistondagi eng aqlli o'yinga xush kelibsiz!</p>
+        <p style="color:#666; margin-bottom: 50px;">Bosqichma-bosqich cho'qqiga chiqing!</p>
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
     </div>
 
@@ -65,7 +65,7 @@
             <p id="result-score">To'plangan ball: 0</p>
             <p id="result-total">Umumiy XP: 0</p>
             <p id="result-msg" style="color:#888; margin-top:10px;"></p>
-            <button class="btn-next" onclick="startNewRound()">KEYINGI RAUND</button>
+            <button class="btn-next" id="next-btn-text" onclick="startNewRound()">KEYINGI RAUND</button>
         </div>
     </div>
 
@@ -98,17 +98,17 @@
     const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let totalXp = 0;
+    let totalXp = 0; // Bu bazadagi doimiy ball
     let sessionQuestions = [];
     let currentIdx = 0;
-    let roundScore = 0;
+    let roundScore = 0; // Bu faqat 15-20 ta savollik raund balli
     let isLocked = false;
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 100, title: "🟢 OSON" },
-        ortacha: { qCount: 20, passScore: 150, title: "🟡 O'RTACHA" },
-        qiyin: { qCount: 25, passScore: 200, title: "🟠 QIYIN" },
-        juda_qiyin: { qCount: 30, passScore: 250, title: "🔴 MASTER" }
+        oson: { qCount: 15, passScore: 100, title: "🟢 OSON", nextXp: 500 },
+        ortacha: { qCount: 20, passScore: 150, title: "🟡 O'RTACHA", nextXp: 1500 },
+        qiyin: { qCount: 25, passScore: 200, title: "🟠 QIYIN", nextXp: 3500 },
+        juda_qiyin: { qCount: 30, passScore: 250, title: "🔴 MASTER", nextXp: 10000 }
     };
 
     window.onload = async () => {
@@ -128,19 +128,17 @@
     };
 
     window.startNewRound = async () => {
-        // Hamma oynalarni yopish va o'yinni boshlash
         document.getElementById('result-screen').classList.remove('active');
-        document.getElementById('leaderboard').classList.remove('active');
         document.getElementById('game').classList.add('active');
         
-        // XP ga qarab darajani aniqlash
+        // XP ballariga qarab joriy darajani aniqlash
         let levelKey = totalXp < 500 ? "oson" : (totalXp < 1500 ? "ortacha" : (totalXp < 3500 ? "qiyin" : "juda_qiyin"));
         const config = gameConfig[levelKey];
         
         document.getElementById('level-title').innerText = config.title;
         document.getElementById('u-ball').innerText = totalXp;
         
-        // Bazadan savollarni olish
+        // Bazadan joriy darajadagi barcha savollarni olish va random 15/20 tasini saralash
         const qSnap = await get(ref(db, 'brain_questions/' + levelKey));
         const allQ = qSnap.val() || [];
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
@@ -177,8 +175,6 @@
         if (idx === correct) {
             el.classList.add('correct');
             roundScore += 10;
-            totalXp += 10;
-            await set(ref(db, `brain_users/${uid}/xp`), Number(totalXp));
             tg.HapticFeedback.notificationOccurred('success');
         } else {
             el.classList.add('wrong');
@@ -190,12 +186,25 @@
             if (currentIdx < gameConfig[lvlKey].qCount) {
                 showQuestion(lvlKey);
             } else {
-                showFinalResult(lvlKey);
+                processRoundEnd(lvlKey);
             }
         }, 1000);
     }
 
-    function showFinalResult(lvlKey) {
+    async function processRoundEnd(lvlKey) {
+        const config = gameConfig[lvlKey];
+        const passed = roundScore >= config.passScore;
+        
+        if (passed) {
+            // Agar o'tgan bo'lsa, ballarni umumiy XP ga qo'shamiz va bazada yangilaymiz
+            totalXp += roundScore;
+            await set(ref(db, `brain_users/${uid}/xp`), Number(totalXp));
+        }
+
+        showFinalResult(lvlKey, passed);
+    }
+
+    function showFinalResult(lvlKey, passed) {
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
         
@@ -203,24 +212,24 @@
         document.getElementById('result-score').innerText = `Raunddagi ball: ${roundScore}`;
         document.getElementById('result-total').innerText = `Umumiy XP: ${totalXp}`;
         
-        if (roundScore >= config.passScore) {
+        if (passed) {
             document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
             document.getElementById('result-status').style.color = "var(--green)";
-            document.getElementById('result-msg').innerText = "Siz muvaffaqiyatli o'tdingiz. Keyingi raundda darajangiz yangilanadi.";
+            document.getElementById('result-msg').innerText = "Siz muvaffaqiyatli o'tdingiz. Ballaringiz umumiy hisobga qo'shildi.";
+            document.getElementById('next-btn-text').innerText = "KEYINGI RAUND";
         } else {
             document.getElementById('result-status').innerText = "Yana bir bor urinib ko'ring!";
             document.getElementById('result-status').style.color = "var(--yellow)";
-            document.getElementById('result-msg').innerText = `Keyingi bosqich uchun kamida ${config.passScore} ball kerak edi.`;
+            document.getElementById('result-msg').innerText = `Bosqichdan o'tish uchun kamida ${config.passScore} ball to'plashingiz kerak edi.`;
+            document.getElementById('next-btn-text').innerText = "QAYTA URINISH";
         }
     }
 
     window.navigate = (id) => {
         document.querySelectorAll('#auth, #game, #leaderboard, #result-screen').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        
         document.getElementById('link-game').classList.toggle('active-link', id === 'game' || id === 'result-screen');
         document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
-        
         if (id === 'leaderboard') fetchRank();
     };
 
