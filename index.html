@@ -2,307 +2,241 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aql Jangi | Alohida Tizim</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miya Jangi Turniri</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { 
-            --gold: #FFD700; --gold-glow: rgba(255, 215, 0, 0.3);
-            --bg: #050505; --card-bg: rgba(25, 25, 25, 0.9);
-            --text: #ffffff; --green: #00ff88; --red: #ff4d4d; 
-        }
-        
-        body { 
-            background: var(--bg); color: var(--text); 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; padding: 0; overflow: hidden; user-select: none;
-        }
-
-        /* Sahifalar boshqaruvi */
-        .page {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box; background: var(--bg); z-index: 10;
-        }
-        .page.active { display: flex; animation: slideIn 0.4s ease-out; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Dizayn elementlari */
-        .glass-card {
-            background: var(--card-bg); padding: 30px; border-radius: 35px;
-            border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center;
-        }
-
-        .btn-main {
-            background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
-            border: none; padding: 18px; border-radius: 20px;
-            color: #000; font-weight: 800; width: 100%;
-            cursor: pointer; text-transform: uppercase; margin-top: 20px;
-            box-shadow: 0 5px 15px var(--gold-glow);
-        }
-
-        .reg-input {
-            width: 100%; padding: 18px; margin-bottom: 15px; border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
-            color: #fff; font-size: 16px; box-sizing: border-box; outline: none;
-        }
-
-        /* O'yin elementlari */
-        .color-btn { height: 85px; border-radius: 20px; border: 2px solid #222; cursor: pointer; }
-        #color-word { font-size: 45px; font-weight: 900; margin: 20px 0; text-transform: uppercase; }
-
-        /* Pastki Navigatsiya */
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; height: 70px;
-            background: #0a0a0a; display: none; justify-content: space-around;
-            align-items: center; border-top: 1px solid #222; z-index: 100;
-        }
-        .nav-link { color: #666; text-align: center; font-size: 10px; flex: 1; cursor: pointer; }
-        .nav-link.active-link { color: var(--gold); }
-        .nav-link svg { width: 24px; height: 24px; }
+        .hidden { display: none; }
+        .active-tab { color: #fbbf24; border-bottom: 2px solid #fbbf24; }
     </style>
 </head>
-<body>
+<body class="bg-slate-900 text-white font-sans overflow-hidden">
 
-<div id="page-lang" class="page">
-    <div class="glass-card">
-        <div style="font-size: 50px; margin-bottom: 10px;">🌍</div>
-        <h2 id="lt-lang-title">Tilni tanlang / Выберите язык</h2>
-        <button class="btn-main" onclick="setLang('uz')">O'zbekcha 🇺🇿</button>
-        <button class="btn-main" style="margin-top:10px;" onclick="setLang('uz_cyr')">Ўзбекча 🇺🇿</button>
-    </div>
-</div>
-
-<div id="page-auth" class="page">
-    <div class="glass-card">
-        <h2 id="lt-auth-title">Ro'yxatdan o'tish</h2>
-        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
-        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
-        <button class="btn-main" id="lt-auth-btn" onclick="register()">Davom etish</button>
-    </div>
-</div>
-
-<div id="page-onboarding" class="page">
-    <div class="glass-card">
-        <h2 id="ob-title" style="color:var(--gold)"></h2>
-        <p id="ob-desc" style="font-size: 15px; line-height: 1.6; margin: 20px 0;"></p>
-        <button class="btn-main" id="lt-ob-btn" onclick="nextObStep()">Keyingisi</button>
-    </div>
-</div>
-
-<div id="page-tournament" class="page">
-    <div class="glass-card">
-        <h2 id="lt-tour-title">Turnir Markazi</h2>
-        <p id="tour-status-msg" style="font-weight: bold;"></p>
-        <div id="pay-details" style="text-align: left; background: #000; padding: 15px; border-radius: 15px; font-size: 13px; margin: 15px 0; border: 1px dashed var(--gold);">
-            <p id="lt-pay-price">💰 Kirish: 5 000 so'm</p>
-            <p>💳 Karta: 4073 4200 6816 5541</p>
-            <p>👤 Ega: Maruf Raxmonov</p>
+    <div id="reg-screen" class="min-h-screen flex flex-col items-center justify-center p-6">
+        <h1 class="text-3xl font-bold text-yellow-500 mb-8">Ro'yxatdan o'tish</h1>
+        <div class="w-full max-w-sm space-y-4">
+            <input id="fname" type="text" placeholder="Ism" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500">
+            <input id="lname" type="text" placeholder="Familiya" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500">
+            <button onclick="register()" class="w-full bg-yellow-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition">DAVOM ETISH</button>
         </div>
-        <div id="p-counter" style="margin-bottom: 10px; opacity: 0.7;">Ishtirokchilar: <b id="p-count">0</b></div>
-        <input type="file" id="receipt-input" style="display:none;" onchange="handleReceipt(this)">
-        <button class="btn-main" style="background:#222; color:var(--gold);" onclick="document.getElementById('receipt-input').click()" id="lt-upload-btn">Chekni yuklash</button>
-        <button class="btn-main" onclick="pay()" id="lt-pay-btn">To'lov qildim</button>
-        <button class="btn-main" style="display:none; background:var(--green);" onclick="startTurnir()" id="lt-start-btn">O'yinni boshlash</button>
     </div>
-</div>
 
-<div id="page-game" class="page" style="justify-content: flex-start; padding-top: 40px;">
-    <div class="glass-card">
-        <div style="display:flex; justify-content:space-between; font-size: 14px;">
-            <span><b id="round-idx">1</b>/30</span>
-            <span style="color:var(--gold)"><b id="game-score">0</b> PTS</span>
+    <div id="intro-screen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <h2 class="text-2xl font-bold text-yellow-500 mb-6">Turnir Qoidalari</h2>
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 text-slate-300">
+            <p>1️⃣ <b>Color Rush:</b> Ranglarni tez toping.</p>
+            <p>2️⃣ <b>Math Ninja:</b> 10 ta matematik misol.</p>
+            <p>3️⃣ <b>IQ-Test:</b> 10 ta mantiqiy savol.</p>
         </div>
-        <div style="background:rgba(255,255,255,0.1); height:4px; margin:15px 0; border-radius:2px;">
-            <div id="timer-bar" style="height:100%; width:100%; background:var(--gold); transition:linear;"></div>
+        <button onclick="showMain()" class="mt-10 bg-blue-600 px-12 py-4 rounded-full font-bold shadow-lg">TUSHUNDIM</button>
+    </div>
+
+    <div id="main-app" class="hidden min-h-screen">
+        <div id="page-game" class="p-6">
+            <h2 class="text-xl font-bold mb-6">Turnir Bo'limi</h2>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                <h3 class="text-lg font-bold text-yellow-500 mb-2">Asosiy Turnir</h3>
+                <p class="text-sm text-slate-400 mb-6">Uchala bosqichda maksimal ball to'plang!</p>
+                <button onclick="startTournament()" class="w-full bg-yellow-500 text-slate-900 py-3 rounded-xl font-black">O'YINNI BOSHLASH</button>
+            </div>
         </div>
-        <div id="color-word">...</div>
-        <div id="color-options" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
+
+        <div id="page-rating" class="hidden p-6">
+            <h2 class="text-xl font-bold mb-6 text-yellow-500">🏆 Kuchli o'nlik</h2>
+            <div id="rating-list" class="space-y-3"></div>
+        </div>
+
+        <div id="page-settings" class="hidden p-6 flex flex-col items-center justify-center h-[70vh]">
+            <button onclick="window.location.reload()" class="bg-red-600/20 text-red-500 border border-red-600 px-10 py-3 rounded-xl font-bold">Tizimdan chiqish</button>
+        </div>
+
+        <div id="game-overlay" class="hidden fixed inset-0 bg-slate-900 z-50 flex flex-col p-6">
+            <div class="flex justify-between items-center mb-10">
+                <span id="phase-name" class="text-yellow-500 font-bold uppercase tracking-widest text-sm">Bosqich</span>
+                <span id="game-timer" class="text-xl font-mono bg-slate-800 px-4 py-1 rounded-lg">00</span>
+            </div>
+            <div id="game-container" class="flex-1 flex flex-col items-center justify-center text-center">
+                </div>
+        </div>
+
+        <nav class="fixed bottom-0 w-full bg-slate-800/80 backdrop-blur-md border-t border-slate-700 flex justify-around py-4">
+            <button onclick="switchTab('game')" id="tab-game" class="active-tab flex flex-col items-center"><span class="text-xs font-bold uppercase">O'yin</span></button>
+            <button onclick="switchTab('rating')" id="tab-rating" class="flex flex-col items-center"><span class="text-xs font-bold uppercase">Reyting</span></button>
+            <button onclick="switchTab('settings')" id="tab-settings" class="flex flex-col items-center"><span class="text-xs font-bold uppercase">Sozlamalar</span></button>
+        </nav>
     </div>
-</div>
 
-<div id="page-leaderboard" class="page">
-    <h2 style="color:var(--gold)">🏆 REYTING</h2>
-    <div id="rank-list" class="glass-card" style="padding: 10px; max-height: 70vh; overflow-y: auto;"></div>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-<div id="page-settings" class="page">
-    <div class="glass-card">
-        <h2 id="lt-settings-title">Sozlamalar</h2>
-        <button class="btn-main" style="background:#333;" onclick="showPage('page-lang')">Tilni o'zgartirish</button>
-        <button class="btn-main" style="background:var(--red);" onclick="logout()">Tizimdan chiqish</button>
-    </div>
-</div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+            databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+            projectId: "gen-lang-client-0228947349",
+            appId: "1:253793341504:web:709752258000dab44fcfa5"
+        };
 
-<div class="bottom-nav" id="navbar">
-    <div class="nav-link" onclick="navigate('tournament')" id="nav-tour">⚔️<br>Turnir</div>
-    <div class="nav-link" onclick="navigate('leaderboard')" id="nav-rank">🏆<br>Reyting</div>
-    <div class="nav-link" onclick="navigate('settings')" id="nav-sett">⚙️<br>Sozlamalar</div>
-</div>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        let userData = { id: tg.initDataUnsafe?.user?.id || "dev_user", fullName: "", totalScore: 0 };
+        let allQuestions = { math: [], iq: [] };
+        let currentPhase = 1;
+        let currentQuestionIdx = 0;
+        let phaseScore = 0;
 
-    const firebaseConfig = { apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI", authDomain: "gen-lang-client-0228947349.firebaseapp.com", databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com", projectId: "gen-lang-client-0228947349", appId: "1:253793341504:web:709752258000dab44fcfa5" };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+        // 1. RO'YXATDAN O'TISH
+        window.register = () => {
+            const f = document.getElementById('fname').value;
+            const l = document.getElementById('lname').value;
+            if(!f || !l) return tg.showAlert("Iltimos, ma'lumotlarni to'ldiring!");
+            userData.fullName = `${f} ${l}`;
+            document.getElementById('reg-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+        };
 
-    const uid = tg.initDataUnsafe?.user?.id ? "u" + tg.initDataUnsafe.user.id : "test_user";
-    const userRef = ref(db, 'brain_users/' + uid);
+        window.showMain = () => {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            loadQuestions();
+        };
 
-    let userData = { lang: 'uz' };
-    let obStep = 0, currentScore = 0, currentRound = 1, timerInt, receiptData = null;
-
-    const colors = [
-        { uz: "QIZIL", kir: "ҚИЗИЛ", val: "#ff3b3b" },
-        { uz: "YASHIL", kir: "ЯШИЛ", val: "#00ff88" },
-        { uz: "KO'K", kir: "КЎК", val: "#007bff" },
-        { uz: "SARIQ", kir: "САРИҚ", val: "#FFD700" },
-        { uz: "OQ", kir: "ОҚ", val: "#ffffff" }
-    ];
-
-    const trans = {
-        uz: {
-            authT: "Ro'yxatdan o'tish", authB: "Davom etish", tourT: "Turnir Markazi", payP: "💰 Kirish: 5 000 so'm", upload: "Chekni yuklash", payB: "To'lov qildim", startB: "O'yinni boshlash", settT: "Sozlamalar",
-            ob: [
-                { t: "Xush kelibsiz!", d: "Aql Jangi — bu tezkorlik turniri. Kirish narxi: 5 000 so'm." },
-                { t: "Qoida", d: "So'zni o'qimang, so'z qaysi RANGDA yozilgan bo'lsa, o'sha rangni tanlang!" },
-                { t: "Sovrinlar", d: "🥇 80k, 🥈 50k, 🥉 20k so'm. Omad!" }
-            ]
-        },
-        uz_cyr: {
-            authT: "Рўйхатдан ўтиш", authB: "Давом этиш", tourT: "Турнир Маркази", payP: "💰 Кириш: 5 000 сўм", upload: "Чекни юклаш", payB: "Тўлов қилдим", startB: "Ўйинни бошлаш", settT: "Созламалар",
-            ob: [
-                { t: "Хуш келибсиз!", d: "Ақл Жанги — бу тезкорлик турнири. Кириш нархи: 5 000 сўм." },
-                { t: "Қоида", d: "Сўзни ўқиманг, сўз қайси РАНГДА ёзилган бўлса, ўша рангni танланг!" },
-                { t: "Совринлар", d: "🥇 80к, 🥈 50к, 🥉 20к сўм. Омад!" }
-            ]
-        }
-    };
-
-    window.showPage = (id) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('navbar').style.display = (id.includes('tournament') || id.includes('leaderboard') || id.includes('settings')) ? 'flex' : 'none';
-    };
-
-    window.setLang = (l) => {
-        userData.lang = l;
-        const t = trans[l];
-        document.getElementById('lt-auth-title').innerText = t.authT;
-        document.getElementById('lt-auth-btn').innerText = t.authB;
-        document.getElementById('lt-tour-title').innerText = t.tourT;
-        document.getElementById('lt-pay-price').innerText = t.payP;
-        document.getElementById('lt-upload-btn').innerText = t.upload;
-        document.getElementById('lt-pay-btn').innerText = t.payB;
-        document.getElementById('lt-start-btn').innerText = t.startB;
-        document.getElementById('lt-settings-title').innerText = t.settT;
-        showPage('page-auth');
-    };
-
-    window.register = async () => {
-        const n = document.getElementById('reg-name').value, s = document.getElementById('reg-surname').value;
-        if(!n || !s) return alert("To'ldiring!");
-        userData.name = n; userData.surname = s; userData.tourStatus = "none";
-        await set(userRef, userData);
-        showPage('page-onboarding'); showObStep();
-    };
-
-    function showObStep() {
-        const t = trans[userData.lang].ob[obStep];
-        document.getElementById('ob-title').innerText = t.t;
-        document.getElementById('ob-desc').innerText = t.d;
-    }
-
-    window.nextObStep = () => { obStep < 2 ? (obStep++, showObStep()) : navigate('tournament'); };
-
-    window.handleReceipt = (i) => { 
-        const r = new FileReader(); r.onload=(e)=>receiptData=e.target.result; r.readAsDataURL(i.files[0]); 
-    };
-
-    window.pay = async () => {
-        if(!receiptData) return alert("Chekni yuklang!");
-        await update(userRef, { tourStatus: "pending", paymentReceipt: receiptData });
-        alert("Yuborildi!"); loadTourStatus();
-    };
-
-    async function loadTourStatus() {
-        const snap = await get(userRef); userData = snap.val();
-        onValue(ref(db, 'brain_users'), (s) => {
-            let count = 0; s.forEach(u => u.val().tourStatus === 'active' && count++);
-            document.getElementById('p-count').innerText = count;
-            if(userData.tourStatus === 'active') {
-                document.getElementById('lt-start-btn').style.display='block';
-                document.getElementById('lt-pay-btn').style.display='none';
-                document.getElementById('lt-upload-btn').style.display='none';
-                document.getElementById('pay-details').style.display='none';
+        async function loadQuestions() {
+            const snapshot = await get(ref(db, 'questions'));
+            if (snapshot.exists()) {
+                allQuestions.math = snapshot.val().math_ninja.list;
+                allQuestions.iq = snapshot.val().iq_test.list;
             }
-        });
-        document.getElementById('tour-status-msg').innerText = userData.tourStatus === 'pending' ? "Tekshirilmoqda..." : (userData.tourStatus === 'active' ? "Siz turnirdasiz!" : "To'lov qiling");
-    }
+        }
 
-    window.startTurnir = () => { currentScore = 0; currentRound = 1; showPage('page-game'); nextRound(); };
+        // 2. TURNIRNI BOSHLASH
+        window.startTournament = () => {
+            currentPhase = 1;
+            phaseScore = 0;
+            currentQuestionIdx = 0;
+            document.getElementById('game-overlay').classList.remove('hidden');
+            runPhase1();
+        };
 
-    function nextRound() {
-        if(currentRound > 30) return finish();
-        document.getElementById('round-idx').innerText = currentRound;
-        document.getElementById('game-score').innerText = currentScore;
-        const correct = colors[Math.floor(Math.random()*colors.length)];
-        const text = colors[Math.floor(Math.random()*colors.length)];
-        const word = document.getElementById('color-word');
-        word.innerText = userData.lang === 'uz' ? text.uz : text.kir;
-        word.style.color = correct.val;
-        const box = document.getElementById('color-options'); box.innerHTML = "";
-        [...colors].sort(()=>Math.random()-0.5).forEach(c => {
-            const b = document.createElement('div'); b.className = "color-btn"; b.style.backgroundColor = c.val;
-            b.onclick = () => { clearInterval(timerInt); if(c.val === correct.val) currentScore += 10; currentRound++; nextRound(); };
-            box.appendChild(b);
-        });
-        let limit = Math.max(0.7, 2.5 - (currentRound * 0.05));
-        const bar = document.getElementById('timer-bar'); bar.style.transition = 'none'; bar.style.width = '100%';
-        setTimeout(() => { bar.style.transition = `width ${limit}s linear`; bar.style.width = '0%'; }, 50);
-        timerInt = setTimeout(() => { currentRound++; nextRound(); }, limit * 1000);
-    }
+        // PHASE 1: COLOR RUSH (REAKSIYA)
+        function runPhase1() {
+            document.getElementById('phase-name').innerText = "1-bosqich: Color Rush";
+            if(currentQuestionIdx >= 10) {
+                currentQuestionIdx = 0;
+                currentPhase = 2;
+                return runPhase2();
+            }
 
-    async function finish() {
-        await update(userRef, { totalPoints: currentScore, tourStatus: "done" });
-        document.getElementById('final-score').innerText = currentScore;
-        showPage('result-screen');
-    }
+            const colors = [
+                {n: "QIZIL", c: "#ef4444"}, {n: "KO'K", c: "#3b82f6"}, 
+                {n: "YASHIL", c: "#22c55e"}, {n: "SARIQ", c: "#eab308"}
+            ];
+            const target = colors[Math.floor(Math.random()*colors.length)];
+            const displayColor = colors[Math.floor(Math.random()*colors.length)];
 
-    window.navigate = (id) => {
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('nav-' + id.substring(0,4)).classList.add('active-link');
-        if(id === 'tournament') loadTourStatus();
-        if(id === 'leaderboard') fetchRank();
-        showPage('page-' + id);
-    };
+            const cont = document.getElementById('game-container');
+            cont.innerHTML = `
+                <h1 class="text-5xl font-black mb-12" style="color: ${displayColor.c}">${target.n}</h1>
+                <p class="mb-8 text-slate-400">Yozuv rangini tanlang!</p>
+                <div class="grid grid-cols-2 gap-4 w-full">
+                    ${colors.map(col => `<button onclick="checkColor('${col.c}', '${displayColor.c}')" class="h-20 rounded-2xl" style="background: ${col.c}"></button>`).join('')}
+                </div>
+            `;
+        }
 
-    async function fetchRank() {
-        const snap = await get(ref(db, 'brain_users'));
-        let html = ""; let list = []; snap.forEach(u => u.val().tourStatus === 'done' && list.push(u.val()));
-        list.sort((a,b) => b.totalPoints - a.totalPoints).forEach((u, i) => {
-            html += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name}</span><b>${u.totalPoints}</b></div>`;
-        });
-        document.getElementById('rank-list').innerHTML = html || "Hali natijalar yo'q";
-    }
+        window.checkColor = (picked, actual) => {
+            if(picked === actual) phaseScore += 10;
+            currentQuestionIdx++;
+            runPhase1();
+        };
 
-    window.logout = async () => { if(confirm("Chiqasizmi?")) { await remove(userRef); location.reload(); } };
+        // PHASE 2: MATH NINJA
+        function runPhase2() {
+            document.getElementById('phase-name').innerText = "2-bosqich: Math Ninja";
+            if(currentQuestionIdx >= 10) {
+                currentQuestionIdx = 0;
+                currentPhase = 3;
+                return runPhase3();
+            }
 
-    window.onload = async () => {
-        const snap = await get(userRef);
-        document.getElementById('page-lang').style.display = 'none';
-        if(snap.exists() && snap.val().name) { userData = snap.val(); navigate('tournament'); }
-        else { showPage('page-lang'); }
-    };
-</script>
+            const q = allQuestions.math[currentQuestionIdx];
+            renderQuiz(q, 'math');
+        }
+
+        // PHASE 3: IQ TEST
+        function runPhase3() {
+            document.getElementById('phase-name').innerText = "3-bosqich: IQ Test";
+            if(currentQuestionIdx >= 10) return finishTournament();
+
+            const q = allQuestions.iq[currentQuestionIdx];
+            renderQuiz(q, 'iq');
+        }
+
+        function renderQuiz(q, type) {
+            const cont = document.getElementById('game-container');
+            cont.innerHTML = `
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full mb-8">
+                    <h2 class="text-xl font-bold">${q.q}</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-3 w-full">
+                    ${q.a.map((opt, i) => `
+                        <button onclick="checkQuiz(${i}, ${q.c}, '${type}')" class="p-4 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 text-left transition">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        window.checkQuiz = (picked, correct, type) => {
+            if(picked === correct) phaseScore += 10;
+            currentQuestionIdx++;
+            if(type === 'math') runPhase2(); else runPhase3();
+        };
+
+        async function finishTournament() {
+            document.getElementById('game-overlay').classList.add('hidden');
+            tg.showConfirm(`Tabriklaymiz! Umumiy ball: ${phaseScore}. Natijani saqlaymiz-mi?`, async (ok) => {
+                if(ok) {
+                    await set(ref(db, 'results/' + userData.id), {
+                        fullName: userData.fullName,
+                        totalScore: phaseScore,
+                        timestamp: Date.now()
+                    });
+                    tg.showAlert("Natija saqlandi!");
+                    switchTab('rating');
+                }
+            });
+        }
+
+        // NAVIGATSIYA FUNKSIYALARI
+        window.switchTab = async (tab) => {
+            ['game', 'rating', 'settings'].forEach(t => {
+                document.getElementById(`page-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active-tab');
+            });
+            document.getElementById(`page-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('active-tab');
+            
+            if(tab === 'rating') {
+                const snap = await get(ref(db, 'results'));
+                const list = document.getElementById('rating-list');
+                if(snap.exists()){
+                    const sorted = Object.values(snap.val()).sort((a,b) => b.totalScore - a.totalScore).slice(0, 10);
+                    list.innerHTML = sorted.map((u, i) => `
+                        <div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700">
+                            <span>${i+1}. ${u.fullName}</span>
+                            <span class="text-yellow-500 font-bold">${u.totalScore}</span>
+                        </div>
+                    `).join('');
+                }
+            }
+        };
+    </script>
 </body>
 </html>
