@@ -95,7 +95,6 @@
         .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; overflow: hidden; }
         #progress-fill { height: 100%; width: 0%; background: var(--gold); transition: width 0.3s ease; }
 
-        /* Telegram uslubidagi profil rasmi uchun */
         .profile-img-container {
             width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--gold);
             margin: 0 auto 15px; overflow: hidden; background: #e0e0e0;
@@ -198,7 +197,7 @@
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Profil</h2>
         <div class="premium-card p-8 mb-6">
             <div class="profile-img-container">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maruf&backgroundColor=ffdfbf" id="userProfileImg">
+                <img src="" id="userProfileImg" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
             <p class="text-sm opacity-60 mb-6 italic">Quiz Pro Bilimdoni</p>
@@ -386,7 +385,13 @@
         };
 
         async function loadProfile() {
-            document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
+            const fullName = `${currentUser.fName} ${currentUser.lName}`;
+            document.getElementById('profName').innerText = fullName;
+            
+            // Telegram uslubidagi dinamik rasm generatori
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
+            document.getElementById('userProfileImg').src = avatarUrl;
+            
             const stats = document.getElementById('myStatsList');
             stats.innerHTML = "";
             
@@ -399,13 +404,12 @@
                     const subData = allData.filter(r => r.subject === sub)
                         .sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet);
                     
-                    const myBest = subData.find(r => r.name === `${currentUser.fName} ${currentUser.lName}`);
-                    const myRank = subData.findIndex(r => r.name === `${currentUser.fName} ${currentUser.lName}`) + 1;
+                    const myBest = subData.find(r => r.name === fullName);
+                    const myRank = subData.findIndex(r => r.name === fullName) + 1;
 
                     if(myBest) {
                         const div = document.createElement('div');
                         div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10";
-                        // "#" belgisi olib tashlandi
                         div.innerHTML = `
                             <span class="text-xs font-bold">${sub}</span>
                             <span class="text-xs text-yellow-500 font-black">${myRank} O'rin (${myBest.score} ball)</span>
