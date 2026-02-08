@@ -213,7 +213,7 @@
     </div>
 
     <div id="rating-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase">Reyting</h2>
+        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500">Reyting</h2>
         <div class="space-y-4 mb-6">
             <select id="rankFilterSubject" onchange="loadRating()" class="text-sm">
                 <option value="Matematika">Matematika</option>
@@ -234,7 +234,7 @@
     </div>
 
     <div id="profile-screen" class="hidden p-6 text-center">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Profil</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500">Profil</h2>
         <div class="premium-card p-8 mb-6">
             <div class="profile-img-container">
                 <img src="" id="userProfileImg" alt="Avatar">
@@ -254,7 +254,7 @@
     </div>
 
     <div id="settings-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Sozlamalar</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500">Sozlamalar</h2>
         <div class="space-y-4">
             <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
                 <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
@@ -273,7 +273,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, remove, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -376,7 +376,7 @@
         }
 
         function loadQuestion() {
-            if(currentQIndex >= testQuestions.length) return finishTest();
+            if(currentQIndex >= testQuestions.length) return finishTest(true);
             
             document.getElementById('progress-fill').style.width = (currentQIndex / testQuestions.length) * 100 + "%";
             const q = testQuestions[currentQIndex];
@@ -406,19 +406,33 @@
             });
         }
 
-        async function finishTest() {
+        async function finishTest(isCompleted) {
             clearInterval(timerInterval);
-            const res = {
-                name: `${currentUser.fName} ${currentUser.lName}`,
-                photo: currentUser.photo || "",
-                score: score,
-                subject: window.currentMeta.subj,
-                qCount: window.currentMeta.amount,
-                timeSet: window.currentMeta.time,
-                date: Date.now()
-            };
-            await push(ref(db, 'ratings'), res);
-            alert(`Test yakunlandi! Natija: ${score}/${window.currentMeta.amount}`);
+            
+            if(isCompleted) {
+                const userKey = currentUser.userId.replace(/\./g, '_');
+                const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
+                
+                const existingSnap = await get(ref(db, ratingPath));
+                const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
+
+                if(score > currentBest) {
+                    const res = {
+                        name: `${currentUser.fName} ${currentUser.lName}`,
+                        photo: currentUser.photo || "",
+                        score: score,
+                        subject: window.currentMeta.subj,
+                        qCount: window.currentMeta.amount,
+                        timeSet: window.currentMeta.time,
+                        date: Date.now()
+                    };
+                    await set(ref(db, ratingPath), res);
+                }
+                alert(`Test yakunlandi! Natija: ${score}/${window.currentMeta.amount}`);
+            } else {
+                alert(`Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi.`);
+            }
+            
             showMenu('rating');
         }
 
@@ -427,11 +441,10 @@
             const rList = document.getElementById('ratingList');
             rList.innerHTML = "<p class='text-center opacity-50 italic'>Yuklanmoqda...</p>";
             
-            const snap = await get(ref(db, 'ratings'));
+            const snap = await get(ref(db, `ratings/${filterSub}`));
             if(snap.exists()) {
                 rList.innerHTML = "";
                 const sorted = Object.values(snap.val())
-                    .filter(r => r.subject === filterSub)
                     .sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet)
                     .slice(0, 20);
 
@@ -485,18 +498,22 @@
 
             const stats = document.getElementById('myStatsList');
             stats.innerHTML = "";
-            const snap = await get(ref(db, 'ratings'));
+            
+            const snap = await get(ref(db, `ratings`));
             if(snap.exists()) {
-                const allData = Object.values(snap.val());
-                const subjects = [...new Set(allData.map(r => r.subject))];
-                subjects.forEach(sub => {
-                    const subData = allData.filter(r => r.subject === sub).sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet);
-                    const myBest = subData.find(r => r.name === fullName);
-                    const myRank = subData.findIndex(r => r.name === fullName) + 1;
-                    if(myBest) {
+                const userKey = currentUser.userId.replace(/\./g, '_');
+                const allRatings = snap.val();
+                
+                Object.keys(allRatings).forEach(sub => {
+                    const subData = allRatings[sub];
+                    if (subData[userKey]) {
+                        const myBest = subData[userKey];
+                        const subArray = Object.values(subData).sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet);
+                        const myRank = subArray.findIndex(r => r.name === fullName) + 1;
+                        
                         const div = document.createElement('div');
                         div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10 mb-2";
-                        div.innerHTML = `<span class="text-xs font-bold">${sub}</span><span class="text-xs text-yellow-500 font-black">${myRank} O'rin (${myBest.score} ball)</span>`;
+                        div.innerHTML = `<span class="text-xs font-bold">${sub}</span><span class="text-xs text-yellow-500 font-black">${myRank}-o'rin (${myBest.score} ball)</span>`;
                         stats.appendChild(div);
                     }
                 });
@@ -508,7 +525,7 @@
             timerInterval = setInterval(() => {
                 let m = Math.floor(t / 60); let sc = t % 60;
                 document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
-                if(t <= 0) { clearInterval(timerInterval); finishTest(); }
+                if(t <= 0) { clearInterval(timerInterval); finishTest(true); }
                 t--;
             }, 1000);
         }
@@ -522,7 +539,7 @@
         function applySavedTheme() {
             if(localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
-                document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
+                document.getElementById('theme-icon').innerText = "☀️";
             }
         }
 
@@ -533,7 +550,11 @@
             }
         }
 
-        function confirmFinishTest() { if(confirm("Testni yakunlaysizmi?")) finishTest(); };
+        function confirmFinishTest() { 
+            if(confirm("Testni hozir yakunlamoqchimisiz? (Oxirigacha yetkazmasangiz natija yozilmaydi)")) {
+                finishTest(false); 
+            }
+        };
 
         // Globals for HTML
         window.showMenu = showMenu;
@@ -546,3 +567,4 @@
     </script>
 </body>
 </html>
+
