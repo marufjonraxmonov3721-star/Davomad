@@ -3,241 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aql Jangi | Premium Edition</title>
+    <title>Aql Jangi | Alohida Tizim</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { 
-            --gold: #FFD700; 
-            --gold-glow: rgba(255, 215, 0, 0.3);
-            --bg: #050505; 
-            --card-bg: rgba(20, 20, 20, 0.7);
-            --glass: rgba(255, 255, 255, 0.05);
-            --text: #ffffff;
-            --green: #00ff88; 
-            --red: #ff4d4d; 
+            --gold: #FFD700; --gold-glow: rgba(255, 215, 0, 0.3);
+            --bg: #050505; --card-bg: rgba(25, 25, 25, 0.9);
+            --text: #ffffff; --green: #00ff88; --red: #ff4d4d; 
         }
         
         body { 
-            background: var(--bg); 
-            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 100%);
-            color: var(--text); 
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
-            margin: 0; 
-            padding-bottom: 90px; 
-            overflow-x: hidden; 
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; padding: 0; overflow: hidden; user-select: none;
         }
 
-        .container { padding: 20px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+        /* Sahifalar boshqaruvi */
+        .page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box; background: var(--bg); z-index: 10;
+        }
+        .page.active { display: flex; animation: slideIn 0.4s ease-out; }
 
-        /* Chiroyli Tugmalar */
-        .btn-main { 
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dizayn elementlari */
+        .glass-card {
+            background: var(--card-bg); padding: 30px; border-radius: 35px;
+            border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center;
+        }
+
+        .btn-main {
             background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
-            border: none; 
-            padding: 16px; 
-            border-radius: 18px; 
-            color: #000; 
-            font-weight: 800; 
-            width: 100%; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px var(--gold-glow);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-top: 15px;
+            border: none; padding: 18px; border-radius: 20px;
+            color: #000; font-weight: 800; width: 100%;
+            cursor: pointer; text-transform: uppercase; margin-top: 20px;
+            box-shadow: 0 5px 15px var(--gold-glow);
         }
 
-        .btn-main:active { transform: scale(0.96); box-shadow: 0 2px 5px var(--gold-glow); }
-
-        .btn-secondary {
-            background: var(--glass);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            color: var(--gold);
-            padding: 14px;
-            border-radius: 16px;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            margin-bottom: 10px;
-            backdrop-filter: blur(5px);
-        }
-
-        /* Kartalar - Glassmorphism */
-        .quiz-card { 
-            background: var(--card-bg); 
-            padding: 25px; 
-            border-radius: 30px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            margin-bottom: 20px; 
-            backdrop-filter: blur(15px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* Rang tanlash tugmalari */
-        .color-btn { 
-            height: 90px; 
-            border-radius: 22px; 
-            border: 3px solid rgba(255,255,255,0.1); 
-            cursor: pointer; 
-            transition: 0.2s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .color-btn:active { transform: translateY(3px); filter: brightness(1.2); }
-
-        /* Navigatsiya */
-        .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            background: rgba(10, 10, 10, 0.85); 
-            backdrop-filter: blur(20px);
-            display: flex; justify-content: space-around; 
-            padding: 15px 0 25px 0; 
-            border-top: 1px solid rgba(255,255,255,0.05); 
-            z-index: 1000; 
-        }
-        .nav-link { 
-            font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; flex: 1; 
-            transition: all 0.3s ease;
-        }
-        .nav-link svg { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
-        .nav-link.active-link { opacity: 1; color: var(--gold); }
-
-        #color-word { 
-            font-size: 44px; font-weight: 900; margin: 30px 0; 
-            text-transform: uppercase; letter-spacing: 4px; 
-            text-shadow: 2px 2px 20px rgba(0,0,0,0.8);
-        }
-
-        .timer-bar-container { background: rgba(255,255,255,0.05); height: 6px; border-radius: 10px; margin: 20px 0; overflow: hidden; }
-        #timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--gold), var(--green)); border-radius: 10px; }
-
-        /* Inputlar */
-        .reg-input { 
-            width: 100%; padding: 18px; margin-bottom: 15px; border-radius: 18px; 
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); 
+        .reg-input {
+            width: 100%; padding: 18px; margin-bottom: 15px; border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
             color: #fff; font-size: 16px; box-sizing: border-box; outline: none;
-            transition: 0.3s;
         }
-        .reg-input:focus { border-color: var(--gold); background: rgba(255,255,255,0.07); }
+
+        /* O'yin elementlari */
+        .color-btn { height: 85px; border-radius: 20px; border: 2px solid #222; cursor: pointer; }
+        #color-word { font-size: 45px; font-weight: 900; margin: 20px 0; text-transform: uppercase; }
+
+        /* Pastki Navigatsiya */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 70px;
+            background: #0a0a0a; display: none; justify-content: space-around;
+            align-items: center; border-top: 1px solid #222; z-index: 100;
+        }
+        .nav-link { color: #666; text-align: center; font-size: 10px; flex: 1; cursor: pointer; }
+        .nav-link.active-link { color: var(--gold); }
+        .nav-link svg { width: 24px; height: 24px; }
     </style>
 </head>
 <body>
 
-<div id="loader" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#050505; z-index:9999; display:flex; align-items:center; justify-content:center;">
-    <div style="width:45px; height:45px; border:3px solid #111; border-top:3px solid var(--gold); border-radius:50%; animation:spin 1s ease-in-out infinite;"></div>
-</div>
-<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-
-<div class="container">
-    <div id="auth">
-        <div style="margin-top: 50px; margin-bottom: 40px;">
-            <div style="font-size: 50px;">💎</div>
-            <h1 style="font-size: 40px; margin: 10px 0; font-weight: 900; letter-spacing: -1px;">AQL JANGI</h1>
-            <p id="txt-app-slogan" style="opacity: 0.5;">Premium Turnir Tajribasi</p>
-        </div>
-        
-        <select id="reg-lang" class="reg-input" onchange="window.switchLang(this.value)">
-            <option value="uz">O'zbekcha 🇺🇿</option>
-            <option value="uz_cyr">Ўзбекча 🇺🇿</option>
-        </select>
-        <input type="text" id="reg-name" class="reg-input" maxlength="20" placeholder="Ismingiz">
-        <input type="text" id="reg-surname" class="reg-input" maxlength="20" placeholder="Familiyangiz">
-        <button class="btn-main" onclick="register()">Boshlash</button>
-    </div>
-
-    <div id="onboarding">
-        <div class="quiz-card" style="margin-top: 30px;">
-            <h2 id="ob-title" style="color:var(--gold); font-size: 28px;"></h2>
-            <div style="height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 20px 0;"></div>
-            <p id="ob-desc" style="font-size: 16px; line-height: 1.7; opacity: 0.9;"></p>
-            <button class="btn-main" id="btn-ob-next" onclick="nextObStep()">KEYINGISI</button>
-        </div>
-    </div>
-
-    <div id="tournament">
-        <h2 id="txt-tour-title" style="font-size: 24px; letter-spacing: 1px;">⚔️ TURNIR MARKAZI</h2>
-        <div class="quiz-card">
-            <p id="tour-status-msg" style="font-size: 18px;"></p>
-            
-            <div id="p-stats" style="display:flex; justify-content:center; gap:20px; margin: 20px 0;">
-                <div style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 20px; flex: 1;">
-                    <span style="font-size: 12px; opacity: 0.6; display: block;">ISHTIROKCHILAR</span>
-                    <b id="p-count" style="font-size: 20px; color: var(--gold);">0</b>
-                </div>
-            </div>
-
-            <div id="pay-box" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); text-align:left; margin-bottom: 20px;">
-                <p id="txt-pay-info" style="margin-top:0;">💰 Kirish: <b style="color: var(--gold);">5 000 so'm</b></p>
-                <p style="font-size: 13px; opacity: 0.7;">Karta: <code style="background:#111; padding:4px 8px; border-radius:6px; color:#fff;">4073 4200 6816 5541</code></p>
-                <p style="font-size: 13px; opacity: 0.7; margin-bottom:0;">Ega: <b>Maruf Raxmonov</b></p>
-            </div>
-            
-            <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="handleReceipt(this)">
-            <button class="btn-secondary" id="btn-upload" onclick="document.getElementById('receipt-input').click()">📁 CHEKNI YUKLASH</button>
-            <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
-            <button class="btn-main" id="btn-start" style="display:none; background: var(--green);" onclick="startTurnir()">TURNIRNI BOSHLASH</button>
-        </div>
-    </div>
-
-    <div id="game">
-        <div class="quiz-card" style="padding-top: 15px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="text-align:left;">
-                    <span id="round-label" style="font-size: 12px; opacity: 0.5; display:block;">RAUND</span>
-                    <b style="font-size: 18px;"><span id="round-idx">1</span>/30</b>
-                </div>
-                <div style="text-align:right;">
-                    <span id="score-label" style="font-size: 12px; opacity: 0.5; display:block;">BALL</span>
-                    <b id="game-score" style="font-size: 18px; color: var(--gold);">0</b>
-                </div>
-            </div>
-            <div class="timer-bar-container"><div id="timer-bar"></div></div>
-            <div id="color-word">...</div>
-            <div class="color-options" id="color-options"></div>
-        </div>
-    </div>
-
-    <div id="result-screen">
-        <div class="quiz-card" style="margin-top: 50px;">
-            <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
-            <h2 id="res-title"></h2>
-            <p id="txt-final-res" style="opacity: 0.6;"></p>
-            <div style="font-size: 54px; font-weight: 900; color: var(--gold); margin: 20px 0;" id="final-score">0</div>
-            <button class="btn-main" onclick="navigate('tournament')">Yopish</button>
-        </div>
-    </div>
-
-    <div id="leaderboard">
-        <h2 style="color:var(--gold); margin-bottom: 20px;">🏆 JADVAL</h2>
-        <div id="rank-list" class="quiz-card" style="padding: 10px;"></div>
-    </div>
-
-    <div id="settings">
-        <h2 style="color:var(--gold)">⚙️ SOZLAMALAR</h2>
-        <div class="quiz-card">
-            <p id="txt-set-lang" style="text-align:left; margin-left: 5px;">Tilni tanlang:</p>
-            <select id="set-lang-select" class="reg-input" onchange="window.switchLang(this.value)">
-                <option value="uz">O'zbekcha 🇺🇿</option>
-                <option value="uz_cyr">Ўзбекча 🇺🇿</option>
-            </select>
-            <button class="btn-main" style="background:#ff3b3b; color:#fff;" onclick="logout()">Tizimdan chiqish</button>
-        </div>
+<div id="page-lang" class="page">
+    <div class="glass-card">
+        <div style="font-size: 50px; margin-bottom: 10px;">🌍</div>
+        <h2 id="lt-lang-title">Tilni tanlang / Выберите язык</h2>
+        <button class="btn-main" onclick="setLang('uz')">O'zbekcha 🇺🇿</button>
+        <button class="btn-main" style="margin-top:10px;" onclick="setLang('uz_cyr')">Ўзбекча 🇺🇿</button>
     </div>
 </div>
 
-<div class="bottom-nav" id="navbar" style="display:none">
-    <div class="nav-link" id="nav-tour" onclick="navigate('tournament')">
-        <svg viewBox="0 0 24 24"><path d="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.94 12.21 22 12 22C11.79 22 11.59 21.94 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.06 11.79 2 12 2C12.21 2 12.41 2.06 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z"/></svg>
-        <br><span id="nav-txt-tour">Turnir</span>
+<div id="page-auth" class="page">
+    <div class="glass-card">
+        <h2 id="lt-auth-title">Ro'yxatdan o'tish</h2>
+        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
+        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
+        <button class="btn-main" id="lt-auth-btn" onclick="register()">Davom etish</button>
     </div>
-    <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">
-        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg>
-        <br><span id="nav-txt-rank">Reyting</span>
+</div>
+
+<div id="page-onboarding" class="page">
+    <div class="glass-card">
+        <h2 id="ob-title" style="color:var(--gold)"></h2>
+        <p id="ob-desc" style="font-size: 15px; line-height: 1.6; margin: 20px 0;"></p>
+        <button class="btn-main" id="lt-ob-btn" onclick="nextObStep()">Keyingisi</button>
     </div>
-    <div class="nav-link" id="nav-sett" onclick="navigate('settings')">
-        <svg viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.35 19.43,11.03L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.97 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.97 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11.03C4.53,11.35 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/></svg>
-        <br><span id="nav-txt-sett">Sozlamalar</span>
+</div>
+
+<div id="page-tournament" class="page">
+    <div class="glass-card">
+        <h2 id="lt-tour-title">Turnir Markazi</h2>
+        <p id="tour-status-msg" style="font-weight: bold;"></p>
+        <div id="pay-details" style="text-align: left; background: #000; padding: 15px; border-radius: 15px; font-size: 13px; margin: 15px 0; border: 1px dashed var(--gold);">
+            <p id="lt-pay-price">💰 Kirish: 5 000 so'm</p>
+            <p>💳 Karta: 4073 4200 6816 5541</p>
+            <p>👤 Ega: Maruf Raxmonov</p>
+        </div>
+        <div id="p-counter" style="margin-bottom: 10px; opacity: 0.7;">Ishtirokchilar: <b id="p-count">0</b></div>
+        <input type="file" id="receipt-input" style="display:none;" onchange="handleReceipt(this)">
+        <button class="btn-main" style="background:#222; color:var(--gold);" onclick="document.getElementById('receipt-input').click()" id="lt-upload-btn">Chekni yuklash</button>
+        <button class="btn-main" onclick="pay()" id="lt-pay-btn">To'lov qildim</button>
+        <button class="btn-main" style="display:none; background:var(--green);" onclick="startTurnir()" id="lt-start-btn">O'yinni boshlash</button>
     </div>
+</div>
+
+<div id="page-game" class="page" style="justify-content: flex-start; padding-top: 40px;">
+    <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; font-size: 14px;">
+            <span><b id="round-idx">1</b>/30</span>
+            <span style="color:var(--gold)"><b id="game-score">0</b> PTS</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.1); height:4px; margin:15px 0; border-radius:2px;">
+            <div id="timer-bar" style="height:100%; width:100%; background:var(--gold); transition:linear;"></div>
+        </div>
+        <div id="color-word">...</div>
+        <div id="color-options" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
+    </div>
+</div>
+
+<div id="page-leaderboard" class="page">
+    <h2 style="color:var(--gold)">🏆 REYTING</h2>
+    <div id="rank-list" class="glass-card" style="padding: 10px; max-height: 70vh; overflow-y: auto;"></div>
+</div>
+
+<div id="page-settings" class="page">
+    <div class="glass-card">
+        <h2 id="lt-settings-title">Sozlamalar</h2>
+        <button class="btn-main" style="background:#333;" onclick="showPage('page-lang')">Tilni o'zgartirish</button>
+        <button class="btn-main" style="background:var(--red);" onclick="logout()">Tizimdan chiqish</button>
+    </div>
+</div>
+
+<div class="bottom-nav" id="navbar">
+    <div class="nav-link" onclick="navigate('tournament')" id="nav-tour">⚔️<br>Turnir</div>
+    <div class="nav-link" onclick="navigate('leaderboard')" id="nav-rank">🏆<br>Reyting</div>
+    <div class="nav-link" onclick="navigate('settings')" id="nav-sett">⚙️<br>Sozlamalar</div>
 </div>
 
 <script type="module">
@@ -250,183 +155,153 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id ? "user_" + tg.initDataUnsafe.user.id : "guest_m" + Math.floor(Math.random()*1000);
+    const uid = tg.initDataUnsafe?.user?.id ? "u" + tg.initDataUnsafe.user.id : "test_user";
     const userRef = ref(db, 'brain_users/' + uid);
 
     let userData = { lang: 'uz' };
-    let currentScore = 0, currentRound = 1, timerInt, lastClickTime = 0;
-    let receiptData = null, obStep = 0;
-    
+    let obStep = 0, currentScore = 0, currentRound = 1, timerInt, receiptData = null;
+
     const colors = [
         { uz: "QIZIL", kir: "ҚИЗИЛ", val: "#ff3b3b" },
         { uz: "YASHIL", kir: "ЯШИЛ", val: "#00ff88" },
         { uz: "KO'K", kir: "КЎК", val: "#007bff" },
         { uz: "SARIQ", kir: "САРИҚ", val: "#FFD700" },
-        { uz: "OQ", kir: "ОҚ", val: "#ffffff" },
-        { uz: "BINAFSHA", kir: "БИНАФША", val: "#a333c8" }
+        { uz: "OQ", kir: "ОҚ", val: "#ffffff" }
     ];
 
-    const translations = {
+    const trans = {
         uz: {
-            title: "Aql Jangi", name: "Ismingiz", surname: "Familiyangiz", next: "DAVOM ETISH",
-            tour: "Turnir", rank: "Reyting", sett: "Sozlamalar", upload: "📁 CHEKNI YUKLASH", pay: "TO'LOV QILDIM",
-            resTitle: "G'ALABA!", final: "To'plagan ballingiz:", 
+            authT: "Ro'yxatdan o'tish", authB: "Davom etish", tourT: "Turnir Markazi", payP: "💰 Kirish: 5 000 so'm", upload: "Chekni yuklash", payB: "To'lov qildim", startB: "O'yinni boshlash", settT: "Sozlamalar",
             ob: [
-                { t: "Premium Tajriba", d: "Aql Jangi ilovasining yangi talqiniga xush kelibsiz.\nTurnir kirish narxi: 5 000 so'm." },
-                { t: "O'yin Qoidasi", d: "Ekranda rang nomi chiqadi. Siz so'zni o'qimang, so'z qaysi RANGDA yozilgan bo'lsa, o'sha rangni tanlang!" },
-                { t: "Katta Sovrinlar", d: "🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm\nOmad yor bo'lsin!" }
-            ],
-            confirm: "Boshladik!", wait: "Tekshirilmoqda...", payMsg: "Avval chekni yuklang."
+                { t: "Xush kelibsiz!", d: "Aql Jangi — bu tezkorlik turniri. Kirish narxi: 5 000 so'm." },
+                { t: "Qoida", d: "So'zni o'qimang, so'z qaysi RANGDA yozilgan bo'lsa, o'sha rangni tanlang!" },
+                { t: "Sovrinlar", d: "🥇 80k, 🥈 50k, 🥉 20k so'm. Omad!" }
+            ]
         },
         uz_cyr: {
-            title: "Ақл Жанги", name: "Исмингиз", surname: "Фамилиянгиз", next: "ДАВОМ ЭТИШ",
-            tour: "Турнир", rank: "Рейтинг", sett: "Созламалар", upload: "📁 ЧЕКНИ ЮКЛАШ", pay: "ТЎЛОВ ҚИЛДИМ",
-            resTitle: "ҒАЛАБА!", final: "Тўплаган баллингиз:",
+            authT: "Рўйхатдан ўтиш", authB: "Давом этиш", tourT: "Турнир Маркази", payP: "💰 Кириш: 5 000 сўм", upload: "Чекни юклаш", payB: "Тўлов қилдим", startB: "Ўйинни бошлаш", settT: "Созламалар",
             ob: [
-                { t: "Премиум Тажриба", d: "Ақл Жанги иловасининг янги талқинига хуш келибсиз.\nТурнир кириш нархи: 5 000 сўм." },
-                { t: "Ўйин Қоидаси", d: "Экранда ранг номи чиқади. Сиз сўзни ўқиманг, сўз қайси РАНГДА ёзилган бўлса, ўша рангни танланг!" },
-                { t: "Катта Совринлар", d: "🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм\nОмад ёр бўлсин!" }
-            ],
-            confirm: "Бошладик!", wait: "Текширилмоқда...", payMsg: "Аввал чекни юкланг."
+                { t: "Хуш келибсиз!", d: "Ақл Жанги — бу тезкорлик турнири. Кириш нархи: 5 000 сўм." },
+                { t: "Қоида", d: "Сўзни ўқиманг, сўз қайси РАНГДА ёзилган бўлса, ўша рангni танланг!" },
+                { t: "Совринлар", d: "🥇 80к, 🥈 50к, 🥉 20к сўм. Омад!" }
+            ]
         }
     };
 
-    window.switchLang = async (l) => {
+    window.showPage = (id) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('navbar').style.display = (id.includes('tournament') || id.includes('leaderboard') || id.includes('settings')) ? 'flex' : 'none';
+    };
+
+    window.setLang = (l) => {
         userData.lang = l;
-        const t = translations[l];
-        document.getElementById('reg-name').placeholder = t.name;
-        document.getElementById('reg-surname').placeholder = t.surname;
-        document.getElementById('btn-next').innerText = t.next;
-        document.getElementById('nav-txt-tour').innerText = t.tour;
-        document.getElementById('nav-txt-rank').innerText = t.rank;
-        document.getElementById('nav-txt-sett').innerText = t.sett;
-        document.getElementById('btn-upload').innerText = t.upload;
-        document.getElementById('btn-pay').innerText = t.pay;
-        if (userData.name) await update(userRef, { lang: l });
+        const t = trans[l];
+        document.getElementById('lt-auth-title').innerText = t.authT;
+        document.getElementById('lt-auth-btn').innerText = t.authB;
+        document.getElementById('lt-tour-title').innerText = t.tourT;
+        document.getElementById('lt-pay-price').innerText = t.payP;
+        document.getElementById('lt-upload-btn').innerText = t.upload;
+        document.getElementById('lt-pay-btn').innerText = t.payB;
+        document.getElementById('lt-start-btn').innerText = t.startB;
+        document.getElementById('lt-settings-title').innerText = t.settT;
+        showPage('page-auth');
     };
 
     window.register = async () => {
-        const name = document.getElementById('reg-name').value.trim();
-        const surname = document.getElementById('reg-surname').value.trim();
-        if(!name || !surname) return alert("To'liq to'ldiring!");
-        userData = { name, surname, lang: userData.lang, tourStatus: "none", totalPoints: 0 };
+        const n = document.getElementById('reg-name').value, s = document.getElementById('reg-surname').value;
+        if(!n || !s) return alert("To'ldiring!");
+        userData.name = n; userData.surname = s; userData.tourStatus = "none";
         await set(userRef, userData);
-        showScreen('onboarding'); showObStep();
+        showPage('page-onboarding'); showObStep();
     };
 
     function showObStep() {
-        const t = translations[userData.lang].ob[obStep];
+        const t = trans[userData.lang].ob[obStep];
         document.getElementById('ob-title').innerText = t.t;
         document.getElementById('ob-desc').innerText = t.d;
-        document.getElementById('btn-ob-next').innerText = obStep === 2 ? translations[userData.lang].confirm : translations[userData.lang].next;
     }
 
     window.nextObStep = () => { obStep < 2 ? (obStep++, showObStep()) : navigate('tournament'); };
 
     window.handleReceipt = (i) => { 
-        const r = new FileReader(); 
-        r.onload=(e)=>receiptData=e.target.result; 
-        r.readAsDataURL(i.files[0]); 
+        const r = new FileReader(); r.onload=(e)=>receiptData=e.target.result; r.readAsDataURL(i.files[0]); 
     };
 
     window.pay = async () => {
-        if(!receiptData) return alert(translations[userData.lang].payMsg);
+        if(!receiptData) return alert("Chekni yuklang!");
         await update(userRef, { tourStatus: "pending", paymentReceipt: receiptData });
         alert("Yuborildi!"); loadTourStatus();
     };
 
     async function loadTourStatus() {
         const snap = await get(userRef); userData = snap.val();
-        const msg = document.getElementById('tour-status-msg');
         onValue(ref(db, 'brain_users'), (s) => {
             let count = 0; s.forEach(u => u.val().tourStatus === 'active' && count++);
             document.getElementById('p-count').innerText = count;
             if(userData.tourStatus === 'active') {
-                document.getElementById('btn-start').style.display='block';
-                document.getElementById('btn-pay').style.display='none';
-                document.getElementById('btn-upload').style.display='none';
-                document.getElementById('pay-box').style.display='none';
+                document.getElementById('lt-start-btn').style.display='block';
+                document.getElementById('lt-pay-btn').style.display='none';
+                document.getElementById('lt-upload-btn').style.display='none';
+                document.getElementById('pay-details').style.display='none';
             }
         });
-        msg.innerText = translations[userData.lang][userData.tourStatus] || "To'lov kutilmoqda";
+        document.getElementById('tour-status-msg').innerText = userData.tourStatus === 'pending' ? "Tekshirilmoqda..." : (userData.tourStatus === 'active' ? "Siz turnirdasiz!" : "To'lov qiling");
     }
 
-    window.startTurnir = () => {
-        currentScore = 0; currentRound = 1;
-        showScreen('game'); nextColorRound();
-    };
+    window.startTurnir = () => { currentScore = 0; currentRound = 1; showPage('page-game'); nextRound(); };
 
-    function nextColorRound() {
-        if(currentRound > 30) return finishGame();
+    function nextRound() {
+        if(currentRound > 30) return finish();
         document.getElementById('round-idx').innerText = currentRound;
         document.getElementById('game-score').innerText = currentScore;
-        
-        const correct = colors[Math.floor(Math.random() * colors.length)];
-        const text = colors[Math.floor(Math.random() * colors.length)];
-        
-        const wordEl = document.getElementById('color-word');
-        wordEl.innerText = userData.lang === 'uz' ? text.uz : text.kir;
-        wordEl.style.color = correct.val;
-        
-        const box = document.getElementById('color-options');
-        box.innerHTML = "";
-        [...colors].sort(() => Math.random() - 0.5).forEach(c => {
-            const btn = document.createElement('div');
-            btn.className = "color-btn";
-            btn.style.backgroundColor = c.val;
-            btn.onclick = () => {
-                if(Date.now() - lastClickTime < 250) return;
-                lastClickTime = Date.now();
-                clearInterval(timerInt);
-                if(c.val === correct.val) currentScore += 10;
-                currentRound++; setTimeout(nextColorRound, 100);
-            };
-            box.appendChild(btn);
+        const correct = colors[Math.floor(Math.random()*colors.length)];
+        const text = colors[Math.floor(Math.random()*colors.length)];
+        const word = document.getElementById('color-word');
+        word.innerText = userData.lang === 'uz' ? text.uz : text.kir;
+        word.style.color = correct.val;
+        const box = document.getElementById('color-options'); box.innerHTML = "";
+        [...colors].sort(()=>Math.random()-0.5).forEach(c => {
+            const b = document.createElement('div'); b.className = "color-btn"; b.style.backgroundColor = c.val;
+            b.onclick = () => { clearInterval(timerInt); if(c.val === correct.val) currentScore += 10; currentRound++; nextRound(); };
+            box.appendChild(b);
         });
-        
         let limit = Math.max(0.7, 2.5 - (currentRound * 0.05));
-        const bar = document.getElementById('timer-bar');
-        bar.style.transition = 'none'; bar.style.width = '100%';
+        const bar = document.getElementById('timer-bar'); bar.style.transition = 'none'; bar.style.width = '100%';
         setTimeout(() => { bar.style.transition = `width ${limit}s linear`; bar.style.width = '0%'; }, 50);
-        timerInt = setInterval(() => { clearInterval(timerInt); currentRound++; nextColorRound(); }, limit * 1000);
+        timerInt = setTimeout(() => { currentRound++; nextRound(); }, limit * 1000);
     }
 
-    async function finishGame() {
-        showScreen('result-screen');
-        document.getElementById('res-title').innerText = translations[userData.lang].resTitle;
-        document.getElementById('txt-final-res').innerText = translations[userData.lang].final;
-        document.getElementById('final-score').innerText = currentScore;
+    async function finish() {
         await update(userRef, { totalPoints: currentScore, tourStatus: "done" });
+        document.getElementById('final-score').innerText = currentScore;
+        showPage('result-screen');
     }
 
     window.navigate = (id) => {
-        document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('nav-' + id.substring(0,4))?.classList.add('active-link');
-        if(id==='tournament') { loadTourStatus(); document.getElementById('navbar').style.display='flex'; }
-        if(id==='leaderboard') fetchRank();
+        document.getElementById('nav-' + id.substring(0,4)).classList.add('active-link');
+        if(id === 'tournament') loadTourStatus();
+        if(id === 'leaderboard') fetchRank();
+        showPage('page-' + id);
     };
 
     async function fetchRank() {
         const snap = await get(ref(db, 'brain_users'));
-        let list = []; snap.forEach(u => u.val().tourStatus === 'done' && list.push(u.val()));
-        list.sort((a,b) => b.totalPoints - a.totalPoints);
-        document.getElementById('rank-list').innerHTML = list.map((u, i) => `
-            <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center;">
-                <span style="font-size:14px; opacity:0.8;">${i+1}. ${u.name}</span>
-                <b style="color:var(--gold); font-size:16px;">${u.totalPoints}</b>
-            </div>`).join('') || "Hali natijalar yo'q";
+        let html = ""; let list = []; snap.forEach(u => u.val().tourStatus === 'done' && list.push(u.val()));
+        list.sort((a,b) => b.totalPoints - a.totalPoints).forEach((u, i) => {
+            html += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name}</span><b>${u.totalPoints}</b></div>`;
+        });
+        document.getElementById('rank-list').innerHTML = html || "Hali natijalar yo'q";
     }
 
     window.logout = async () => { if(confirm("Chiqasizmi?")) { await remove(userRef); location.reload(); } };
 
-    function showScreen(id) { document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-
     window.onload = async () => {
-        const snap = await get(userRef); document.getElementById('loader').style.display='none';
-        if(snap.exists() && snap.val().name) { userData = snap.val(); window.switchLang(userData.lang); navigate('tournament'); }
-        else { window.switchLang('uz'); showScreen('auth'); }
+        const snap = await get(userRef);
+        document.getElementById('page-lang').style.display = 'none';
+        if(snap.exists() && snap.val().name) { userData = snap.val(); navigate('tournament'); }
+        else { showPage('page-lang'); }
     };
 </script>
 </body>
