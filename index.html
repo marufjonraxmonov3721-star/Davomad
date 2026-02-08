@@ -26,7 +26,7 @@
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; transition: 0.3s; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        #auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings { display: none; text-align: center; }
+        #auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings, #tournament { display: none; text-align: center; }
         .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -170,10 +170,27 @@
             <div id="p-countdown" style="margin-top:20px; font-size:13px; color:var(--gold); font-family: monospace;"></div>
         </div>
     </div>
+
+    <div id="tournament">
+        <h2 id="txt-nav-tour" style="color:var(--gold)">⚔️ Haftalik Turnir</h2>
+        <div class="quiz-card">
+            <div id="tour-status-box">
+                <p id="tour-info" style="font-weight: bold;">Turnirda ishtirok eting va yutuqqa ega bo'ling!</p>
+                <div style="background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); margin:15px 0; text-align:left; color: var(--gold);">
+                    <p style="margin:5px 0;">💰 Kirish puli: <b>5 000 so'm</b></p>
+                    <p style="margin:5px 0;">💳 Karta: <b style="letter-spacing: 1px; color: #fff;">4073 4200 6816 5541</b></p>
+                    <p style="margin:5px 0;">👤 Ism: <b>Maruf Raxmonov</b></p>
+                </div>
+                <p style="font-size:12px; color:#888;">To'lovni amalga oshirgach, quyidagi tugmani bosing. Admin tekshirgandan so'ng turnir ro'yxatiga qo'shilasiz.</p>
+                <button class="btn-main" id="btn-join-tour" onclick="joinTournament()">ISHTIROK ETISH</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
     <div class="nav-link active-link" id="link-game" onclick="navigate('game')">🎮<br><span id="txt-nav-game">O'yin</span></div>
+    <div class="nav-link" id="link-tournament" onclick="navigate('tournament')">⚔️<br><span id="txt-nav-tour-btn">Turnir</span></div>
     <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br><span id="txt-nav-rank2">Reyting</span></div>
     <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br><span id="txt-nav-profile2">Profil</span></div>
     <div class="nav-link" id="link-settings" onclick="navigate('settings')">⚙️<br><span id="txt-nav-settings2">Sozlamalar</span></div>
@@ -218,11 +235,7 @@
             resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
             profLvl: "Daraja", profPts: "Ball", countdown: "Tug'ilgan kuningizga:", days: "kun", hours: "soat", min: "min", sek: "sek",
             translating: "Savollar tarjima qilinmoqda...", chooseTheme: "Rejimni tanlang:", logout: "Hisobni o'chirish",
-            obT1: "Xush kelibsiz!", obD1: "Aql Jangi - bu sizning bilimingizni sinovdan o'tkazuvchi intellektual o'yin. Maqsad: O'z darajangizni oshirish va Master bo'lish!",
-            obT2: "O'yin Qoidalari", obD2: "O'yinda 4 ta bosqich bor. Har bir bosqichdan o'tish uchun belgilangan miqdordagi savollarga to'g'ri javob berish shart.",
-            obT3: "Bosqichlar va Shartlar", obD3: "🌱 Oson: 15 savol (10 ta to'g'ri)\n⚡ O'rtacha: 25 savol (17 ta to'g'ri)\n🔥 Qiyin: 35 savol (24 ta to'g'ri)\n👑 Master: 45 savol (30 ta to'g'ri)",
-            obT4: "Boshqa Bo'limlar", obD4: "🏆 Reytingda dunyo bilan bellashing, 👤 Profilingizni kuzatib boring va ⚙️ Sozlamalardan tilni yoki tungi rejimni tanlang.",
-            obFinish: "Bilimlar jangiga tayyormisiz? Unda boshladik!"
+            navTour: "Turnir", tourWait: "Arizangiz ko'rib chiqilmoqda...", tourActive: "Siz turnirdasiz!"
         },
         uz_cyr: {
             appName: "Ақл Жанги", slogan: "Ўз даражангизни Мастер даражасигача кўтаринг!", birthLabel: "Туғилган санангизни танланг:",
@@ -231,11 +244,7 @@
             resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
             profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
             translating: "Саволлар таржима қилинмоқда...", chooseTheme: "Режимни танланг:", logout: "Ҳисобни ўчириш",
-            obT1: "Хуш келибсиз!", obD1: "Ақл Жанги - бу сизнинг билимингизни синовдан ўтказувчи интеллектуал ўйин. Мақсад: Ўз даражангизни ошириш ва Мастер бўлиш!",
-            obT2: "Ўйин Қоидалари", obD2: "Ўйинда 4 та босқич бор. Ҳар бир босқичдан ўтиш учун белгиланган миқдордаги саволларга тўғри жавоб бериш шарт.",
-            obT3: "Босқичлар ва Шартлар", obD3: "🌱 Осон: 15 савол (10 та тўғри)\n⚡ Ўртача: 25 савол (17 та тўғри)\n🔥 Қийин: 35 савол (24 та тўғри)\n👑 Мастер: 45 савол (30 та тўғри)",
-            obT4: "Бошқа Бўлимлар", obD4: "🏆 Рeйтингда дунё билан беллашинг, 👤 Прoфилингизни кузатиб боринг va ⚙️ Сoзламалардан тилни ёки тунги рeжимни танланг.",
-            obFinish: "Билимлар жангига тайёрмисиз? Унда бошладик!"
+            navTour: "Турнир", tourWait: "Аризангиз кўриб чиқилмоқда...", tourActive: "Сиз турнирдасиз!"
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
@@ -244,11 +253,7 @@
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
             profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
             translating: "Перевод вопросов...", chooseTheme: "Выберите режим:", logout: "Удалить аккаунт",
-            obT1: "Добро пожаловать!", obD1: "Битва Умов - это интеллектуальная игра для проверки ваших знаний. Цель: повысить свой уровень и стать Мастером!",
-            obT2: "Правила Игры", obD2: "В игре 4 этапа. Чтобы пройти каждый этап, вы должны правильно ответить на установленное количество вопросов.",
-            obT3: "Этапы и Условия", obD3: "🌱 Легко: 15 вопр. (10 верных)\n⚡ Средне: 25 вопр. (17 верных)\n🔥 Сложно: 35 вопр. (24 верных)\n👑 Мастер: 45 вопр. (30 верных)",
-            obT4: "Другие Разделы", obD4: "🏆 Соревнуйтесь со всем миром в рейтинге, следите за своим 👤 профилем и выбирайте язык или ночной режим в ⚙️ настройках.",
-            obFinish: "Готовы к битве знаний? Поехали!"
+            navTour: "Турнир", tourWait: "Ваша заявка на рассмотрении...", tourActive: "Вы в турнире!"
         },
         en: {
             appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
@@ -257,11 +262,7 @@
             resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
             profLvl: "Level", profPts: "Points", countdown: "Until your birthday:", days: "d", hours: "h", min: "m", sek: "s",
             translating: "Translating questions...", chooseTheme: "Select theme:", logout: "Delete account",
-            obT1: "Welcome!", obD1: "Battle of Minds is an intellectual game to test your knowledge. Goal: Raise your level and become a Master!",
-            obT2: "Game Rules", obD2: "There are 4 stages. To pass each stage, you must correctly answer a set number of questions.",
-            obT3: "Stages and Requirements", obD3: "🌱 Easy: 15 questions (10 correct)\n⚡ Medium: 25 questions (17 correct)\n🔥 Hard: 35 questions (24 correct)\n👑 Master: 45 questions (30 correct)",
-            obT4: "Other Sections", obD4: "🏆 Compete globally in Ranking, track your 👤 Profile, and choose language or night mode in ⚙️ Settings.",
-            obFinish: "Ready for the battle? Let's go!"
+            navTour: "Tournament", tourWait: "Your application is pending...", tourActive: "You are in the tournament!"
         }
     };
 
@@ -328,6 +329,9 @@
         document.getElementById('txt-score-label').innerText = t.scoreLabel;
         document.getElementById('txt-prof-lvl').innerText = t.profLvl;
         document.getElementById('txt-prof-pts').innerText = t.profPts;
+        document.getElementById('txt-nav-tour').innerText = t.navTour;
+        document.getElementById('txt-nav-tour-btn').innerText = t.navTour;
+
         document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('selected'));
         if(document.getElementById('lang-' + userLang)) document.getElementById('lang-' + userLang).classList.add('selected');
         const lvlTitle = document.getElementById('level-title');
@@ -367,11 +371,11 @@
     const onboardingData = () => {
         const t = translations[userLang];
         return [
-            { icon: "🧠", title: t.obT1, desc: t.obD1 },
-            { icon: "📜", title: t.obT2, desc: t.obD2 },
-            { icon: "📊", title: t.obT3, desc: t.obD3 },
-            { icon: "🛠️", title: t.obT4, desc: t.obD4 },
-            { icon: "🚀", title: "OK!", desc: t.obFinish }
+            { icon: "🧠", title: t.obT1 || "Xush kelibsiz!", desc: t.obD1 || "Aql Jangi o'yiniga xush kelibsiz!" },
+            { icon: "📜", title: t.obT2 || "Qoidalar", desc: t.obD2 || "Savollarga to'g'ri javob bering." },
+            { icon: "📊", title: t.obT3 || "Darajalar", desc: t.obD3 || "Oson, O'rtacha, Qiyin va Master!" },
+            { icon: "🛠️", title: t.obT4 || "Sozlamalar", desc: t.obD4 || "Til va rejimni o'zgartiring." },
+            { icon: "🚀", title: "OK!", desc: "Bilimlar jangiga tayyormisiz? Unda boshladik!" }
         ];
     };
 
@@ -531,13 +535,48 @@
     window.navigate = (id) => {
         if (timerInterval) clearInterval(timerInterval);
         if (countdownInterval) clearInterval(countdownInterval);
-        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings, #tournament').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
         document.getElementById('link-' + id).classList.add('active-link');
         if (id === 'leaderboard') fetchRank();
         if (id === 'profile') loadProfile();
+        if (id === 'tournament') loadTourStatus();
     };
+
+    // TURNIR FUNKSIYALARI
+    window.joinTournament = async () => {
+        const confirmMsg = userLang === 'ru' ? "Вы оплатили 5 000 сум?" : "5 000 so'm to'lov qildingizmi? Arizangiz admin tomonidan tasdiqlanadi.";
+        if(confirm(confirmMsg)) {
+            await update(userRef, { 
+                tourStatus: "pending",
+                tourAppliedAt: new Date().toISOString()
+            });
+            alert(userLang === 'ru' ? "Заявка принята!" : "Arizangiz qabul qilindi!");
+            loadTourStatus();
+        }
+    };
+
+    async function loadTourStatus() {
+        const snap = await get(userRef);
+        const data = snap.val();
+        const btn = document.getElementById('btn-join-tour');
+        const info = document.getElementById('tour-info');
+        const t = translations[userLang];
+
+        if(data.tourStatus === "pending") {
+            btn.style.display = "none";
+            info.innerText = t.tourWait;
+            info.style.color = "var(--gold)";
+        } else if(data.tourStatus === "active") {
+            btn.style.display = "none";
+            info.innerText = t.tourActive;
+            info.style.color = "var(--green)";
+        } else {
+            btn.style.display = "block";
+            info.style.color = "var(--text)";
+        }
+    }
 
     async function loadProfile() {
         const snap = await get(userRef);
