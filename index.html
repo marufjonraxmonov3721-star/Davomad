@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App Pro - Premium Edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { 
@@ -97,7 +98,7 @@
 
         .profile-img-container {
             width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--gold);
-            margin: 0 auto 15px; overflow: hidden; background: #e0e0e0;
+            margin: 0 auto 15px; overflow: hidden; background: #333;
             display: flex; align-items: center; justify-content: center;
         }
         .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
@@ -113,11 +114,11 @@
         <div class="space-y-4 text-left">
             <div>
                 <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ism</label>
-                <input type="text" id="firstName" placeholder="Ismingiz">
+                <input type="text" id="firstName" placeholder="Ismingiz" readonly>
             </div>
             <div>
                 <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiya</label>
-                <input type="text" id="lastName" placeholder="Familiyangiz">
+                <input type="text" id="lastName" placeholder="Familiyangiz" readonly>
             </div>
             <div>
                 <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan kun</label>
@@ -131,9 +132,9 @@
         <div class="premium-card p-8 shadow-2xl">
             <h2 class="text-2xl font-bold mb-4 text-yellow-500">Ilova haqida</h2>
             <div class="text-left space-y-3 text-sm opacity-90 mb-8">
-                <p>✅ <b>Reytinglar:</b> Har bir fan bo'yicha alohida natijalar.</p>
+                <p>✅ <b>Telegram WebApp:</b> Ma'lumotlaringiz xavfsiz.</p>
                 <p>✅ <b>Profil:</b> Shaxsiy yutuqlar va yosh hisoblagichi.</p>
-                <p>✅ <b>Dizayn:</b> Telegram uslubidagi zamonaviy interfeys.</p>
+                <p>✅ <b>Dizayn:</b> Telegram interfeysi bilan integratsiya.</p>
             </div>
             <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl">Boshlash</button>
         </div>
@@ -212,9 +213,10 @@
                 <img src="" id="userProfileImg">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
+            <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
             <div id="profAgeInfo" class="text-sm opacity-80 mb-4 space-y-1">
                 <p id="profBirthdayText"></p>
-                <p id="profAgeText" class="font-bold text-yellow-500"></p>
+                <p id="profAgeText" class="font-bold"></p>
                 <p id="profDaysLeft" class="text-xs italic"></p>
             </div>
             <div class="border-t border-yellow-500/20 pt-6 text-left">
@@ -260,11 +262,20 @@
         const db = getDatabase(app);
         let currentUser = JSON.parse(localStorage.getItem('quizUser'));
 
-        let testQuestions = [], currentQIndex = 0, score = 0, timerInterval;
-        let currentSubject = "", qAmt = 0, qTme = 0;
+        // Telegram WebApp Ma'lumotlarini olish
+        const tg = window.Telegram.WebApp;
+        const tgUser = tg.initDataUnsafe?.user;
 
         window.onload = () => {
+            tg.expand();
             applySavedTheme();
+            
+            // WebApp orqali ism va familiyani inputga to'ldirish
+            if (tgUser) {
+                document.getElementById('firstName').value = tgUser.first_name || "";
+                document.getElementById('lastName').value = tgUser.last_name || "";
+            }
+
             if(currentUser) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
@@ -275,13 +286,19 @@
             const f = document.getElementById('firstName').value;
             const l = document.getElementById('lastName').value;
             const b = document.getElementById('birthDay').value;
-            if(!f || !l || !b) return alert("Barcha maydonlarni to'ldiring!");
             
-            const fullName = f + " " + l;
-            const photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
+            if(!b) return alert("Iltimos, tug'ilgan kuningizni tanlang!");
             
-            const userId = "user_" + Date.now();
-            const userData = { userId, fName: f, lName: l, birth: b, photo: photoUrl };
+            const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
+            const userData = { 
+                userId, 
+                fName: f, 
+                lName: l, 
+                username: tgUser?.username || "sirli_bilimdon",
+                birth: b, 
+                photo: tgUser?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(f+" "+l)}&background=3390ec&color=fff&size=256` 
+            };
+            
             await set(ref(db, 'users/' + userId), userData);
             localStorage.setItem('quizUser', JSON.stringify(userData));
             currentUser = userData;
@@ -312,14 +329,18 @@
         };
 
         window.startTest = async () => {
-            currentSubject = document.getElementById('selectedSubject').value;
-            qAmt = parseInt(document.getElementById('qAmount').value);
-            qTme = parseInt(document.getElementById('qTime').value);
+            let currentSubject = document.getElementById('selectedSubject').value;
+            let qAmt = parseInt(document.getElementById('qAmount').value);
+            let qTme = parseInt(document.getElementById('qTime').value);
 
             const snapshot = await get(ref(db, 'fanlar/' + currentSubject));
             if(snapshot.exists()) {
-                testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, qAmt);
-                currentQIndex = 0; score = 0;
+                window.testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, qAmt);
+                window.currentQIndex = 0; 
+                window.score = 0;
+                window.qAmt_current = qAmt;
+                window.qTme_current = qTme;
+                window.currentSubject_current = currentSubject;
                 showMenu('quiz');
                 startTimer(qTme * 60);
                 loadQuestion();
@@ -327,10 +348,10 @@
         };
 
         function loadQuestion() {
-            if(currentQIndex >= testQuestions.length) return finishTest();
-            document.getElementById('progress-fill').style.width = (currentQIndex / testQuestions.length) * 100 + "%";
-            const q = testQuestions[currentQIndex];
-            document.getElementById('qProgress').innerText = `${currentQIndex + 1}/${testQuestions.length}`;
+            if(window.currentQIndex >= window.testQuestions.length) return finishTest();
+            document.getElementById('progress-fill').style.width = (window.currentQIndex / window.testQuestions.length) * 100 + "%";
+            const q = window.testQuestions[window.currentQIndex];
+            document.getElementById('qProgress').innerText = `${window.currentQIndex + 1}/${window.testQuestions.length}`;
             document.getElementById('questionText').innerText = q.q;
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
@@ -342,12 +363,12 @@
                 btn.onclick = () => {
                     if(opt.isC) {
                         btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff";
-                        score++;
+                        window.score++;
                     } else {
                         btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff";
                     }
                     optList.querySelectorAll('button').forEach(b => b.onclick = null);
-                    setTimeout(() => { currentQIndex++; loadQuestion(); }, 800);
+                    setTimeout(() => { window.currentQIndex++; loadQuestion(); }, 800);
                 };
                 optList.appendChild(btn);
             });
@@ -358,14 +379,14 @@
             const res = {
                 name: `${currentUser.fName} ${currentUser.lName}`,
                 photo: currentUser.photo || "",
-                score: score,
-                subject: currentSubject,
-                qCount: qAmt,
-                timeSet: qTme,
+                score: window.score,
+                subject: window.currentSubject_current,
+                qCount: window.qAmt_current,
+                timeSet: window.qTme_current,
                 date: Date.now()
             };
             await push(ref(db, 'ratings'), res);
-            alert(`Test yakunlandi! Natija: ${score}/${qAmt}`);
+            alert(`Test yakunlandi! Natija: ${window.score}/${window.qAmt_current}`);
             showMenu('rating');
         }
 
@@ -382,7 +403,10 @@
                     .sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet)
                     .slice(0, 20);
 
-                if(sorted.length === 0) rList.innerHTML = "<p class='text-center opacity-40 py-10'>Hozircha natijalar yo'q</p>";
+                if(sorted.length === 0) {
+                    rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>";
+                    return;
+                }
 
                 sorted.forEach((r, i) => {
                     const div = document.createElement('div');
@@ -402,12 +426,15 @@
                         </div>`;
                     rList.appendChild(div);
                 });
+            } else {
+                rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>";
             }
         };
 
         async function loadProfile() {
             const fullName = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profName').innerText = fullName;
+            document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
             document.getElementById('userProfileImg').src = currentUser.photo;
             
             // Yosh va Tug'ilgan kun hisoboti
@@ -421,7 +448,7 @@
             if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
             const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
 
-            document.getElementById('profBirthdayText').innerText = `Tug'ilgan sana: ${bDate.toLocaleDateString('uz-UZ')}`;
+            document.getElementById('profBirthdayText').innerText = `Sana: ${bDate.toLocaleDateString('uz-UZ')}`;
             document.getElementById('profAgeText').innerText = `Yosh: ${age} yosh`;
             document.getElementById('profDaysLeft').innerText = diff === 365 ? "Bugun tug'ilgan kuningiz! 🥳" : `Tug'ilgan kuningizga ${diff} kun qoldi`;
 
