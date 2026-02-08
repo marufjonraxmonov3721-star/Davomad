@@ -6,58 +6,89 @@
     <title>Brain Pro | Maruf Raxmonov</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --yellow: #f1c40f; --orange: #e67e22; --red: #ff3b3b; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
+        /* 1. DIZAYN: Tim qora va Oltin ranglar */
+        :root { 
+            --gold: #FFD700; 
+            --gold-dark: #B8860B; 
+            --bg: #000000; 
+            --card: #0a0a0a; 
+            --green: #28a745; 
+            --red: #ff3b3b; 
+        }
+        
+        body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
         #auth, #game, #leaderboard, #result-screen { display: none; text-align: center; }
-        .active { display: block !important; }
+        .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
 
-        /* Ro'yxatdan o'tish inputlari stili */
-        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; box-sizing: border-box; }
-
-        .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
-        #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-        .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
-        .progress-container { background: #222; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
-        #xp-progress-bar { height: 100%; width: 0%; transition: 0.4s; background: var(--p); }
-
-        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
-        .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
-        .options-grid { display: grid; gap: 12px; }
-        .option-btn { background: #222; padding: 18px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.2s; font-size: 16px; }
-        .correct { background: var(--green) !important; border-color: var(--green); }
-        .wrong { background: var(--red) !important; border-color: var(--red); }
-
-        .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
-        .btn-next { background: var(--p); border: none; padding: 18px; border-radius: 15px; color: #fff; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; }
+        /* 2. ANIMATSIYALAR */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes rotateGold { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; }
-        .nav-link.active-link { opacity: 1; color: var(--p); font-weight: bold; }
+        /* Kirish Loader */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotateGold 1s linear infinite; }
+
+        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: #050505; color: var(--gold); font-size: 16px; box-sizing: border-box; }
+        .reg-input::placeholder { color: #555; }
+
+        .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+        #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        
+        .session-info { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; }
+        .progress-container { background: #111; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #222; }
+        #xp-progress-bar { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+
+        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #1a1a1a; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
+        .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; color: #fff; }
+        
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn { background: #050505; padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: left; cursor: pointer; transition: 0.3s; font-size: 16px; color: #ccc; }
+        .option-btn:active { transform: scale(0.98); background: #111; }
+        
+        /* To'g'ri va Xato ranglari o'zgarmadi lekin oltin hoshiya bilan boyitildi */
+        .correct { background: var(--green) !important; border-color: var(--gold); color: #fff; }
+        .wrong { background: var(--red) !important; border-color: #500; color: #fff; }
+
+        .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-top: 50px; }
+        .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.95); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #111; z-index: 1000; }
+        .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--gold); }
+        .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; text-shadow: 0 0 5px var(--gold); }
+        
+        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; align-items: center; color: #eee; }
+        b.gold-text { color: var(--gold); }
     </style>
 </head>
 <body>
 
+<div id="loader">
+    <div class="spinner"></div>
+    <p style="margin-top: 15px; font-weight: bold; letter-spacing: 3px;">BRAIN PRO</p>
+</div>
+
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 30px;">Minimal ball to'plab yangi bosqichlarni oching!</p>
+        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);">Brain Pro</h1>
+        <p style="color:#888; margin-bottom: 30px;">Zukkolik cho'qqisini zabt eting!</p>
         
-        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingizni kiriting">
-        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangizni kiriting">
+        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
+        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
         
-        <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
+        <button onclick="login()" class="btn-main">BOSHLASH</button>
     </div>
 
     <div id="game">
         <div class="level-header">
             <div id="level-title">YUKLANMOQDA...</div>
-            <div class="session-info">Savol: <span id="q-counter">0/0</span> | To'g'ri: <b id="u-correct">0</b></div>
+            <div class="session-info">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-correct" style="color:var(--gold)">0</b></div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
         <div class="quiz-card">
-            <div class="question" id="question-text">Yuklanmoqda...</div>
+            <div class="question" id="question-text">Savolni o'ylayapman...</div>
             <div id="options-box" class="options-grid"></div>
         </div>
     </div>
@@ -65,14 +96,14 @@
     <div id="result-screen">
         <div class="result-box">
             <h2 id="result-status">Raund Tugadi!</h2>
-            <p id="result-score" style="font-size: 20px; margin: 10px 0;">Natija: 0/0</p>
-            <p id="result-msg" style="color:#888; margin-top:10px;"></p>
+            <p id="result-score" style="font-size: 24px; margin: 10px 0; color:#fff;">Natija: 0/0</p>
+            <p id="result-msg" style="color:#aaa; margin-top:10px; font-style: italic;"></p>
             <button class="btn-next" id="next-btn-text" onclick="startNewRound()">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--p)">🏆 Reyting</h2>
+        <h2 style="color:var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);">🏆 Dunyo Reytingi</h2>
         <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
     </div>
 </div>
@@ -114,10 +145,12 @@
     };
 
     window.onload = async () => {
+        // Ilova yuklanganda loader 1.5 soniya aylanadi
+        setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
+
         const snap = await get(userRef);
         if (snap.exists()) {
             userLevel = snap.val().level || "oson";
-            // Agar allaqachon ro'yxatdan o'tgan bo'lsa, inputlarni yashirish mumkin
             if(snap.val().name) {
                 document.getElementById('reg-name').style.display = 'none';
                 document.getElementById('reg-surname').style.display = 'none';
@@ -129,22 +162,16 @@
     window.login = async () => {
         const snap = await get(userRef);
         
-        // Yangi ro'yxatdan o'tish tekshiruvi
         if (!snap.exists()) {
             const name = document.getElementById('reg-name').value.trim();
             const surname = document.getElementById('reg-surname').value.trim();
             
             if(!name || !surname) {
-                alert("Iltimos, ism va familiyangizni to'liq kiriting!");
+                alert("Iltimos, oltin harflar bilan ismingizni yozing!");
                 return;
             }
             
-            await set(userRef, { 
-                name: name, 
-                surname: surname,
-                level: "oson", 
-                totalPoints: 0 
-            });
+            await set(userRef, { name: name, surname: surname, level: "oson", totalPoints: 0 });
             userLevel = "oson";
         } else {
             userLevel = snap.val().level || "oson";
@@ -157,8 +184,12 @@
     };
 
     window.startNewRound = async () => {
+        // Har raund boshida kichik "fade" animatsiyasi
+        const gameEl = document.getElementById('game');
+        gameEl.style.opacity = "0";
+        
         document.getElementById('result-screen').classList.remove('active');
-        document.getElementById('game').classList.add('active');
+        gameEl.classList.add('active');
         
         const config = gameConfig[userLevel];
         document.getElementById('level-title').innerText = config.title;
@@ -170,7 +201,8 @@
         
         currentIdx = 0;
         correctAnswers = 0;
-        showQuestion();
+        
+        setTimeout(() => { gameEl.style.opacity = "1"; showQuestion(); }, 300);
     };
 
     function showQuestion() {
@@ -226,21 +258,21 @@
         document.getElementById('result-score').innerText = `Natija: ${correctAnswers}/${config.qCount}`;
 
         if (isPassed) {
-            document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
-            document.getElementById('result-status').style.color = "var(--green)";
+            document.getElementById('result-status').innerText = "Zafaringiz Muborak! 🏆";
+            document.getElementById('result-status').style.color = "var(--gold)";
             
             if (userLevel !== "juda_qiyin") {
                 userLevel = config.nextLvl;
                 await set(ref(db, `brain_users/${uid}/level`), userLevel);
-                document.getElementById('result-msg').innerText = `Siz ${gameConfig[userLevel].title} bosqichiga o'tdingiz!`;
+                document.getElementById('result-msg').innerText = `Oltin yo'l ochildi! Siz ${gameConfig[userLevel].title} bosqichiga o'tdingiz!`;
             } else {
-                document.getElementById('result-msg').innerText = correctAnswers >= 30 ? "Siz haqiqiy master ekansiz! Super natija!" : "Zo'r natija! Masterlik darajasi tasdiqlandi.";
+                document.getElementById('result-msg').innerText = correctAnswers >= 30 ? "Siz haqiqiy Master ekansiz! Super natija!" : "Zo'r natija! Masterlik darajasi tasdiqlandi.";
             }
-            document.getElementById('next-btn-text').innerText = "DAVOM ETISH";
+            document.getElementById('next-btn-text').innerText = "OLGA DAVOM";
         } else {
-            document.getElementById('result-status').innerText = "Yana bir bor urinib ko'ring!";
-            document.getElementById('result-status').style.color = "var(--yellow)";
-            document.getElementById('result-msg').innerText = `O'tish uchun kamida ${config.passScore} ta to'g'ri javob kerak edi.`;
+            document.getElementById('result-status').innerText = "Vaqtincha Mag'lubiyat";
+            document.getElementById('result-status').style.color = "#888";
+            document.getElementById('result-msg').innerText = `O'tish uchun kamida ${config.passScore} ta to'g'ri javob kerak edi. Bilimingizni charxlab qayting.`;
             document.getElementById('next-btn-text').innerText = "QAYTA URINISH";
         }
 
@@ -259,29 +291,25 @@
 
     async function fetchRank() {
         const list = document.getElementById('rank-list');
-        list.innerHTML = "Yuklanmoqda...";
+        list.innerHTML = "<div class='spinner' style='margin: 20px auto;'></div>";
         
         const usersRef = ref(db, 'brain_users');
         const snap = await get(usersRef);
         
         if (snap.exists()) {
             let data = [];
-            snap.forEach(childSnap => {
-                data.push(childSnap.val());
-            });
-            
+            snap.forEach(childSnap => { data.push(childSnap.val()); });
             data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
             
             let top10 = data.slice(0, 10);
-            
             list.innerHTML = top10.map((u, i) => `
-                <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;">
-                    <span><b>${i+1}.</b> ${u.name} ${u.surname || ''} <small style="color:#666">(${u.level})</small></span>
-                    <b>${u.totalPoints || 0} Ball</b>
+                <div class="rank-item">
+                    <span><b class="gold-text">${i+1}.</b> ${u.name} ${u.surname || ''} <br><small style="color:#555">${u.level.toUpperCase()}</small></span>
+                    <b class="gold-text">${u.totalPoints || 0} Ball</b>
                 </div>
             `).join('');
         } else {
-            list.innerHTML = "Hozircha ma'lumot yo'q.";
+            list.innerHTML = "Hozircha bo'shliq...";
         }
     }
 </script>
