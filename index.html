@@ -101,39 +101,41 @@
             display: flex; align-items: center; justify-content: center;
         }
         .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
     </style>
 </head>
 <body class="pb-24">
 
     <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center">
         <div class="text-6xl mb-4">🎓</div>
-        <h1 class="text-3xl font-black uppercase italic mb-6">Quiz Pro</h1>
+        <h1 class="text-3xl font-black uppercase italic mb-10">Quiz Pro</h1>
         
-        <div id="telegram-login-container" class="mb-6 flex justify-center">
-            <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                data-telegram-login="your_bot_name" 
-                data-size="large" 
-                data-onauth="onTelegramAuth(user)" 
-                data-request-access="write"></script>
-        </div>
-
-        <div class="space-y-4">
-            <input type="text" id="firstName" placeholder="Ismingiz">
-            <input type="text" id="lastName" placeholder="Familiyangiz">
-            <input type="date" id="birthDate" placeholder="Tug'ilgan kuningiz">
+        <div class="space-y-4 text-left">
+            <div>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ism</label>
+                <input type="text" id="firstName" placeholder="Ismingiz">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiya</label>
+                <input type="text" id="lastName" placeholder="Familiyangiz">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan kun</label>
+                <input type="date" id="birthDay">
+            </div>
             <button onclick="register()" class="gold-button w-full p-4 rounded-xl shadow-lg mt-4">Ro'yxatdan o'tish</button>
         </div>
     </div>
 
     <div id="intro-screen" class="hidden p-8 text-center flex flex-col justify-center min-h-screen">
-        <div class="premium-card p-8">
+        <div class="premium-card p-8 shadow-2xl">
             <h2 class="text-2xl font-bold mb-4 text-yellow-500">Ilova haqida</h2>
             <div class="text-left space-y-3 text-sm opacity-90 mb-8">
-                <p>✅ <b>Fanlar bo'yicha:</b> Har bir fan uchun alohida reyting.</p>
-                <p>✅ <b>Filtrlash:</b> Savollar soni va vaqtga qarab tartiblash.</p>
-                <p>✅ <b>Profil:</b> Shaxsiy yutuqlaringiz va yoshingizni kuzating.</p>
+                <p>✅ <b>Reytinglar:</b> Har bir fan bo'yicha alohida natijalar.</p>
+                <p>✅ <b>Profil:</b> Shaxsiy yutuqlar va yosh hisoblagichi.</p>
+                <p>✅ <b>Dizayn:</b> Telegram uslubidagi zamonaviy interfeys.</p>
             </div>
-            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl">Tushunarli</button>
+            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl">Boshlash</button>
         </div>
     </div>
 
@@ -167,7 +169,7 @@
                     <input type="number" id="qTime" value="15">
                 </div>
             </div>
-            <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl">🚀 Boshlash</button>
+            <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl">🚀 Testni Boshlash</button>
         </div>
     </div>
 
@@ -205,18 +207,18 @@
 
     <div id="profile-screen" class="hidden p-6 text-center">
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Profil</h2>
-        <div class="premium-card p-6 mb-6">
+        <div class="premium-card p-8 mb-6">
             <div class="profile-img-container">
-                <img src="" id="userProfileImg" onerror="this.src='https://ui-avatars.com/api/?name=User&background=3390ec&color=fff'">
+                <img src="" id="userProfileImg">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
-            <div id="birthInfo" class="text-sm opacity-80 space-y-1 mb-4">
-                <p id="profBirthDate"></p>
-                <p id="profAge" class="font-bold text-yellow-500"></p>
-                <p id="profNextBirthday" class="text-[11px] italic"></p>
+            <div id="profAgeInfo" class="text-sm opacity-80 mb-4 space-y-1">
+                <p id="profBirthdayText"></p>
+                <p id="profAgeText" class="font-bold text-yellow-500"></p>
+                <p id="profDaysLeft" class="text-xs italic"></p>
             </div>
             <div class="border-t border-yellow-500/20 pt-6 text-left">
-                <h4 class="text-xs font-bold uppercase opacity-50 mb-4 tracking-widest">Mening Reytinglarim:</h4>
+                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest">Mening Reytinglarim:</h4>
                 <div id="myStatsList" class="space-y-3"></div>
             </div>
         </div>
@@ -226,7 +228,7 @@
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase">Sozlamalar</h2>
         <div class="space-y-4">
             <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
-                <span class="font-bold text-sm italic">TUNGI REJIM</span>
+                <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
                 <span id="theme-icon">🌙</span>
             </div>
             <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish</button>
@@ -269,23 +271,21 @@
             }
         };
 
-        window.onTelegramAuth = (user) => {
-            document.getElementById('firstName').value = user.first_name || "";
-            document.getElementById('lastName').value = user.last_name || "";
-            window.tgPhoto = user.photo_url || "";
-        };
-
         window.register = async () => {
             const f = document.getElementById('firstName').value;
             const l = document.getElementById('lastName').value;
-            const b = document.getElementById('birthDate').value;
-            if(!f || !l || !b) return alert("Barcha qatorlarni to'ldiring!");
+            const b = document.getElementById('birthDay').value;
+            if(!f || !l || !b) return alert("Barcha maydonlarni to'ldiring!");
+            
+            const fullName = f + " " + l;
+            const photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
             
             const userId = "user_" + Date.now();
-            const userData = { userId, fName: f, lName: l, birthDate: b, photo: window.tgPhoto || "" };
+            const userData = { userId, fName: f, lName: l, birth: b, photo: photoUrl };
             await set(ref(db, 'users/' + userId), userData);
             localStorage.setItem('quizUser', JSON.stringify(userData));
             currentUser = userData;
+            document.getElementById('auth-screen').classList.add('hidden');
             showMenu('intro');
         };
 
@@ -315,11 +315,14 @@
             currentSubject = document.getElementById('selectedSubject').value;
             qAmt = parseInt(document.getElementById('qAmount').value);
             qTme = parseInt(document.getElementById('qTime').value);
+
             const snapshot = await get(ref(db, 'fanlar/' + currentSubject));
             if(snapshot.exists()) {
                 testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, qAmt);
-                currentQIndex = 0; score = 0; showMenu('quiz');
-                startTimer(qTme * 60); loadQuestion();
+                currentQIndex = 0; score = 0;
+                showMenu('quiz');
+                startTimer(qTme * 60);
+                loadQuestion();
             } else alert("Bazada savollar yo'q!");
         };
 
@@ -337,8 +340,12 @@
                 btn.className = "option-btn font-medium bg-white/5 italic";
                 btn.innerText = opt.text;
                 btn.onclick = () => {
-                    if(opt.isC) { btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; }
-                    else { btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; }
+                    if(opt.isC) {
+                        btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff";
+                        score++;
+                    } else {
+                        btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff";
+                    }
                     optList.querySelectorAll('button').forEach(b => b.onclick = null);
                     setTimeout(() => { currentQIndex++; loadQuestion(); }, 800);
                 };
@@ -348,7 +355,15 @@
 
         async function finishTest() {
             clearInterval(timerInterval);
-            const res = { name: `${currentUser.fName} ${currentUser.lName}`, score, subject: currentSubject, qCount: qAmt, timeSet: qTme, date: Date.now() };
+            const res = {
+                name: `${currentUser.fName} ${currentUser.lName}`,
+                photo: currentUser.photo || "",
+                score: score,
+                subject: currentSubject,
+                qCount: qAmt,
+                timeSet: qTme,
+                date: Date.now()
+            };
             await push(ref(db, 'ratings'), res);
             alert(`Test yakunlandi! Natija: ${score}/${qAmt}`);
             showMenu('rating');
@@ -358,14 +373,33 @@
             const filterSub = document.getElementById('rankFilterSubject').value;
             const rList = document.getElementById('ratingList');
             rList.innerHTML = "<p class='text-center opacity-50 uppercase text-xs italic'>Yuklanmoqda...</p>";
+            
             const snap = await get(ref(db, 'ratings'));
             if(snap.exists()) {
                 rList.innerHTML = "";
-                const sorted = Object.values(snap.val()).filter(r => r.subject === filterSub).sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet).slice(0, 20);
+                const sorted = Object.values(snap.val())
+                    .filter(r => r.subject === filterSub)
+                    .sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet)
+                    .slice(0, 20);
+
+                if(sorted.length === 0) rList.innerHTML = "<p class='text-center opacity-40 py-10'>Hozircha natijalar yo'q</p>";
+
                 sorted.forEach((r, i) => {
                     const div = document.createElement('div');
                     div.className = `premium-card p-4 flex justify-between items-center ${i===0?'rank-1':''}`;
-                    div.innerHTML = `<div class='flex items-center gap-4'>${i===0?'<span class="crown">👑</span>':''}<div class='rank-badge'>${i+1}</div><div><p class='font-bold'>${r.name}</p><p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p></div></div><div class='text-right'><span class='text-lg font-black text-yellow-500'>${r.score}</span><span class='text-[10px] opacity-40 ml-1'>BALL</span></div>`;
+                    div.innerHTML = `
+                        <div class='flex items-center gap-4'>
+                            ${i===0?'<span class="crown">👑</span>':''}
+                            <img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img">
+                            <div>
+                                <p class='font-bold text-sm'>${r.name}</p>
+                                <p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p>
+                            </div>
+                        </div>
+                        <div class='text-right'>
+                            <span class='text-lg font-black text-yellow-500'>${r.score}</span>
+                            <span class='text-[10px] opacity-40 ml-1'>BALL</span>
+                        </div>`;
                     rList.appendChild(div);
                 });
             }
@@ -374,23 +408,22 @@
         async function loadProfile() {
             const fullName = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profName').innerText = fullName;
-            document.getElementById('userProfileImg').src = currentUser.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
+            document.getElementById('userProfileImg').src = currentUser.photo;
             
-            // Yosh va tug'ilgan kun hisoblari
-            const bDate = new Date(currentUser.birthDate);
+            // Yosh va Tug'ilgan kun hisoboti
+            const bDate = new Date(currentUser.birth);
             const today = new Date();
             let age = today.getFullYear() - bDate.getFullYear();
             const m = today.getMonth() - bDate.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) age--;
-            
+
             const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate());
             if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
-            const diffTime = Math.abs(nextBday - today);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
 
-            document.getElementById('profBirthDate').innerText = `Sana: ${bDate.getDate()}.${bDate.getMonth()+1}.${bDate.getFullYear()}`;
-            document.getElementById('profAge').innerText = `Yosh: ${age}`;
-            document.getElementById('profNextBirthday').innerText = diffDays === 0 || diffDays === 365 ? "Bugun tug'ilgan kuningiz! 🎉" : `Tug'ilgan kuningizga ${diffDays} kun qoldi`;
+            document.getElementById('profBirthdayText').innerText = `Tug'ilgan sana: ${bDate.toLocaleDateString('uz-UZ')}`;
+            document.getElementById('profAgeText').innerText = `Yosh: ${age} yosh`;
+            document.getElementById('profDaysLeft').innerText = diff === 365 ? "Bugun tug'ilgan kuningiz! 🥳" : `Tug'ilgan kuningizga ${diff} kun qoldi`;
 
             const stats = document.getElementById('myStatsList');
             stats.innerHTML = "";
