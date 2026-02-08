@@ -70,7 +70,7 @@
                 <p>👤 Ega: <b>Maruf Raxmonov</b></p>
             </div>
             <div style="margin-bottom:15px;">
-                <span id="txt-p-label">Ishtirokchilar:</span> <b id="p-count">0</b> / 30
+                <span id="txt-p-label">Ishtirokchilar:</span> <b id="p-count">0</b>
             </div>
             <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="handleReceipt(this)">
             <button class="btn-main" id="btn-upload" style="background:#222; color:var(--gold); border:1px solid #444; margin-bottom:10px;" onclick="document.getElementById('receipt-input').click()">CHEKNI YUKLASH</button>
@@ -110,16 +110,29 @@
         <h2 id="txt-rank-title" style="color:var(--gold)">🏆 REYTING</h2>
         <div id="rank-list" class="quiz-card" style="padding:10px;"></div>
     </div>
+
+    <div id="settings">
+        <h2 id="txt-settings-title" style="color:var(--gold)">⚙️ SOZLAMALAR</h2>
+        <div class="quiz-card">
+            <p id="txt-set-lang">Ilova tilini tanlang:</p>
+            <select id="set-lang-select" class="reg-input" onchange="window.switchLang(this.value)">
+                <option value="uz">O'zbekcha 🇺🇿</option>
+                <option value="uz_cyr">Ўзбекча 🇺🇿</option>
+            </select>
+            <button class="btn-main" style="background:var(--red); color:#fff; border:none;" onclick="logout()">TIZIMDAN CHIQISH</button>
+        </div>
+    </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
     <div class="nav-link" id="nav-tour" onclick="navigate('tournament')">⚔️<br><span id="txt-nav-tour">Turnir</span></div>
-    <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">🏆<br><span id="txt-nav-rank">Reyting</span></div>
+    <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">🏆<br><span id="nav-rank-text">Reyting</span></div>
+    <div class="nav-link" id="nav-sett" onclick="navigate('settings')">⚙️<br><span id="txt-nav-sett">Sozlamalar</span></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI", authDomain: "gen-lang-client-0228947349.firebaseapp.com", databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com", projectId: "gen-lang-client-0228947349", appId: "1:253793341504:web:709752258000dab44fcfa5" };
     const app = initializeApp(firebaseConfig);
@@ -138,29 +151,29 @@
     const translations = {
         uz: {
             title: "Aql Jangi", slogan: "Tezkor Labirint Turniri", name: "Ismingiz", surname: "Familiyangiz", next: "DAVOM ETISH",
-            tour: "Turnir", rank: "Reyting", pLabel: "Ishtirokchilar:", upload: "CHEKNI YUKLASH", pay: "TO'LOV QILDIM",
+            tour: "Turnir", rank: "Reyting", sett: "Sozlamalar", pLabel: "Ishtirokchilar:", upload: "CHEKNI YUKLASH", pay: "TO'LOV QILDIM",
             final: "Jami vaqtingiz:", resTitle: "BOSQICH TUGADI!", payMsg: "To'lov qiling va chekni yuklang.",
             ob: [
-                { t: "Ilova maqsadi", d: "Aql Jangi — bu sizning tezkorligingiz va diqqatingizni sinovdan o'tkazuvchi intellektual turnir platformasidir." },
-                { t: "Turnir qoidalari", d: "1. Labirintdan eng tez chiqqan g'olib bo'ladi.\n2. Jami 30 ta bosqich (10 oson, 10 o'rta, 10 qiyin).\n3. Devorlarga tegish mumkin emas." },
-                { t: "Sovrinlar 🏆", d: "🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm\nJami 30 ta joy bor!" }
+                { t: "Ilova maqsadi", d: "Aql Jangi — bu tezkorlik va diqqatni sinovdan o'tkazuvchi turnirdir.\nTurnirda qatnashish: 5 000 so'm." },
+                { t: "Turnir qoidalari", d: "1. Labirintdan eng tez chiqqan g'olib bo'ladi.\n2. Jami 30 ta bosqich bor.\n3. Har bir soniya hisobga olinadi." },
+                { t: "Sovrinlar 🏆", d: "🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm\nOmad tilaymiz!" }
             ],
-            confirm: "Shartlarga roziman va to'lov qilishga o'taman", wait: "To'lov tekshirilmoqda..."
+            confirm: "Tushunarli va roziman", wait: "To'lov tekshirilmoqda...", logout: "Chiqasizmi?"
         },
         uz_cyr: {
             title: "Ақл Жанги", slogan: "Тезкор Лабиринт Турнири", name: "Исмингиз", surname: "Фамилиянгиз", next: "ДАВОМ ЭТИШ",
-            tour: "Турнир", rank: "Рейтинг", pLabel: "Иштирокчилар:", upload: "ЧЕКНИ ЮКЛАШ", pay: "ТЎЛОВ ҚИЛДИМ",
+            tour: "Турнир", rank: "Рейтинг", sett: "Созламалар", pLabel: "Иштирокчилар:", upload: "ЧЕКНИ ЮКЛАШ", pay: "ТЎЛОВ ҚИЛДИМ",
             final: "Жами вақтингиз:", resTitle: "БОСҚИЧ ТУГАДИ!", payMsg: "Тўлов қилинг ва чекни юкланг.",
             ob: [
-                { t: "Илова мақсади", d: "Ақл Жанги — бу сизнинг тезкорлигингиз ва диққатингизни синовдан ўтказувчи интеллектуал турнир платформасидир." },
-                { t: "Турнир қоидалари", d: "1. Лабиринтдан энг тез чиққан ғолиб бўлади.\n2. Жами 30 та босқич (10 осон, 10 ўрта, 10 қийин).\n3. Деворларга тегиш мумкин эмас." },
-                { t: "Совринлар 🏆", d: "🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм\nЖами 30 та жой бор!" }
+                { t: "Илова мақсади", d: "Ақл Жанги — бу тезкорлик ва диққатни синовдан ўтказувчи турнирдир.\nТурнирда қатнашиш: 5 000 сўм." },
+                { t: "Турнир қоидалари", d: "1. Лабиринтдан энг тез чиққан ғолиб бўлади.\n2. Жами 30 та босқич бор.\n3. Ҳар бир сония ҳисобга олинади." },
+                { t: "Совринлар 🏆", d: "🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм\nОмад тилаймиз!" }
             ],
-            confirm: "Шартларга розиман ва тўлов қилишга ўтаман", wait: "Тўлов текширилмоқда..."
+            confirm: "Тушунарли ва розиман", wait: "Тўлов текширилмоқда...", logout: "Чиқасизми?"
         }
     };
 
-    window.switchLang = (l) => {
+    window.switchLang = async (l) => {
         userData.lang = l;
         const t = translations[l];
         document.getElementById('txt-app-title').innerText = t.title;
@@ -173,18 +186,20 @@
         document.getElementById('btn-upload').innerText = t.upload;
         document.getElementById('btn-pay').innerText = t.pay;
         document.getElementById('txt-rank-title').innerText = "🏆 " + t.rank.toUpperCase();
+        document.getElementById('txt-settings-title').innerText = "⚙️ " + t.sett.toUpperCase();
         document.getElementById('txt-nav-tour').innerText = t.tour;
         document.getElementById('txt-nav-rank').innerText = t.rank;
+        document.getElementById('txt-nav-sett').innerText = t.sett;
         document.getElementById('res-title').innerText = t.resTitle;
         document.getElementById('txt-final-res').innerText = t.final;
         document.getElementById('btn-res-next').innerText = t.next;
+        if (userData.name) await update(userRef, { lang: l });
     };
 
     window.register = async () => {
         const name = document.getElementById('reg-name').value, surname = document.getElementById('reg-surname').value;
-        if(!name || !surname) return alert("To'liq to'ldiring!");
-        userData.name = name; userData.surname = surname;
-        userData.tourStatus = "none"; userData.totalTime = 0; userData.currentLevel = "oson";
+        if(!name || !surname) return alert("To'ldiring!");
+        userData.name = name; userData.surname = surname; userData.tourStatus = "none"; userData.totalTime = 0; userData.currentLevel = "oson";
         await set(userRef, userData);
         showScreen('onboarding'); showObStep();
     };
@@ -212,14 +227,13 @@
         onValue(ref(db, 'brain_users'), (s) => {
             let count = 0; s.forEach(u => u.val().tourStatus === 'active' && count++);
             document.getElementById('p-count').innerText = count;
-            if(userData.tourStatus === 'active' && count >= 30) document.getElementById('btn-start').style.display='block';
+            if(userData.tourStatus === 'active') document.getElementById('btn-start').style.display='block';
         });
-        msg.innerText = userData.tourStatus === 'pending' ? translations[userData.lang].wait : (userData.tourStatus === 'active' ? "Siz turnirdasiz!" : translations[userData.lang].payMsg);
+        msg.innerText = userData.tourStatus === 'pending' ? translations[userData.lang].wait : (userData.tourStatus === 'active' ? "Tasdiqlandi!" : translations[userData.lang].payMsg);
     }
 
-    // O'yin mantiqi (Maze generation va move o'zgarmadi, lekin UI tillari qo'shildi)
     window.startTurnir = () => {
-        level = userData.currentLevel;
+        level = userData.currentLevel || "oson";
         size = level === "oson" ? 6 : (level === "ortacha" ? 10 : 15);
         timeLimit = level === "oson" ? 30 : (level === "ortacha" ? 45 : 60);
         currentIdx = 0; sessionTime = 0;
@@ -291,6 +305,8 @@
     window.navigate = (id) => {
         document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
+        document.getElementById('nav-' + id.substring(0,4))?.classList.add('active-link');
         if(id==='tournament') { loadTourStatus(); document.getElementById('navbar').style.display='flex'; }
         if(id==='leaderboard') fetchRank();
     };
@@ -302,13 +318,16 @@
         document.getElementById('rank-list').innerHTML = list.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name} ${u.surname}</span><b>${u.totalTime.toFixed(1)}s</b></div>`).join('') || "...";
     }
 
+    window.logout = async () => { 
+        if(confirm(translations[userData.lang].logout)) { await remove(userRef); location.reload(); }
+    };
+
     function showScreen(id) { document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
     window.onload = async () => {
-        window.switchLang('uz'); // Default
         const snap = await get(userRef); document.getElementById('loader').style.display='none';
         if(snap.exists() && snap.val().name) { userData = snap.val(); window.switchLang(userData.lang); navigate('tournament'); }
-        else { showScreen('auth'); }
+        else { window.switchLang('uz'); showScreen('auth'); }
     };
 </script>
 </body>
