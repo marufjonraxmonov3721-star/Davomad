@@ -81,6 +81,7 @@
         
         <select id="reg-lang" class="reg-input" style="margin-bottom: 20px;" onchange="changeLang(this.value, false)">
             <option value="uz">O'zbekcha 🇺🇿</option>
+            <option value="uz_cyr">Ўзбекча 🇺🇿</option>
             <option value="ru">Русский 🇷🇺</option>
             <option value="en">English 🇺🇸</option>
         </select>
@@ -104,6 +105,7 @@
         <div class="quiz-card" style="text-align: left;">
             <p id="txt-choose-lang" style="margin-bottom: 15px;">Ilova tilini tanlang:</p>
             <div class="lang-btn" id="lang-uz" onclick="changeLang('uz')">O'zbekcha 🇺🇿 <span id="check-uz"></span></div>
+            <div class="lang-btn" id="lang-uz_cyr" onclick="changeLang('uz_cyr')">Ўзбекча 🇺🇿 <span id="check-uz_cyr"></span></div>
             <div class="lang-btn" id="lang-ru" onclick="changeLang('ru')">Русский 🇷🇺 <span id="check-ru"></span></div>
             <div class="lang-btn" id="lang-en" onclick="changeLang('en')">English 🇺🇸 <span id="check-en"></span></div>
         </div>
@@ -191,50 +193,55 @@
     const translations = {
         uz: {
             appName: "Aql Jangi", slogan: "O'z darajangizni Master darajasigacha ko'taring!", birthLabel: "Tug'ilgan sanangizni tanlang:",
-            namePh: "Ismingiz", surnamePh: "Familiyangiz",
-            btnStart: "BOSHLASH", navGame: "O'yin", navRank: "Reyting", navProfile: "Profil", navSettings: "Sozlamalar",
+            namePh: "Ismingiz", surnamePh: "Familiyangiz", btnStart: "BOSHLASH", navGame: "O'yin", navRank: "Reyting", navProfile: "Profil", navSettings: "Sozlamalar",
             chooseLang: "Ilova tilini tanlang:", qCounter: "Savol", scoreLabel: "Ball", resStatus: "Raund Tugadi!",
             resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
             profLvl: "Daraja", profPts: "Ball", countdown: "Tug'ilgan kuningizga:", days: "kun", hours: "soat", min: "min", sek: "sek",
             obWelcome: "Haqiqiy bilimlar to'qnashuviga xush kelibsiz! Keling, o'yin qoidalari bilan tanishamiz.", obFinish: "Hamma qoidalarni bildingiz. Endi jangni boshlash vaqti keldi! Omad yor bo'lsin.",
-            obBtnNext: "KEYINGISI", obBtnStart: "BOSHLADIK!", obQcount: "Savollar soni:", obPass: "O'tish uchun:",
-            translating: "Savollar tarjima qilinmoqda..."
+            obBtnNext: "KEYINGISI", obBtnStart: "BOSHLADIK!", obQcount: "Savollar soni:", obPass: "O'tish uchun:", translating: "Savollar tarjima qilinmoqda..."
+        },
+        uz_cyr: {
+            appName: "Ақл Жанги", slogan: "Ўз даражангизни Мастер даражасигача кўтаринг!", birthLabel: "Туғилган санангизни танланг:",
+            namePh: "Исмингиз", surnamePh: "Фамилиянгиз", btnStart: "БОШЛАШ", navGame: "Ўйин", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Созламалар",
+            chooseLang: "Илова тилини танланг:", qCounter: "Савол", scoreLabel: "Балл", resStatus: "Раунд Тугади!",
+            resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
+            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
+            obWelcome: "Ҳақиқий билимлар тўқнашувига хуш келибсиз! Келинг, ўйин қоидалари билан танишамиз.", obFinish: "Ҳамма қоидаларни билдингиз. Энди жангни бошлаш вақти келди! Омад ёр бўлсин.",
+            obBtnNext: "КЕЙИНГИСИ", obBtnStart: "БОШЛАДИК!", obQcount: "Саволлар сони:", obPass: "Ўтиш учун:", translating: "Саволлар таржима қилинмоқда..."
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
-            namePh: "Имя", surnamePh: "Фамилия",
-            btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
+            namePh: "Имя", surnamePh: "Фамилия", btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
             profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
             obWelcome: "Добро пожаловать в настоящую битву знаний! Давайте познакомимся с правилами игры.", obFinish: "Вы узнали все правила. Пришло время начать битву! Удачи.",
-            obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:",
-            translating: "Перевод вопросов..."
+            obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:", translating: "Перевод вопросов..."
         },
         en: {
             appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
-            namePh: "First Name", surnamePh: "Last Name",
-            btnStart: "START", navGame: "Game", navRank: "Ranking", navProfile: "Profile", navSettings: "Settings",
+            namePh: "First Name", surnamePh: "Last Name", btnStart: "START", navGame: "Game", navRank: "Ranking", navProfile: "Profile", navSettings: "Settings",
             chooseLang: "Choose app language:", qCounter: "Question", scoreLabel: "Score", resStatus: "Round Over!",
             resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
             profLvl: "Level", profPts: "Points", countdown: "Until your birthday:", days: "d", hours: "h", min: "m", sek: "s",
             obWelcome: "Welcome to the real battle of knowledge! Let's get acquainted with the rules of the game.", obFinish: "You've learned all the rules. It's time to start the battle! Good luck.",
-            obBtnNext: "NEXT", obBtnStart: "LET'S GO!", obQcount: "Questions count:", obPass: "To pass:",
-            translating: "Translating questions..."
+            obBtnNext: "NEXT", obBtnStart: "LET'S GO!", obQcount: "Questions count:", obPass: "To pass:", translating: "Translating questions..."
         }
     };
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 10, title: {uz: "🟢 OSON", ru: "🟢 ЛЕГКО", en: "🟢 EASY"}, nextLvl: "ortacha", icon: "🌱" },
-        ortacha: { qCount: 25, passScore: 17, title: {uz: "🟡 O'RTACHA", ru: "🟡 СРЕДНЕ", en: "🟡 MEDIUM"}, nextLvl: "qiyin", icon: "⚡" },
-        qiyin: { qCount: 35, passScore: 24, title: {uz: "🟠 QIYINROQ", ru: "🟠 СЛОЖНО", en: "🟠 HARD"}, nextLvl: "juda_qiyin", icon: "🔥" },
-        juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑" }
+        oson: { qCount: 15, passScore: 10, title: {uz: "🟢 OSON", uz_cyr: "🟢 ОСОН", ru: "🟢 ЛЕГКО", en: "🟢 EASY"}, nextLvl: "ortacha", icon: "🌱" },
+        ortacha: { qCount: 25, passScore: 17, title: {uz: "🟡 O'RTACHA", uz_cyr: "🟡 ЎРТАЧА", ru: "🟡 СРЕДНЕ", en: "🟡 MEDIUM"}, nextLvl: "qiyin", icon: "⚡" },
+        qiyin: { qCount: 35, passScore: 24, title: {uz: "🟠 QIYINROQ", uz_cyr: "🟠 ҚИЙИНРОҚ", ru: "🟠 СЛОЖНО", en: "🟠 HARD"}, nextLvl: "juda_qiyin", icon: "🔥" },
+        juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", uz_cyr: "🔴 МАСТЕР", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑" }
     };
 
     async function translateText(text, targetLang) {
         if (targetLang === 'uz') return text;
+        // Kirillga o'girish Google Translate'da alohida til emas, shuning uchun 'ru' orqali o'girish kerak
+        const langCode = targetLang === 'uz_cyr' ? 'ru' : targetLang; 
         try {
-            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=uz&tl=${targetLang}&dt=t&q=${encodeURI(text)}`);
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=uz&tl=${langCode}&dt=t&q=${encodeURI(text)}`);
             const data = await res.json();
             return data[0][0][0];
         } catch (e) {
@@ -259,7 +266,7 @@
                 document.getElementById('txt-birth-label').style.display = 'none';
             }
         } else {
-            applyLanguage(); // Standart tilni o'rnatish
+            applyLanguage();
         }
         document.getElementById('auth').classList.add('active');
     };
@@ -289,8 +296,6 @@
         if(document.getElementById('lang-' + userLang)) {
             document.getElementById('lang-' + userLang).classList.add('selected');
         }
-
-        // Agar o'yin oynasi ochiq bo'lsa, sarlavhani ham o'zgartirish
         const lvlTitle = document.getElementById('level-title');
         if(lvlTitle) lvlTitle.innerText = gameConfig[userLevel].title[userLang];
     };
@@ -300,7 +305,6 @@
         applyLanguage();
         if (syncToDb) {
             await update(userRef, { lang: lang });
-            // Agar foydalanuvchi profil bo'limida bo'lsa, profilni ham yangilash
             if (document.getElementById('profile').classList.contains('active')) loadProfile();
         }
     };
@@ -456,7 +460,8 @@
             const now = new Date();
             let age = now.getFullYear() - bDay.getFullYear();
             if (now.getMonth() < bDay.getMonth() || (now.getMonth() == bDay.getMonth() && now.getDate() < bDay.getDate())) age--;
-            document.getElementById('p-age-info').innerText = `${age} ${userLang === 'ru' ? 'лет' : (userLang === 'en' ? 'years old' : 'yosh')}`;
+            const ageTxt = userLang === 'ru' || userLang === 'uz_cyr' ? 'лет' : (userLang === 'en' ? 'years old' : 'yosh');
+            document.getElementById('p-age-info').innerText = `${age} ${ageTxt}`;
             let nB = new Date(now.getFullYear(), bDay.getMonth(), bDay.getDate());
             if (now > nB) nB.setFullYear(now.getFullYear() + 1);
             const diff = nB - now;
