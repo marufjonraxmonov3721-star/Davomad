@@ -16,60 +16,34 @@
             --red: #ff3b3b; 
         }
         
-        body.light-mode {
-            --bg: #ffffff;
-            --card: #f5f5f5;
-            --text: #000000;
-            --gold: #B8860B;
-        }
-
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; transition: 0.3s; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        /* Barcha sahifalar boshida yashirin bo'ladi */
-        #auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings, #tournament { display: none; text-align: center; }
-        .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
+        #auth, #onboarding, #tournament, #game, #leaderboard, #profile, #settings, #result-screen { display: none; text-align: center; }
+        .active { display: block !important; animation: fadeIn 0.6s ease-in-out; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotateGold 1s linear infinite; }
-        @keyframes rotateGold { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotate 1s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
-        .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: #000; color: #fff; font-size: 16px; box-sizing: border-box; }
+        .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
         
-        .timer-container { background: #222; height: 6px; border-radius: 3px; margin: 15px 0; overflow: hidden; }
+        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 200px; margin-bottom: 20px; }
+        .option-btn { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; margin-bottom: 10px; color: #fff; }
+        .correct { background: var(--green) !important; color: #fff; }
+        .wrong { background: var(--red) !important; color: #fff; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-link { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: var(--gold); flex: 1; text-decoration: none; }
+        .nav-link.active-link { opacity: 1; font-weight: bold; }
+
+        .timer-bar-container { background: #222; height: 5px; border-radius: 3px; margin: 15px 0; overflow: hidden; }
         #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: linear; }
-
-        .progress-container { background: #111; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #222; }
-        #xp-progress-bar { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
-
-        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 20px; }
-        .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; color: var(--text); }
         
-        .options-grid { display: grid; gap: 12px; }
-        .option-btn { background: var(--bg); padding: 18px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.3s; font-size: 16px; color: var(--text); }
-        
-        .correct { background: var(--green) !important; border-color: var(--gold); color: #fff !important; }
-        .wrong { background: var(--red) !important; border-color: #500; color: #fff !important; }
-
-        .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
-
-        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
-        .ob-card { background: var(--card); border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
-        .ob-icon { font-size: 60px; margin-bottom: 20px; }
-        .ob-title { font-size: 24px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
-        .ob-desc { color: var(--text); font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; text-decoration: none; }
-        .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; }
-        
-        .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
-        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; color: var(--text); }
-        .danger-btn { background: var(--red); color: #fff; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        #receipt-preview { width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; display: none; border-radius: 10px; border: 1px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -81,99 +55,89 @@
 
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
-        <p style="color:#888; margin-bottom: 30px;">Turnirda ishtirok eting va g'olib bo'ling!</p>
-        
-        <select id="reg-lang" class="reg-input" style="margin-bottom: 20px;">
+        <h1 id="app-title-auth" style="font-size: 40px;">Aql Jangi</h1>
+        <p id="app-slogan-auth" style="color: #888;">Turnirda ishtirok eting!</p>
+        <select id="reg-lang" class="reg-input" onchange="window.updateUI(this.value)">
             <option value="uz">O'zbekcha 🇺🇿</option>
-            <option value="ru">Русский 🇷🇺</option>
-            <option value="en">English 🇺🇸</option>
+            <option value="uz_cyr">Ўзбекча 🇺🇿</option>
         </select>
-
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
-        <label style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
-        <input type="date" id="reg-birth" class="reg-input">
-        <button onclick="login()" class="btn-main">RO'YXATDAN O'TISH</button>
+        <button class="btn-main" id="btn-reg-text" onclick="register()">DAVOM ETISH</button>
     </div>
 
-    <div id="onboarding" class="ob-screen">
-        <div class="ob-card">
-            <div id="ob-content"></div>
-            <button onclick="nextObStep()" class="btn-main" id="ob-btn">DAVOM ETISH</button>
+    <div id="onboarding">
+        <div class="quiz-card" id="ob-card">
+            <h2 id="ob-title" style="color: var(--gold);"></h2>
+            <p id="ob-desc" style="line-height: 1.6; color: #fff;"></p>
+            <button class="btn-main" id="ob-next-btn" onclick="nextObStep()">KEYINGISI</button>
         </div>
     </div>
 
     <div id="tournament">
-        <h2 style="color:var(--gold)">⚔️ Haftalik Turnir</h2>
-        <div class="quiz-card">
-            <div id="tour-status-box">
-                <p id="tour-info" style="font-weight: bold;">Turnirda ishtirok etish uchun to'lov qiling!</p>
-                <div style="background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); margin:15px 0; text-align:left; color: var(--gold);">
-                    <p style="margin:5px 0;">💰 Kirish puli: <b>5 000 so'm</b></p>
-                    <p style="margin:5px 0;">💳 Karta: <b style="letter-spacing: 1px; color: #fff;">4073 4200 6816 5541</b></p>
-                    <p style="margin:5px 0;">👤 Ism: <b>Maruf Raxmonov</b></p>
-                </div>
-                <button class="btn-main" id="btn-join-tour" onclick="joinTournament()">ISHTIROK ETISH</button>
-                <button class="btn-main" id="btn-start-game" style="display:none; background: var(--green);" onclick="startNewRound()">O'YINNI BOSHLASH</button>
+        <h2 id="tour-title-text">Turnir Markazi</h2>
+        <div class="quiz-card" id="tour-box">
+            <p id="tour-status-msg">Turnirda qatnashish uchun 5 000 so'm to'lov qiling.</p>
+            <div id="payment-details" style="background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); margin:15px 0; text-align:left;">
+                <p id="pay-price">💰 Kirish: <b>5 000 so'm</b></p>
+                <p id="pay-card">💳 Karta: <b style="color:#fff;">4073 4200 6816 5541</b></p>
+                <p id="pay-owner">👤 Ega: <b>Maruf Raxmonov</b></p>
             </div>
+            
+            <div id="receipt-upload-section" style="margin-top: 15px;">
+                <label id="receipt-label" style="display:block; margin-bottom:10px; font-size:14px; color:#888;">To'lov chekini yuklang:</label>
+                <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="previewReceipt(this)">
+                <button class="btn-main" style="background:#222; color:var(--gold); border:1px solid var(--gold-dark);" onclick="document.getElementById('receipt-input').click()" id="btn-choose-file">RASM TANLASH</button>
+                <img id="receipt-preview">
+            </div>
+
+            <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
+            <button class="btn-main" id="btn-start" style="display:none; background:var(--green);" onclick="startTurnir()">O'YINNI BOSHLASH</button>
         </div>
     </div>
 
     <div id="game">
         <div class="level-header">
-            <div id="level-title" style="font-weight: 900; color: var(--gold);">TURNIR JANGI</div>
-            <div style="font-size: 14px; color: #888; margin-top: 10px; font-weight: bold;">
-                Savol: <span id="q-counter">0/15</span> | Ball: <b id="u-correct">0</b>
-            </div>
-            <div class="progress-container"><div id="xp-progress-bar"></div></div>
-            <div class="timer-container"><div id="timer-bar"></div></div>
+            <h3 id="current-level-name" style="margin:0;">OSON</h3>
+            <p id="q-counter-label">Savol: <span id="q-idx">1</span>/10</p>
+            <div class="timer-bar-container"><div id="timer-bar"></div></div>
         </div>
         <div class="quiz-card">
-            <div class="question" id="question-text">Yuklanmoqda...</div>
-            <div id="options-box" class="options-grid"></div>
+            <h3 id="q-text" style="color:#fff;">Savol yuklanmoqda...</h3>
+            <div id="options" class="options-grid"></div>
         </div>
     </div>
 
     <div id="result-screen">
         <div class="quiz-card">
-            <h2 id="result-status" style="color: var(--gold);">Turnir Tugadi!</h2>
-            <p id="result-score" style="font-size: 32px; margin: 10px 0;">0/15</p>
-            <button class="btn-next" onclick="navigate('tournament')">YOPISH</button>
+            <h2 id="res-finished-text">RAUND TUGADI!</h2>
+            <p style="font-size: 24px;"><span id="res-score-label">To'g'ri javoblar:</span> <b id="final-score">0</b>/10</p>
+            <button class="btn-main" id="res-btn" onclick="checkNextLevel()">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--gold)">🏆 Dunyo Reytingi</h2>
-        <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
-    </div>
-
-    <div id="profile">
-        <h2 style="color:var(--gold)">👤 Mening Profilim</h2>
-        <div class="quiz-card">
-            <img id="p-img" src="https://cdn-icons-png.flaticon.com/512/1340/1340333.png" class="p-avatar">
-            <div id="p-full-name" style="font-size:18px; font-weight:bold; margin-bottom:5px;">Ism Familiya</div>
-            <div style="background:var(--bg); border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;">
-                Umumiy Ball: <span id="p-points" style="color:var(--gold)">0</span>
-            </div>
-        </div>
+        <h2 id="rank-title-text">🏆 REYTING</h2>
+        <div id="rank-list" class="quiz-card" style="padding:10px;"></div>
     </div>
 
     <div id="settings">
-        <h2 style="color:var(--gold)">⚙️ Sozlamalar</h2>
+        <h2 id="set-title-text">⚙️ SOZLAMALAR</h2>
         <div class="quiz-card">
-            <button class="reg-input" onclick="toggleTheme('dark')">🌙 Tungi rejim</button>
-            <button class="reg-input" onclick="toggleTheme('light')">☀️ Kunduzgi rejim</button>
-            <button class="danger-btn" onclick="logoutUser()">🔴 HISOBNI O'CHIRISH</button>
+            <p id="set-user-info"></p>
+            <select id="set-lang" class="reg-input" onchange="changeLang(this.value)">
+                <option value="uz">O'zbekcha</option>
+                <option value="uz_cyr">Ўзбекча</option>
+            </select>
+            <button class="btn-main" id="btn-logout-text" style="background:var(--red); color:#fff;" onclick="logout()">TIZIMDAN CHIQISH</button>
         </div>
     </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
-    <div class="nav-link" id="link-tournament" onclick="navigate('tournament')">⚔️<br>Turnir</div>
-    <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
-    <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br>Profil</div>
-    <div class="nav-link" id="link-settings" onclick="navigate('settings')">⚙️<br>Sozlamalar</div>
+    <div class="nav-link" id="nav-tour" onclick="navigate('tournament')">⚔️<br><span id="nav-tour-text">Turnir</span></div>
+    <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">🏆<br><span id="nav-rank-text">Reyting</span></div>
+    <div class="nav-link" id="nav-set" onclick="navigate('settings')">⚙️<br><span id="nav-set-text">Sozlamalar</span></div>
 </div>
 
 <script type="module">
@@ -193,199 +157,304 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf_3";
+    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let userLang = "uz";
-    let sessionQuestions = [];
-    let currentIdx = 0;
-    let correctAnswers = 0;
-    let isLocked = false;
-    let countdownInterval = null;
+    let userData = null;
+    let currentQuestions = [];
+    let qIndex = 0;
+    let score = 0;
+    let currentLevel = "oson";
+    let timer = null;
     let obStep = 0;
+    let receiptBase64 = null;
 
-    window.onload = async () => {
-        setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1000);
-        const snap = await get(userRef);
-        if (snap.exists()) {
-            const val = snap.val();
-            userLang = val.lang || "uz";
-            if(val.name) {
-                document.getElementById('auth').classList.remove('active');
-                document.getElementById('navbar').style.display = 'flex';
-                navigate('tournament');
-            } else {
-                document.getElementById('auth').classList.add('active');
-            }
-        } else {
-            document.getElementById('auth').classList.add('active');
+    const texts = {
+        uz: {
+            appTitle: "Aql Jangi", slogan: "Turnirda ishtirok eting!",
+            tour: "Turnir", rank: "Reyting", set: "Sozlamalar",
+            regBtn: "DAVOM ETISH", namePh: "Ismingiz", surnamePh: "Familiyangiz",
+            obNext: "KEYINGISI", tourTitle: "Turnir Markazi", payBtn: "TO'LOV QILDIM", startBtn: "O'YINNI BOSHLASH",
+            payInfo: "Turnirda qatnashish uchun 5 000 so'm to'lov qiling.", payPrice: "💰 Kirish: <b>5 000 so'm</b>", payCard: "💳 Karta:", payOwner: "👤 Ega:",
+            resFinish: "RAUND TUGADI!", resScore: "To'g'ri javoblar:", qLabel: "Savol:", logout: "TIZIMDAN CHIQISH",
+            receiptLab: "To'lov chekini yuklang:", chooseFile: "RASM TANLASH",
+            ob: [
+                { t: "Xush kelibsiz!", d: "Aql Jangi — bu mantiqiy savollar orqali bilimingizni sinaydigan turnir ilovasi." },
+                { t: "Maqsadimiz", d: "Sizga qiziqarli va mantiqiy jumboqlar berish orqali intellektual salohiyatingizni oshirish." },
+                { t: "Turnir qoidalari", d: "Turnirda qatnashish 5 000 so'm. To'lov tasdiqlangach, 30 ta savol (3 bosqich) ochiladi." }
+            ],
+            wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! Turnirni boshlang."
+        },
+        uz_cyr: {
+            appTitle: "Ақл Жанги", slogan: "Турнирда иштирок этинг!",
+            tour: "Турнир", rank: "Рейтинг", set: "Созламалар",
+            regBtn: "ДАВОМ ЭТИШ", namePh: "Исмингиз", surnamePh: "Фамилиянгиз",
+            obNext: "КЕЙИНГИСИ", tourTitle: "Турнир Маркази", payBtn: "ТЎЛОВ ҚИЛДИМ", startBtn: "ЎЙИННИ БОШЛАШ",
+            payInfo: "Турнирда қатнашиш учун 5 000 сўм тўлов қилинг.", payPrice: "💰 Кириш: <b>5 000 сўм</b>", payCard: "💳 Карта:", payOwner: "👤 Эга:",
+            resFinish: "РАУНД ТУГАДИ!", resScore: "Тўғри жавоблар:", qLabel: "Савол:", logout: "ТИЗИМДАН ЧИҚИШ",
+            receiptLab: "Тўлов чекини юкланг:", chooseFile: "РАСМ ТАНЛАШ",
+            ob: [
+                { t: "Хуш келибсиз!", d: "Ақл Жанги — бу мантиқий саволлар орқали билимингизни синайдиган турнир иловаси." },
+                { t: "Мақсадимиз", d: "Сизга қизиқарли ва мантиқий жумбоқлар бериш орқали интеллектуал салоҳиятингизни ошириш." },
+                { t: "Турнир қоидалари", d: "Турнирда қатнашиш 5 000 сўм. Тўлов тасдиқлангач, 30 та савол (3 босқич) очилади." }
+            ],
+            wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! Турнирни бошланг."
         }
     };
 
-    window.login = async () => {
-        const name = document.getElementById('reg-name').value.trim();
-        const surname = document.getElementById('reg-surname').value.trim();
-        const birth = document.getElementById('reg-birth').value;
-        const lang = document.getElementById('reg-lang').value;
-        if(!name || !surname || !birth) { alert("To'liq to'ldiring!"); return; }
-        await set(userRef, { name, surname, birth, totalPoints: 0, lang: lang, tourStatus: "none" });
-        userLang = lang;
-        startOnboarding();
+    window.updateUI = (lang) => {
+        const t = texts[lang];
+        document.getElementById('app-title-auth').innerText = t.appTitle;
+        document.getElementById('app-slogan-auth').innerText = t.slogan;
+        document.getElementById('btn-reg-text').innerText = t.regBtn;
+        document.getElementById('reg-name').placeholder = t.namePh;
+        document.getElementById('reg-surname').placeholder = t.surnamePh;
+        document.getElementById('ob-next-btn').innerText = t.obNext;
+        document.getElementById('tour-title-text').innerText = t.tourTitle;
+        document.getElementById('btn-pay').innerText = t.payBtn;
+        document.getElementById('btn-start').innerText = t.startBtn;
+        document.getElementById('pay-price').innerHTML = t.payPrice;
+        document.getElementById('receipt-label').innerText = t.receiptLab;
+        document.getElementById('btn-choose-file').innerText = t.chooseFile;
+        document.getElementById('pay-card').innerHTML = `${t.payCard} <b style="color:#fff;">4073 4200 6816 5541</b>`;
+        document.getElementById('pay-owner').innerHTML = `${t.payOwner} <b>Maruf Raxmonov</b>`;
+        document.getElementById('res-finished-text').innerText = t.resFinish;
+        document.getElementById('res-score-label').innerText = t.resScore;
+        document.getElementById('q-counter-label').innerHTML = `${t.qLabel} <span id="q-idx">${qIndex + 1}</span>/10`;
+        document.getElementById('rank-title-text').innerText = t.rank;
+        document.getElementById('set-title-text').innerText = t.set;
+        document.getElementById('btn-logout-text').innerText = t.logout;
+        document.getElementById('nav-tour-text').innerText = t.tour;
+        document.getElementById('nav-rank-text').innerText = t.rank;
+        document.getElementById('nav-set-text').innerText = t.set;
+        
+        if (userData) {
+            const msg = document.getElementById('tour-status-msg');
+            if(userData.tourStatus === "pending") msg.innerText = t.wait;
+            else if(userData.tourStatus === "active") msg.innerText = t.active;
+            else msg.innerText = t.payInfo;
+        }
     };
 
-    function startOnboarding() {
-        document.getElementById('auth').classList.remove('active');
-        document.getElementById('onboarding').classList.add('active');
+    window.previewReceipt = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                receiptBase64 = e.target.result;
+                const img = document.getElementById('receipt-preview');
+                img.src = receiptBase64;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.onload = async () => {
+        const snap = await get(userRef);
+        document.getElementById('loader').style.display = 'none';
+        if (snap.exists()) {
+            userData = snap.val();
+            window.updateUI(userData.lang);
+            if(userData.name) {
+                document.getElementById('navbar').style.display = 'flex';
+                navigate('tournament');
+            } else { showScreen('auth'); }
+        } else { 
+            window.updateUI('uz');
+            showScreen('auth'); 
+        }
+    };
+
+    window.register = async () => {
+        const name = document.getElementById('reg-name').value;
+        const surname = document.getElementById('reg-surname').value;
+        const lang = document.getElementById('reg-lang').value;
+        if(!name || !surname) return alert("To'ldiring!");
+        
+        userData = { name, surname, lang, tourStatus: "none", totalPoints: 0, currentLevel: "oson" };
+        await set(userRef, userData);
+        window.updateUI(lang);
+        showScreen('onboarding');
         showObStep();
-    }
+    };
 
     function showObStep() {
-        const data = [
-            { icon: "🧠", title: "Xush kelibsiz!", desc: "Aql Jangi turniriga xush kelibsiz. Bilimingizni sinab sovrinlar yuting!" },
-            { icon: "💰", title: "To'lov", desc: "Turnirda qatnashish uchun 5 000 so'm to'lang va admin tasdiqlashini kuting." },
-            { icon: "⚔️", title: "Jang!", desc: "Tasdiqlangach, savollar ochiladi. Har bir javobga 20 soniya beriladi." }
-        ];
-        const step = data[obStep];
-        document.getElementById('ob-content').innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
-        document.getElementById('ob-btn').innerText = obStep === 2 ? "BOSHLADIK" : "DAVOM ETISH";
+        const t = texts[userData.lang].ob[obStep];
+        document.getElementById('ob-title').innerText = t.t;
+        document.getElementById('ob-desc').innerText = t.d;
     }
 
     window.nextObStep = () => {
-        if (obStep < 2) { obStep++; showObStep(); }
+        if(obStep < 2) { obStep++; showObStep(); }
         else { 
-            document.getElementById('onboarding').classList.remove('active'); 
-            document.getElementById('navbar').style.display = 'flex'; 
-            navigate('tournament'); 
+            const confirmTxt = userData.lang === 'uz' ? "Shartlarga rozimisiz?" : "Шартларга розимисиз?";
+            if(confirm(confirmTxt)) {
+                document.getElementById('navbar').style.display = 'flex';
+                navigate('tournament');
+            }
         }
     };
 
-    window.joinTournament = async () => {
-        if(confirm("To'lovni amalga oshirdingizmi?")) {
-            await update(userRef, { tourStatus: "pending", tourAppliedAt: new Date().toISOString() });
-            loadTourStatus();
+    window.pay = async () => {
+        if(!receiptBase64) {
+            const errTxt = userData.lang === 'uz' ? "Iltimos, avval to'lov chekini yuklang!" : "Илтимос, аввал тўлов чекини юкланг!";
+            return alert(errTxt);
         }
+        
+        await update(userRef, { 
+            tourStatus: "pending", 
+            tourAppliedAt: new Date().toISOString(),
+            paymentReceipt: receiptBase64 
+        });
+        
+        const alertTxt = userData.lang === 'uz' ? "To'lov va chek yuborildi. Admin tasdiqlashini kuting." : "Тўлов ва чек юборилди. Админ тасдиқлашини кутинг.";
+        alert(alertTxt);
+        loadTourStatus();
     };
 
     async function loadTourStatus() {
         const snap = await get(userRef);
-        const data = snap.val();
-        const btnJoin = document.getElementById('btn-join-tour');
-        const btnStart = document.getElementById('btn-start-game');
-        const info = document.getElementById('tour-info');
+        userData = snap.val();
+        window.updateUI(userData.lang);
+        const btnPay = document.getElementById('btn-pay');
+        const btnStart = document.getElementById('btn-start');
+        const payBox = document.getElementById('payment-details');
+        const uploadBox = document.getElementById('receipt-upload-section');
 
-        if(data.tourStatus === "pending") {
-            btnJoin.style.display = "none";
-            info.innerText = "To'lov tekshirilmoqda...";
-            info.style.color = "var(--gold)";
-        } else if(data.tourStatus === "active") {
-            btnJoin.style.display = "none";
+        if(userData.tourStatus === "pending") {
+            btnPay.style.display = "none";
+            payBox.style.display = "none";
+            uploadBox.style.display = "none";
+        } else if(userData.tourStatus === "active") {
+            btnPay.style.display = "none";
+            payBox.style.display = "none";
+            uploadBox.style.display = "none";
             btnStart.style.display = "block";
-            info.innerText = "Turnir ochiq! Jangni boshlang.";
-            info.style.color = "var(--green)";
-        } else if(data.tourStatus === "finished") {
-            btnJoin.style.display = "none";
-            info.innerText = "Siz turnirda qatnashib bo'ldingiz.";
-            info.style.color = "var(--red)";
         }
     }
 
-    window.startNewRound = async () => {
-        const snap = await get(userRef);
-        if(snap.val().tourStatus !== "active") { alert("Ruxsat yo'q!"); return; }
+    window.startTurnir = async () => {
+        currentLevel = userData.currentLevel || "oson";
+        const qSnap = await get(ref(db, `brain_questions/${userData.lang}/${currentLevel}`));
+        currentQuestions = (qSnap.val() || []).sort(() => 0.5 - Math.random()).slice(0, 10);
         
-        document.getElementById('tournament').classList.remove('active');
-        document.getElementById('game').classList.add('active');
+        if(currentQuestions.length < 10) return alert("Savollar yetarli emas!");
         
-        const qSnap = await get(ref(db, `brain_questions/${userLang}/oson`));
-        sessionQuestions = (qSnap.val() || []).sort(() => 0.5 - Math.random()).slice(0, 15);
-        currentIdx = 0; correctAnswers = 0;
-        showQuestion();
+        qIndex = 0; score = 0;
+        showScreen('game');
+        loadQuestion();
     };
 
-    function showQuestion() {
-        isLocked = false;
-        const q = sessionQuestions[currentIdx];
-        if(!q) { finishRound(); return; }
-        document.getElementById('q-counter').innerText = `${currentIdx + 1}/15`;
-        document.getElementById('question-text').innerText = q.q;
-        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / 15 * 100) + "%";
-        
-        const box = document.getElementById('options-box');
-        box.innerHTML = "";
-        q.a.forEach((opt, i) => {
-            const btn = document.createElement('div');
-            btn.className = "option-btn";
-            btn.innerText = opt;
-            btn.onclick = () => check(i, q.c, btn);
-            box.appendChild(btn);
+    function loadQuestion() {
+        const q = currentQuestions[qIndex];
+        document.getElementById('current-level-name').innerText = currentLevel.toUpperCase();
+        document.getElementById('q-idx').innerText = qIndex + 1;
+        document.getElementById('q-text').innerText = q.q;
+        const optBox = document.getElementById('options');
+        optBox.innerHTML = "";
+        q.a.forEach((a, i) => {
+            const b = document.createElement('div');
+            b.className = "option-btn";
+            b.innerText = a;
+            b.onclick = () => checkAns(i, q.c, b);
+            optBox.appendChild(b);
         });
         startTimer();
     }
 
     function startTimer() {
-        if (countdownInterval) clearInterval(countdownInterval);
-        let timeLeft = 20;
+        if(timer) clearInterval(timer);
+        let left = 20;
         const bar = document.getElementById('timer-bar');
         bar.style.transition = 'none'; bar.style.width = '100%';
         setTimeout(() => { bar.style.transition = 'width 20s linear'; bar.style.width = '0%'; }, 50);
-        countdownInterval = setInterval(() => {
-            timeLeft--;
-            if (timeLeft <= 0) { clearInterval(countdownInterval); check(-1, -1, null); }
+        timer = setInterval(() => {
+            left--;
+            if(left <= 0) { clearInterval(timer); checkAns(-1, 0, null); }
         }, 1000);
     }
 
-    async function check(idx, correct, el) {
-        if (isLocked) return;
-        isLocked = true;
-        clearInterval(countdownInterval);
-        if (idx === correct) { 
-            if(el) el.classList.add('correct'); 
-            correctAnswers++; 
-            document.getElementById('u-correct').innerText = correctAnswers;
-        } else if(el) { 
-            el.classList.add('wrong'); 
+    function checkAns(idx, correct, el) {
+        clearInterval(timer);
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.onclick = null);
+
+        if(idx === correct) {
+            if(el) el.classList.add('correct');
+            score++;
+        } else {
+            if(el) el.classList.add('wrong');
+            btns[correct].classList.add('correct');
         }
-        setTimeout(() => { currentIdx++; showQuestion(); }, 1000);
+
+        setTimeout(() => {
+            if(qIndex < 9) { qIndex++; loadQuestion(); }
+            else { finishLevel(); }
+        }, 1200);
     }
 
-    function finishRound() {
-        document.getElementById('game').classList.remove('active');
-        document.getElementById('result-screen').classList.add('active');
-        document.getElementById('result-score').innerText = `${correctAnswers}/15`;
-        update(userRef, { totalPoints: correctAnswers, tourStatus: "finished" });
+    async function finishLevel() {
+        showScreen('result-screen');
+        document.getElementById('final-score').innerText = score;
+        const total = (userData.totalPoints || 0) + score;
+        await update(userRef, { totalPoints: total });
     }
 
-    window.navigate = (id) => {
-        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings, #tournament').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('link-' + id)?.classList.add('active-link');
-        if (id === 'tournament') loadTourStatus();
-        if (id === 'leaderboard') fetchRank();
-        if (id === 'profile') loadProfile();
+    window.checkNextLevel = async () => {
+        if(currentLevel === "oson") { currentLevel = "ortacha"; startTurnir(); }
+        else if(currentLevel === "ortacha") { currentLevel = "qiyin"; startTurnir(); }
+        else {
+            await update(userRef, { tourStatus: "finished", currentLevel: "oson" });
+            const finishTxt = userData.lang === 'uz' ? "Tabriklaymiz! Turnirni yakunladingiz." : "Табриклаймиз! Турнирни якунладингиз.";
+            alert(finishTxt);
+            navigate('tournament');
+        }
+        await update(userRef, { currentLevel: currentLevel });
     };
 
-    window.logoutUser = async () => { if(confirm("O'chirilsinmi?")) { await remove(userRef); location.reload(); } };
-    window.toggleTheme = (t) => { document.body.className = t + '-mode'; update(userRef, {theme: t}); };
-
-    async function loadProfile() {
-        const snap = await get(userRef);
-        const data = snap.val();
-        document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
-        document.getElementById('p-points').innerText = data.totalPoints || 0;
-    }
+    window.navigate = (id) => {
+        document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
+        document.getElementById('nav-' + id.substring(0,3)).classList.add('active-link');
+        
+        if(id === 'tournament') loadTourStatus();
+        if(id === 'leaderboard') fetchRank();
+        if(id === 'settings') loadSettings();
+    };
 
     async function fetchRank() {
         const snap = await get(ref(db, 'brain_users'));
-        let data = [];
-        snap.forEach(c => data.push(c.val()));
-        data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-        document.getElementById('rank-list').innerHTML = data.slice(0, 10).map((u, i) => `
+        let list = [];
+        snap.forEach(c => list.push(c.val()));
+        list.sort((a,b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+        document.getElementById('rank-list').innerHTML = list.slice(0, 10).map((u, i) => `
             <div class="rank-item">
-                <span><b>${i+1}.</b> ${u.name}</span>
+                <span><b>${i+1}.</b> ${u.name} ${u.surname}</span>
                 <b>${u.totalPoints || 0}</b>
             </div>
         `).join('');
+    }
+
+    function loadSettings() {
+        document.getElementById('set-user-info').innerText = `${userData.name} ${userData.surname}`;
+        document.getElementById('set-lang').value = userData.lang;
+    }
+
+    window.changeLang = async (l) => { 
+        userData.lang = l;
+        window.updateUI(l);
+        await update(userRef, { lang: l }); 
+    };
+
+    window.logout = async () => { 
+        const confirmTxt = userData.lang === 'uz' ? "Chiqasizmi?" : "Чиқасизми?";
+        if(confirm(confirmTxt)) { await remove(userRef); location.reload(); } 
+    };
+
+    function showScreen(id) {
+        document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
 </script>
 </body>
