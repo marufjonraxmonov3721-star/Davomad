@@ -10,10 +10,9 @@
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        #auth, #game, #leaderboard { display: none; text-align: center; }
+        #auth, #game, #leaderboard, #result-screen { display: none; text-align: center; }
         .active { display: block !important; }
 
-        /* Progress Display */
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
         #level-title { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
         .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
@@ -21,7 +20,6 @@
         .progress-container { background: #222; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.5s; background: var(--p); }
 
-        /* Quiz Box */
         .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
         .question { font-size: 20px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
         .options-grid { display: grid; gap: 12px; }
@@ -29,10 +27,12 @@
         .correct { background: var(--green) !important; border-color: var(--green); }
         .wrong { background: var(--red) !important; border-color: var(--red); }
 
-        /* Nav Bar */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; }
         .nav-link.active-link { opacity: 1; color: var(--p); font-weight: bold; }
+        
+        .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #333; }
+        .btn-next { background: var(--p); border: none; padding: 15px; border-radius: 12px; color: #fff; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 50px;">Har bir raundda 15 ta tasodifiy savol!</p>
+        <p style="color:#666; margin-bottom: 50px;">Darajama-daraja cho'qqiga chiqing!</p>
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
     </div>
 
@@ -50,15 +50,23 @@
             <div class="session-info">Savol: <span id="q-counter">1/15</span></div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
-
         <div class="quiz-card">
             <div class="question" id="question-text">Yuklanmoqda...</div>
             <div id="options-box" class="options-grid"></div>
         </div>
     </div>
 
+    <div id="result-screen">
+        <div class="result-box">
+            <h2 id="result-status">Raund Tugadi!</h2>
+            <p id="result-score">To'plangan ball: 0</p>
+            <p id="result-msg" style="color:#888"></p>
+            <button class="btn-next" id="next-lvl-btn" onclick="startNewRound()">KEYINGI RAUND</button>
+        </div>
+    </div>
+
     <div id="leaderboard">
-        <h2 style="color:var(--p)">🏆 Dunyo Reytingi</h2>
+        <h2 style="color:var(--p)">🏆 Reyting</h2>
         <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
     </div>
 </div>
@@ -89,24 +97,26 @@
     let totalXp = 0;
     let sessionQuestions = [];
     let currentIdx = 0;
+    let roundScore = 0;
     let isLocked = false;
+
+    const gameConfig = {
+        oson: { qCount: 15, passScore: 100, next: 'ortacha', title: "🟢 OSON" },
+        ortacha: { qCount: 20, passScore: 150, next: 'qiyin', title: "🟡 O'RTACHA" },
+        qiyin: { qCount: 25, passScore: 200, next: 'juda_qiyin', title: "🟠 QIYIN" },
+        juda_qiyin: { qCount: 30, passScore: 250, next: 'juda_qiyin', title: "🔴 MASTER" }
+    };
 
     window.onload = async () => {
         const snap = await get(userRef);
-        if (snap.exists()) {
-            totalXp = Number(snap.val().xp) || 0;
-            document.getElementById('auth').classList.add('active');
-        } else {
-            document.getElementById('auth').classList.add('active');
-        }
+        if (snap.exists()) totalXp = Number(snap.val().xp) || 0;
+        document.getElementById('auth').classList.add('active');
     };
 
     window.login = async () => {
         const user = tg.initDataUnsafe?.user;
         const snap = await get(userRef);
-        if (!snap.exists()) {
-            await set(userRef, { name: user?.first_name || "O'yinchi", xp: 0 });
-        }
+        if (!snap.exists()) await set(userRef, { name: user?.first_name || "O'yinchi", xp: 0 });
         document.getElementById('auth').classList.remove('active');
         document.getElementById('navbar').style.display = 'flex';
         navigate('game');
@@ -114,33 +124,32 @@
     };
 
     async function startNewRound() {
-        // Darajani aniqlash
-        let level = totalXp <= 500 ? "oson" : (totalXp <= 1500 ? "ortacha" : (totalXp <= 3500 ? "qiyin" : "juda_qiyin"));
-        document.getElementById('level-title').innerText = level.toUpperCase();
+        document.getElementById('result-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
         
-        // Bazadan hamma savollarni olish
-        const qSnap = await get(ref(db, 'brain_questions/' + level));
-        const allQuestions = qSnap.val() || [];
+        let levelKey = totalXp < 500 ? "oson" : (totalXp < 1500 ? "ortacha" : (totalXp < 3500 ? "qiyin" : "juda_qiyin"));
+        const config = gameConfig[levelKey];
         
-        // 15 tasini tasodifiy tanlash
-        sessionQuestions = allQuestions
-            .sort(() => 0.5 - Math.random()) // Aralashtirish
-            .slice(0, 15); // Dastlabki 15 tasini olish
+        document.getElementById('level-title').innerText = config.title;
+        
+        const qSnap = await get(ref(db, 'brain_questions/' + levelKey));
+        const allQ = qSnap.val() || [];
+        sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
         
         currentIdx = 0;
+        roundScore = 0;
         showQuestion();
     }
 
     function showQuestion() {
-        if (sessionQuestions.length === 0) return;
-        
         isLocked = false;
-        const q = sessionQuestions[currentIdx];
-        document.getElementById('q-counter').innerText = `${currentIdx + 1}/15`;
-        document.getElementById('question-text').innerText = q.q;
+        const levelKey = totalXp < 500 ? "oson" : (totalXp < 1500 ? "ortacha" : (totalXp < 3500 ? "qiyin" : "juda_qiyin"));
+        const totalInRound = gameConfig[levelKey].qCount;
         
-        // Progress bar daraja ichidagi emas, raund ichidagi progressni ko'rsatadi
-        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / 15 * 100) + "%";
+        const q = sessionQuestions[currentIdx];
+        document.getElementById('q-counter').innerText = `${currentIdx + 1}/${totalInRound}`;
+        document.getElementById('question-text').innerText = q.q;
+        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / totalInRound * 100) + "%";
 
         const box = document.getElementById('options-box');
         box.innerHTML = "";
@@ -159,8 +168,9 @@
 
         if (idx === correct) {
             el.classList.add('correct');
+            roundScore += 10;
             totalXp += 10;
-            await set(ref(db, `brain_users/${uid}/xp`), Number(totalXp));
+            await set(ref(db, `brain_users/${uid}/xp`), totalXp);
             tg.HapticFeedback.notificationOccurred('success');
         } else {
             el.classList.add('wrong');
@@ -169,23 +179,43 @@
 
         setTimeout(() => {
             currentIdx++;
-            if (currentIdx < 15 && currentIdx < sessionQuestions.length) {
+            let levelKey = totalXp < (totalXp - roundScore + 1) ? "oson" : "oson"; // dummy logic to get current round level
+            // To'g'ri levelKey'ni aniqlash (round boshidagi holat bo'yicha)
+            let currentLvlKey = (totalXp - roundScore) < 500 ? "oson" : ((totalXp - roundScore) < 1500 ? "ortacha" : ((totalXp - roundScore) < 3500 ? "qiyin" : "juda_qiyin"));
+            
+            if (currentIdx < gameConfig[currentLvlKey].qCount) {
                 showQuestion();
             } else {
-                alert("Raund tugadi! To'plangan umumiy ball: " + totalXp);
-                startNewRound(); // Yangi 15 talik raundni boshlash
+                showFinalResult(currentLvlKey);
             }
-        }, 1200);
+        }, 1000);
+    }
+
+    function showFinalResult(lvlKey) {
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+        
+        const config = gameConfig[lvlKey];
+        document.getElementById('result-score').innerText = `Raunddagi ball: ${roundScore}`;
+        
+        if (roundScore >= config.passScore) {
+            document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
+            document.getElementById('result-status').style.color = "var(--green)";
+            document.getElementById('result-msg').innerText = "Siz keyingi bosqich talabini bajardingiz.";
+            document.getElementById('next-lvl-btn').innerText = "DAVOM ETISH";
+        } else {
+            document.getElementById('result-status').innerText = "Yomon emas!";
+            document.getElementById('result-status').style.color = "var(--yellow)";
+            document.getElementById('result-msg').innerText = `Keyingi darajaga o'tish uchun kamida ${config.passScore} ball kerak. Yana urinib ko'ring!`;
+            document.getElementById('next-lvl-btn').innerText = "QAYTA URINISH";
+        }
     }
 
     window.navigate = (id) => {
-        document.getElementById('game').classList.remove('active');
-        document.getElementById('leaderboard').classList.remove('active');
+        document.querySelectorAll('#game, #leaderboard, #result-screen').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        
-        document.getElementById('link-game').classList.toggle('active-link', id === 'game');
+        document.getElementById('link-game').classList.toggle('active-link', id === 'game' || id === 'result-screen');
         document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
-
         if (id === 'leaderboard') fetchRank();
     };
 
@@ -197,7 +227,7 @@
             let data = [];
             snap.forEach(c => data.push(c.val()));
             data.sort((a, b) => b.xp - a.xp);
-            list.innerHTML = data.map((u, i) => `<div class="rank-item" style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;"><span><b>${i+1}.</b> ${u.name}</span><b>${u.xp} XP</b></div>`).join('');
+            list.innerHTML = data.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name}</span><b>${u.xp} XP</b></div>`).join('');
         }
     }
 </script>
