@@ -40,6 +40,10 @@
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
         #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
         
+        /* Taymer stili */
+        .timer-container { background: #222; height: 6px; border-radius: 3px; margin: 15px 0; overflow: hidden; }
+        #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: linear; }
+
         .progress-container { background: #111; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #222; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
 
@@ -60,10 +64,6 @@
         .ob-title { font-size: 24px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
         .ob-desc { color: var(--text); font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
         
-        .stat-line { display: flex; justify-content: space-between; background: var(--bg); padding: 12px 20px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--gold); }
-        .stat-label { color: #888; font-size: 14px; }
-        .stat-value { color: var(--gold); font-weight: bold; font-size: 16px; }
-
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; }
         .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; }
@@ -135,6 +135,7 @@
                 <span id="txt-q-counter">Savol</span>: <span id="q-counter">0/0</span> | <span id="txt-score-label">Ball</span>: <b id="u-correct">0</b>
             </div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
+            <div class="timer-container"><div id="timer-bar"></div></div>
         </div>
         <div class="quiz-card">
             <div class="question" id="question-text">Yuklanmoqda...</div>
@@ -200,12 +201,13 @@
 
     let userLevel = "oson"; 
     let userLang = "uz";
-    let userTheme = "dark";
+    let userTheme = "light"; 
     let sessionQuestions = [];
     let currentIdx = 0;
     let correctAnswers = 0; 
     let isLocked = false;
     let timerInterval = null;
+    let countdownInterval = null; // Savol taymeri uchun
     let obStep = 0;
 
     const translations = {
@@ -232,7 +234,7 @@
             obT1: "Хуш келибсиз!", obD1: "Ақл Жанги - бу сизнинг билимингизни синовдан ўтказувчи интеллектуал ўйин. Мақсад: Ўз даражангизни ошириш ва Мастер бўлиш!",
             obT2: "Ўйин Қоидалари", obD2: "Ўйинда 4 та босқич бор. Ҳар бир босқичдан ўтиш учун белгиланган миқдордаги саволларга тўғри жавоб бериш шарт.",
             obT3: "Босқичлар ва Шартлар", obD3: "🌱 Осон: 15 савол (10 та тўғри)\n⚡ Ўртача: 25 савол (17 та тўғри)\n🔥 Қийин: 35 савол (24 та тўғри)\n👑 Мастер: 45 савол (30 та тўғри)",
-            obT4: "Бошқа Бўлимлар", obD4: "🏆 Рейтингда дунё билан беллашинг, 👤 Профилингизни кузатиб боринг ва ⚙️ Созламалардан тилни ёки тунги режимни танланг.",
+            obT4: "Бошқа Бўлимлар", obD4: "🏆 Рeйтингда дунё билан беллашинг, 👤 Прoфилингизни кузатиб боринг va ⚙️ Сoзламалардан тилни ёки тунги рeжимни танланг.",
             obFinish: "Билимлар жангига тайёрмисиз? Унда бошладик!"
         },
         ru: {
@@ -264,10 +266,10 @@
     };
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 10, title: {uz: "🟢 OSON", uz_cyr: "🟢 ОСОН", ru: "🟢 ЛЕГКО", en: "🟢 EASY"}, nextLvl: "ortacha", icon: "🌱" },
-        ortacha: { qCount: 25, passScore: 17, title: {uz: "🟡 O'RTACHA", uz_cyr: "🟡 ЎРТАЧА", ru: "🟡 СРЕДНЕ", en: "🟡 MEDIUM"}, nextLvl: "qiyin", icon: "⚡" },
-        qiyin: { qCount: 35, passScore: 24, title: {uz: "🟠 QIYINROQ", uz_cyr: "🟠 ҚИЙИНРОҚ", ru: "🟠 СЛОЖНО", en: "🟠 HARD"}, nextLvl: "juda_qiyin", icon: "🔥" },
-        juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", uz_cyr: "🔴 МАСТЕР", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑" }
+        oson: { qCount: 15, passScore: 10, title: {uz: "🟢 OSON", uz_cyr: "🟢 ОСОН", ru: "🟢 ЛЕГКО", en: "🟢 EASY"}, nextLvl: "ortacha", icon: "🌱", timePerQ: 20 },
+        ortacha: { qCount: 25, passScore: 17, title: {uz: "🟡 O'RTACHA", uz_cyr: "🟡 ЎРТАЧА", ru: "🟡 СРЕДНЕ", en: "🟡 MEDIUM"}, nextLvl: "qiyin", icon: "⚡", timePerQ: 15 },
+        qiyin: { qCount: 35, passScore: 24, title: {uz: "🟠 QIYINROQ", uz_cyr: "🟠 ҚИЙИНРОҚ", ru: "🟠 СЛОЖНО", en: "🟠 HARD"}, nextLvl: "juda_qiyin", icon: "🔥", timePerQ: 12 },
+        juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", uz_cyr: "🔴 МАСТЕР", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑", timePerQ: 10 }
     };
 
     async function translateText(text, targetLang) {
@@ -287,7 +289,7 @@
             const val = snap.val();
             userLevel = val.level || "oson";
             userLang = val.lang || "uz";
-            userTheme = val.theme || "dark";
+            userTheme = val.theme || "light"; 
             applyLanguage();
             toggleTheme(userTheme, false);
             if(val.name) {
@@ -296,7 +298,12 @@
                 navigate('game');
                 startNewRound();
             }
-        } else { applyLanguage(); document.getElementById('auth').classList.add('active'); }
+        } else { 
+            userTheme = "light";
+            toggleTheme("light", false);
+            applyLanguage(); 
+            document.getElementById('auth').classList.add('active'); 
+        }
     };
 
     window.applyLanguage = () => {
@@ -351,7 +358,7 @@
         const birth = document.getElementById('reg-birth').value;
         const lang = document.getElementById('reg-lang').value;
         if(!name || !surname || !birth) { alert("To'liq to'ldiring!"); return; }
-        await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: lang, theme: "dark" });
+        await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: lang, theme: userTheme });
         userLang = lang;
         applyLanguage();
         startOnboarding();
@@ -391,6 +398,9 @@
         document.getElementById('result-screen').classList.remove('active');
         const gameEl = document.getElementById('game');
         gameEl.classList.add('active');
+        
+        document.getElementById('level-title').innerText = gameConfig[userLevel].title[userLang];
+        
         const config = gameConfig[userLevel];
         document.getElementById('u-correct').innerText = "0";
         document.getElementById('question-text').innerText = translations[userLang].translating;
@@ -409,6 +419,35 @@
         showQuestion();
     };
 
+    function startTimer() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const config = gameConfig[userLevel];
+        let timeLeft = config.timePerQ;
+        const bar = document.getElementById('timer-bar');
+        
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        bar.style.background = 'var(--gold)';
+
+        // Animatsiyani boshlash
+        setTimeout(() => {
+            bar.style.transition = `width ${timeLeft}s linear`;
+            bar.style.width = '0%';
+        }, 50);
+
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 3) {
+                bar.style.background = 'var(--red)';
+                tg.HapticFeedback.impactOccurred('light');
+            }
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                check(-1, -1, null); // Vaqt tugasa -1 (xato) yuboradi
+            }
+        }, 1000);
+    }
+
     function showQuestion() {
         isLocked = false;
         if (sessionQuestions.length === 0) return;
@@ -417,6 +456,7 @@
         document.getElementById('q-counter').innerText = `${currentIdx + 1}/${config.qCount}`;
         document.getElementById('question-text').innerText = q.q;
         document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / config.qCount * 100) + "%";
+        
         const box = document.getElementById('options-box');
         box.innerHTML = "";
         q.a.forEach((opt, i) => {
@@ -426,36 +466,71 @@
             btn.onclick = () => check(i, q.c, btn);
             box.appendChild(btn);
         });
+        
+        startTimer();
     }
 
     async function check(idx, correct, el) {
         if (isLocked) return;
         isLocked = true;
-        if (idx === correct) { el.classList.add('correct'); correctAnswers++; document.getElementById('u-correct').innerText = correctAnswers; tg.HapticFeedback.notificationOccurred('success'); }
-        else { el.classList.add('wrong'); tg.HapticFeedback.notificationOccurred('error'); }
-        setTimeout(() => { if (currentIdx < gameConfig[userLevel].qCount - 1) { currentIdx++; showQuestion(); } else finishRound(); }, 800);
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        const currentQ = sessionQuestions[currentIdx];
+        
+        if (idx === correct && idx !== -1) { 
+            el.classList.add('correct'); 
+            correctAnswers++; 
+            document.getElementById('u-correct').innerText = correctAnswers; 
+            tg.HapticFeedback.notificationOccurred('success'); 
+        } else { 
+            if (el) el.classList.add('wrong'); 
+            // To'g'ri javobni ko'rsatish
+            const options = document.querySelectorAll('.option-btn');
+            if (currentQ) options[currentQ.c].classList.add('correct');
+            tg.HapticFeedback.notificationOccurred('error'); 
+        }
+
+        setTimeout(() => { 
+            if (currentIdx < gameConfig[userLevel].qCount - 1) { 
+                currentIdx++; 
+                showQuestion(); 
+            } else {
+                finishRound(); 
+            }
+        }, 1200);
     }
 
     async function finishRound() {
+        if (countdownInterval) clearInterval(countdownInterval);
         const config = gameConfig[userLevel];
         const t = translations[userLang];
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
         document.getElementById('result-score').innerText = `${correctAnswers}/${config.qCount}`;
+        
+        const snap = await get(userRef);
+        const currentPoints = (snap.val().totalPoints || 0) + correctAnswers;
+
         if (correctAnswers >= config.passScore) {
             document.getElementById('result-status').innerText = t.resStatusWin;
-            if (userLevel !== "juda_qiyin") { userLevel = config.nextLvl; await update(userRef, { level: userLevel }); }
+            if (userLevel !== "juda_qiyin") { 
+                userLevel = config.nextLvl; 
+                await update(userRef, { level: userLevel, totalPoints: currentPoints });
+                document.getElementById('level-title').innerText = gameConfig[userLevel].title[userLang];
+            } else {
+                await update(userRef, { totalPoints: currentPoints });
+            }
             document.getElementById('btn-continue').innerText = t.btnContinue;
         } else {
             document.getElementById('result-status').innerText = t.resStatusLose;
+            await update(userRef, { totalPoints: currentPoints });
             document.getElementById('btn-continue').innerText = t.btnRetry;
         }
-        const snap = await get(userRef);
-        await update(userRef, { totalPoints: (snap.val().totalPoints || 0) + correctAnswers });
     }
 
     window.navigate = (id) => {
         if (timerInterval) clearInterval(timerInterval);
+        if (countdownInterval) clearInterval(countdownInterval);
         document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
