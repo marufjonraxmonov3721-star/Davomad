@@ -3,75 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miya Jangi Turniri</title>
+    <title>TURNIR: KIBER PROTOKOL</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
+        body { font-family: 'Orbitron', sans-serif; background-color: #050505; color: #fff; }
         .hidden { display: none; }
-        .active-tab { color: #fbbf24; border-bottom: 2px solid #fbbf24; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .neon-border { border: 2px solid #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+        .blocked { filter: blur(5px); pointer-events: none; opacity: 0.5; }
         .loader { border-top-color: transparent; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-900 text-white font-sans overflow-hidden">
+<body class="overflow-hidden">
 
     <div id="reg-screen" class="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 class="text-3xl font-bold text-yellow-500 mb-8 text-center">Miya Jangi</h1>
-        <div class="w-full max-w-sm space-y-4">
-            <input id="fname" type="text" placeholder="Ism" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500 transition">
-            <input id="lname" type="text" placeholder="Familiya" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500 transition">
-            <button onclick="register()" class="w-full bg-yellow-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition">DAVOM ETISH</button>
+        <h1 class="text-3xl font-black text-cyan-400 mb-10 tracking-widest uppercase">Ro'yxatdan o'tish</h1>
+        <div class="w-full max-w-sm space-y-6">
+            <input id="fname" type="text" placeholder="ISM" class="w-full p-4 bg-black/50 border-b-2 border-cyan-500 outline-none">
+            <input id="lname" type="text" placeholder="FAMILIYA" class="w-full p-4 bg-black/50 border-b-2 border-cyan-500 outline-none">
+            <button onclick="register()" class="w-full neon-border bg-transparent text-cyan-400 font-bold py-4 uppercase">Davom etish</button>
         </div>
     </div>
 
     <div id="intro-screen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h2 class="text-2xl font-bold text-yellow-500 mb-6 text-center">Qoidalar</h2>
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 text-slate-300 text-left">
-            <p>1️⃣ <b>Color Rush:</b> 10 ta rang.</p>
-            <p>2️⃣ <b>Math Ninja:</b> 10 ta matematik misol.</p>
-            <p>3️⃣ <b>IQ-Test:</b> 10 ta mantiqiy savol.</p>
-            <p class="text-yellow-500 font-bold mt-4">Jami vaqt: 60 soniya!</p>
+        <h2 class="text-2xl font-bold text-yellow-500 mb-6 uppercase">Turnir Qoidalari</h2>
+        <div class="bg-zinc-900 p-6 rounded-lg border border-zinc-700 space-y-3 text-sm text-left mb-6">
+            <p>🏆 1-o'rin: 100 000 so'm</p>
+            <p>🥈 2-o'rin: 30 000 so'm</p>
+            <p>🥉 3-o'rin: 20 000 so'm</p>
+            <p class="text-cyan-400">🎟️ Qatnashish: 5 000 so'm (Jami 30 ta joy)</p>
+            <hr class="border-zinc-700 my-4">
+            <p class="text-xs text-zinc-400">To'lov uchun karta:</p>
+            <p class="text-lg font-mono text-white">4073 4200 6816 5541</p>
+            <p class="text-xs text-zinc-400 italic">Ega: Maruf Raxmonov</p>
         </div>
-        <button onclick="showMain()" class="mt-10 bg-blue-600 px-12 py-4 rounded-full font-bold shadow-lg active:scale-95 transition">TUSHUNDIM</button>
+        <p class="text-[10px] text-red-500 mb-6 uppercase">To'lov qilib, chekni botga yuboring!</p>
+        <button onclick="checkPaymentStatus()" class="w-full neon-border py-4 font-bold text-cyan-400">TO'LOVNI TEKSHIRISH</button>
     </div>
 
     <div id="main-app" class="hidden min-h-screen">
-        <div id="page-game" class="p-6">
-            <h2 class="text-xl font-bold mb-6">Turnir Bo'limi</h2>
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-700 shadow-xl">
-                <h3 class="text-lg font-bold text-yellow-500 mb-2 text-center">Asosiy Turnir</h3>
-                <p class="text-sm text-slate-400 mb-6 text-center">30 ta savolda maksimal ball to'plang!</p>
-                <button onclick="startTournament()" class="w-full bg-yellow-500 text-slate-900 py-3 rounded-xl font-black active:scale-95 transition">O'YINNI BOSHLASH</button>
+        <div id="game-lock-overlay" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 hidden">
+            <h2 class="text-xl font-bold text-red-500 mb-2 uppercase">Kutish rejimi</h2>
+            <p class="text-[10px] text-zinc-400">To'lov tasdiqlanishini kuting...</p>
+        </div>
+
+        <div id="content-to-blur" class="p-6 flex flex-col items-center justify-center h-screen">
+            <div class="w-full max-w-sm p-8 bg-zinc-900/80 border-t-4 border-cyan-500 shadow-2xl text-center">
+                <h3 class="text-xl font-bold text-cyan-400 mb-8 uppercase italic">Turnir Faol</h3>
+                <button onclick="startTournament()" class="w-full bg-cyan-500 text-black py-4 font-black uppercase shadow-lg">Boshlash</button>
             </div>
         </div>
 
-        <div id="page-rating" class="hidden p-6 pb-24 h-screen overflow-y-auto">
-            <h2 class="text-xl font-bold mb-6 text-yellow-500">🏆 Kuchli o'nlik</h2>
-            <div id="rating-list" class="space-y-3"></div>
-        </div>
-
-        <div id="page-settings" class="hidden p-6 flex flex-col items-center justify-center h-[70vh]">
-            <button onclick="window.location.reload()" class="bg-red-600/20 text-red-500 border border-red-600 px-10 py-3 rounded-xl font-bold active:scale-95 transition">Tizimdan chiqish</button>
-        </div>
-
-        <div id="game-overlay" class="hidden fixed inset-0 bg-slate-900 z-50 flex flex-col p-6">
-            <div class="flex justify-between items-center mb-10">
-                <span id="phase-name" class="text-yellow-500 font-bold uppercase tracking-widest text-sm">Bosqich</span>
-                <span id="game-timer" class="text-xl font-mono bg-slate-800 px-4 py-1 rounded-lg">60</span>
-            </div>
-            <div id="game-container" class="flex-1 flex flex-col items-center justify-center text-center"></div>
-        </div>
-
-        <nav class="fixed bottom-0 w-full bg-slate-800/80 backdrop-blur-md border-t border-slate-700 flex justify-around py-4">
-            <button onclick="switchTab('game')" id="tab-game" class="active-tab flex flex-col items-center"><span class="text-[10px] font-bold uppercase">O'yin</span></button>
-            <button onclick="switchTab('rating')" id="tab-rating" class="flex flex-col items-center text-slate-500"><span class="text-[10px] font-bold uppercase">Reyting</span></button>
-            <button onclick="switchTab('settings')" id="tab-settings" class="flex flex-col items-center text-slate-500"><span class="text-[10px] font-bold uppercase">Sozlamalar</span></button>
+        <nav class="fixed bottom-0 w-full bg-black border-t border-cyan-900 flex justify-around py-4">
+            <button onclick="switchTab('game')" class="text-cyan-400 text-[10px] font-bold uppercase">Asosiy</button>
+            <button onclick="switchTab('rating')" class="text-zinc-600 text-[10px] font-bold uppercase">Reyting</button>
         </nav>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -86,105 +79,63 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let userData = { id: tg.initDataUnsafe?.user?.id || "dev_user", fullName: "", totalScore: 0 };
-        let allQuestions = { math: [], iq: [] };
-        let currentPhase = 1, currentQuestionIdx = 0, phaseScore = 0;
-        let timerInterval, timeLeft = 60; //
+        let userData = { id: tg.initDataUnsafe?.user?.id || "dev_" + Date.now(), fullName: "", isPaid: false };
 
-        window.register = () => {
-            const f = document.getElementById('fname').value;
-            const l = document.getElementById('lname').value;
-            if(!f || !l) return tg.showAlert("Ma'lumotlarni to'ldiring!");
+        window.register = async () => {
+            const f = document.getElementById('fname').value.trim();
+            const l = document.getElementById('lname').value.trim();
+            if(!f || !l) return tg.showAlert("ISM VA FAMILIYA SHART!");
+            
             userData.fullName = `${f} ${l}`;
+            
+            // Foydalanuvchini bazaga yozish (to'lovsiz holatda)
+            const userRef = ref(db, 'users/' + userData.id);
+            const snap = await get(userRef);
+            
+            if(!snap.exists()) {
+                await set(userRef, { 
+                    fullName: userData.fullName, 
+                    isPaid: false,
+                    registeredAt: Date.now()
+                });
+            } else {
+                userData.isPaid = snap.val().isPaid;
+            }
+
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('intro-screen').classList.remove('hidden');
         };
 
-        window.showMain = () => {
+        window.checkPaymentStatus = () => {
+            // To'lov holatini Realtime tekshirishni boshlash
+            const userRef = ref(db, 'users/' + userData.id);
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data && data.isPaid) {
+                    userData.isPaid = true;
+                    showMainApp(true);
+                } else {
+                    showMainApp(false);
+                }
+            });
+        };
+
+        function showMainApp(isUnlocked) {
             document.getElementById('intro-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            loadQuestions();
-        };
+            
+            const content = document.getElementById('content-to-blur');
+            const overlay = document.getElementById('game-lock-overlay');
 
-        async function loadQuestions() {
-            const snapshot = await get(ref(db, 'questions'));
-            if (snapshot.exists()) {
-                allQuestions.math = snapshot.val().math_ninja.list;
-                allQuestions.iq = snapshot.val().iq_test.list;
+            if(isUnlocked) {
+                content.classList.remove('blocked');
+                overlay.classList.add('hidden');
+            } else {
+                content.classList.add('blocked');
+                overlay.classList.remove('hidden');
+                tg.showAlert("To'lov hali tasdiqlanmadi. Maruf Raxmonovga chekni yuborganingizga ishonch hosil qiling.");
             }
         }
-
-        window.startTournament = () => {
-            currentPhase = 1; phaseScore = 0; currentQuestionIdx = 0; timeLeft = 60;
-            document.getElementById('game-overlay').classList.remove('hidden');
-            startTimer();
-            runPhase1();
-        };
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('game-timer').innerText = timeLeft;
-                if(timeLeft <= 0) finishTournament();
-            }, 1000);
-        }
-
-        function runPhase1() {
-            document.getElementById('phase-name').innerText = "1-bosqich: Color Rush";
-            if(currentQuestionIdx >= 10) { currentQuestionIdx = 0; currentPhase = 2; return runPhase2(); }
-            const colors = [{n: "QIZIL", c: "#ef4444"}, {n: "KO'K", c: "#3b82f6"}, {n: "YASHIL", c: "#22c55e"}, {n: "SARIQ", c: "#eab308"}];
-            const target = colors[Math.floor(Math.random()*colors.length)];
-            const displayColor = colors[Math.floor(Math.random()*colors.length)];
-            document.getElementById('game-container').innerHTML = `
-                <h1 class="text-5xl font-black mb-12" style="color: ${displayColor.c}">${target.n}</h1>
-                <div class="grid grid-cols-2 gap-4 w-full px-4">${colors.map(col => `<button onclick="checkColor('${col.c}', '${displayColor.c}')" class="h-20 rounded-2xl shadow-lg" style="background: ${col.c}"></button>`).join('')}</div>`;
-        }
-
-        window.checkColor = (p, a) => { if(p === a) phaseScore += 10; currentQuestionIdx++; runPhase1(); };
-
-        function runPhase2() {
-            document.getElementById('phase-name').innerText = "2-bosqich: Math Ninja";
-            if(currentQuestionIdx >= 10) { currentQuestionIdx = 0; currentPhase = 3; return runPhase3(); }
-            renderQuiz(allQuestions.math[currentQuestionIdx], 'math');
-        }
-
-        function runPhase3() {
-            document.getElementById('phase-name').innerText = "3-bosqich: IQ Test";
-            if(currentQuestionIdx >= 10) return finishTournament();
-            renderQuiz(allQuestions.iq[currentQuestionIdx], 'iq');
-        }
-
-        function renderQuiz(q, type) {
-            document.getElementById('game-container').innerHTML = `
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full mb-8"><h2 class="text-xl font-bold">${q.q}</h2></div>
-                <div class="grid grid-cols-1 gap-3 w-full px-4">${q.a.map((opt, i) => `<button onclick="checkQuiz(${i}, ${q.c}, '${type}')" class="p-4 bg-slate-800 rounded-xl border border-slate-700 text-left active:bg-slate-700">${opt}</button>`).join('')}</div>`;
-        }
-
-        window.checkQuiz = (p, c, t) => { if(p === c) phaseScore += 10; currentQuestionIdx++; if(t === 'math') runPhase2(); else runPhase3(); };
-
-        async function finishTournament() {
-            clearInterval(timerInterval); //
-            const cont = document.getElementById('game-container');
-            cont.innerHTML = `<div class="flex flex-col items-center"><div class="w-12 h-12 border-4 border-yellow-500 loader rounded-full mb-4"></div><h2 class="text-xl font-bold">Saqlanmoqda...</h2><p class="text-yellow-500 text-3xl font-black mt-2">${phaseScore} BALL</p></div>`;
-            try {
-                await set(ref(db, 'results/' + userData.id), { fullName: userData.fullName, totalScore: phaseScore, timestamp: Date.now() }); //
-                setTimeout(() => { document.getElementById('game-overlay').classList.add('hidden'); switchTab('rating'); }, 1500); //
-            } catch (e) { tg.showAlert("Xato!"); document.getElementById('game-overlay').classList.add('hidden'); }
-        }
-
-        window.switchTab = async (tab) => {
-            ['game', 'rating', 'settings'].forEach(t => { document.getElementById(`page-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).classList.remove('active-tab', 'text-white'); document.getElementById(`tab-${t}`).classList.add('text-slate-500'); });
-            document.getElementById(`page-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).classList.add('active-tab', 'text-white');
-            if(tab === 'rating') {
-                const list = document.getElementById('rating-list'); list.innerHTML = "Yuklanmoqda...";
-                const snap = await get(ref(db, 'results'));
-                if(snap.exists()){
-                    const sorted = Object.values(snap.val()).sort((a,b) => b.totalScore - a.totalScore).slice(0, 10);
-                    list.innerHTML = sorted.map((u, i) => `<div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700"><span>${i+1}. ${u.fullName}</span><span class="text-yellow-500 font-bold">${u.totalScore}</span></div>`).join('');
-                } else { list.innerHTML = "Hozircha bo'sh."; }
-            }
-        };
     </script>
 </body>
 </html>
