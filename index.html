@@ -3,78 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brain Pro | Maruf Edition</title>
+    <title>Brain Pro | Maruf Raxmonov</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --yellow: #f1c40f; --orange: #e67e22; --red: #ff00cc; }
+        :root { --p: #7b42f5; --bg: #0a0a0b; --card: #16161e; --green: #28a745; --yellow: #f1c40f; --orange: #e67e22; --red: #ff3b3b; --cyan: #00d2ff; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
         #auth, #game, #leaderboard { display: none; text-align: center; }
         .active { display: block !important; }
 
-        /* Level Card */
-        .level-card { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; position: relative; overflow: hidden; }
-        #level-label { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
-        .xp-container { background: #222; height: 12px; border-radius: 6px; margin-top: 10px; overflow: hidden; }
-        #xp-bar { height: 100%; width: 0%; transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--p); }
+        /* Level Display */
+        .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; position: relative; }
+        #level-title { font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .xp-text { font-size: 14px; color: #888; margin-top: 5px; }
+        .progress-container { background: #222; height: 14px; border-radius: 7px; margin-top: 15px; overflow: hidden; border: 1px solid #333; }
+        #progress-bar { height: 100%; width: 0%; transition: 1.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 15px var(--p); }
 
-        /* Quiz UI */
-        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
-        .q-text { font-size: 19px; font-weight: 600; line-height: 1.4; margin-bottom: 20px; text-align: left; }
-        .options { display: grid; gap: 12px; }
-        .opt { background: #222; padding: 16px; border-radius: 12px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.2s; font-size: 16px; }
-        .opt.correct { background: var(--green) !important; border-color: var(--green); }
-        .opt.wrong { background: var(--red) !important; border-color: var(--red); }
+        /* Quiz Box */
+        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
+        .question { font-size: 20px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn { background: #222; padding: 18px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.2s; font-size: 16px; color: #eee; }
+        .option-btn:active { transform: scale(0.97); }
+        .correct { background: var(--green) !important; border-color: var(--green); color: white; }
+        .wrong { background: var(--red) !important; border-color: var(--red); color: white; }
 
-        /* Navigation */
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-item { font-size: 12px; opacity: 0.5; cursor: pointer; text-align: center; }
-        .nav-item.active-nav { opacity: 1; color: var(--p); font-weight: bold; }
+        /* Nav Bar */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; text-decoration: none; }
+        .nav-link.active-link { opacity: 1; color: var(--p); font-weight: bold; }
         
-        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
-        .btn-login { background: var(--p); border: none; padding: 18px; border-radius: 15px; color: #fff; font-weight: bold; width: 100%; font-size: 18px; cursor: pointer; }
+        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--p); font-size: 45px; margin-top: 50px;">Brain Pro</h1>
-        <p style="color:#888; margin-bottom: 40px;">Aqlingizni darajama-daraja charxlang!</p>
-        <button class="btn-login" id="loginBtn">TIZIMGA KIRISH</button>
+        <h1 style="color:var(--p); font-size: 48px; margin-top: 80px; letter-spacing: -2px;">Brain Pro</h1>
+        <p style="color:#666; font-size: 18px; margin-bottom: 50px;">O'zbekistondagi eng aqlli o'yinga xush kelibsiz!</p>
+        <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px; box-shadow: 0 10px 20px rgba(123,66,245,0.3);">BOSHLASH</button>
     </div>
 
     <div id="game">
-        <div class="level-card" id="l-card">
-            <div id="level-label">OSON</div>
-            <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
-                <span>Daraja foizi</span>
-                <span>XP: <b id="u-xp" style="color:#fff">0</b></span>
+        <div class="level-header">
+            <div id="level-title">OSON</div>
+            <div class="xp-text">Umumiy ball: <b id="total-xp" style="color:#fff">0</b> XP</div>
+            <div class="progress-container">
+                <div id="progress-bar"></div>
             </div>
-            <div class="xp-container"><div id="xp-bar"></div></div>
         </div>
 
-        <div class="card">
-            <div class="q-text" id="q-text">Savol yuklanmoqda...</div>
-            <div class="options" id="options"></div>
+        <div class="quiz-card">
+            <div class="question" id="question-text">Savol yuklanmoqda...</div>
+            <div class="options-grid" id="options-box"></div>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--p)">🏆 Dunyo Reytingi</h2>
-        <div class="card" id="leader-list" style="padding: 10px; min-height: auto;">Yuklanmoqda...</div>
+        <h2 style="color:var(--p); margin-bottom: 25px;">🏆 Kuchli 10 Talaba</h2>
+        <div class="quiz-card" id="rank-list" style="padding: 10px; min-height: auto;"></div>
     </div>
 </div>
 
-<div class="nav" id="main-nav" style="display:none">
-    <div class="nav-item active-nav" id="nav-game" onclick="showPanel('game')">🎮<br>O'yin</div>
-    <div class="nav-item" id="nav-rank" onclick="showPanel('leaderboard')">🏆<br>Reyting</div>
+<div class="bottom-nav" id="navbar" style="display:none">
+    <div class="nav-link active-link" id="link-game" onclick="navigate('game')">🎮<br>O'yin</div>
+    <div class="nav-link" id="link-rank" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -89,139 +89,156 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id || "dev_user_88";
+    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let userData = { xp: 0, level: 'oson' };
-    let currentQuestions = [];
-    let isAnswering = false;
+    let xp = 0;
+    let currentLevel = "";
+    let questions = [];
+    let isLocked = false;
+    let solvedInSession = new Set(); // Bir o'yinda takrorlanmaslik uchun
 
-    // --- LEVEL CONFIG ---
-    const levels = {
-        oson: { name: "🟢 Oson", next: 500, color: "#28a745", key: "oson" },
-        ortacha: { name: "🟡 O'rtacha", next: 1500, color: "#f1c40f", key: "ortacha" },
-        qiyin: { name: "🟠 Qiyinroq", next: 3500, color: "#e67e22", key: "qiyin" },
-        juda_qiyin: { name: "🔴 Master", next: 10000, color: "#ff00cc", key: "juda_qiyin" }
+    const levelSettings = {
+        oson: { name: "🟢 Oson", limit: 500, color: "#28a745", min: 0 },
+        ortacha: { name: "🟡 O'rtacha", limit: 1500, color: "#f1c40f", min: 500 },
+        qiyin: { name: "🟠 Qiyinroq", limit: 3500, color: "#e67e22", min: 1500 },
+        juda_qiyin: { name: "🔴 Master", limit: 10000, color: "#ff3b3b", min: 3500 }
     };
 
-    function getLevel(xp) {
-        if (xp <= 500) return levels.oson;
-        if (xp <= 1500) return levels.ortacha;
-        if (xp <= 3500) return levels.qiyin;
-        return levels.juda_qiyin;
-    }
+    // --- INITIALIZE ---
+    window.login = async () => {
+        const user = tg.initDataUnsafe?.user;
+        const initialData = { name: user?.first_name || "O'yinchi", xp: 0 };
+        await set(userRef, initialData);
+        startApp();
+    };
 
-    // --- INITIALIZATION ---
-    window.onload = async () => {
+    async function startApp() {
         const snap = await get(userRef);
         if (snap.exists()) {
-            userData.xp = Number(snap.val().xp) || 0;
-            showPanel('game');
-            updateLevelSystem();
+            xp = Number(snap.val().xp) || 0;
+            document.getElementById('auth').style.display = 'none';
+            document.getElementById('navbar').style.display = 'flex';
+            navigate('game');
+            updateLogic();
         } else {
             document.getElementById('auth').classList.add('active');
         }
-    };
-
-    document.getElementById('loginBtn').onclick = async () => {
-        const user = tg.initDataUnsafe?.user;
-        const initialData = { name: user?.first_name || "Talaba", xp: 0 };
-        await set(userRef, initialData);
-        userData.xp = 0;
-        showPanel('game');
-        updateLevelSystem();
-    };
-
-    // --- LEVEL SYSTEM CORE ---
-    async function updateLevelSystem() {
-        const levelInfo = getLevel(userData.xp);
-        document.getElementById('level-label').innerText = levelInfo.name;
-        document.getElementById('level-label').style.color = levelInfo.color;
-        document.getElementById('u-xp').innerText = userData.xp;
-
-        // Progress bar calculation
-        const prevCap = Object.values(levels).find(l => l.next < levelInfo.next)?.next || 0;
-        const progress = ((userData.xp - prevCap) / (levelInfo.next - prevCap)) * 100;
-        document.getElementById('xp-bar').style.width = Math.min(progress, 100) + "%";
-        document.getElementById('xp-bar').style.background = levelInfo.color;
-
-        // Savollarni darajaga qarab yuklash
-        if (userData.level !== levelInfo.key || currentQuestions.length === 0) {
-            userData.level = levelInfo.key;
-            const qSnap = await get(ref(db, 'brain_questions/' + levelInfo.key));
-            currentQuestions = qSnap.val() || [];
-            if(currentQuestions.length === 0) {
-                document.getElementById('q-text').innerText = "Bu daraja uchun savollar hali yuklanmagan!";
-                return;
-            }
-        }
-        renderQuestion();
     }
 
-    function renderQuestion() {
-        isAnswering = false;
-        const q = currentQuestions[Math.floor(Math.random() * currentQuestions.length)];
-        document.getElementById('q-text').innerText = q.q;
-        const box = document.getElementById('options');
+    // --- GAME LOGIC ---
+    async function updateLogic() {
+        let levelKey = "";
+        if (xp <= 500) levelKey = "oson";
+        else if (xp <= 1500) levelKey = "ortacha";
+        else if (xp <= 3500) levelKey = "qiyin";
+        else levelKey = "juda_qiyin";
+
+        const config = levelSettings[levelKey];
+        document.getElementById('level-title').innerText = config.name;
+        document.getElementById('level-title').style.color = config.color;
+        document.getElementById('total-xp').innerText = xp;
+
+        // Progress Bar Calculation
+        const range = config.limit - config.min;
+        const currentProgress = ((xp - config.min) / range) * 100;
+        const bar = document.getElementById('progress-bar');
+        bar.style.width = Math.min(currentProgress, 100) + "%";
+        bar.style.background = config.color;
+
+        // Savollarni darajaga qarab yuklash
+        if (currentLevel !== levelKey) {
+            currentLevel = levelKey;
+            const qSnap = await get(ref(db, 'brain_questions/' + levelKey));
+            questions = qSnap.val() || [];
+            solvedInSession.clear();
+        }
+        
+        showNextQuestion();
+    }
+
+    function showNextQuestion() {
+        if (questions.length === 0) {
+            document.getElementById('question-text').innerText = "Tez orada yangi savollar qo'shiladi!";
+            return;
+        }
+
+        isLocked = false;
+        let randomIndex;
+        
+        // Takrorlanmaslikni ta'minlash
+        if (solvedInSession.size >= questions.length) solvedInSession.clear();
+        
+        do {
+            randomIndex = Math.floor(Math.random() * questions.length);
+        } while (solvedInSession.has(randomIndex));
+
+        const q = questions[randomIndex];
+        document.getElementById('question-text').innerText = q.q;
+        
+        const box = document.getElementById('options-box');
         box.innerHTML = "";
         
         q.a.forEach((opt, i) => {
-            const d = document.createElement('div');
-            d.className = "opt";
-            d.innerText = opt;
-            d.onclick = () => checkAnswer(i, q.c, d);
-            box.appendChild(d);
+            const btn = document.createElement('div');
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => check(i, q.c, btn, randomIndex);
+            box.appendChild(btn);
         });
     }
 
-    async function checkAnswer(selected, correct, el) {
-        if (isAnswering) return;
-        isAnswering = true;
+    async function check(idx, correct, el, qId) {
+        if (isLocked) return;
+        isLocked = true;
+        solvedInSession.add(qId);
 
-        const opts = document.querySelectorAll('.opt');
-        if (selected === correct) {
+        const btns = document.querySelectorAll('.option-btn');
+        if (idx === correct) {
             el.classList.add('correct');
-            userData.xp += 10;
-            await set(ref(db, `brain_users/${uid}/xp`), Number(userData.xp));
+            xp += 10;
+            await set(ref(db, `brain_users/${uid}/xp`), Number(xp));
             tg.HapticFeedback.notificationOccurred('success');
         } else {
             el.classList.add('wrong');
-            opts[correct].classList.add('correct');
+            btns[correct].classList.add('correct');
             tg.HapticFeedback.notificationOccurred('error');
         }
 
-        setTimeout(updateLevelSystem, 1200);
+        setTimeout(updateLogic, 1200);
     }
 
-    // --- NAVIGATION ---
-    window.showPanel = (id) => {
-        document.querySelectorAll('#auth, #game, #leaderboard').forEach(p => p.classList.remove('active'));
+    // --- NAVIGATION & RANK ---
+    window.navigate = (id) => {
+        document.querySelectorAll('#game, #leaderboard').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.getElementById('main-nav').style.display = (id === 'auth') ? 'none' : 'flex';
         
-        document.getElementById('nav-game').classList.toggle('active-nav', id === 'game');
-        document.getElementById('nav-rank').classList.toggle('active-nav', id === 'leaderboard');
+        document.getElementById('link-game').classList.toggle('active-link', id === 'game');
+        document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
 
-        if(id === 'leaderboard') loadRank();
+        if (id === 'leaderboard') fetchRank();
     };
 
-    async function loadRank() {
-        const list = document.getElementById('leader-list');
+    async function fetchRank() {
+        const list = document.getElementById('rank-list');
         list.innerHTML = "Yuklanmoqda...";
         const qRank = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
         const snap = await get(qRank);
-        if(snap.exists()) {
-            let arr = [];
-            snap.forEach(c => arr.push(c.val()));
-            arr.sort((a, b) => b.xp - a.xp);
-            list.innerHTML = arr.map((u, i) => `
-                <div class="list-item">
+        
+        if (snap.exists()) {
+            let data = [];
+            snap.forEach(c => data.push(c.val()));
+            data.sort((a, b) => b.xp - a.xp);
+            list.innerHTML = data.map((u, i) => `
+                <div class="rank-item">
                     <span><b>${i+1}.</b> ${u.name}</span>
-                    <span style="color:var(--p); font-weight:bold;">${u.xp} XP</span>
+                    <b style="color:var(--p)">${u.xp} XP</b>
                 </div>
             `).join('');
         }
     }
+
+    window.onload = startApp;
 </script>
 </body>
 </html>
