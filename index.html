@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brain Pro | Maruf Raxmonov</title>
+    <title>Aql Jangi | Maruf Raxmonov</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { 
@@ -18,7 +18,7 @@
         body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        #auth, #game, #leaderboard, #result-screen, #profile { display: none; text-align: center; }
+        #auth, #game, #leaderboard, #result-screen, #profile, #onboarding { display: none; text-align: center; }
         .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -48,6 +48,7 @@
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
+        /* Profil Stili */
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
         .p-info { color: #fff; font-size: 18px; margin: 10px 0; font-weight: bold; }
         .p-sub { color: #888; font-size: 14px; margin-bottom: 20px; }
@@ -59,24 +60,38 @@
         
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; align-items: center; color: #eee; }
         b.gold-text { color: var(--gold); }
+
+        /* Onboarding stili */
+        .ob-step { animation: fadeIn 0.5s ease; }
+        .ob-icon { font-size: 50px; margin-bottom: 20px; }
+        .ob-title { color: var(--gold); font-size: 24px; margin-bottom: 15px; font-weight: bold; }
+        .ob-desc { color: #ccc; font-size: 16px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <p style="margin-top: 15px; font-weight: bold; letter-spacing: 3px;">BRAIN PRO</p>
+    <p style="margin-top: 15px; font-weight: bold; letter-spacing: 3px;">AQL JANGI</p>
 </div>
 
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Brain Pro</h1>
-        <p style="color:#888; margin-bottom: 30px;">Zukkolik cho'qqisini zabt eting!</p>
+        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
+        <p style="color:#888; margin-bottom: 30px;">O'z darajangizni Master darajasigacha ko'taring!</p>
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
         <label style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
         <input type="date" id="reg-birth" class="reg-input">
         <button onclick="login()" class="btn-main">BOSHLASH</button>
+    </div>
+
+    <div id="onboarding">
+        <div class="quiz-card ob-step">
+            <div id="ob-content">
+                </div>
+            <button onclick="nextObStep()" class="btn-main" id="ob-btn">KEYINGISI</button>
+        </div>
     </div>
 
     <div id="game">
@@ -154,6 +169,7 @@
     let correctAnswers = 0; 
     let isLocked = false;
     let timerInterval = null;
+    let obStep = 0;
 
     const gameConfig = {
         oson: { qCount: 15, passScore: 10, title: "🟢 OSON", nextLvl: "ortacha" },
@@ -161,6 +177,13 @@
         qiyin: { qCount: 35, passScore: 24, title: "🟠 QIYINROQ", nextLvl: "juda_qiyin" },
         juda_qiyin: { qCount: 45, passScore: 30, title: "🔴 JUDA QIYIN", nextLvl: "juda_qiyin" }
     };
+
+    const onboardingData = [
+        { icon: "🧠", title: "Aql Jangiga xush kelibsiz!", desc: "Bu ilovada siz o'z bilimingizni sinab, haqiqiy Master darajasiga ko'tarilishingiz mumkin." },
+        { icon: "📊", title: "Bosqichma-bosqich tizim", desc: "O'yin 4 bosqichdan iborat: Oson, O'rtacha, Qiyin va Master. Har bir bosqichda minimal ball to'plab yuqoriga chiqasiz." },
+        { icon: "🏆", title: "Dunyo Reytingi", desc: "Barcha foydalanuvchilar bilan bellashing! To'plagan umumiy ballaringiz reytingda aks etadi." },
+        { icon: "👤", title: "Sizning Profilingiz", desc: "Profilingizda ballaringiz, joriy darajangiz va tug'ilgan kuningizga qolgan vaqtni kuzatib borishingiz mumkin." }
+    ];
 
     window.onload = async () => {
         setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
@@ -185,15 +208,44 @@
             const surname = document.getElementById('reg-surname').value.trim();
             const birth = document.getElementById('reg-birth').value;
             if(!name || !surname || !birth) { alert("Ma'lumotlarni to'liq kiriting!"); return; }
-            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0 });
+            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, firstTime: true });
             userLevel = "oson";
+            startOnboarding();
         } else {
             userLevel = snap.val().level || "oson";
+            document.getElementById('auth').classList.remove('active');
+            document.getElementById('navbar').style.display = 'flex';
+            navigate('game');
+            startNewRound();
         }
+    };
+
+    function startOnboarding() {
         document.getElementById('auth').classList.remove('active');
-        document.getElementById('navbar').style.display = 'flex';
-        navigate('game');
-        startNewRound();
+        document.getElementById('onboarding').classList.add('active');
+        showObStep();
+    }
+
+    function showObStep() {
+        const step = onboardingData[obStep];
+        document.getElementById('ob-content').innerHTML = `
+            <div class="ob-icon">${step.icon}</div>
+            <div class="ob-title">${step.title}</div>
+            <div class="ob-desc">${step.desc}</div>
+        `;
+        document.getElementById('ob-btn').innerText = obStep === onboardingData.length - 1 ? "JANGNI BOSHLASH!" : "KEYINGISI";
+    }
+
+    window.nextObStep = () => {
+        if (obStep < onboardingData.length - 1) {
+            obStep++;
+            showObStep();
+        } else {
+            document.getElementById('onboarding').classList.remove('active');
+            document.getElementById('navbar').style.display = 'flex';
+            navigate('game');
+            startNewRound();
+        }
     };
 
     window.startNewRound = async () => {
@@ -275,10 +327,10 @@
 
     window.navigate = (id) => {
         if (timerInterval) clearInterval(timerInterval);
-        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('link-' + id).classList.add('active-link');
+        document.getElementById('link-' + (id === 'leaderboard' ? 'leaderboard' : id)).classList.add('active-link');
         if (id === 'leaderboard') fetchRank();
         if (id === 'profile') loadProfile();
     };
