@@ -104,11 +104,22 @@
         }
         .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
         .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+
+        /* Intro Animation */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide { animation: fadeInRight 0.5s ease-out forwards; }
     </style>
 </head>
 <body class="pb-24">
 
-    <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center">
+    <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center relative">
+        <button onclick="toggleTheme()" class="absolute top-6 right-6 text-2xl p-2 premium-card">
+            <span id="theme-icon-auth">🌙</span>
+        </button>
+
         <div class="text-6xl mb-4 text-yellow-500">🎓</div>
         <h1 class="text-3xl font-black uppercase italic mb-10">Quiz Pro</h1>
         
@@ -130,40 +141,44 @@
     </div>
 
     <div id="intro-screen" class="hidden p-6 flex flex-col justify-center min-h-screen">
-        <div class="premium-card p-6 shadow-2xl overflow-y-auto max-h-[80vh]">
-            <h2 class="text-2xl font-bold mb-4 text-yellow-500 border-b border-yellow-500/20 pb-2 text-center">Ilova Haqida</h2>
-            
-            <div class="space-y-4 text-sm leading-relaxed">
-                <div>
-                    <h3 class="font-bold text-yellow-500 uppercase text-xs mb-1">🎯 Maqsadimiz:</h3>
-                    <p class="opacity-80">Foydalanuvchilarning bilim darajasini testlar orqali oshirish, intellektual salohiyatni charxlash va o'z bilimi bilan peshqadamlar qatoridan joy olishiga ko'maklashish.</p>
-                </div>
-
-                <div>
-                    <h3 class="font-bold text-yellow-500 uppercase text-xs mb-1">📚 Fanlar:</h3>
-                    <p class="opacity-80 mb-2">Ilovada jami 12 ta asosiy yo'nalish mavjud:</p>
-                    <div class="grid grid-cols-2 gap-1 text-[11px] opacity-90 italic">
-                        <span>• Matematika</span><span>• Fizika</span>
-                        <span>• Kimyo</span><span>• Ona tili</span>
-                        <span>• Adabiyot</span><span>• Geografiya</span>
-                        <span>• O'zbekiston tarixi</span><span>• Jahon tarixi</span>
-                        <span>• Ingliz tili</span><span>• Rus tili</span>
-                        <span>• Biologiya</span><span>• IQ Testlar</span>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="font-bold text-yellow-500 uppercase text-xs mb-1">🚀 Imkoniyatlar:</h3>
-                    <ul class="opacity-80 space-y-1">
-                        <li>✅ <b>Moslashuvchanlik:</b> Savollar soni va vaqtni o'zingiz belgilaysiz.</li>
-                        <li>✅ <b>Tasodifiylik:</b> Har safar yangi va random variantlar.</li>
-                        <li>✅ <b>Reyting:</b> O'z natijangizni boshqalar bilan solishtirish.</li>
-                        <li>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti orqali shaxsiy monitoring.</li>
-                    </ul>
-                </div>
+        <div id="intro-step-1" class="animate-slide">
+            <div class="premium-card p-8 shadow-2xl text-center">
+                <div class="text-5xl mb-6">🎯</div>
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Maqsadimiz</h2>
+                <p class="opacity-80 leading-relaxed">Foydalanuvchilarning bilim darajasini testlar orqali oshirish, intellektual salohiyatni charxlash va o'z bilimi bilan peshqadamlar qatoridan joy olishiga ko'maklashish.</p>
+                <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black mt-8">Keyingisi</button>
             </div>
-            
-            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black mt-6">Tushunarli, Boshlash</button>
+        </div>
+
+        <div id="intro-step-2" class="hidden animate-slide">
+            <div class="premium-card p-8 shadow-2xl text-center">
+                <div class="text-5xl mb-6">📚</div>
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">12 ta Fan</h2>
+                <p class="opacity-80 mb-6">Barcha asosiy fanlar qamrab olingan:</p>
+                <div class="grid grid-cols-2 gap-2 text-left text-xs opacity-90 italic mb-8">
+                    <span>• Matematika</span><span>• Fizika</span>
+                    <span>• Kimyo</span><span>• Ona tili</span>
+                    <span>• Adabiyot</span><span>• Geografiya</span>
+                    <span>• O'zbekiston tarixi</span><span>• Jahon tarixi</span>
+                    <span>• Ingliz tili</span><span>• Rus tili</span>
+                    <span>• Biologiya</span><span>• IQ Testlar</span>
+                </div>
+                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
+            </div>
+        </div>
+
+        <div id="intro-step-3" class="hidden animate-slide">
+            <div class="premium-card p-8 shadow-2xl text-center">
+                <div class="text-5xl mb-6">🚀</div>
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Imkoniyatlar</h2>
+                <div class="text-left space-y-4 mb-8">
+                    <p>✅ <b>Moslashuvchanlik:</b> Savollar soni va vaqtni o'zingiz belgilaysiz.</p>
+                    <p>✅ <b>Tasodifiylik:</b> Har safar yangi va random variantlar.</p>
+                    <p>✅ <b>Reyting:</b> O'z natijangizni boshqalar bilan solishtirish.</p>
+                    <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun monitoringi.</p>
+                </div>
+                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Ilovani Boshlash</button>
+            </div>
         </div>
     </div>
 
@@ -353,9 +368,15 @@
                 if(activeNav) activeNav.classList.add('active-nav');
             }
 
+            if(screen === 'intro') nextIntro(1);
             if(screen === 'rating') loadRating();
             if(screen === 'profile') loadProfile();
         }
+
+        window.nextIntro = (step) => {
+            [1, 2, 3].forEach(i => document.getElementById('intro-step-' + i).classList.add('hidden'));
+            document.getElementById('intro-step-' + step).classList.remove('hidden');
+        };
 
         async function startTest() {
             const subj = document.getElementById('selectedSubject').value;
@@ -534,12 +555,14 @@
             const isD = document.body.classList.toggle('dark-mode');
             localStorage.setItem('theme', isD ? 'dark' : 'light');
             document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
+            document.getElementById('theme-icon-auth').innerText = isD ? "☀️" : "🌙";
         }
 
         function applySavedTheme() {
             if(localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
                 document.getElementById('theme-icon').innerText = "☀️";
+                document.getElementById('theme-icon-auth').innerText = "☀️";
             }
         }
 
@@ -564,7 +587,7 @@
         window.logout = logout;
         window.confirmFinishTest = confirmFinishTest;
         window.loadRating = loadRating;
+        window.nextIntro = nextIntro;
     </script>
 </body>
 </html>
-
