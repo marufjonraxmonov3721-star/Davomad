@@ -112,11 +112,23 @@
         }
         .animate-slide { animation: fadeInRight 0.5s ease-out forwards; }
 
-        /* Modal uslubi */
         .bday-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 1000;
             display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+
+        /* Natija animatsiyasi */
+        .result-circle {
+            width: 150px; height: 150px; border-radius: 50%; border: 8px solid var(--gold);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 0 auto 20px; background: rgba(255, 215, 0, 0.1);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
     </style>
 </head>
@@ -189,7 +201,7 @@
                 <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Imkoniyatlar</h2>
                 <div class="text-left space-y-3 text-sm mb-8">
                     <p>✅ <b>Moslashuvchan:</b> Savollar soni va vaqtni boshqaring.</p>
-                    <p>✅ <b>Random:</b> Har safar yangi variantlar.</p>
+                    <p>✅ <b>Random:</b> Har safar yeni variantlar.</p>
                     <p>✅ <b>Reyting:</b> O'z natijangizni dunyo bilan solishtiring.</p>
                     <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti.</p>
                 </div>
@@ -199,7 +211,7 @@
     </div>
 
     <div id="subjects-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Mavzular</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
         <div class="premium-card p-6 space-y-6">
             <div>
                 <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Fanni tanlang</label>
@@ -265,8 +277,32 @@
         <button onclick="confirmFinishTest()" class="w-full border border-red-500/30 text-red-500 p-4 rounded-xl font-bold uppercase text-xs tracking-widest opacity-60 italic">Testni yakunlash</button>
     </div>
 
+    <div id="result-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <div class="premium-card p-8 shadow-2xl animate-slide">
+            <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-yellow-500">Natija</h2>
+            <div class="result-circle">
+                <span id="resPercent" class="text-4xl font-black text-yellow-500">0%</span>
+                <span class="text-[10px] opacity-60 font-bold">UMUMIY</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-8 text-sm">
+                <div class="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                    <p class="opacity-60 font-bold uppercase text-[10px]">To'g'ri</p>
+                    <p id="resCorrect" class="text-xl font-black text-green-500">0</p>
+                </div>
+                <div class="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                    <p class="opacity-60 font-bold uppercase text-[10px]">Xato</p>
+                    <p id="resWrong" class="text-xl font-black text-red-500">0</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <button onclick="showAnalysis()" class="w-full p-4 rounded-xl font-bold border border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10 transition">Xatolarni Ko'rish</button>
+                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl shadow-lg text-black">Asosiy Menyu</button>
+            </div>
+        </div>
+    </div>
+
     <div id="analysis-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Xatolar Tahlili</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Tahlil</h2>
         <div id="analysisList" class="space-y-4 mb-10"></div>
         <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Mavzularga qaytish</button>
     </div>
@@ -293,7 +329,7 @@
     </div>
 
     <div id="profile-screen" class="hidden p-6 text-center">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Mening Profilim</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
         <div class="premium-card p-8 mb-6 shadow-xl">
             <div class="profile-img-container">
                 <img src="" id="userProfileImg" alt="Avatar">
@@ -306,7 +342,7 @@
                 <p id="profDaysLeft" class="text-xs italic text-yellow-500"></p>
             </div>
             <div class="border-t border-yellow-500/20 pt-6 text-left">
-                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic">Yutuqlarim:</h4>
+                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic text-yellow-500">Yutuqlarim:</h4>
                 <div id="myStatsList" class="space-y-3"></div>
             </div>
         </div>
@@ -319,7 +355,7 @@
                 <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
                 <span id="theme-icon">🌙</span>
             </div>
-            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish & Ma'lumotlarni o'chirish</button>
+            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish & O'chirish</button>
         </div>
     </div>
 
@@ -372,17 +408,11 @@
             if (today.getMonth() === bDate.getMonth() && today.getDate() === bDate.getDate()) {
                 document.getElementById('bday-user-name').innerText = currentUser.fName;
                 document.getElementById('bday-overlay').classList.remove('hidden');
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             }
         }
 
-        window.closeBday = () => {
-            document.getElementById('bday-overlay').classList.add('hidden');
-        };
+        window.closeBday = () => { document.getElementById('bday-overlay').classList.add('hidden'); };
 
         function register() {
             const f = document.getElementById('firstName').value.trim();
@@ -403,7 +433,7 @@
 
         function showMenu(screen) {
             clearInterval(timerInterval);
-            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis'];
+            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result'];
             screens.forEach(s => {
                 const el = document.getElementById(s + '-screen');
                 if(el) el.classList.add('hidden');
@@ -411,7 +441,7 @@
                 if(nav) nav.classList.remove('active-nav');
             });
             document.getElementById(screen + '-screen').classList.remove('hidden');
-            if (['quiz', 'auth', 'intro', 'analysis'].includes(screen)) {
+            if (['quiz', 'auth', 'intro', 'analysis', 'result'].includes(screen)) {
                 document.getElementById('main-nav').classList.add('hidden');
             } else {
                 document.getElementById('main-nav').classList.remove('hidden');
@@ -452,6 +482,7 @@
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
             const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
+            
             opts.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn font-medium bg-white/5 italic";
@@ -459,21 +490,11 @@
                 btn.onclick = () => {
                     const buttons = optList.querySelectorAll('button');
                     buttons.forEach(b => b.onclick = null);
-                    
-                    userTestLogs.push({
-                        question: q.q,
-                        selected: opt.text,
-                        correct: q.a[q.c],
-                        isRight: opt.isC
-                    });
-
-                    if(opt.isC) { 
-                        btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; 
-                    } else { 
+                    userTestLogs.push({ question: q.q, selected: opt.text, correct: q.a[q.c], isRight: opt.isC });
+                    if(opt.isC) { btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; }
+                    else { 
                         btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; 
-                        buttons.forEach(b => {
-                           if(b.innerText === q.a[q.c]) b.style.border = "2px solid #10b981";
-                        });
+                        buttons.forEach(b => { if(b.innerText === q.a[q.c]) b.style.border = "2px solid #10b981"; });
                     }
                     setTimeout(() => { currentQIndex++; loadQuestion(); }, 1000);
                 };
@@ -492,27 +513,28 @@
                     const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
                     await set(ref(db, ratingPath), res);
                 }
-                alert(`Test yakunlandi! Natija: ${score}/${window.currentMeta.amount}`);
-                showAnalysis();
+                
+                // Natija ekranini korsatish
+                const percent = Math.round((score / window.currentMeta.amount) * 100);
+                document.getElementById('resPercent').innerText = percent + "%";
+                document.getElementById('resCorrect').innerText = score;
+                document.getElementById('resWrong').innerText = window.currentMeta.amount - score;
+                if(percent >= 60) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                showMenu('result');
             } else { 
                 alert("Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi."); 
                 showMenu('subjects');
             }
         }
 
-        function showAnalysis() {
+        window.showAnalysis = () => {
             showMenu('analysis');
             const list = document.getElementById('analysisList');
             list.innerHTML = "";
             userTestLogs.forEach((log, i) => {
                 const div = document.createElement('div');
                 div.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
-                div.innerHTML = `
-                    <p class="text-xs opacity-50 mb-1">Savol ${i+1}:</p>
-                    <p class="font-bold text-sm mb-2">${log.question}</p>
-                    <p class="text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'} italic">Sizning javobingiz: ${log.selected}</p>
-                    ${!log.isRight ? `<p class="text-xs text-green-500 font-bold">To'g'ri javob: ${log.correct}</p>` : ''}
-                `;
+                div.innerHTML = `<p class="text-xs opacity-50 mb-1">Savol ${i+1}:</p><p class="font-bold text-sm mb-2">${log.question}</p><p class="text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'} italic">Sizning javobingiz: ${log.selected}</p>${!log.isRight ? `<p class="text-xs text-green-500 font-bold">To'g'ri javob: ${log.correct}</p>` : ''}`;
                 list.appendChild(div);
             });
         }
@@ -632,6 +654,8 @@
         window.confirmFinishTest = confirmFinishTest;
         window.loadRating = loadRating;
         window.nextIntro = nextIntro;
+        window.showAnalysis = showAnalysis;
     </script>
 </body>
 </html>
+
