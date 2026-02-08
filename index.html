@@ -205,7 +205,7 @@
             namePh: "Исмингиз", surnamePh: "Фамилиянгиз", btnStart: "БОШЛАШ", navGame: "Ўйин", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Созламалар",
             chooseLang: "Илова тилини танланг:", qCounter: "Савол", scoreLabel: "Балл", resStatus: "Раунд Тугади!",
             resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
-            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", сек: "сек",
+            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
             obWelcome: "Ҳақиқий билимлар тўқнашувига хуш келибсиз! Келинг, ўйин қоидалари билан танишамиз.", obFinish: "Ҳамма қоидаларни билдингиз. Энди жангни бошлаш вақти келди! Омад ёр бўлсин.",
             obBtnNext: "КЕЙИНГИСИ", obBtnStart: "БОШЛАДИК!", obQcount: "Саволлар сони:", obPass: "Ўтиш учун:", translating: "Саволлар таржима қилинмоқда..."
         },
@@ -214,7 +214,7 @@
             namePh: "Имя", surnamePh: "Фамилия", btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
-            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", сек: "сек",
+            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
             obWelcome: "Добро пожаловать в настоящую битву знаний! Давайте познакомимся с правилами игры.", obFinish: "Вы узнали все правила. Пришло время начать битву! Удачи.",
             obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:", translating: "Перевод вопросов..."
         },
@@ -303,7 +303,6 @@
         userLang = lang;
         if (syncToDb) {
             await update(userRef, { lang: lang });
-            // Tanlangandan so'ng ilovani qayta yuklash
             location.reload();
         } else {
             applyLanguage();
@@ -462,13 +461,13 @@
             const now = new Date();
             let age = now.getFullYear() - bDay.getFullYear();
             if (now.getMonth() < bDay.getMonth() || (now.getMonth() == bDay.getMonth() && now.getDate() < bDay.getDate())) age--;
-            const ageTxt = userLang === 'ru' || userLang === 'uz_cyr' ? 'лет' : (userLang === 'en' ? 'years old' : 'yosh');
+            const ageTxt = (userLang === 'ru' || userLang === 'uz_cyr') ? 'лет' : (userLang === 'en' ? 'years old' : 'yosh');
             document.getElementById('p-age-info').innerText = `${age} ${ageTxt}`;
             let nB = new Date(now.getFullYear(), bDay.getMonth(), bDay.getDate());
             if (now > nB) nB.setFullYear(now.getFullYear() + 1);
             const diff = nB - now;
             const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3);
-            document.getElementById('p-countdown').innerText = `${t.countdown} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
+            document.getElementById('p-countdown').innerText = `${t.appName === "Ақл Жанги" ? "Туғилган кунингизга:" : (userLang === 'ru' ? "До вашего дня рождения:" : (userLang === 'en' ? "Until your birthday:" : "Tug'ilgan kuningizga:"))} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
         };
         updateTimer(); timerInterval = setInterval(updateTimer, 1000);
     }
