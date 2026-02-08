@@ -6,6 +6,7 @@
     <title>Testlar.uz - Bilimlar Cho'qqisi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
             --gold: #FFD700; 
@@ -110,9 +111,25 @@
             to { opacity: 1; transform: translateX(0); }
         }
         .animate-slide { animation: fadeInRight 0.5s ease-out forwards; }
+
+        /* Modal uslubi */
+        .bday-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
     </style>
 </head>
 <body class="pb-24">
+
+    <div id="bday-overlay" class="bday-modal hidden">
+        <div class="premium-card p-8 text-center shadow-2xl animate-slide border-2 border-gold">
+            <div class="text-6xl mb-4">🎂</div>
+            <h2 class="text-2xl font-black text-gold uppercase mb-2">Tug'ilgan kuningiz bilan!</h2>
+            <p class="text-sm opacity-90 mb-6">Hurmatli <span id="bday-user-name" class="font-bold"></span>, sizga sihat-salomatlik va barcha testlardan eng yuqori ballarni tilaymiz! 🎉</p>
+            <button onclick="closeBday()" class="gold-button w-full p-4 rounded-xl text-black">Rahmat!</button>
+        </div>
+    </div>
 
     <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center relative">
         <button onclick="toggleTheme()" class="absolute top-6 right-6 text-2xl p-2 premium-card">
@@ -172,7 +189,7 @@
                 <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Imkoniyatlar</h2>
                 <div class="text-left space-y-3 text-sm mb-8">
                     <p>✅ <b>Moslashuvchan:</b> Savollar soni va vaqtni boshqaring.</p>
-                    <p>✅ <b>Random:</b> Har safar yeni variantlar.</p>
+                    <p>✅ <b>Random:</b> Har safar yangi variantlar.</p>
                     <p>✅ <b>Reyting:</b> O'z natijangizni dunyo bilan solishtiring.</p>
                     <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti.</p>
                 </div>
@@ -344,7 +361,27 @@
             if(currentUser) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
+                checkBirthday();
             }
+        };
+
+        function checkBirthday() {
+            if(!currentUser) return;
+            const bDate = new Date(currentUser.birth);
+            const today = new Date();
+            if (today.getMonth() === bDate.getMonth() && today.getDate() === bDate.getDate()) {
+                document.getElementById('bday-user-name').innerText = currentUser.fName;
+                document.getElementById('bday-overlay').classList.remove('hidden');
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        window.closeBday = () => {
+            document.getElementById('bday-overlay').classList.add('hidden');
         };
 
         function register() {
@@ -360,6 +397,7 @@
                 currentUser = userData;
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('intro');
+                checkBirthday();
             });
         }
 
@@ -414,7 +452,6 @@
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
             const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
-            
             opts.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn font-medium bg-white/5 italic";
@@ -467,7 +504,6 @@
             showMenu('analysis');
             const list = document.getElementById('analysisList');
             list.innerHTML = "";
-            
             userTestLogs.forEach((log, i) => {
                 const div = document.createElement('div');
                 div.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
@@ -562,14 +598,10 @@
         }
 
         async function logout() {
-            if(confirm("Barcha ma'lumotlaringiz bazadan o'chiriladi. Rozimisiz?")) {
+            if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
                 const userId = currentUser.userId;
                 const userKey = userId.replace(/\./g, '_');
-                
-                // 1. Profil ma'lumotlarini o'chirish
                 await remove(ref(db, 'users/' + userId));
-                
-                // 2. Barcha reytinglardagi ballarni o'chirish
                 const ratingsSnap = await get(ref(db, 'ratings'));
                 if(ratingsSnap.exists()) {
                     const allRatings = ratingsSnap.val();
@@ -581,8 +613,6 @@
                     });
                     await update(ref(db), updates);
                 }
-
-                // 3. Lokal ma'lumotlarni tozalash va sahifani yangilash
                 localStorage.clear();
                 location.reload();
             }
@@ -605,6 +635,3 @@
     </script>
 </body>
 </html>
-
-Would you like me to ...
-Tugilgan kunda tabriklaydigan funksiyani ham qoshib berishimni xohlaysizmi ?
