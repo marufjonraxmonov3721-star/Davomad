@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aql Jangi | Maruf Raxmonov</title>
+    <title>Aql Jangi | Rangli Reaksiya</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --gold-dark: #B8860B; --bg: #000000; --card: #0a0a0a; --text: #FFD700; --green: #28a745; --red: #ff3b3b; }
@@ -18,15 +18,15 @@
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-link { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
         .nav-link.active-link { opacity: 1; font-weight: bold; }
-        #maze-container { display: grid; margin: 15px auto; background: #111; border: 2px solid var(--gold); gap: 2px; padding: 2px; width: 100%; max-width: 320px; }
-        .cell { width: 100%; aspect-ratio: 1/1; background: #000; display: flex; align-items: center; justify-content: center; }
-        .wall { background: #333; }
-        .player { background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px var(--gold); }
-        .finish { background: var(--green); box-shadow: 0 0 10px var(--green); }
-        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin: 15px auto; }
-        .ctrl-btn { background: #222; border: 1px solid var(--gold); color: var(--gold); padding: 20px; border-radius: 15px; cursor: pointer; font-size: 20px; touch-action: manipulation; }
-        .timer-bar-container { background: #222; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; }
-        #timer-bar { height: 100%; width: 100%; background: var(--red); transition: linear; }
+
+        /* O'yin maydoni */
+        #color-word { font-size: 48px; font-weight: 900; margin: 30px 0; text-transform: uppercase; letter-spacing: 2px; height: 60px; }
+        .color-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .color-btn { height: 80px; border-radius: 20px; border: 2px solid #333; cursor: pointer; transition: 0.2s; }
+        .color-btn:active { transform: scale(0.95); }
+
+        .timer-bar-container { background: #222; height: 10px; border-radius: 5px; margin: 15px 0; overflow: hidden; }
+        #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: linear; }
     </style>
 </head>
 <body>
@@ -39,7 +39,7 @@
 <div class="container">
     <div id="auth">
         <h1 id="txt-app-title" style="font-size: 40px; margin-top: 40px;">Aql Jangi</h1>
-        <p id="txt-app-slogan">Tezkor Labirint Turniri</p>
+        <p id="txt-app-slogan">Rangli Reaksiya Turniri</p>
         <select id="reg-lang" class="reg-input" onchange="window.switchLang(this.value)">
             <option value="uz">O'zbekcha 🇺🇿</option>
             <option value="uz_cyr">Ўзбекча 🇺🇿</option>
@@ -79,27 +79,22 @@
     <div id="game">
         <div class="quiz-card">
             <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
-                <span id="lvl-label" style="color:var(--gold)"></span>
-                <span>Vaqt: <b id="game-timer">0.0</b>s</span>
-                <span><b id="maze-idx">1</b>/10</span>
+                <span id="lvl-label" style="color:var(--gold)">RANGNI TANLANG!</span>
+                <span>Ball: <b id="game-score">0</b></span>
+                <span><b id="round-idx">1</b>/30</span>
             </div>
             <div class="timer-bar-container"><div id="timer-bar"></div></div>
-            <div id="maze-container"></div>
-            <div class="controls">
-                <div></div><button class="ctrl-btn" onclick="move('up')">▲</button><div></div>
-                <button class="ctrl-btn" onclick="move('left')">◀</button>
-                <button class="ctrl-btn" onclick="move('down')">▼</button>
-                <button class="ctrl-btn" onclick="move('right')">▶</button>
-            </div>
+            <div id="color-word">SO'Z</div>
+            <div class="color-options" id="color-options"></div>
         </div>
     </div>
 
     <div id="result-screen">
         <div class="quiz-card">
-            <h2 id="res-title">BOSQICH TUGADI!</h2>
-            <p id="txt-final-res">Jami vaqtingiz:</p>
-            <b id="final-time" style="font-size:24px; color:var(--gold);">0.0</b>s
-            <button class="btn-main" id="btn-res-next" onclick="checkNext()">DAVOM ETISH</button>
+            <h2 id="res-title">TURNIR YAKUNLANDI!</h2>
+            <p id="txt-final-res">To'plagan ballingiz:</p>
+            <b id="final-score" style="font-size:48px; color:var(--gold);">0</b>
+            <button class="btn-main" id="btn-res-next" onclick="navigate('tournament')">YOPISH</button>
         </div>
     </div>
 
@@ -141,32 +136,40 @@
     const userRef = ref(db, 'brain_users/' + uid);
 
     let userData = { lang: 'uz' };
-    let maze = [], player = {x:0, y:0}, finish = {x:0, y:0}, size = 6;
-    let startTime, timerInt, sessionTime = 0, currentIdx = 0, level = "oson";
-    let receiptData = null, obStep = 0, timeLimit = 30;
+    let currentScore = 0, currentRound = 1, timerInt, startTime;
+    let receiptData = null, obStep = 0;
+    
+    const colors = [
+        { name_uz: "QIZIL", name_kir: "ҚИЗИЛ", value: "#ff3b3b" },
+        { name_uz: "YASHIL", name_kir: "ЯШИЛ", value: "#28a745" },
+        { name_uz: "KO'K", name_kir: "КЎК", value: "#007bff" },
+        { name_uz: "SARIQ", name_kir: "САРИҚ", value: "#FFD700" },
+        { name_uz: "OQ", name_kir: "ОҚ", value: "#ffffff" },
+        { name_uz: "BINAFSHA", name_kir: "БИНАФША", value: "#a333c8" }
+    ];
 
     const translations = {
         uz: {
-            title: "Aql Jangi", slogan: "Tezkor Labirint Turniri", name: "Ismingiz", surname: "Familiyangiz", next: "DAVOM ETISH",
+            title: "Aql Jangi", slogan: "Rangli Reaksiya Turniri", name: "Ismingiz", surname: "Familiyangiz", next: "DAVOM ETISH",
             tour: "Turnir", rank: "Reyting", sett: "Sozlamalar", pLabel: "Ishtirokchilar:", upload: "CHEKNI YUKLASH", pay: "TO'LOV QILDIM",
-            final: "Jami vaqtingiz:", resTitle: "BOSQICH TUGADI!", payMsg: "To'lov qiling va chekni yuklang.",
+            final: "To'plagan ballingiz:", resTitle: "TURNIR YAKUNLANDI!", payMsg: "To'lov qiling va chekni yuklang.",
             ob: [
-                { t: "Ilova maqsadi", d: "Aql Jangi — bu tezkorlik va diqqatni sinovdan o'tkazuvchi turnirdir.\nTurnirda qatnashish: 5 000 so'm." },
-                { t: "Turnir qoidalari", d: "1. Labirintdan eng tez chiqqan g'olib bo'ladi.\n2. Jami 30 ta bosqich bor.\n3. Har bir soniya hisobga olinadi." },
-                { t: "Sovrinlar 🏆", d: "🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm\nOmad tilaymiz!" }
+                { t: "Rangli Reaksiya!", d: "Diqqat qiling: Ekranda rang nomi yoziladi, lekin u boshqa rangda bo'ladi. Siz so'zni o'qimasdan, uning RANGINI tanlashingiz kerak!" },
+                { t: "Tezlik Muhim!", d: "Har bir bosqichda vaqt kamayib boradi. Qanchalik tez va aniq topsangiz, shunchalik ko'p ball olasiz." },
+                { t: "Sovrinlar 🏆", d: "🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm\nTurnirda qatnashish: 5 000 so'm." }
             ],
-            confirm: "Tushunarli va roziman", wait: "To'lov tekshirilmoqda...", logout: "Chiqasizmi?"
+            confirm: "Tushunarli, boshladik!", wait: "To'lov tekshirilmoqda...", logout: "Chiqasizmi?"
         },
         uz_cyr: {
-            title: "Ақл Жанги", slogan: "Тезкор Лабиринт Турнири", name: "Исмингиз", surname: "Фамилиянгиз", next: "ДАВОМ ЭТИШ",
+            title: "Ақл Жанги", slogan: "Рангли Реакция Турнири", name: "Исмингиз", surname: "Фамилиянгиз", next: "ДАВОМ ЭТИШ",
             tour: "Турнир", rank: "Рейтинг", sett: "Созламалар", pLabel: "Иштирокчилар:", upload: "ЧЕКНИ ЮКЛАШ", pay: "ТЎЛОВ ҚИЛДИМ",
-            final: "Жами вақтингиз:", resTitle: "БОСҚИЧ ТУГАДИ!", payMsg: "Тўлов қилинг ва чекни юкланг.",
+            final: "Тўплаган баллингиз:", resTitle: "ТУРНИР ЯКУНЛАНДИ!", payMsg: "Тўлов қилинг ва чекни юкланг.",
             ob: [
-                { t: "Илова мақсади", d: "Ақл Жанги — бу тезкорлик ва диққатни синовдан ўтказувчи турнирдир.\nТурнирда қатнашиш: 5 000 сўм." },
-                { t: "Турнир қоидалари", d: "1. Лабиринтдан энг тез чиққан ғолиб бўлади.\n2. Жами 30 та босқич бор.\n3. Ҳар бир сония ҳисобга олинади." },
-                { t: "Совринлар 🏆", d: "🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм\nОмад тилаймиз!" }
+                { t: "Рангли Реакция!", d: "Диққат қилинг: Экранда ранг номи ёзилади, лекин у бошқа рангда бўлади. Сиз сўзни ўқимасдан, унинг РАНГИНИ танлашингиз керак!" },
+                { t: "Тезлик Муҳим!", d: "Ҳар бир босқичда вақт камайиб боради. Қанчалик тез ва аниқ топсангиз, шунчалик кўп балл оласиз." },
+                { t: "Совринлар 🏆", d: "🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм\nТурнирда қатнашиш: 5 000 сўм." }
             ],
-            confirm: "Тушунарли ва розиман", wait: "Тўлов текширилмоқда...", logout: "Чиқасизми?"
+            confirm: "Тушунарли, бошладик!", wait: "Тўлов текширилмоқда...", logout: "Чиқасизми?"
         }
     };
 
@@ -195,8 +198,8 @@
 
     window.register = async () => {
         const name = document.getElementById('reg-name').value, surname = document.getElementById('reg-surname').value;
-        if(!name || !surname) return alert("To'ldiring!");
-        userData.name = name; userData.surname = surname; userData.tourStatus = "none"; userData.totalTime = 0; userData.currentLevel = "oson";
+        if(!name || !surname) return alert("To'liq to'ldiring!");
+        userData.name = name; userData.surname = surname; userData.tourStatus = "none"; userData.totalPoints = 0;
         await set(userRef, userData);
         showScreen('onboarding'); showObStep();
     };
@@ -226,78 +229,82 @@
             document.getElementById('p-count').innerText = count;
             if(userData.tourStatus === 'active') document.getElementById('btn-start').style.display='block';
         });
-        msg.innerText = userData.tourStatus === 'pending' ? translations[userData.lang].wait : (userData.tourStatus === 'active' ? "Tasdiqlandi!" : translations[userData.lang].payMsg);
+        msg.innerText = userData.tourStatus === 'pending' ? translations[userData.lang].wait : (userData.tourStatus === 'active' ? "Siz turnirdasiz!" : translations[userData.lang].payMsg);
     }
 
+    /* O'YIN MANTIQLARI */
     window.startTurnir = () => {
-        level = userData.currentLevel || "oson";
-        size = level === "oson" ? 6 : (level === "ortacha" ? 10 : 15);
-        timeLimit = level === "oson" ? 30 : (level === "ortacha" ? 45 : 60);
-        currentIdx = 0; sessionTime = 0;
-        showScreen('game'); document.getElementById('lvl-label').innerText = level.toUpperCase();
-        generateMaze();
+        currentScore = 0; currentRound = 1;
+        showScreen('game');
+        nextColorRound();
     };
 
-    function generateMaze() {
-        maze = Array(size).fill().map(() => Array(size).fill(1));
-        const walk = (x, y) => {
-            maze[y][x] = 0;
-            const dirs = [{x:0,y:-2},{x:0,y:2},{x:-2,y:0},{x:2,y:0}].sort(() => Math.random()-0.5);
-            dirs.forEach(d => {
-                let nx=x+d.x, ny=y+d.y;
-                if(nx>=0 && nx<size && ny>=0 && ny<size && maze[ny][nx]===1) { maze[y+d.y/2][x+d.x/2] = 0; walk(nx, ny); }
-            });
-        };
-        walk(0, 0); player = {x:0, y:0}; finish = {x:size-1, y:size-1}; maze[size-1][size-1] = 0;
-        renderMaze();
-        startTime = Date.now();
+    function nextColorRound() {
+        if(currentRound > 30) return finishGame();
+        
+        document.getElementById('round-idx').innerText = currentRound;
+        document.getElementById('game-score').innerText = currentScore;
+        
+        // Tasodifiy rang nomi va uning haqiqiy rangini tanlash
+        const displayColor = colors[Math.floor(Math.random() * colors.length)]; // Haqiqiy rangi
+        const textContent = colors[Math.floor(Math.random() * colors.length)]; // Yozilgan so'z
+        
+        const wordEl = document.getElementById('color-word');
+        wordEl.innerText = userData.lang === 'uz' ? textContent.name_uz : textContent.name_kir;
+        wordEl.style.color = displayColor.value;
+        
+        // Variantlarni chiqarish
+        const optionsBox = document.getElementById('color-options');
+        optionsBox.innerHTML = "";
+        
+        // Variantlarni chalkashtirib ko'rsatish
+        [...colors].sort(() => Math.random() - 0.5).forEach(c => {
+            const btn = document.createElement('div');
+            btn.className = "color-btn";
+            btn.style.backgroundColor = c.value;
+            btn.onclick = () => checkColor(c.value, displayColor.value);
+            optionsBox.appendChild(btn);
+        });
+        
+        startTimer();
+    }
+
+    function startTimer() {
         if(timerInt) clearInterval(timerInt);
-        timerInt = setInterval(updateTimer, 100);
+        let timeLimit = Math.max(1, 3 - (currentRound * 0.05)); // Round oshgan sari vaqt kamayadi
+        let left = timeLimit;
+        const bar = document.getElementById('timer-bar');
+        bar.style.transition = 'none'; bar.style.width = '100%';
+        
+        setTimeout(() => {
+            bar.style.transition = `width ${timeLimit}s linear`;
+            bar.style.width = '0%';
+        }, 50);
+
+        timerInt = setInterval(() => {
+            left -= 0.1;
+            if(left <= 0) { clearInterval(timerInt); checkColor(null, 'none'); }
+        }, 100);
     }
 
-    function updateTimer() {
-        let diff = (Date.now() - startTime) / 1000;
-        document.getElementById('game-timer').innerText = diff.toFixed(1);
-        let per = Math.max(0, 100 - (diff / timeLimit * 100));
-        document.getElementById('timer-bar').style.width = per + "%";
-        if(diff >= timeLimit) { clearInterval(timerInt); alert("Vaqt tugadi!"); startTurnir(); }
-    }
-
-    function renderMaze() {
-        const con = document.getElementById('maze-container');
-        con.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-        con.innerHTML = "";
-        for(let y=0; y<size; y++) {
-            for(let x=0; x<size; x++) {
-                const c = document.createElement('div');
-                c.className = `cell ${maze[y][x]?'wall':''}`;
-                if(x===player.x && y===player.y) c.classList.add('player');
-                if(x===finish.x && y===finish.y) c.classList.add('finish');
-                con.appendChild(c);
-            }
+    function checkColor(selected, correct) {
+        clearInterval(timerInt);
+        if(selected === correct) {
+            currentScore += 10;
+            tg.HapticFeedback.notificationOccurred('success');
+        } else {
+            tg.HapticFeedback.notificationOccurred('error');
         }
+        
+        currentRound++;
+        setTimeout(nextColorRound, 200);
     }
 
-    window.move = (dir) => {
-        let nx=player.x, ny=player.y;
-        if(dir==='up') ny--; if(dir==='down') ny++; if(dir==='left') nx--; if(dir==='right') nx++;
-        if(nx>=0 && nx<size && ny>=0 && ny<size && maze[ny][nx]===0) {
-            player = {x:nx, y:ny}; renderMaze();
-            if(nx===finish.x && ny===finish.y) {
-                clearInterval(timerInt);
-                sessionTime += (Date.now()-startTime)/1000;
-                if(currentIdx < 9) { currentIdx++; document.getElementById('maze-idx').innerText=currentIdx+1; generateMaze(); }
-                else { showScreen('result-screen'); document.getElementById('final-time').innerText=sessionTime.toFixed(1); }
-            }
-        }
-    };
-
-    window.checkNext = async () => {
-        let newTime = (userData.totalTime || 0) + sessionTime;
-        let nextLvl = level === "oson" ? "ortacha" : (level === "ortacha" ? "qiyin" : "finished");
-        if(nextLvl === "finished") { await update(userRef, { totalTime: newTime, tourStatus: "done" }); alert("OK!"); navigate('tournament'); }
-        else { await update(userRef, { totalTime: newTime, currentLevel: nextLvl }); userData.currentLevel = nextLvl; startTurnir(); }
-    };
+    async function finishGame() {
+        showScreen('result-screen');
+        document.getElementById('final-score').innerText = currentScore;
+        await update(userRef, { totalPoints: currentScore, tourStatus: "done" });
+    }
 
     window.navigate = (id) => {
         document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
@@ -311,8 +318,8 @@
     async function fetchRank() {
         const snap = await get(ref(db, 'brain_users'));
         let list = []; snap.forEach(u => u.val().tourStatus === 'done' && list.push(u.val()));
-        list.sort((a,b) => a.totalTime - b.totalTime);
-        document.getElementById('rank-list').innerHTML = list.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name} ${u.surname}</span><b>${u.totalTime.toFixed(1)}s</b></div>`).join('') || "...";
+        list.sort((a,b) => b.totalPoints - a.totalPoints);
+        document.getElementById('rank-list').innerHTML = list.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name} ${u.surname}</span><b>${u.totalPoints} Ball</b></div>`).join('') || "...";
     }
 
     window.logout = async () => { 
@@ -329,10 +336,10 @@
 </script>
 </body>
 </html>
-``` Maruf, barcha o'zgarishlar kiritildi:
-1.  **Onboarding (Tanishtirish)**: 3 bosqichli qilib tuzildi, unda ilova maqsadi, 5 000 so'm to'lov va sovrinlar (🥇 80k, 🥈 50k, 🥉 20k) aniq ko'rsatilgan.
-2.  **Turnir starti**: 30 ta ishtirokchini kutish sharti olib tashlandi, admin tasdiqlashi bilan "Turnirni boshlash" tugmasi chiqadi.
-3.  **Sozlamalar**: Tizimdan chiqish (akkauntni o'chirish) va tilni o'zgartirish funksiyalari qo'shildi.
-4.  **Navigatsiya**: "Sozlamalar" bo'limi navigatsiya paneliga qo'shildi.
+``` Maruf, barcha o'zgarishlar amalga oshirildi:
+1.  **O'yin to'liq almashdi**: Endi foydalanuvchilar so'zning o'zini emas, balki uning haqiqiy **RANGINI** tanlashlari kerak.
+2.  **Dinamik vaqt**: Har bir bosqichda vaqt biroz tezlashadi (30 ta raund davomida).
+3.  **Tillar**: O'zbekcha va Kirillcha to'liq qo'llab-quvvatlanadi, so'zlar avtomatik o'zgaradi.
+4.  **Reyting**: Kim eng ko'p ball to'plasa, o'sha tepaga chiqadi.
 
-Endi ilovani ishga tushirib ko'rishingiz mumkin.
+Ushbu o'yin foydalanuvchilar orasida juda yuqori hayajon (reaksiya) hosil qiladi. Sinab ko'ring!
