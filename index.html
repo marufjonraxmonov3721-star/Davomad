@@ -204,6 +204,7 @@
 
     window.updateUI = (lang) => {
         const t = texts[lang];
+        if(!t) return;
         document.getElementById('app-title-auth').innerText = t.appTitle;
         document.getElementById('app-slogan-auth').innerText = t.slogan;
         document.getElementById('btn-reg-text').innerText = t.regBtn;
@@ -334,9 +335,17 @@
     }
 
     window.startTurnir = async () => {
+        const snap = await get(userRef);
+        userData = snap.val();
+        if(userData.tourStatus !== "active") return alert("Ruxsat yo'q!");
+
         currentLevel = userData.currentLevel || "oson";
+        
+        // Bazadan savollarni tanlangan til va bosqich bo'yicha yuklash
         const qSnap = await get(ref(db, `brain_questions/${userData.lang}/${currentLevel}`));
-        currentQuestions = (qSnap.val() || []).sort(() => 0.5 - Math.random()).slice(0, 10);
+        if(!qSnap.exists()) return alert("Savollar topilmadi!");
+        
+        currentQuestions = qSnap.val().sort(() => 0.5 - Math.random()).slice(0, 10);
         
         if(currentQuestions.length < 10) return alert("Savollar yetarli emas!");
         
@@ -401,22 +410,28 @@
     }
 
     window.checkNextLevel = async () => {
-        if(currentLevel === "oson") { currentLevel = "ortacha"; startTurnir(); }
-        else if(currentLevel === "ortacha") { currentLevel = "qiyin"; startTurnir(); }
+        if(currentLevel === "oson") { currentLevel = "ortacha"; }
+        else if(currentLevel === "ortacha") { currentLevel = "qiyin"; }
         else {
             await update(userRef, { tourStatus: "finished", currentLevel: "oson" });
             const finishTxt = userData.lang === 'uz' ? "Tabriklaymiz! Turnirni yakunladingiz." : "Табриклаймиз! Турнирни якунладингиз.";
             alert(finishTxt);
-            navigate('tournament');
+            return navigate('tournament');
         }
+        
         await update(userRef, { currentLevel: currentLevel });
+        // Keyingi darajaga o'tganda userData-ni yangilab, turnirni yangi bosqichdan boshlaymiz
+        const snap = await get(userRef);
+        userData = snap.val();
+        startTurnir();
     };
 
     window.navigate = (id) => {
         document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('nav-' + id.substring(0,3)).classList.add('active-link');
+        const navId = 'nav-' + id.substring(0,3);
+        if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-link');
         
         if(id === 'tournament') loadTourStatus();
         if(id === 'leaderboard') fetchRank();
