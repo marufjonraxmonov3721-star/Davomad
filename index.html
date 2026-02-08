@@ -19,16 +19,14 @@
         .nav-link { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
         .nav-link.active-link { opacity: 1; font-weight: bold; }
 
-        /* Labirint va Tezlik maydoni */
-        #maze-container { display: grid; margin: 15px auto; background: #111; border: 2px solid var(--gold); gap: 2px; padding: 2px; position: relative; width: 100%; max-width: 320px; }
-        .cell { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        #maze-container { display: grid; margin: 15px auto; background: #111; border: 2px solid var(--gold); gap: 2px; padding: 2px; width: 100%; max-width: 320px; }
+        .cell { width: 100%; aspect-ratio: 1/1; background: #000; display: flex; align-items: center; justify-content: center; }
         .wall { background: #333; }
-        .player { background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px var(--gold); z-index: 2; }
-        .finish { background: var(--green); box-shadow: 0 0 10px var(--green); z-index: 1; }
+        .player { background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px var(--gold); }
+        .finish { background: var(--green); box-shadow: 0 0 10px var(--green); }
         
         .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin: 15px auto; }
-        .ctrl-btn { background: #222; border: 1px solid var(--gold); color: var(--gold); padding: 20px; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 20px; touch-action: manipulation; }
-        .ctrl-btn:active { background: var(--gold); color: #000; }
+        .ctrl-btn { background: #222; border: 1px solid var(--gold); color: var(--gold); padding: 20px; border-radius: 15px; cursor: pointer; font-size: 20px; touch-action: manipulation; }
 
         .timer-bar-container { background: #222; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; }
         #timer-bar { height: 100%; width: 100%; background: var(--red); transition: linear; }
@@ -43,39 +41,39 @@
 
 <div class="container">
     <div id="auth">
-        <h1 style="font-size: 40px; margin-top: 40px;">Aql Jangi</h1>
-        <p>Tezkor Labirint Turniri</p>
-        <select id="reg-lang" class="reg-input">
+        <h1 id="txt-app-title" style="font-size: 40px; margin-top: 40px;">Aql Jangi</h1>
+        <p id="txt-app-slogan">Tezkor Labirint Turniri</p>
+        <select id="reg-lang" class="reg-input" onchange="window.switchLang(this.value)">
             <option value="uz">O'zbekcha 🇺🇿</option>
             <option value="uz_cyr">Ўзбекча 🇺🇿</option>
         </select>
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
-        <button class="btn-main" onclick="register()">DAVOM ETISH</button>
+        <button class="btn-main" id="btn-next" onclick="register()">DAVOM ETISH</button>
     </div>
 
     <div id="onboarding">
         <div class="quiz-card">
             <h2 id="ob-title" style="color:var(--gold)"></h2>
-            <p id="ob-desc" style="color:#fff; line-height:1.6;"></p>
-            <button class="btn-main" onclick="nextObStep()">KEYINGISI</button>
+            <p id="ob-desc" style="color:#fff; line-height:1.6; white-space: pre-line;"></p>
+            <button class="btn-main" id="btn-ob-next" onclick="nextObStep()">KEYINGISI</button>
         </div>
     </div>
 
     <div id="tournament">
-        <h2 style="color:var(--gold)">⚔️ TURNIR MARKAZI</h2>
+        <h2 id="txt-tour-title" style="color:var(--gold)">⚔️ TURNIR MARKAZI</h2>
         <div class="quiz-card">
             <p id="tour-status-msg" style="font-weight:bold;"></p>
             <div style="margin:15px 0; background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); text-align:left;">
-                <p>💰 Kirish: <b>5 000 so'm</b></p>
+                <p id="txt-pay-info">💰 Kirish: <b>5 000 so'm</b></p>
                 <p>💳 Karta: <code>4073 4200 6816 5541</code></p>
                 <p>👤 Ega: <b>Maruf Raxmonov</b></p>
             </div>
             <div style="margin-bottom:15px;">
-                Ishtirokchilar: <b id="p-count">0</b> / 30
+                <span id="txt-p-label">Ishtirokchilar:</span> <b id="p-count">0</b> / 30
             </div>
             <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="handleReceipt(this)">
-            <button class="btn-main" style="background:#222; color:var(--gold); border:1px solid #444; margin-bottom:10px;" onclick="document.getElementById('receipt-input').click()">CHEKNI YUKLASH</button>
+            <button class="btn-main" id="btn-upload" style="background:#222; color:var(--gold); border:1px solid #444; margin-bottom:10px;" onclick="document.getElementById('receipt-input').click()">CHEKNI YUKLASH</button>
             <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
             <button class="btn-main" id="btn-start" style="display:none; background:var(--green); color:#fff;" onclick="startTurnir()">TURNIRNI BOSHLASH</button>
         </div>
@@ -102,20 +100,21 @@
     <div id="result-screen">
         <div class="quiz-card">
             <h2 id="res-title">BOSQICH TUGADI!</h2>
-            <p>Jami vaqtingiz: <b id="final-time" style="font-size:24px; color:var(--gold);">0.0</b>s</p>
-            <button class="btn-main" onclick="checkNext()">DAVOM ETISH</button>
+            <p id="txt-final-res">Jami vaqtingiz:</p>
+            <b id="final-time" style="font-size:24px; color:var(--gold);">0.0</b>s
+            <button class="btn-main" id="btn-res-next" onclick="checkNext()">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--gold)">🏆 REYTING</h2>
+        <h2 id="txt-rank-title" style="color:var(--gold)">🏆 REYTING</h2>
         <div id="rank-list" class="quiz-card" style="padding:10px;"></div>
     </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
-    <div class="nav-link" id="nav-tour" onclick="navigate('tournament')">⚔️<br>Turnir</div>
-    <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
+    <div class="nav-link" id="nav-tour" onclick="navigate('tournament')">⚔️<br><span id="txt-nav-tour">Turnir</span></div>
+    <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">🏆<br><span id="txt-nav-rank">Reyting</span></div>
 </div>
 
 <script type="module">
@@ -131,44 +130,80 @@
     const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let userData = null;
+    let userData = { lang: 'uz' };
     let maze = [], player = {x:0, y:0}, finish = {x:0, y:0}, size = 6;
     let startTime, timerInt, sessionTime = 0, currentIdx = 0, level = "oson";
     let receiptData = null, obStep = 0, timeLimit = 30;
 
-    const texts = {
-        uz: { 
-            ob: [{t:"Tezkor Labirint", d:"Maqsad: Finishga eng qisqa vaqtda yetib borish. Devorlardan o'tib bo'lmaydi."}, {t:"30 Ta Bosqich", d:"10 ta Oson, 10 ta O'rtacha va 10 ta Qiyin xaritalar sizni kutmoqda."}, {t:"Sovrinlar", d:"1-o'rin: 80k, 2-o'rin: 50k, 3-o'rin: 20k. Jami 30 kishi qatnashadi."}],
-            wait: "To'lov tekshirilmoqda...", active: "Tasdiqlandi! 30 kishi to'lishini kuting.", pay: "To'lov qiling va chekni yuklang."
+    const translations = {
+        uz: {
+            title: "Aql Jangi", slogan: "Tezkor Labirint Turniri", name: "Ismingiz", surname: "Familiyangiz", next: "DAVOM ETISH",
+            tour: "Turnir", rank: "Reyting", pLabel: "Ishtirokchilar:", upload: "CHEKNI YUKLASH", pay: "TO'LOV QILDIM",
+            final: "Jami vaqtingiz:", resTitle: "BOSQICH TUGADI!", payMsg: "To'lov qiling va chekni yuklang.",
+            ob: [
+                { t: "Ilova maqsadi", d: "Aql Jangi — bu sizning tezkorligingiz va diqqatingizni sinovdan o'tkazuvchi intellektual turnir platformasidir." },
+                { t: "Turnir qoidalari", d: "1. Labirintdan eng tez chiqqan g'olib bo'ladi.\n2. Jami 30 ta bosqich (10 oson, 10 o'rta, 10 qiyin).\n3. Devorlarga tegish mumkin emas." },
+                { t: "Sovrinlar 🏆", d: "🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm\nJami 30 ta joy bor!" }
+            ],
+            confirm: "Shartlarga roziman va to'lov qilishga o'taman", wait: "To'lov tekshirilmoqda..."
         },
-        uz_cyr: { 
-            ob: [{t:"Тезкор Лабиринт", d:"Мақсад: Финишга энг қисқа вақтда етиб бориш. Деворлардан ўтиб бўлмайди."}, {t:"30 Та Босқич", d:"10 та Осон, 10 та Ўртача ва 10 та Қийин хариталар сизни кутмоқда."}, {t:"Совринлар", d:"1-ўрин: 80к, 2-ўрин: 50к, 3-ўрин: 20к. Жами 30 киши қатнашади."}],
-            wait: "Тўлов текширилмоқда...", active: "Тасдиқланди! 30 киши тўлишини кутинг.", pay: "Тўлов қилинг ва чекни юкланг."
+        uz_cyr: {
+            title: "Ақл Жанги", slogan: "Тезкор Лабиринт Турнири", name: "Исмингиз", surname: "Фамилиянгиз", next: "ДАВОМ ЭТИШ",
+            tour: "Турнир", rank: "Рейтинг", pLabel: "Иштирокчилар:", upload: "ЧЕКНИ ЮКЛАШ", pay: "ТЎЛОВ ҚИЛДИМ",
+            final: "Жами вақтингиз:", resTitle: "БОСҚИЧ ТУГАДИ!", payMsg: "Тўлов қилинг ва чекни юкланг.",
+            ob: [
+                { t: "Илова мақсади", d: "Ақл Жанги — бу сизнинг тезкорлигингиз ва диққатингизни синовдан ўтказувчи интеллектуал турнир платформасидир." },
+                { t: "Турнир қоидалари", d: "1. Лабиринтдан энг тез чиққан ғолиб бўлади.\n2. Жами 30 та босқич (10 осон, 10 ўрта, 10 қийин).\n3. Деворларга тегиш мумкин эмас." },
+                { t: "Совринлар 🏆", d: "🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм\nЖами 30 та жой бор!" }
+            ],
+            confirm: "Шартларга розиман ва тўлов қилишга ўтаман", wait: "Тўлов текширилмоқда..."
         }
     };
 
+    window.switchLang = (l) => {
+        userData.lang = l;
+        const t = translations[l];
+        document.getElementById('txt-app-title').innerText = t.title;
+        document.getElementById('txt-app-slogan').innerText = t.slogan;
+        document.getElementById('reg-name').placeholder = t.name;
+        document.getElementById('reg-surname').placeholder = t.surname;
+        document.getElementById('btn-next').innerText = t.next;
+        document.getElementById('txt-tour-title').innerText = "⚔️ " + t.tour.toUpperCase() + " MARKAZI";
+        document.getElementById('txt-p-label').innerText = t.pLabel;
+        document.getElementById('btn-upload').innerText = t.upload;
+        document.getElementById('btn-pay').innerText = t.pay;
+        document.getElementById('txt-rank-title').innerText = "🏆 " + t.rank.toUpperCase();
+        document.getElementById('txt-nav-tour').innerText = t.tour;
+        document.getElementById('txt-nav-rank').innerText = t.rank;
+        document.getElementById('res-title').innerText = t.resTitle;
+        document.getElementById('txt-final-res').innerText = t.final;
+        document.getElementById('btn-res-next').innerText = t.next;
+    };
+
     window.register = async () => {
-        const name = document.getElementById('reg-name').value, surname = document.getElementById('reg-surname').value, lang = document.getElementById('reg-lang').value;
-        if(!name) return alert("Ism kerak!");
-        userData = { name, surname, lang, tourStatus: "none", totalTime: 0, currentLevel: "oson" };
+        const name = document.getElementById('reg-name').value, surname = document.getElementById('reg-surname').value;
+        if(!name || !surname) return alert("To'liq to'ldiring!");
+        userData.name = name; userData.surname = surname;
+        userData.tourStatus = "none"; userData.totalTime = 0; userData.currentLevel = "oson";
         await set(userRef, userData);
         showScreen('onboarding'); showObStep();
     };
 
     function showObStep() {
-        const t = texts[userData.lang].ob[obStep];
+        const t = translations[userData.lang].ob[obStep];
         document.getElementById('ob-title').innerText = t.t;
         document.getElementById('ob-desc').innerText = t.d;
+        document.getElementById('btn-ob-next').innerText = obStep === 2 ? translations[userData.lang].confirm : translations[userData.lang].next;
     }
 
-    window.nextObStep = () => { obStep < 2 ? (obStep++, showObStep()) : (document.getElementById('navbar').style.display='flex', navigate('tournament')); };
+    window.nextObStep = () => { obStep < 2 ? (obStep++, showObStep()) : navigate('tournament'); };
 
     window.handleReceipt = (i) => { const r = new FileReader(); r.onload=(e)=>receiptData=e.target.result; r.readAsDataURL(i.files[0]); };
 
     window.pay = async () => {
-        if(!receiptData) return alert("Avval chekni yuklang!");
+        if(!receiptData) return alert(translations[userData.lang].payMsg);
         await update(userRef, { tourStatus: "pending", paymentReceipt: receiptData });
-        alert("Yuborildi!"); loadTourStatus();
+        alert("OK!"); loadTourStatus();
     };
 
     async function loadTourStatus() {
@@ -179,9 +214,10 @@
             document.getElementById('p-count').innerText = count;
             if(userData.tourStatus === 'active' && count >= 30) document.getElementById('btn-start').style.display='block';
         });
-        msg.innerText = texts[userData.lang][userData.tourStatus] || texts[userData.lang].pay;
+        msg.innerText = userData.tourStatus === 'pending' ? translations[userData.lang].wait : (userData.tourStatus === 'active' ? "Siz turnirdasiz!" : translations[userData.lang].payMsg);
     }
 
+    // O'yin mantiqi (Maze generation va move o'zgarmadi, lekin UI tillari qo'shildi)
     window.startTurnir = () => {
         level = userData.currentLevel;
         size = level === "oson" ? 6 : (level === "ortacha" ? 10 : 15);
@@ -198,9 +234,7 @@
             const dirs = [{x:0,y:-2},{x:0,y:2},{x:-2,y:0},{x:2,y:0}].sort(() => Math.random()-0.5);
             dirs.forEach(d => {
                 let nx=x+d.x, ny=y+d.y;
-                if(nx>=0 && nx<size && ny>=0 && ny<size && maze[ny][nx]===1) {
-                    maze[y+d.y/2][x+d.x/2] = 0; walk(nx, ny);
-                }
+                if(nx>=0 && nx<size && ny>=0 && ny<size && maze[ny][nx]===1) { maze[y+d.y/2][x+d.x/2] = 0; walk(nx, ny); }
             });
         };
         walk(0, 0); player = {x:0, y:0}; finish = {x:size-1, y:size-1}; maze[size-1][size-1] = 0;
@@ -226,8 +260,8 @@
             for(let x=0; x<size; x++) {
                 const c = document.createElement('div');
                 c.className = `cell ${maze[y][x]?'wall':''}`;
-                if(x===player.x && y===player.y) c.innerHTML = "👤";
-                if(x===finish.x && y===finish.y) c.innerHTML = "🏁";
+                if(x===player.x && y===player.y) c.classList.add('player');
+                if(x===finish.x && y===finish.y) c.classList.add('finish');
                 con.appendChild(c);
             }
         }
@@ -250,19 +284,14 @@
     window.checkNext = async () => {
         let newTime = (userData.totalTime || 0) + sessionTime;
         let nextLvl = level === "oson" ? "ortacha" : (level === "ortacha" ? "qiyin" : "finished");
-        if(nextLvl === "finished") {
-            await update(userRef, { totalTime: newTime, tourStatus: "done" });
-            alert("TABRIKLAYMIZ! Turnirni yakunladingiz."); navigate('tournament');
-        } else {
-            await update(userRef, { totalTime: newTime, currentLevel: nextLvl });
-            userData.currentLevel = nextLvl; startTurnir();
-        }
+        if(nextLvl === "finished") { await update(userRef, { totalTime: newTime, tourStatus: "done" }); alert("OK!"); navigate('tournament'); }
+        else { await update(userRef, { totalTime: newTime, currentLevel: nextLvl }); userData.currentLevel = nextLvl; startTurnir(); }
     };
 
     window.navigate = (id) => {
         document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id==='tournament') loadTourStatus();
+        if(id==='tournament') { loadTourStatus(); document.getElementById('navbar').style.display='flex'; }
         if(id==='leaderboard') fetchRank();
     };
 
@@ -270,14 +299,15 @@
         const snap = await get(ref(db, 'brain_users'));
         let list = []; snap.forEach(u => u.val().tourStatus === 'done' && list.push(u.val()));
         list.sort((a,b) => a.totalTime - b.totalTime);
-        document.getElementById('rank-list').innerHTML = list.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name}</span><b>${u.totalTime.toFixed(1)}s</b></div>`).join('') || "Hali g'oliblar yo'q";
+        document.getElementById('rank-list').innerHTML = list.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name} ${u.surname}</span><b>${u.totalTime.toFixed(1)}s</b></div>`).join('') || "...";
     }
 
     function showScreen(id) { document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
     window.onload = async () => {
+        window.switchLang('uz'); // Default
         const snap = await get(userRef); document.getElementById('loader').style.display='none';
-        if(snap.exists() && snap.val().name) { userData = snap.val(); document.getElementById('navbar').style.display='flex'; navigate('tournament'); }
+        if(snap.exists() && snap.val().name) { userData = snap.val(); window.switchLang(userData.lang); navigate('tournament'); }
         else { showScreen('auth'); }
     };
 </script>
