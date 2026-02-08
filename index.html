@@ -18,7 +18,7 @@
         body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        #auth, #game, #leaderboard, #result-screen, #profile, #onboarding { display: none; text-align: center; }
+        #auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings { display: none; text-align: center; }
         .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -46,7 +46,6 @@
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
-        /* Onboarding Kengaytirilgan Stili */
         .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
         .ob-card { background: #0a0a0a; border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
         .ob-icon { font-size: 60px; margin-bottom: 20px; }
@@ -61,8 +60,12 @@
         .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
         .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; text-shadow: 0 0 5px var(--gold); }
         
-        .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; }
+        .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; color: #eee; }
+
+        /* Sozlamalar tili stili */
+        .lang-btn { background: #111; border: 1px solid var(--gold-dark); color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .lang-btn.selected { background: var(--gold); color: #000; }
     </style>
 </head>
 <body>
@@ -74,13 +77,13 @@
 
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
-        <p style="color:#888; margin-bottom: 30px;">O'z darajangizni Master darajasigacha ko'taring!</p>
+        <h1 id="txt-app-name" style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
+        <p id="txt-app-slogan" style="color:#888; margin-bottom: 30px;">O'z darajangizni Master darajasigacha ko'taring!</p>
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
-        <label style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
+        <label id="txt-birth-label" style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
         <input type="date" id="reg-birth" class="reg-input">
-        <button onclick="login()" class="btn-main">BOSHLASH</button>
+        <button id="btn-start" onclick="login()" class="btn-main">BOSHLASH</button>
     </div>
 
     <div id="onboarding" class="ob-screen">
@@ -90,10 +93,22 @@
         </div>
     </div>
 
+    <div id="settings">
+        <h2 id="txt-nav-settings" style="color:var(--gold)">⚙️ Sozlamalar</h2>
+        <div class="quiz-card" style="text-align: left;">
+            <p id="txt-choose-lang" style="margin-bottom: 15px;">Ilova tilini tanlang:</p>
+            <div class="lang-btn" id="lang-uz" onclick="changeLang('uz')">O'zbekcha 🇺🇿 <span id="check-uz"></span></div>
+            <div class="lang-btn" id="lang-ru" onclick="changeLang('ru')">Русский 🇷🇺 <span id="check-ru"></span></div>
+            <div class="lang-btn" id="lang-en" onclick="changeLang('en')">English 🇺🇸 <span id="check-en"></span></div>
+        </div>
+    </div>
+
     <div id="game">
         <div class="level-header">
             <div id="level-title">OSON</div>
-            <div style="font-size: 14px; color: #888; margin-top: 10px; font-weight: bold;">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-correct">0</b></div>
+            <div style="font-size: 14px; color: #888; margin-top: 10px; font-weight: bold;">
+                <span id="txt-q-counter">Savol</span>: <span id="q-counter">0/0</span> | <span id="txt-score-label">Ball</span>: <b id="u-correct">0</b>
+            </div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
         <div class="quiz-card">
@@ -107,24 +122,24 @@
             <h2 id="result-status">Raund Tugadi!</h2>
             <p id="result-score" style="font-size: 24px; margin: 10px 0; color:#fff;">Natija: 0/0</p>
             <p id="result-msg" style="color:#aaa; margin-top:10px; font-style: italic;"></p>
-            <button class="btn-next" onclick="startNewRound()">DAVOM ETISH</button>
+            <button id="btn-continue" class="btn-next" onclick="startNewRound()">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--gold)">🏆 Dunyo Reytingi</h2>
+        <h2 id="txt-nav-rank" style="color:var(--gold)">🏆 Dunyo Reytingi</h2>
         <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
     </div>
 
     <div id="profile">
-        <h2 style="color:var(--gold)">👤 Mening Profilim</h2>
+        <h2 id="txt-nav-profile" style="color:var(--gold)">👤 Mening Profilim</h2>
         <div class="quiz-card">
-            <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1340/1340333.png'">
             <div id="p-full-name" style="color:#fff; font-size:18px; font-weight:bold; margin-bottom:5px;">Ism Familiya</div>
             <div id="p-age-info" style="color:#888; font-size:14px; margin-bottom:20px;">0 yosh</div>
             <div style="margin-top:10px;">
-                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;">Daraja: <span id="p-level" style="color:var(--gold)">OSON</span></div>
-                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;">Ball: <span id="p-points" style="color:var(--gold)">0</span></div>
+                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-lvl">Daraja</span>: <span id="p-level" style="color:var(--gold)">OSON</span></div>
+                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-pts">Ball</span>: <span id="p-points" style="color:var(--gold)">0</span></div>
             </div>
             <div id="p-countdown" style="margin-top:20px; font-size:13px; color:var(--gold); font-family: monospace;"></div>
         </div>
@@ -132,9 +147,10 @@
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
-    <div class="nav-link active-link" id="link-game" onclick="navigate('game')">🎮<br>O'yin</div>
-    <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
-    <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br>Profil</div>
+    <div class="nav-link active-link" id="link-game" onclick="navigate('game')">🎮<br><span id="txt-nav-game">O'yin</span></div>
+    <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br><span id="txt-nav-rank2">Reyting</span></div>
+    <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br><span id="txt-nav-profile2">Profil</span></div>
+    <div class="nav-link" id="link-settings" onclick="navigate('settings')">⚙️<br><span id="txt-nav-settings2">Sozlamalar</span></div>
 </div>
 
 <script type="module">
@@ -158,6 +174,7 @@
     const userRef = ref(db, 'brain_users/' + uid);
 
     let userLevel = "oson"; 
+    let userLang = "uz";
     let sessionQuestions = [];
     let currentIdx = 0;
     let correctAnswers = 0; 
@@ -165,21 +182,42 @@
     let timerInterval = null;
     let obStep = 0;
 
-    const gameConfig = {
-        oson: { qCount: 15, passScore: 10, title: "🟢 OSON", nextLvl: "ortacha", icon: "🌱" },
-        ortacha: { qCount: 25, passScore: 17, title: "🟡 O'RTACHA", nextLvl: "qiyin", icon: "⚡" },
-        qiyin: { qCount: 35, passScore: 24, title: "🟠 QIYINROQ", nextLvl: "juda_qiyin", icon: "🔥" },
-        juda_qiyin: { qCount: 45, passScore: 30, title: "🔴 MASTER", nextLvl: "juda_qiyin", icon: "👑" }
+    const translations = {
+        uz: {
+            appName: "Aql Jangi", slogan: "O'z darajangizni Master darajasigacha ko'taring!", birthLabel: "Tug'ilgan sanangizni tanlang:",
+            btnStart: "BOSHLASH", navGame: "O'yin", navRank: "Reyting", navProfile: "Profil", navSettings: "Sozlamalar",
+            chooseLang: "Ilova tilini tanlang:", qCounter: "Savol", scoreLabel: "Ball", resStatus: "Raund Tugadi!",
+            resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
+            profLvl: "Daraja", profPts: "Ball", countdown: "Tug'ilgan kuningizga:", days: "kun", hours: "soat", min: "min", sek: "sek",
+            obWelcome: "Haqiqiy bilimlar to'qnashuviga xush kelibsiz! Keling, o'yin qoidalari bilan tanishamiz.", obFinish: "Hamma qoidalarni bildingiz. Endi jangni boshlash vaqti keldi! Omad yor bo'lsin.",
+            obBtnNext: "KEYINGISI", obBtnStart: "BOSHLADIK!", obQcount: "Savollar soni:", obPass: "O'tish uchun:"
+        },
+        ru: {
+            appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
+            btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
+            chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
+            resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
+            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
+            obWelcome: "Добро пожаловать в настоящую битву знаний! Давайте познакомимся с правилами игры.", obFinish: "Вы узнали все правила. Пришло время начать битву! Удачи.",
+            obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:"
+        },
+        en: {
+            appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
+            btnStart: "START", navGame: "Game", navRank: "Ranking", navProfile: "Profile", navSettings: "Settings",
+            chooseLang: "Choose app language:", qCounter: "Question", scoreLabel: "Score", resStatus: "Round Over!",
+            resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
+            profLvl: "Level", profPts: "Points", countdown: "Until your birthday:", days: "d", hours: "h", min: "m", sek: "s",
+            obWelcome: "Welcome to the real battle of knowledge! Let's get acquainted with the rules of the game.", obFinish: "You've learned all the rules. It's time to start the battle! Good luck.",
+            obBtnNext: "NEXT", obBtnStart: "LET'S GO!", obQcount: "Questions count:", obPass: "To pass:"
+        }
     };
 
-    const onboardingData = [
-        { icon: "🧠", title: "AQL JANGI", desc: "Haqiqiy bilimlar to'qnashuviga xush kelibsiz! Keling, o'yin qoidalari bilan tanishamiz." },
-        { level: "oson" },
-        { level: "ortacha" },
-        { level: "qiyin" },
-        { level: "juda_qiyin" },
-        { icon: "🏆", title: "TAYYORMIZ!", desc: "Hamma qoidalarni bildingiz. Endi jangni boshlash vaqti keldi! Omad yor bo'lsin." }
-    ];
+    const gameConfig = {
+        oson: { qCount: 15, passScore: 10, title: {uz: "🟢 OSON", ru: "🟢 ЛЕГКО", en: "🟢 EASY"}, nextLvl: "ortacha", icon: "🌱" },
+        ortacha: { qCount: 25, passScore: 17, title: {uz: "🟡 O'RTACHA", ru: "🟡 СРЕДНЕ", en: "🟡 MEDIUM"}, nextLvl: "qiyin", icon: "⚡" },
+        qiyin: { qCount: 35, passScore: 24, title: {uz: "🟠 QIYINROQ", ru: "🟠 СЛОЖНО", en: "🟠 HARD"}, nextLvl: "juda_qiyin", icon: "🔥" },
+        juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑" }
+    };
 
     window.onload = async () => {
         setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
@@ -187,14 +225,45 @@
         if (snap.exists()) {
             const val = snap.val();
             userLevel = val.level || "oson";
+            userLang = val.lang || "uz";
+            applyLanguage();
             if(val.name) {
                 document.getElementById('reg-name').style.display = 'none';
                 document.getElementById('reg-surname').style.display = 'none';
                 document.getElementById('reg-birth').style.display = 'none';
-                document.querySelector('label').style.display = 'none';
+                document.getElementById('txt-birth-label').style.display = 'none';
             }
         }
         document.getElementById('auth').classList.add('active');
+    };
+
+    function applyLanguage() {
+        const t = translations[userLang];
+        document.getElementById('txt-app-name').innerText = t.appName;
+        document.getElementById('txt-app-slogan').innerText = t.slogan;
+        document.getElementById('txt-birth-label').innerText = t.birthLabel;
+        document.getElementById('btn-start').innerText = t.btnStart;
+        document.getElementById('txt-nav-game').innerText = t.navGame;
+        document.getElementById('txt-nav-rank').innerText = t.navRank;
+        document.getElementById('txt-nav-rank2').innerText = t.navRank;
+        document.getElementById('txt-nav-profile').innerText = t.navProfile;
+        document.getElementById('txt-nav-profile2').innerText = t.navProfile;
+        document.getElementById('txt-nav-settings').innerText = t.navSettings;
+        document.getElementById('txt-nav-settings2').innerText = t.navSettings;
+        document.getElementById('txt-choose-lang').innerText = t.chooseLang;
+        document.getElementById('txt-q-counter').innerText = t.qCounter;
+        document.getElementById('txt-score-label').innerText = t.scoreLabel;
+        document.getElementById('txt-prof-lvl').innerText = t.profLvl;
+        document.getElementById('txt-prof-pts').innerText = t.profPts;
+        
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById('lang-' + userLang).classList.add('selected');
+    }
+
+    window.changeLang = async (lang) => {
+        userLang = lang;
+        applyLanguage();
+        await update(userRef, { lang: lang });
     };
 
     window.login = async () => {
@@ -204,17 +273,21 @@
             const surname = document.getElementById('reg-surname').value.trim();
             const birth = document.getElementById('reg-birth').value;
             if(!name || !surname || !birth) { alert("Ma'lumotlarni to'liq kiriting!"); return; }
-            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0 });
-            userLevel = "oson";
+            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: userLang });
             startOnboarding();
         } else {
-            userLevel = snap.val().level || "oson";
             document.getElementById('auth').classList.remove('active');
             document.getElementById('navbar').style.display = 'flex';
             navigate('game');
             startNewRound();
         }
     };
+
+    const onboardingData = () => [
+        { icon: "🧠", title: translations[userLang].appName, desc: translations[userLang].obWelcome },
+        { level: "oson" }, { level: "ortacha" }, { level: "qiyin" }, { level: "juda_qiyin" },
+        { icon: "🏆", title: "OK!", desc: translations[userLang].obFinish }
+    ];
 
     function startOnboarding() {
         document.getElementById('auth').classList.remove('active');
@@ -223,60 +296,43 @@
     }
 
     function showObStep() {
-        const step = onboardingData[obStep];
+        const data = onboardingData();
+        const step = data[obStep];
         const content = document.getElementById('ob-content');
+        const t = translations[userLang];
         
         if (step.level) {
             const config = gameConfig[step.level];
             content.innerHTML = `
                 <div class="ob-icon">${config.icon}</div>
-                <div class="ob-title">${config.title}</div>
-                <div class="ob-desc">Ushbu bosqich shartlari:</div>
-                <div class="stat-line">
-                    <span class="stat-label">Savollar soni:</span>
-                    <span class="stat-value">${config.qCount} ta</span>
-                </div>
-                <div class="stat-line">
-                    <span class="stat-label">O'tish uchun:</span>
-                    <span class="stat-value">${config.passScore} ta to'g'ri</span>
-                </div>
+                <div class="ob-title">${config.title[userLang]}</div>
+                <div class="stat-line"><span class="stat-label">${t.obQcount}</span><span class="stat-value">${config.qCount}</span></div>
+                <div class="stat-line"><span class="stat-label">${t.obPass}</span><span class="stat-value">${config.passScore}</span></div>
             `;
         } else {
-            content.innerHTML = `
-                <div class="ob-icon">${step.icon}</div>
-                <div class="ob-title">${step.title}</div>
-                <div class="ob-desc">${step.desc}</div>
-            `;
+            content.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
         }
-        document.getElementById('ob-btn').innerText = obStep === onboardingData.length - 1 ? "BOSHLADIK!" : "KEYINGISI";
+        document.getElementById('ob-btn').innerText = obStep === data.length - 1 ? t.obBtnStart : t.obBtnNext;
     }
 
     window.nextObStep = () => {
-        if (obStep < onboardingData.length - 1) {
-            obStep++;
-            showObStep();
-        } else {
-            document.getElementById('onboarding').classList.remove('active');
-            document.getElementById('navbar').style.display = 'flex';
-            navigate('game');
-            startNewRound();
-        }
+        if (obStep < onboardingData().length - 1) { obStep++; showObStep(); }
+        else { document.getElementById('onboarding').classList.remove('active'); document.getElementById('navbar').style.display = 'flex'; navigate('game'); startNewRound(); }
     };
 
     window.startNewRound = async () => {
-        const gameEl = document.getElementById('game');
-        gameEl.style.opacity = "0";
         document.getElementById('result-screen').classList.remove('active');
+        const gameEl = document.getElementById('game');
         gameEl.classList.add('active');
         const config = gameConfig[userLevel];
-        document.getElementById('level-title').innerText = config.title;
+        document.getElementById('level-title').innerText = config.title[userLang];
         document.getElementById('u-correct').innerText = "0";
-        const qSnap = await get(ref(db, 'brain_questions/' + userLevel));
+        // TILLARGA QARAB SAVOLLAR BAZASI: brain_questions/{lang}/{level}
+        const qSnap = await get(ref(db, `brain_questions/${userLang}/${userLevel}`));
         const allQ = qSnap.val() || [];
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
-        currentIdx = 0;
-        correctAnswers = 0;
-        setTimeout(() => { gameEl.style.opacity = "1"; showQuestion(); }, 300);
+        currentIdx = 0; correctAnswers = 0;
+        showQuestion();
     };
 
     function showQuestion() {
@@ -300,41 +356,26 @@
     async function check(idx, correct, el) {
         if (isLocked) return;
         isLocked = true;
-        if (idx === correct) {
-            el.classList.add('correct');
-            correctAnswers++;
-            document.getElementById('u-correct').innerText = correctAnswers;
-            tg.HapticFeedback.notificationOccurred('success');
-        } else {
-            el.classList.add('wrong');
-            tg.HapticFeedback.notificationOccurred('error');
-        }
-        setTimeout(() => {
-            currentIdx++;
-            if (currentIdx < gameConfig[userLevel].qCount) showQuestion();
-            else finishRound();
-        }, 800);
+        if (idx === correct) { el.classList.add('correct'); correctAnswers++; document.getElementById('u-correct').innerText = correctAnswers; tg.HapticFeedback.notificationOccurred('success'); }
+        else { el.classList.add('wrong'); tg.HapticFeedback.notificationOccurred('error'); }
+        setTimeout(() => { if (currentIdx < gameConfig[userLevel].qCount - 1) { currentIdx++; showQuestion(); } else finishRound(); }, 800);
     }
 
     async function finishRound() {
         const config = gameConfig[userLevel];
+        const t = translations[userLang];
         const isPassed = correctAnswers >= config.passScore;
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
-        document.getElementById('result-score').innerText = `Natija: ${correctAnswers}/${config.qCount}`;
+        document.getElementById('result-score').innerText = `${correctAnswers}/${config.qCount}`;
 
         if (isPassed) {
-            document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
-            document.getElementById('result-status').style.color = "var(--gold)";
-            if (userLevel !== "juda_qiyin") {
-                userLevel = config.nextLvl;
-                await update(userRef, { level: userLevel });
-            }
-            document.getElementById('result-msg').innerText = "Bosqich muvaffaqiyatli yakunlandi.";
+            document.getElementById('result-status').innerText = t.resStatusWin;
+            if (userLevel !== "juda_qiyin") { userLevel = config.nextLvl; await update(userRef, { level: userLevel }); }
+            document.getElementById('btn-continue').innerText = t.btnContinue;
         } else {
-            document.getElementById('result-status').innerText = "Vaqtincha Mag'lubiyat";
-            document.getElementById('result-status').style.color = "#888";
-            document.getElementById('result-msg').innerText = `O'tish balli: ${config.passScore}`;
+            document.getElementById('result-status').innerText = t.resStatusLose;
+            document.getElementById('btn-continue').innerText = t.btnRetry;
         }
         const snap = await get(userRef);
         await update(userRef, { totalPoints: (snap.val().totalPoints || 0) + correctAnswers });
@@ -342,7 +383,7 @@
 
     window.navigate = (id) => {
         if (timerInterval) clearInterval(timerInterval);
-        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
         document.getElementById('link-' + id).classList.add('active-link');
@@ -354,27 +395,27 @@
         const snap = await get(userRef);
         const data = snap.val();
         if(!data) return;
+        // Telegram rasm olishni yaxshilash
+        const userPhoto = tg.initDataUnsafe?.user?.photo_url;
+        document.getElementById('p-img').src = userPhoto ? userPhoto : 'https://cdn-icons-png.flaticon.com/512/1340/1340333.png';
         document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
-        document.getElementById('p-level').innerText = data.level.toUpperCase();
+        document.getElementById('p-level').innerText = gameConfig[data.level].title[userLang];
         document.getElementById('p-points').innerText = data.totalPoints;
 
         const bDay = new Date(data.birth);
+        const t = translations[userLang];
         const updateTimer = () => {
             const now = new Date();
             let age = now.getFullYear() - bDay.getFullYear();
             if (now.getMonth() < bDay.getMonth() || (now.getMonth() == bDay.getMonth() && now.getDate() < bDay.getDate())) age--;
-            document.getElementById('p-age-info').innerText = `${age} yosh`;
-            let nextBirth = new Date(now.getFullYear(), bDay.getMonth(), bDay.getDate());
-            if (now > nextBirth) nextBirth.setFullYear(now.getFullYear() + 1);
-            const diff = nextBirth - now;
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const m = Math.floor((diff / (1000 * 60)) % 60);
-            const s = Math.floor((diff / 1000) % 60);
-            document.getElementById('p-countdown').innerText = `Tug'ilgan kuningizga: ${d} kun, ${h} soat, ${m} min, ${s} sek`;
+            document.getElementById('p-age-info').innerText = `${age} ${userLang === 'ru' ? 'лет' : (userLang === 'en' ? 'years old' : 'yosh')}`;
+            let nB = new Date(now.getFullYear(), bDay.getMonth(), bDay.getDate());
+            if (now > nB) nB.setFullYear(now.getFullYear() + 1);
+            const diff = nB - now;
+            const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3);
+            document.getElementById('p-countdown').innerText = `${t.countdown} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
         };
-        updateTimer();
-        timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); timerInterval = setInterval(updateTimer, 1000);
     }
 
     async function fetchRank() {
@@ -387,8 +428,8 @@
             data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
             list.innerHTML = data.slice(0, 10).map((u, i) => `
                 <div class="rank-item">
-                    <span><b class="gold-text">${i+1}.</b> ${u.name} ${u.surname || ''} <br><small style="color:#555">${u.level.toUpperCase()}</small></span>
-                    <b class="gold-text">${u.totalPoints || 0} Ball</b>
+                    <span><b class="gold-text">${i+1}.</b> ${u.name} ${u.surname || ''} <br><small style="color:#555">${gameConfig[u.level].title[userLang]}</small></span>
+                    <b class="gold-text">${u.totalPoints || 0} ${translations[userLang].scoreLabel}</b>
                 </div>
             `).join('');
         }
@@ -396,3 +437,4 @@
 </script>
 </body>
 </html>
+6
