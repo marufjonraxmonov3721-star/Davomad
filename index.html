@@ -78,6 +78,13 @@
     <div id="auth">
         <h1 id="txt-app-name" style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
         <p id="txt-app-slogan" style="color:#888; margin-bottom: 30px;">O'z darajangizni Master darajasigacha ko'taring!</p>
+        
+        <select id="reg-lang" class="reg-input" style="margin-bottom: 20px;" onchange="changeLang(this.value, false)">
+            <option value="uz">O'zbekcha 🇺🇿</option>
+            <option value="ru">Русский 🇷🇺</option>
+            <option value="en">English 🇺🇸</option>
+        </select>
+
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
         <label id="txt-birth-label" style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
@@ -184,6 +191,7 @@
     const translations = {
         uz: {
             appName: "Aql Jangi", slogan: "O'z darajangizni Master darajasigacha ko'taring!", birthLabel: "Tug'ilgan sanangizni tanlang:",
+            namePh: "Ismingiz", surnamePh: "Familiyangiz",
             btnStart: "BOSHLASH", navGame: "O'yin", navRank: "Reyting", navProfile: "Profil", navSettings: "Sozlamalar",
             chooseLang: "Ilova tilini tanlang:", qCounter: "Savol", scoreLabel: "Ball", resStatus: "Raund Tugadi!",
             resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
@@ -194,6 +202,7 @@
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
+            namePh: "Имя", surnamePh: "Фамилия",
             btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
@@ -204,6 +213,7 @@
         },
         en: {
             appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
+            namePh: "First Name", surnamePh: "Last Name",
             btnStart: "START", navGame: "Game", navRank: "Ranking", navProfile: "Profile", navSettings: "Settings",
             chooseLang: "Choose app language:", qCounter: "Question", scoreLabel: "Score", resStatus: "Round Over!",
             resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
@@ -221,7 +231,6 @@
         juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑" }
     };
 
-    // TARJIMON FUNKSIYASI
     async function translateText(text, targetLang) {
         if (targetLang === 'uz') return text;
         try {
@@ -246,17 +255,22 @@
                 document.getElementById('reg-name').style.display = 'none';
                 document.getElementById('reg-surname').style.display = 'none';
                 document.getElementById('reg-birth').style.display = 'none';
+                document.getElementById('reg-lang').style.display = 'none';
                 document.getElementById('txt-birth-label').style.display = 'none';
             }
+        } else {
+            applyLanguage(); // Standart tilni o'rnatish
         }
         document.getElementById('auth').classList.add('active');
     };
 
-    function applyLanguage() {
+    window.applyLanguage = () => {
         const t = translations[userLang];
         document.getElementById('txt-app-name').innerText = t.appName;
         document.getElementById('txt-app-slogan').innerText = t.slogan;
         document.getElementById('txt-birth-label').innerText = t.birthLabel;
+        document.getElementById('reg-name').placeholder = t.namePh;
+        document.getElementById('reg-surname').placeholder = t.surnamePh;
         document.getElementById('btn-start').innerText = t.btnStart;
         document.getElementById('txt-nav-game').innerText = t.navGame;
         document.getElementById('txt-nav-rank').innerText = t.navRank;
@@ -270,14 +284,25 @@
         document.getElementById('txt-score-label').innerText = t.scoreLabel;
         document.getElementById('txt-prof-lvl').innerText = t.profLvl;
         document.getElementById('txt-prof-pts').innerText = t.profPts;
+        
         document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('selected'));
-        document.getElementById('lang-' + userLang).classList.add('selected');
-    }
+        if(document.getElementById('lang-' + userLang)) {
+            document.getElementById('lang-' + userLang).classList.add('selected');
+        }
 
-    window.changeLang = async (lang) => {
+        // Agar o'yin oynasi ochiq bo'lsa, sarlavhani ham o'zgartirish
+        const lvlTitle = document.getElementById('level-title');
+        if(lvlTitle) lvlTitle.innerText = gameConfig[userLevel].title[userLang];
+    };
+
+    window.changeLang = async (lang, syncToDb = true) => {
         userLang = lang;
         applyLanguage();
-        await update(userRef, { lang: lang });
+        if (syncToDb) {
+            await update(userRef, { lang: lang });
+            // Agar foydalanuvchi profil bo'limida bo'lsa, profilni ham yangilash
+            if (document.getElementById('profile').classList.contains('active')) loadProfile();
+        }
     };
 
     window.login = async () => {
@@ -286,8 +311,11 @@
             const name = document.getElementById('reg-name').value.trim();
             const surname = document.getElementById('reg-surname').value.trim();
             const birth = document.getElementById('reg-birth').value;
+            const lang = document.getElementById('reg-lang').value;
             if(!name || !surname || !birth) { alert("Ma'lumotlarni to'liq kiriting!"); return; }
-            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: userLang });
+            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: lang });
+            userLang = lang;
+            applyLanguage();
             startOnboarding();
         } else {
             document.getElementById('auth').classList.remove('active');
@@ -336,7 +364,6 @@
         document.getElementById('level-title').innerText = config.title[userLang];
         document.getElementById('u-correct').innerText = "0";
 
-        // SAVOLNI YUKLASH VA TARJIMA QILISH
         document.getElementById('question-text').innerText = translations[userLang].translating;
         document.getElementById('options-box').innerHTML = "";
 
