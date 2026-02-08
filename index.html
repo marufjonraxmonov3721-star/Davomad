@@ -69,7 +69,7 @@
     <div id="onboarding">
         <div class="quiz-card" id="ob-card">
             <h2 id="ob-title" style="color: var(--gold);"></h2>
-            <p id="ob-desc" style="line-height: 1.6; color: #fff;"></p>
+            <p id="ob-desc" style="line-height: 1.6; color: #fff; white-space: pre-line;"></p>
             <button class="btn-main" id="ob-next-btn" onclick="nextObStep()">KEYINGISI</button>
         </div>
     </div>
@@ -92,7 +92,7 @@
             </div>
 
             <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
-            <button class="btn-main" id="btn-start" style="display:none; background:var(--green);" onclick="startTurnir()">O'YINNI BOSHLASH</button>
+            <button class="btn-main" id="btn-start" style="display:none; background:var(--green);" onclick="startTurnir()">TURNIRNI BOSHLASH</button>
         </div>
     </div>
 
@@ -174,14 +174,14 @@
             appTitle: "Aql Jangi", slogan: "Turnirda ishtirok eting!",
             tour: "Turnir", rank: "Reyting", set: "Sozlamalar",
             regBtn: "DAVOM ETISH", namePh: "Ismingiz", surnamePh: "Familiyangiz",
-            obNext: "KEYINGISI", tourTitle: "Turnir Markazi", payBtn: "TO'LOV QILDIM", startBtn: "O'YINNI BOSHLASH",
+            obNext: "KEYINGISI", tourTitle: "Turnir Markazi", payBtn: "TO'LOV QILDIM", startBtn: "TURNIRNI BOSHLASH",
             payInfo: "Turnirda qatnashish uchun 5 000 so'm to'lov qiling.", payPrice: "💰 Kirish: <b>5 000 so'm</b>", payCard: "💳 Karta:", payOwner: "👤 Ega:",
             resFinish: "RAUND TUGADI!", resScore: "To'g'ri javoblar:", qLabel: "Savol:", logout: "TIZIMDAN CHIQISH",
             receiptLab: "To'lov chekini yuklang:", chooseFile: "RASM TANLASH",
             ob: [
                 { t: "Xush kelibsiz!", d: "Aql Jangi — bu mantiqiy savollar orqali bilimingizni sinaydigan turnir ilovasi." },
-                { t: "Maqsadimiz", d: "Sizga qiziqarli va mantiqiy jumboqlar berish orqali intellektual salohiyatingizni oshirish." },
-                { t: "Turnir qoidalari", d: "Turnirda qatnashish 5 000 so'm. To'lov tasdiqlangach, 30 ta savol (3 bosqich) ochiladi." }
+                { t: "Turnir Sovrinlari", d: "Turnirda jami 30 ta joy mavjud.\n\n🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm" },
+                { t: "Qatnashish Sharti", d: "Turnirda qatnashish narxi 5 000 so'm. To'lov tasdiqlangach, 30 ta savol (3 bosqich) ochiladi." }
             ],
             wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! Turnirni boshlang."
         },
@@ -189,14 +189,14 @@
             appTitle: "Ақл Жанги", slogan: "Турнирда иштирок этинг!",
             tour: "Турнир", rank: "Рейтинг", set: "Созламалар",
             regBtn: "ДАВОМ ЭТИШ", namePh: "Исмингиз", surnamePh: "Фамилиянгиз",
-            obNext: "КЕЙИНГИСИ", tourTitle: "Турнир Маркази", payBtn: "ТЎЛОВ ҚИЛДИМ", startBtn: "ЎЙИННИ БОШЛАШ",
+            obNext: "КЕЙИНГИСИ", tourTitle: "Турнир Маркази", payBtn: "ТЎЛОВ ҚИЛДИМ", startBtn: "ТУРНИРНИ БОШЛАШ",
             payInfo: "Турнирда қатнашиш учун 5 000 сўм тўлов қилинг.", payPrice: "💰 Кириш: <b>5 000 сўм</b>", payCard: "💳 Карта:", payOwner: "👤 Эга:",
             resFinish: "РАУНД ТУГАДИ!", resScore: "Тўғри жавоблар:", qLabel: "Савол:", logout: "ТИЗИМДАН ЧИҚИШ",
             receiptLab: "Тўлов чекини юкланг:", chooseFile: "РАСМ ТАНЛАШ",
             ob: [
                 { t: "Хуш келибсиз!", d: "Ақл Жанги — бу мантиқий саволлар орқали билимингизни синайдиган турнир иловаси." },
-                { t: "Мақсадимиз", d: "Сизга қизиқарли ва мантиқий жумбоқлар бериш орқали интеллектуал салоҳиятингизни ошириш." },
-                { t: "Турнир қоидалари", d: "Турнирда қатнашиш 5 000 сўм. Тўлов тасдиқлангач, 30 та савол (3 босқич) очилади." }
+                { t: "Турнир Совринлари", d: "Турнирда жами 30 та жой мавжуд.\n\n🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм" },
+                { t: "Қатнашиш Шарти", d: "Турнирда қатнашиш нархи 5 000 сўм. Тўлов тасдиқлангач, 30 та савол (3 босқич) очилади." }
             ],
             wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! Турнирни бошланг."
         }
