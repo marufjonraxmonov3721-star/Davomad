@@ -302,7 +302,7 @@
                 <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
                 <span id="theme-icon">🌙</span>
             </div>
-            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish</button>
+            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish & Ma'lumotlarni o'chirish</button>
         </div>
     </div>
 
@@ -434,7 +434,6 @@
                         btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; 
                     } else { 
                         btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; 
-                        // To'g'ri javobni ko'rsatish
                         buttons.forEach(b => {
                            if(b.innerText === q.a[q.c]) b.style.border = "2px solid #10b981";
                         });
@@ -562,8 +561,28 @@
             }
         }
 
-        function logout() {
-            if(confirm("Tizimdan chiqilsa barcha yutuqlaringiz o'chib ketadi! Rozimisiz?")) {
+        async function logout() {
+            if(confirm("Barcha ma'lumotlaringiz bazadan o'chiriladi. Rozimisiz?")) {
+                const userId = currentUser.userId;
+                const userKey = userId.replace(/\./g, '_');
+                
+                // 1. Profil ma'lumotlarini o'chirish
+                await remove(ref(db, 'users/' + userId));
+                
+                // 2. Barcha reytinglardagi ballarni o'chirish
+                const ratingsSnap = await get(ref(db, 'ratings'));
+                if(ratingsSnap.exists()) {
+                    const allRatings = ratingsSnap.val();
+                    const updates = {};
+                    Object.keys(allRatings).forEach(subject => {
+                        if(allRatings[subject][userKey]) {
+                            updates[`ratings/${subject}/${userKey}`] = null;
+                        }
+                    });
+                    await update(ref(db), updates);
+                }
+
+                // 3. Lokal ma'lumotlarni tozalash va sahifani yangilash
                 localStorage.clear();
                 location.reload();
             }
@@ -575,7 +594,6 @@
             }
         };
 
-        // Globals for HTML
         window.showMenu = showMenu;
         window.register = register;
         window.startTest = startTest;
@@ -587,3 +605,6 @@
     </script>
 </body>
 </html>
+
+Would you like me to ...
+Tugilgan kunda tabriklaydigan funksiyani ham qoshib berishimni xohlaysizmi ?
