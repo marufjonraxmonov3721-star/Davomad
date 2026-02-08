@@ -11,11 +11,20 @@
             --gold-dark: #B8860B; 
             --bg: #000000; 
             --card: #0a0a0a; 
+            --text: #FFD700;
             --green: #28a745; 
             --red: #ff3b3b; 
         }
         
-        body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
+        /* Kunduzgi rejim stili */
+        body.light-mode {
+            --bg: #ffffff;
+            --card: #f5f5f5;
+            --text: #000000;
+            --gold: #B8860B;
+        }
+
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; transition: 0.3s; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
         #auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings { display: none; text-align: center; }
@@ -28,43 +37,44 @@
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotateGold 1s linear infinite; }
 
-        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: #050505; color: var(--gold); font-size: 16px; box-sizing: border-box; }
+        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
         #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
         
         .progress-container { background: #111; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #222; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
 
-        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #1a1a1a; min-height: 250px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 20px; }
-        .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; color: #fff; }
+        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 20px; }
+        .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; color: var(--text); }
         
         .options-grid { display: grid; gap: 12px; }
-        .option-btn { background: #050505; padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: left; cursor: pointer; transition: 0.3s; font-size: 16px; color: #ccc; }
+        .option-btn { background: var(--bg); padding: 18px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.3s; font-size: 16px; color: var(--text); }
         
-        .correct { background: var(--green) !important; border-color: var(--gold); color: #fff; }
-        .wrong { background: var(--red) !important; border-color: #500; color: #fff; }
+        .correct { background: var(--green) !important; border-color: var(--gold); color: #fff !important; }
+        .wrong { background: var(--red) !important; border-color: #500; color: #fff !important; }
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
-        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
-        .ob-card { background: #0a0a0a; border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
+        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
+        .ob-card { background: var(--card); border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
         .ob-icon { font-size: 60px; margin-bottom: 20px; }
-        .ob-title { font-size: 28px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
-        .ob-desc { color: #fff; font-size: 17px; line-height: 1.6; margin-bottom: 25px; }
+        .ob-title { font-size: 24px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
+        .ob-desc { color: var(--text); font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
         
-        .stat-line { display: flex; justify-content: space-between; background: #111; padding: 12px 20px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--gold); }
+        .stat-line { display: flex; justify-content: space-between; background: var(--bg); padding: 12px 20px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--gold); }
         .stat-label { color: #888; font-size: 14px; }
         .stat-value { color: var(--gold); font-weight: bold; font-size: 16px; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #111; z-index: 1000; }
-        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
-        .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; text-shadow: 0 0 5px var(--gold); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; }
+        .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; }
         
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
-        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; color: #eee; }
+        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; color: var(--text); }
 
-        .lang-btn { background: #111; border: 1px solid var(--gold-dark); color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .lang-btn { background: var(--card); border: 1px solid var(--gold-dark); color: var(--text); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .lang-btn.selected { background: var(--gold); color: #000; }
+        .danger-btn { background: var(--red); color: #fff; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -103,11 +113,19 @@
     <div id="settings">
         <h2 id="txt-nav-settings" style="color:var(--gold)">⚙️ Sozlamalar</h2>
         <div class="quiz-card" style="text-align: left;">
-            <p id="txt-choose-lang" style="margin-bottom: 15px;">Ilova tilini tanlang:</p>
+            <p id="txt-choose-theme" style="margin-bottom: 10px; font-weight: bold;">Rejimni tanlang:</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <button class="lang-btn" id="theme-dark" onclick="toggleTheme('dark')">🌙 Tungi</button>
+                <button class="lang-btn" id="theme-light" onclick="toggleTheme('light')">☀️ Kunduzgi</button>
+            </div>
+
+            <p id="txt-choose-lang" style="margin-bottom: 15px; font-weight: bold;">Ilova tilini tanlang:</p>
             <div class="lang-btn" id="lang-uz" onclick="changeLang('uz')">O'zbekcha 🇺🇿 <span id="check-uz"></span></div>
             <div class="lang-btn" id="lang-uz_cyr" onclick="changeLang('uz_cyr')">Ўзбекча 🇺🇿 <span id="check-uz_cyr"></span></div>
             <div class="lang-btn" id="lang-ru" onclick="changeLang('ru')">Русский 🇷🇺 <span id="check-ru"></span></div>
             <div class="lang-btn" id="lang-en" onclick="changeLang('en')">English 🇺🇸 <span id="check-en"></span></div>
+            
+            <button class="danger-btn" onclick="logoutUser()" id="txt-logout">🔴 TIZIMDAN CHIQISH (HISOBNI O'CHIRISH)</button>
         </div>
     </div>
 
@@ -128,7 +146,7 @@
     <div id="result-screen">
         <div class="quiz-card">
             <h2 id="result-status">Raund Tugadi!</h2>
-            <p id="result-score" style="font-size: 24px; margin: 10px 0; color:#fff;">Natija: 0/0</p>
+            <p id="result-score" style="font-size: 24px; margin: 10px 0;">Natija: 0/0</p>
             <p id="result-msg" style="color:#aaa; margin-top:10px; font-style: italic;"></p>
             <button id="btn-continue" class="btn-next" onclick="startNewRound()">DAVOM ETISH</button>
         </div>
@@ -143,11 +161,11 @@
         <h2 id="txt-nav-profile" style="color:var(--gold)">👤 Mening Profilim</h2>
         <div class="quiz-card">
             <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1340/1340333.png'">
-            <div id="p-full-name" style="color:#fff; font-size:18px; font-weight:bold; margin-bottom:5px;">Ism Familiya</div>
+            <div id="p-full-name" style="font-size:18px; font-weight:bold; margin-bottom:5px;">Ism Familiya</div>
             <div id="p-age-info" style="color:#888; font-size:14px; margin-bottom:20px;">0 yosh</div>
             <div style="margin-top:10px;">
-                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-lvl">Daraja</span>: <span id="p-level" style="color:var(--gold)">OSON</span></div>
-                <div style="background:#111; border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-pts">Ball</span>: <span id="p-points" style="color:var(--gold)">0</span></div>
+                <div style="background:var(--bg); border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-lvl">Daraja</span>: <span id="p-level" style="color:var(--gold)">OSON</span></div>
+                <div style="background:var(--bg); border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-pts">Ball</span>: <span id="p-points" style="color:var(--gold)">0</span></div>
             </div>
             <div id="p-countdown" style="margin-top:20px; font-size:13px; color:var(--gold); font-family: monospace;"></div>
         </div>
@@ -163,7 +181,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -183,6 +201,7 @@
 
     let userLevel = "oson"; 
     let userLang = "uz";
+    let userTheme = "dark";
     let sessionQuestions = [];
     let currentIdx = 0;
     let correctAnswers = 0; 
@@ -197,8 +216,12 @@
             chooseLang: "Ilova tilini tanlang:", qCounter: "Savol", scoreLabel: "Ball", resStatus: "Raund Tugadi!",
             resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
             profLvl: "Daraja", profPts: "Ball", countdown: "Tug'ilgan kuningizga:", days: "kun", hours: "soat", min: "min", sek: "sek",
-            obWelcome: "Haqiqiy bilimlar to'qnashuviga xush kelibsiz! Keling, o'yin qoidalari bilan tanishamiz.", obFinish: "Hamma qoidalarni bildingiz. Endi jangni boshlash vaqti keldi! Omad yor bo'lsin.",
-            obBtnNext: "KEYINGISI", obBtnStart: "BOSHLADIK!", obQcount: "Savollar soni:", obPass: "O'tish uchun:", translating: "Savollar tarjima qilinmoqda..."
+            translating: "Savollar tarjima qilinmoqda...", chooseTheme: "Rejimni tanlang:", logout: "Tizimdan chiqish (Hisobni o'chirish)",
+            ob1: "Xush kelibsiz! Bu 'O'yin' bo'limi, bu yerda siz savollarga javob berib ball to'playsiz.",
+            ob2: "Bu 'Reyting' bo'limi. Dunyo bo'ylab eng kuchli o'yinchilar orasida o'z o'rningizni ko'ring!",
+            ob3: "Bu 'Profil'. Bu yerda yutuqlaringiz va tug'ilgan kuningizgacha qolgan vaqt ko'rinadi.",
+            ob4: "Bu 'Sozlamalar'. Bu yerda tilni va tungi/kunduzgi rejimni o'zgartirishingiz mumkin.",
+            obFinish: "Tayyormisiz? Unda boshladik! Omad yor bo'lsin!"
         },
         uz_cyr: {
             appName: "Ақл Жанги", slogan: "Ўз даражангизни Мастер даражасигача кўтаринг!", birthLabel: "Туғилган санангизни танланг:",
@@ -206,8 +229,12 @@
             chooseLang: "Илова тилини танланг:", qCounter: "Савол", scoreLabel: "Балл", resStatus: "Раунд Тугади!",
             resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
             profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
-            obWelcome: "Ҳақиқий билимлар тўқнашувига хуш келибсиз! Келинг, ўйин қоидалари билан танишамиз.", obFinish: "Ҳамма қоидаларни билдингиз. Энди жангни бошлаш вақти келди! Омад ёр бўлсин.",
-            obBtnNext: "КЕЙИНГИСИ", obBtnStart: "БОШЛАДИК!", obQcount: "Саволлар сони:", obPass: "Ўтиш учун:", translating: "Саволлар таржима қилинмоқда..."
+            translating: "Саволлар таржима қилинмоқда...", chooseTheme: "Режимни танланг:", logout: "Тизимдан чиқиш (Ҳисобни ўчириш)",
+            ob1: "Хуш келибсиз! Бу 'Ўйин' бўлими, бу ерда сиз саволларга жавоб бериб балл тўплайсиз.",
+            ob2: "Бу 'Рейтинг' бўлими. Дунё бўйлаб энг кучли ўйинчилар орасида ўз ўрнингизни кўринг!",
+            ob3: "Бу 'Профиль'. Бу ерда ютуқларингиз ва туғилган кунингизгача қолган вақт кўринади.",
+            ob4: "Бу 'Созламалар'. Бу ерда тилни ва тунги/кундузги режимни ўзгартиришингиз мумкин.",
+            obFinish: "Тайёрмисиз? Унда бошладик! Омад ёр бўлсин!"
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
@@ -215,8 +242,12 @@
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
             profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
-            obWelcome: "Добро пожаловать в настоящую битву знаний! Давайте познакомимся с правилами игры.", obFinish: "Вы узнали все правила. Пришло время начать битву! Удачи.",
-            obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:", translating: "Перевод вопросов..."
+            translating: "Перевод вопросов...", chooseTheme: "Выберите режим:", logout: "Выйти (Удалить аккаунт)",
+            ob1: "Добро пожаловать! Это раздел 'Игра', здесь вы отвечаете на вопросы и набираете очки.",
+            ob2: "Это раздел 'Рейтинг'. Посмотрите свое место среди лучших игроков мира!",
+            ob3: "Это 'Профиль'. Здесь видны ваши достижения и время до дня рождения.",
+            ob4: "Это 'Настройки'. Здесь можно сменить язык и ночной/дневной режим.",
+            obFinish: "Готовы? Тогда начнем! Удачи!"
         },
         en: {
             appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
@@ -224,8 +255,12 @@
             chooseLang: "Choose app language:", qCounter: "Question", scoreLabel: "Score", resStatus: "Round Over!",
             resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
             profLvl: "Level", profPts: "Points", countdown: "Until your birthday:", days: "d", hours: "h", min: "m", sek: "s",
-            obWelcome: "Welcome to the real battle of knowledge! Let's get acquainted with the rules of the game.", obFinish: "You've learned all the rules. It's time to start the battle! Good luck.",
-            obBtnNext: "NEXT", obBtnStart: "LET'S GO!", obQcount: "Questions count:", obPass: "To pass:", translating: "Translating questions..."
+            translating: "Translating questions...", chooseTheme: "Select theme:", logout: "Logout (Delete account)",
+            ob1: "Welcome! This is the 'Game' section, where you answer questions and collect points.",
+            ob2: "This is the 'Ranking' section. See your place among the best players in the world!",
+            ob3: "This is 'Profile'. Your achievements and time until your birthday are shown here.",
+            ob4: "This is 'Settings'. You can change the language and night/day mode here.",
+            obFinish: "Ready? Let's get started! Good luck!"
         }
     };
 
@@ -243,10 +278,7 @@
             const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=uz&tl=${langCode}&dt=t&q=${encodeURI(text)}`);
             const data = await res.json();
             return data[0][0][0];
-        } catch (e) {
-            console.error("Translate Error:", e);
-            return text;
-        }
+        } catch (e) { return text; }
     }
 
     window.onload = async () => {
@@ -256,18 +288,16 @@
             const val = snap.val();
             userLevel = val.level || "oson";
             userLang = val.lang || "uz";
+            userTheme = val.theme || "dark";
             applyLanguage();
+            toggleTheme(userTheme, false);
             if(val.name) {
-                document.getElementById('reg-name').style.display = 'none';
-                document.getElementById('reg-surname').style.display = 'none';
-                document.getElementById('reg-birth').style.display = 'none';
-                document.getElementById('reg-lang').style.display = 'none';
-                document.getElementById('txt-birth-label').style.display = 'none';
+                document.getElementById('auth').style.display = 'none';
+                document.getElementById('navbar').style.display = 'flex';
+                navigate('game');
+                startNewRound();
             }
-        } else {
-            applyLanguage();
-        }
-        document.getElementById('auth').classList.add('active');
+        } else { applyLanguage(); document.getElementById('auth').classList.add('active'); }
     };
 
     window.applyLanguage = () => {
@@ -286,57 +316,64 @@
         document.getElementById('txt-nav-settings').innerText = t.navSettings;
         document.getElementById('txt-nav-settings2').innerText = t.navSettings;
         document.getElementById('txt-choose-lang').innerText = t.chooseLang;
+        document.getElementById('txt-choose-theme').innerText = t.chooseTheme;
+        document.getElementById('txt-logout').innerText = t.logout;
         document.getElementById('txt-q-counter').innerText = t.qCounter;
         document.getElementById('txt-score-label').innerText = t.scoreLabel;
         document.getElementById('txt-prof-lvl').innerText = t.profLvl;
         document.getElementById('txt-prof-pts').innerText = t.profPts;
-        
         document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('selected'));
-        if(document.getElementById('lang-' + userLang)) {
-            document.getElementById('lang-' + userLang).classList.add('selected');
-        }
+        if(document.getElementById('lang-' + userLang)) document.getElementById('lang-' + userLang).classList.add('selected');
         const lvlTitle = document.getElementById('level-title');
         if(lvlTitle) lvlTitle.innerText = gameConfig[userLevel].title[userLang];
     };
 
+    window.toggleTheme = async (theme, sync = true) => {
+        userTheme = theme;
+        if(theme === 'light') document.body.classList.add('light-mode');
+        else document.body.classList.remove('light-mode');
+        if(sync) await update(userRef, { theme: theme });
+    };
+
     window.changeLang = async (lang, syncToDb = true) => {
         userLang = lang;
-        if (syncToDb) {
-            await update(userRef, { lang: lang });
-            location.reload();
-        } else {
-            applyLanguage();
-        }
+        if (syncToDb) { await update(userRef, { lang: lang }); location.reload(); }
+        else { applyLanguage(); }
     };
+
+    window.logoutUser = async () => {
+        const confirmMsg = userLang === 'uz' ? "Hisobingiz va barcha ballaringiz o'chiriladi. Rozimisiz?" : "Ваш аккаунт и все баллы будут удалены. Вы согласны?";
+        if(confirm(confirmMsg)) {
+            await remove(userRef);
+            location.reload();
+        }
+    }
 
     window.login = async () => {
-        const snap = await get(userRef);
-        if (!snap.exists()) {
-            const name = document.getElementById('reg-name').value.trim();
-            const surname = document.getElementById('reg-surname').value.trim();
-            const birth = document.getElementById('reg-birth').value;
-            const lang = document.getElementById('reg-lang').value;
-            if(!name || !surname || !birth) { alert("Ma'lumotlarni to'liq kiriting!"); return; }
-            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: lang });
-            userLang = lang;
-            applyLanguage();
-            startOnboarding();
-        } else {
-            document.getElementById('auth').classList.remove('active');
-            document.getElementById('navbar').style.display = 'flex';
-            navigate('game');
-            startNewRound();
-        }
+        const name = document.getElementById('reg-name').value.trim();
+        const surname = document.getElementById('reg-surname').value.trim();
+        const birth = document.getElementById('reg-birth').value;
+        const lang = document.getElementById('reg-lang').value;
+        if(!name || !surname || !birth) { alert("To'liq to'ldiring!"); return; }
+        await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0, lang: lang, theme: "dark" });
+        userLang = lang;
+        applyLanguage();
+        startOnboarding();
     };
 
-    const onboardingData = () => [
-        { icon: "🧠", title: translations[userLang].appName, desc: translations[userLang].obWelcome },
-        { level: "oson" }, { level: "ortacha" }, { level: "qiyin" }, { level: "juda_qiyin" },
-        { icon: "🏆", title: "OK!", desc: translations[userLang].obFinish }
-    ];
+    const onboardingData = () => {
+        const t = translations[userLang];
+        return [
+            { icon: "🧠", title: t.appName, desc: t.ob1 },
+            { icon: "🏆", title: t.navRank, desc: t.ob2 },
+            { icon: "👤", title: t.navProfile, desc: t.ob3 },
+            { icon: "⚙️", title: t.navSettings, desc: t.ob4 },
+            { icon: "🚀", title: "OK!", desc: t.obFinish }
+        ];
+    };
 
     function startOnboarding() {
-        document.getElementById('auth').classList.remove('active');
+        document.getElementById('auth').style.display = 'none';
         document.getElementById('onboarding').classList.add('active');
         showObStep();
     }
@@ -345,14 +382,8 @@
         const data = onboardingData();
         const step = data[obStep];
         const content = document.getElementById('ob-content');
-        const t = translations[userLang];
-        if (step.level) {
-            const config = gameConfig[step.level];
-            content.innerHTML = `<div class="ob-icon">${config.icon}</div><div class="ob-title">${config.title[userLang]}</div><div class="stat-line"><span class="stat-label">${t.obQcount}</span><span class="stat-value">${config.qCount}</span></div><div class="stat-line"><span class="stat-label">${t.obPass}</span><span class="stat-value">${config.passScore}</span></div>`;
-        } else {
-            content.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
-        }
-        document.getElementById('ob-btn').innerText = obStep === data.length - 1 ? t.obBtnStart : t.obBtnNext;
+        content.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
+        document.getElementById('ob-btn').innerText = obStep === data.length - 1 ? "BOSHLADIK" : "DAVOM ETISH";
     }
 
     window.nextObStep = () => {
@@ -365,26 +396,18 @@
         const gameEl = document.getElementById('game');
         gameEl.classList.add('active');
         const config = gameConfig[userLevel];
-        document.getElementById('level-title').innerText = config.title[userLang];
         document.getElementById('u-correct').innerText = "0";
-
         document.getElementById('question-text').innerText = translations[userLang].translating;
-        document.getElementById('options-box').innerHTML = "";
-
         const qSnap = await get(ref(db, `brain_questions/${userLang}/${userLevel}`));
         let allQ = qSnap.val() || [];
-
         if (allQ.length === 0 && userLang !== 'uz') {
             const uzSnap = await get(ref(db, `brain_questions/uz/${userLevel}`));
             allQ = uzSnap.val() || [];
             for (let item of allQ) {
                 item.q = await translateText(item.q, userLang);
-                for (let i = 0; i < item.a.length; i++) {
-                    item.a[i] = await translateText(item.a[i], userLang);
-                }
+                for (let i = 0; i < item.a.length; i++) item.a[i] = await translateText(item.a[i], userLang);
             }
         }
-
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
         currentIdx = 0; correctAnswers = 0;
         showQuestion();
@@ -420,11 +443,10 @@
     async function finishRound() {
         const config = gameConfig[userLevel];
         const t = translations[userLang];
-        const isPassed = correctAnswers >= config.passScore;
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
         document.getElementById('result-score').innerText = `${correctAnswers}/${config.qCount}`;
-        if (isPassed) {
+        if (correctAnswers >= config.passScore) {
             document.getElementById('result-status').innerText = t.resStatusWin;
             if (userLevel !== "juda_qiyin") { userLevel = config.nextLvl; await update(userRef, { level: userLevel }); }
             document.getElementById('btn-continue').innerText = t.btnContinue;
@@ -467,7 +489,7 @@
             if (now > nB) nB.setFullYear(now.getFullYear() + 1);
             const diff = nB - now;
             const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3);
-            document.getElementById('p-countdown').innerText = `${t.appName === "Ақл Жанги" ? "Туғилган кунингизга:" : (userLang === 'ru' ? "До вашего дня рождения:" : (userLang === 'en' ? "Until your birthday:" : "Tug'ilgan kuningizga:"))} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
+            document.getElementById('p-countdown').innerText = `${userLang === 'ru' ? "До дня рождения:" : (userLang === 'uz_cyr' ? "Туғилган кунингизга:" : "Tug'ilgan kuningizga:")} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
         };
         updateTimer(); timerInterval = setInterval(updateTimer, 1000);
     }
@@ -482,8 +504,8 @@
             data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
             list.innerHTML = data.slice(0, 10).map((u, i) => `
                 <div class="rank-item">
-                    <span><b class="gold-text">${i+1}.</b> ${u.name} ${u.surname || ''} <br><small style="color:#555">${gameConfig[u.level].title[userLang]}</small></span>
-                    <b class="gold-text">${u.totalPoints || 0} ${translations[userLang].scoreLabel}</b>
+                    <span><b style="color:var(--gold)">${i+1}.</b> ${u.name} ${u.surname || ''} <br><small style="color:#555">${gameConfig[u.level].title[userLang]}</small></span>
+                    <b style="color:var(--gold)">${u.totalPoints || 0} ${translations[userLang].scoreLabel}</b>
                 </div>
             `).join('');
         }
