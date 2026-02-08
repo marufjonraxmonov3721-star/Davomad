@@ -64,9 +64,9 @@
         .stat-label { color: #888; font-size: 14px; }
         .stat-value { color: var(--gold); font-weight: bold; font-size: 16px; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--gold); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: #000; flex: 1; }
-        .nav-link.active-link { opacity: 1; color: #000; font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; }
+        .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; }
         
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; color: var(--text); }
@@ -99,7 +99,7 @@
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
         <label id="txt-birth-label" style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
         <input type="date" id="reg-birth" class="reg-input">
-        <button id="btn-start" onclick="login()" class="btn-main">BOSHLASH</button>
+        <button id="btn-start" onclick="initiateLogin()" class="btn-main">BOSHLASH</button>
     </div>
 
     <div id="onboarding" class="ob-screen">
@@ -233,7 +233,7 @@
             obT2: "Ўйин Қоидалари", obD2: "Ўйинда 4 та босқич бор. Ҳар бир босқичдан ўтиш учун белгиланган миқдордаги саволларга тўғри жавоб бериш шарт.",
             obT3: "Босқичлар ва Шартлар", obD3: "🌱 Осон: 15 савол (10 та тўғри)\n⚡ Ўртача: 25 савол (17 та тўғри)\n🔥 Қийин: 35 савол (24 та тўғри)\n👑 Мастер: 45 савол (30 та тўғри)",
             obT4: "Бошқа Бўлимлар", obD4: "🏆 Рейтингда дунё билан беллашинг, 👤 Профилингизни кузатиб боринг ва ⚙️ Созламалардан тилни ёки тунги режимни танланг.",
-            obFinish: "Билимлар жангига тайёрмисиз? Унда бошладик!"
+            obFinish: "Билимлар жангига тайёрмисиз? Унда бошладки!"
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
@@ -280,32 +280,37 @@
         } catch (e) { return text; }
     }
 
-    window.onload = async () => {
-        // ASOSIY TUZATISH: loader-ni faqat hamma ma'lumot yuklanib bo'lgandan keyin yopish
-        const snap = await get(userRef);
-        if (snap.exists()) {
-            const val = snap.val();
-            userLevel = val.level || "oson";
-            userLang = val.lang || "uz";
-            userTheme = val.theme || "dark";
-            applyLanguage();
-            toggleTheme(userTheme, false);
-            
-            if(val.name) {
+    // KIRISH FUNKSIYASINI ALOHIDA QILDIM (FIX)
+    window.checkUserStatus = async () => {
+        try {
+            const snap = await get(userRef);
+            if (snap.exists() && snap.val().name) {
+                const val = snap.val();
+                userLevel = val.level || "oson";
+                userLang = val.lang || "uz";
+                userTheme = val.theme || "dark";
+                applyLanguage();
+                toggleTheme(userTheme, false);
+                
+                document.getElementById('auth').classList.remove('active');
                 document.getElementById('auth').style.display = 'none';
                 document.getElementById('navbar').style.display = 'flex';
                 navigate('game');
                 startNewRound();
+            } else {
+                applyLanguage();
+                document.getElementById('auth').classList.add('active');
             }
-        } else { 
-            applyLanguage(); 
-            document.getElementById('auth').classList.add('active'); 
+        } catch (e) {
+            applyLanguage();
+            document.getElementById('auth').classList.add('active');
+        } finally {
+            document.getElementById('loader').style.display = 'none';
         }
-        
-        // Hammasi yuklangandan so'ng loader-ni o'chirish
-        setTimeout(() => { 
-            document.getElementById('loader').style.display = 'none'; 
-        }, 800);
+    };
+
+    window.onload = () => {
+        window.checkUserStatus();
     };
 
     window.applyLanguage = () => {
@@ -354,7 +359,8 @@
         if(confirm(confirmMsg)) { await remove(userRef); location.reload(); }
     }
 
-    window.login = async () => {
+    // initiateLogin nomini o'zgartirdim login funksiyasi bilan bir xil bo'lishi uchun
+    window.initiateLogin = async () => {
         const name = document.getElementById('reg-name').value.trim();
         const surname = document.getElementById('reg-surname').value.trim();
         const birth = document.getElementById('reg-birth').value;
