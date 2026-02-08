@@ -77,7 +77,6 @@
         }
         .option-btn:active { background: var(--gold); color: #000; }
         
-        /* Reytingdagi tartib raqami uchun bezak */
         .rank-badge {
             width: 35px;
             height: 35px;
@@ -117,16 +116,16 @@
                 <p>✅ <b>Random:</b> Har safar yangi, takrorlanmas savollar to'plami.</p>
                 <p>✅ <b>Reyting:</b> Eng kuchli bilimdonlar safidan joy oling.</p>
             </div>
-            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl">Tushunarli, boshladik!</button>
+            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl">Ilovani boshlash</button>
         </div>
     </div>
 
     <div id="subjects-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3">TEST SOZLAMALARI</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase">Test sozlamalari</h2>
         
         <div class="premium-card p-6 space-y-6">
             <div>
-                <label class="block text-xs font-bold uppercase opacity-60 mb-2 text-yellow-500">Fanni tanlang</label>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2 text-yellow-500 italic">Fanni tanlang</label>
                 <select id="selectedSubject">
                     <option value="Matematika">Matematika</option>
                     <option value="Fizika">Fizika</option>
@@ -144,12 +143,12 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold uppercase opacity-60 mb-2 text-yellow-500">Savollar soni (Max: 50)</label>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2 text-yellow-500 italic">Savollar soni (Maksimal: 50)</label>
                 <input type="number" id="qAmount" value="20" max="50" min="5">
             </div>
 
             <div>
-                <label class="block text-xs font-bold uppercase opacity-60 mb-2 text-yellow-500">Vaqt cheklovi (Daqiqa)</label>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2 text-yellow-500 italic">Vaqt cheklovi (Daqiqa)</label>
                 <input type="number" id="qTime" value="15">
             </div>
 
@@ -233,11 +232,12 @@
         let totalTimeAllocated = 0;
 
         window.onload = () => {
-            applySavedTheme(); // Saqlangan rejimni qo'llash
-            if(currentUser) showMenu('subjects');
+            applySavedTheme();
+            if(currentUser) {
+                showMenu('intro'); // Kirganda birinchi Intro chiqadi
+            }
         }
 
-        // Rejimni saqlash va qo'llash
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             if(savedTheme === 'dark') {
@@ -265,7 +265,7 @@
             localStorage.setItem('quizUser', JSON.stringify(userData));
             currentUser = userData;
             document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('intro-screen').classList.remove('hidden');
+            showMenu('intro');
         }
 
         window.showMenu = (screen) => {
@@ -277,15 +277,31 @@
                 if(nav) nav.classList.remove('active-nav');
             });
             document.getElementById(screen + '-screen').classList.remove('hidden');
-            document.getElementById('main-nav').classList.remove('hidden');
-            const activeNav = document.getElementById('nav-' + screen);
-            if(activeNav) activeNav.classList.add('active-nav');
+            
+            // Intro ekranida navigatsiya chiqmasligi uchun
+            if (screen === 'intro' || screen === 'auth') {
+                document.getElementById('main-nav').classList.add('hidden');
+            } else {
+                document.getElementById('main-nav').classList.remove('hidden');
+                const activeNav = document.getElementById('nav-' + screen);
+                if(activeNav) activeNav.classList.add('active-nav');
+            }
+
             if(screen === 'rating') loadRating();
         }
 
         window.startTest = async () => {
+            const amountInput = document.getElementById('qAmount');
+            const amount = parseInt(amountInput.value);
+            
+            // XAVFSIZLIK: 50 tadan ko'p savol kiritilsa to'xtatadi
+            if(amount > 50 || amount < 1 || isNaN(amount)) {
+                alert("Xatolik! Savollar soni 1 va 50 oralig'ida bo'lishi shart.");
+                amountInput.value = 20; // Standart qiymatga qaytarish
+                return;
+            }
+
             selectedSubjectName = document.getElementById('selectedSubject').value;
-            const amount = parseInt(document.getElementById('qAmount').value);
             totalTimeAllocated = parseInt(document.getElementById('qTime').value);
 
             const snapshot = await get(ref(db, 'fanlar/' + selectedSubjectName));
@@ -305,7 +321,7 @@
         }
 
         function loadQuestion() {
-            if(currentQIndex >= testQuestions.length) return finishTest(true); // Oxirigacha yechsa true
+            if(currentQIndex >= testQuestions.length) return finishTest(true);
 
             const q = testQuestions[currentQIndex];
             document.getElementById('qProgress').innerText = `${currentQIndex + 1}/${testQuestions.length}`;
@@ -333,15 +349,14 @@
                 document.getElementById('timer').innerText = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
                 if(time <= 0) {
                     clearInterval(timerInterval);
-                    finishTest(false); // Vaqt tugasa reytingga yozilmaydi
+                    finishTest(false);
                 }
                 time--;
             }, 1000);
         }
 
-        // Testni istalgan vaqtda yakunlash uchun tasdiqlash
         window.confirmFinishTest = () => {
-            if(confirm("Testni hozir yakunlamoqchimisiz? (Chala natija reytingga yozilmaydi)")) {
+            if(confirm("Testni hozir yakunlamoqchimisiz? (Natija reytingga yozilmaydi)")) {
                 finishTest(false);
             }
         }
