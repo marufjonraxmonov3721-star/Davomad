@@ -10,16 +10,18 @@
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        /* Faqat bitta oyna ko'rinishi uchun */
         #auth, #game, #leaderboard { display: none; text-align: center; }
         .active { display: block !important; }
 
-        /* UI Elementlari */
+        /* Progress Display */
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
-        #level-title { font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
-        .progress-container { background: #222; height: 14px; border-radius: 7px; margin-top: 15px; overflow: hidden; border: 1px solid #333; }
-        #progress-bar { height: 100%; width: 0%; transition: 1s; }
+        #level-title { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
 
+        .progress-container { background: #222; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
+        #xp-progress-bar { height: 100%; width: 0%; transition: 0.5s; background: var(--p); }
+
+        /* Quiz Box */
         .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
         .question { font-size: 20px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
         .options-grid { display: grid; gap: 12px; }
@@ -31,7 +33,6 @@
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; }
         .nav-link.active-link { opacity: 1; color: var(--p); font-weight: bold; }
-        .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
     </style>
 </head>
 <body>
@@ -39,30 +40,26 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; font-size: 16px; margin-bottom: 50px;">O'zbekistondagi eng aqlli o'yinga xush kelibsiz!</p>
+        <p style="color:#666; margin-bottom: 50px;">Har bir raundda 15 ta tasodifiy savol!</p>
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
-        
-        <div style="margin-top: 30px;">
-            <h3 style="color:var(--p)">🏆 Kuchli 10 Talaba</h3>
-            <div id="auth-rank" style="background:var(--card); border-radius:15px; padding:10px;"></div>
-        </div>
     </div>
 
     <div id="game">
         <div class="level-header">
             <div id="level-title">OSON</div>
-            <div style="font-size: 12px; color:#888;">XP: <b id="total-xp" style="color:#fff">0</b></div>
-            <div class="progress-container"><div id="progress-bar"></div></div>
+            <div class="session-info">Savol: <span id="q-counter">1/15</span></div>
+            <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
+
         <div class="quiz-card">
-            <div class="question" id="question-text">Savol yuklanmoqda...</div>
-            <div class="options-grid" id="options-box"></div>
+            <div class="question" id="question-text">Yuklanmoqda...</div>
+            <div id="options-box" class="options-grid"></div>
         </div>
     </div>
 
     <div id="leaderboard">
         <h2 style="color:var(--p)">🏆 Dunyo Reytingi</h2>
-        <div id="rank-list-full" class="quiz-card" style="padding: 10px;"></div>
+        <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
     </div>
 </div>
 
@@ -89,87 +86,62 @@
     const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let xp = 0;
-    let questions = [];
+    let totalXp = 0;
+    let sessionQuestions = [];
+    let currentIdx = 0;
     let isLocked = false;
 
-    // --- INITIAL LOAD ---
     window.onload = async () => {
-        fetchAuthRank(); // Auth oynasidagi reytingni yangilash
         const snap = await get(userRef);
         if (snap.exists()) {
-            xp = Number(snap.val().xp) || 0;
-            // Agar foydalanuvchi mavjud bo'lsa, avtomatik o'yinga o'tmaymiz,
-            // "Boshlash"ni bosguncha kutamiz (rasmdagi ko'rinish uchun)
+            totalXp = Number(snap.val().xp) || 0;
             document.getElementById('auth').classList.add('active');
         } else {
             document.getElementById('auth').classList.add('active');
         }
     };
 
-    // --- BOSHLASH TUGMASI ---
     window.login = async () => {
         const user = tg.initDataUnsafe?.user;
         const snap = await get(userRef);
         if (!snap.exists()) {
             await set(userRef, { name: user?.first_name || "O'yinchi", xp: 0 });
         }
-        // Faqat o'yinni yoqish va Auth oynasini yashirish
         document.getElementById('auth').classList.remove('active');
         document.getElementById('navbar').style.display = 'flex';
-        navigate('game'); 
-        updateGame();
+        navigate('game');
+        startNewRound();
     };
 
-    // --- NAVIGATSIYA ---
-    window.navigate = (id) => {
-        // Barcha oynalarni o'chirish
-        document.getElementById('auth').classList.remove('active');
-        document.getElementById('game').classList.remove('active');
-        document.getElementById('leaderboard').classList.remove('active');
-
-        // Tanlangan oynani yoqish
-        document.getElementById(id).classList.add('active');
-        
-        document.getElementById('link-game').classList.toggle('active-link', id === 'game');
-        document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
-
-        if (id === 'leaderboard') fetchFullRank();
-    };
-
-    // --- REYTINGNI YUKLASH ---
-    async function fetchAuthRank() {
-        const qRank = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(5));
-        const snap = await get(qRank);
-        if (snap.exists()) {
-            let data = [];
-            snap.forEach(c => data.push(c.val()));
-            data.sort((a, b) => b.xp - a.xp);
-            document.getElementById('auth-rank').innerHTML = data.map((u, i) => `
-                <div class="rank-item" style="padding:8px; font-size:14px;">
-                    <span>${i+1}. ${u.name}</span>
-                    <b>${u.xp} XP</b>
-                </div>
-            `).join('');
-        }
-    }
-
-    // O'yin mantiqi va savollarni chiqarish qismi (Eski mantiq saqlab qolindi)
-    async function updateGame() {
-        let level = xp <= 500 ? "oson" : (xp <= 1500 ? "ortacha" : (xp <= 3500 ? "qiyin" : "juda_qiyin"));
+    async function startNewRound() {
+        // Darajani aniqlash
+        let level = totalXp <= 500 ? "oson" : (totalXp <= 1500 ? "ortacha" : (totalXp <= 3500 ? "qiyin" : "juda_qiyin"));
         document.getElementById('level-title').innerText = level.toUpperCase();
-        document.getElementById('total-xp').innerText = xp;
         
+        // Bazadan hamma savollarni olish
         const qSnap = await get(ref(db, 'brain_questions/' + level));
-        questions = qSnap.val() || [];
+        const allQuestions = qSnap.val() || [];
+        
+        // 15 tasini tasodifiy tanlash
+        sessionQuestions = allQuestions
+            .sort(() => 0.5 - Math.random()) // Aralashtirish
+            .slice(0, 15); // Dastlabki 15 tasini olish
+        
+        currentIdx = 0;
         showQuestion();
     }
 
     function showQuestion() {
-        if (questions.length === 0) return;
+        if (sessionQuestions.length === 0) return;
+        
         isLocked = false;
-        const q = questions[Math.floor(Math.random() * questions.length)];
+        const q = sessionQuestions[currentIdx];
+        document.getElementById('q-counter').innerText = `${currentIdx + 1}/15`;
         document.getElementById('question-text').innerText = q.q;
+        
+        // Progress bar daraja ichidagi emas, raund ichidagi progressni ko'rsatadi
+        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / 15 * 100) + "%";
+
         const box = document.getElementById('options-box');
         box.innerHTML = "";
         q.a.forEach((opt, i) => {
@@ -184,23 +156,48 @@
     async function check(idx, correct, el) {
         if (isLocked) return;
         isLocked = true;
+
         if (idx === correct) {
             el.classList.add('correct');
-            xp += 10;
-            await set(ref(db, `brain_users/${uid}/xp`), Number(xp));
-        } else el.classList.add('wrong');
-        setTimeout(updateGame, 1200);
+            totalXp += 10;
+            await set(ref(db, `brain_users/${uid}/xp`), Number(totalXp));
+            tg.HapticFeedback.notificationOccurred('success');
+        } else {
+            el.classList.add('wrong');
+            tg.HapticFeedback.notificationOccurred('error');
+        }
+
+        setTimeout(() => {
+            currentIdx++;
+            if (currentIdx < 15 && currentIdx < sessionQuestions.length) {
+                showQuestion();
+            } else {
+                alert("Raund tugadi! To'plangan umumiy ball: " + totalXp);
+                startNewRound(); // Yangi 15 talik raundni boshlash
+            }
+        }, 1200);
     }
 
-    async function fetchFullRank() {
-        const list = document.getElementById('rank-list-full');
+    window.navigate = (id) => {
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('leaderboard').classList.remove('active');
+        document.getElementById(id).classList.add('active');
+        
+        document.getElementById('link-game').classList.toggle('active-link', id === 'game');
+        document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
+
+        if (id === 'leaderboard') fetchRank();
+    };
+
+    async function fetchRank() {
+        const list = document.getElementById('rank-list');
         const qRank = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
         const snap = await get(qRank);
         if (snap.exists()) {
             let data = [];
             snap.forEach(c => data.push(c.val()));
             data.sort((a, b) => b.xp - a.xp);
-            list.innerHTML = data.map((u, i) => `<div class="rank-item"><span><b>${i+1}.</b> ${u.name}</span><b>${u.xp} XP</b></div>`).join('');
+            list.innerHTML = data.map((u, i) => `<div class="rank-item" style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;"><span><b>${i+1}.</b> ${u.name}</span><b>${u.xp} XP</b></div>`).join('');
         }
     }
 </script>
