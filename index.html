@@ -290,13 +290,16 @@
             userTheme = val.theme || "dark";
             applyLanguage();
             toggleTheme(userTheme, false);
-            if(val.name) {
-                document.getElementById('auth').style.display = 'none';
-                document.getElementById('navbar').style.display = 'flex';
-                navigate('game');
-                startNewRound();
-            }
-        } else { applyLanguage(); document.getElementById('auth').classList.add('active'); }
+            
+            // ASOSIY TUZATISH: Bazada ma'lumot bo'lsa, navbar ochiladi va o'yin boshlanadi
+            document.getElementById('auth').style.display = 'none';
+            document.getElementById('navbar').style.display = 'flex';
+            navigate('game');
+            startNewRound();
+        } else { 
+            applyLanguage(); 
+            document.getElementById('auth').classList.add('active'); 
+        }
     };
 
     window.applyLanguage = () => {
@@ -392,7 +395,6 @@
         const gameEl = document.getElementById('game');
         gameEl.classList.add('active');
         const config = gameConfig[userLevel];
-        // O'yin boshida sarlavhani to'g'irlash
         document.getElementById('level-title').innerText = config.title[userLang];
         document.getElementById('u-correct').innerText = "0";
         document.getElementById('question-text').innerText = translations[userLang].translating;
@@ -439,7 +441,6 @@
     }
 
     async function finishRound() {
-        const oldLevel = userLevel;
         const config = gameConfig[userLevel];
         const t = translations[userLang];
         document.getElementById('game').classList.remove('active');
@@ -450,7 +451,6 @@
             if (userLevel !== "juda_qiyin") { 
                 userLevel = config.nextLvl; 
                 await update(userRef, { level: userLevel }); 
-                // ZAHOTI SARLAVHANI YANGILASH
                 document.getElementById('level-title').innerText = gameConfig[userLevel].title[userLang];
             }
             document.getElementById('btn-continue').innerText = t.btnContinue;
