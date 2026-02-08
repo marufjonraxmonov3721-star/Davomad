@@ -13,6 +13,9 @@
         #auth, #game, #leaderboard, #result-screen { display: none; text-align: center; }
         .active { display: block !important; }
 
+        /* Ro'yxatdan o'tish inputlari stili */
+        .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; box-sizing: border-box; }
+
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
         #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
@@ -39,7 +42,11 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 50px;">Minimal ball to'plab yangi bosqichlarni oching!</p>
+        <p style="color:#666; margin-bottom: 30px;">Minimal ball to'plab yangi bosqichlarni oching!</p>
+        
+        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingizni kiriting">
+        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangizni kiriting">
+        
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
     </div>
 
@@ -108,18 +115,41 @@
 
     window.onload = async () => {
         const snap = await get(userRef);
-        if (snap.exists()) userLevel = snap.val().level || "oson";
+        if (snap.exists()) {
+            userLevel = snap.val().level || "oson";
+            // Agar allaqachon ro'yxatdan o'tgan bo'lsa, inputlarni yashirish mumkin
+            if(snap.val().name) {
+                document.getElementById('reg-name').style.display = 'none';
+                document.getElementById('reg-surname').style.display = 'none';
+            }
+        }
         document.getElementById('auth').classList.add('active');
     };
 
     window.login = async () => {
         const snap = await get(userRef);
+        
+        // Yangi ro'yxatdan o'tish tekshiruvi
         if (!snap.exists()) {
-            await set(userRef, { name: tg.initDataUnsafe?.user?.first_name || "O'yinchi", level: "oson", totalPoints: 0 });
+            const name = document.getElementById('reg-name').value.trim();
+            const surname = document.getElementById('reg-surname').value.trim();
+            
+            if(!name || !surname) {
+                alert("Iltimos, ism va familiyangizni to'liq kiriting!");
+                return;
+            }
+            
+            await set(userRef, { 
+                name: name, 
+                surname: surname,
+                level: "oson", 
+                totalPoints: 0 
+            });
             userLevel = "oson";
         } else {
             userLevel = snap.val().level || "oson";
         }
+        
         document.getElementById('auth').classList.remove('active');
         document.getElementById('navbar').style.display = 'flex';
         navigate('game');
@@ -227,7 +257,6 @@
         if (id === 'leaderboard') fetchRank();
     };
 
-    // REYTINGNI ISHLATISH UCHUN YANGILANGAN QISM
     async function fetchRank() {
         const list = document.getElementById('rank-list');
         list.innerHTML = "Yuklanmoqda...";
@@ -241,15 +270,13 @@
                 data.push(childSnap.val());
             });
             
-            // Kodning o'zida saralash (Xp bo'yicha eng balandi tepaga)
             data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
             
-            // Faqat birinchi 10 tani chiqarish
             let top10 = data.slice(0, 10);
             
             list.innerHTML = top10.map((u, i) => `
                 <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;">
-                    <span><b>${i+1}.</b> ${u.name} <small style="color:#666">(${u.level})</small></span>
+                    <span><b>${i+1}.</b> ${u.name} ${u.surname || ''} <small style="color:#666">(${u.level})</small></span>
                     <b>${u.totalPoints || 0} Ball</b>
                 </div>
             `).join('');
