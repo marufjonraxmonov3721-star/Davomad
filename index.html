@@ -9,75 +9,63 @@
     <style>
         .hidden { display: none; }
         .active-tab { color: #fbbf24; border-bottom: 2px solid #fbbf24; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader { border-top-color: transparent; animation: spin 1s linear infinite; }
     </style>
 </head>
 <body class="bg-slate-900 text-white font-sans overflow-hidden">
 
     <div id="reg-screen" class="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 class="text-3xl font-bold text-yellow-500 mb-8 text-center">Miya Jangi Turniri</h1>
+        <h1 class="text-3xl font-bold text-yellow-500 mb-8 text-center">Miya Jangi</h1>
         <div class="w-full max-w-sm space-y-4">
-            <input id="fname" type="text" placeholder="Ismingiz" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500 transition">
-            <input id="lname" type="text" placeholder="Familiyangiz" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500 transition">
-            <button onclick="register()" class="w-full bg-yellow-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition uppercase tracking-wider">Davom etish</button>
+            <input id="fname" type="text" placeholder="Ism" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500 transition">
+            <input id="lname" type="text" placeholder="Familiya" class="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-yellow-500 transition">
+            <button onclick="register()" class="w-full bg-yellow-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="intro-screen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h2 class="text-2xl font-bold text-yellow-500 mb-6">Turnir Shartlari</h2>
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 text-slate-300">
-            <p>1️⃣ <b>Color Rush:</b> 10 ta rangli savol.</p>
+        <h2 class="text-2xl font-bold text-yellow-500 mb-6 text-center">Qoidalar</h2>
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 text-slate-300 text-left">
+            <p>1️⃣ <b>Color Rush:</b> 10 ta rang.</p>
             <p>2️⃣ <b>Math Ninja:</b> 10 ta matematik misol.</p>
             <p>3️⃣ <b>IQ-Test:</b> 10 ta mantiqiy savol.</p>
-            <p class="text-yellow-500 font-bold mt-4 italic text-sm">Jami vaqt: 60 soniya!</p>
+            <p class="text-yellow-500 font-bold mt-4">Jami vaqt: 60 soniya!</p>
         </div>
-        <button onclick="showMain()" class="mt-10 bg-blue-600 px-12 py-4 rounded-full font-bold shadow-lg active:scale-95 transition uppercase">Tushundim</button>
+        <button onclick="showMain()" class="mt-10 bg-blue-600 px-12 py-4 rounded-full font-bold shadow-lg active:scale-95 transition">TUSHUNDIM</button>
     </div>
 
     <div id="main-app" class="hidden min-h-screen">
         <div id="page-game" class="p-6">
-            <h2 class="text-xl font-bold mb-6">O'yin Maydoni</h2>
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-slate-700 shadow-2xl">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-bold text-yellow-500">Mavsumiy Turnir</h3>
-                    <span class="bg-green-500/20 text-green-500 text-[10px] px-2 py-1 rounded-full border border-green-500/30">ACTIVE</span>
-                </div>
-                <p class="text-sm text-slate-400 mb-6 leading-relaxed">30 ta savol orqali eng yuqori ballni to'plang va reytingda birinchi bo'ling!</p>
-                <button onclick="startTournament()" class="w-full bg-yellow-500 text-slate-900 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">TURNIRNI BOSHLASH</button>
+            <h2 class="text-xl font-bold mb-6">Turnir Bo'limi</h2>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                <h3 class="text-lg font-bold text-yellow-500 mb-2 text-center">Asosiy Turnir</h3>
+                <p class="text-sm text-slate-400 mb-6 text-center">30 ta savolda maksimal ball to'plang!</p>
+                <button onclick="startTournament()" class="w-full bg-yellow-500 text-slate-900 py-3 rounded-xl font-black active:scale-95 transition">O'YINNI BOSHLASH</button>
             </div>
         </div>
 
-        <div id="page-rating" class="hidden p-6 pb-24 overflow-y-auto h-screen">
-            <h2 class="text-xl font-bold mb-6 text-yellow-500 flex items-center gap-2">🏆 Kuchli o'nlik</h2>
+        <div id="page-rating" class="hidden p-6 pb-24 h-screen overflow-y-auto">
+            <h2 class="text-xl font-bold mb-6 text-yellow-500">🏆 Kuchli o'nlik</h2>
             <div id="rating-list" class="space-y-3"></div>
         </div>
 
         <div id="page-settings" class="hidden p-6 flex flex-col items-center justify-center h-[70vh]">
-            <p class="text-slate-400 mb-8 italic text-sm text-center px-10">Tizimdan chiqish orqali barcha mahalliy ma'lumotlarni yangilashingiz mumkin.</p>
-            <button onclick="window.location.reload()" class="bg-red-600/10 text-red-500 border border-red-600/30 px-12 py-4 rounded-2xl font-bold active:scale-95 transition">Tizimdan chiqish</button>
+            <button onclick="window.location.reload()" class="bg-red-600/20 text-red-500 border border-red-600 px-10 py-3 rounded-xl font-bold active:scale-95 transition">Tizimdan chiqish</button>
         </div>
 
         <div id="game-overlay" class="hidden fixed inset-0 bg-slate-900 z-50 flex flex-col p-6">
             <div class="flex justify-between items-center mb-10">
-                <span id="phase-name" class="text-yellow-500 font-bold uppercase tracking-widest text-[10px]">Tayyorlaning...</span>
-                <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-slate-400 font-bold">VAQT:</span>
-                    <span id="game-timer" class="text-xl font-mono font-bold text-white w-8">60</span>
-                </div>
+                <span id="phase-name" class="text-yellow-500 font-bold uppercase tracking-widest text-sm">Bosqich</span>
+                <span id="game-timer" class="text-xl font-mono bg-slate-800 px-4 py-1 rounded-lg">60</span>
             </div>
-            <div id="game-container" class="flex-1 flex flex-col items-center justify-center text-center">
-                </div>
+            <div id="game-container" class="flex-1 flex flex-col items-center justify-center text-center"></div>
         </div>
 
-        <nav class="fixed bottom-0 w-full bg-slate-800/80 backdrop-blur-xl border-t border-slate-700 flex justify-around py-5">
-            <button onclick="switchTab('game')" id="tab-game" class="active-tab flex flex-col items-center gap-1">
-                <span class="text-[10px] font-bold uppercase tracking-tighter">O'yin</span>
-            </button>
-            <button onclick="switchTab('rating')" id="tab-rating" class="flex flex-col items-center gap-1 text-slate-500">
-                <span class="text-[10px] font-bold uppercase tracking-tighter">Reyting</span>
-            </button>
-            <button onclick="switchTab('settings')" id="tab-settings" class="flex flex-col items-center gap-1 text-slate-500">
-                <span class="text-[10px] font-bold uppercase tracking-tighter">Sozlamalar</span>
-            </button>
+        <nav class="fixed bottom-0 w-full bg-slate-800/80 backdrop-blur-md border-t border-slate-700 flex justify-around py-4">
+            <button onclick="switchTab('game')" id="tab-game" class="active-tab flex flex-col items-center"><span class="text-[10px] font-bold uppercase">O'yin</span></button>
+            <button onclick="switchTab('rating')" id="tab-rating" class="flex flex-col items-center text-slate-500"><span class="text-[10px] font-bold uppercase">Reyting</span></button>
+            <button onclick="switchTab('settings')" id="tab-settings" class="flex flex-col items-center text-slate-500"><span class="text-[10px] font-bold uppercase">Sozlamalar</span></button>
         </nav>
     </div>
 
@@ -98,18 +86,15 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let userData = { id: tg.initDataUnsafe?.user?.id || "dev_" + Math.random().toString(36).substr(2, 5), fullName: "", totalScore: 0 };
+        let userData = { id: tg.initDataUnsafe?.user?.id || "dev_user", fullName: "", totalScore: 0 };
         let allQuestions = { math: [], iq: [] };
-        let currentPhase = 1;
-        let currentQuestionIdx = 0;
-        let phaseScore = 0;
-        let timerInterval;
-        let timeLeft = 60; // Umumiy vaqt
+        let currentPhase = 1, currentQuestionIdx = 0, phaseScore = 0;
+        let timerInterval, timeLeft = 60; //
 
         window.register = () => {
-            const f = document.getElementById('fname').value.trim();
-            const l = document.getElementById('lname').value.trim();
-            if(!f || !l) return tg.showAlert("Ism va familiyangizni kiriting!");
+            const f = document.getElementById('fname').value;
+            const l = document.getElementById('lname').value;
+            if(!f || !l) return tg.showAlert("Ma'lumotlarni to'ldiring!");
             userData.fullName = `${f} ${l}`;
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('intro-screen').classList.remove('hidden');
@@ -122,23 +107,16 @@
         };
 
         async function loadQuestions() {
-            try {
-                const snapshot = await get(ref(db, 'questions'));
-                if (snapshot.exists()) {
-                    allQuestions.math = snapshot.val().math_ninja.list;
-                    allQuestions.iq = snapshot.val().iq_test.list;
-                }
-            } catch (e) { console.error("Xato:", e); }
+            const snapshot = await get(ref(db, 'questions'));
+            if (snapshot.exists()) {
+                allQuestions.math = snapshot.val().math_ninja.list;
+                allQuestions.iq = snapshot.val().iq_test.list;
+            }
         }
 
         window.startTournament = () => {
-            if(!allQuestions.math.length) return tg.showAlert("Savollar yuklanmoqda, kutib turing...");
-            currentPhase = 1;
-            phaseScore = 0;
-            currentQuestionIdx = 0;
-            timeLeft = 60;
+            currentPhase = 1; phaseScore = 0; currentQuestionIdx = 0; timeLeft = 60;
             document.getElementById('game-overlay').classList.remove('hidden');
-            document.getElementById('game-timer').innerText = timeLeft;
             startTimer();
             runPhase1();
         };
@@ -148,121 +126,63 @@
             timerInterval = setInterval(() => {
                 timeLeft--;
                 document.getElementById('game-timer').innerText = timeLeft;
-                if(timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    finishTournament();
-                }
+                if(timeLeft <= 0) finishTournament();
             }, 1000);
         }
 
         function runPhase1() {
-            document.getElementById('phase-name').innerText = "1-Bosqich: Color Rush";
-            if(currentQuestionIdx >= 10) {
-                currentQuestionIdx = 0;
-                currentPhase = 2;
-                return runPhase2();
-            }
-
-            const colors = [
-                {n: "QIZIL", c: "#ef4444"}, {n: "KO'K", c: "#3b82f6"}, 
-                {n: "YASHIL", c: "#22c55e"}, {n: "SARIQ", c: "#eab308"}
-            ];
+            document.getElementById('phase-name').innerText = "1-bosqich: Color Rush";
+            if(currentQuestionIdx >= 10) { currentQuestionIdx = 0; currentPhase = 2; return runPhase2(); }
+            const colors = [{n: "QIZIL", c: "#ef4444"}, {n: "KO'K", c: "#3b82f6"}, {n: "YASHIL", c: "#22c55e"}, {n: "SARIQ", c: "#eab308"}];
             const target = colors[Math.floor(Math.random()*colors.length)];
             const displayColor = colors[Math.floor(Math.random()*colors.length)];
-
             document.getElementById('game-container').innerHTML = `
-                <h1 class="text-6xl font-black mb-12 tracking-tighter" style="color: ${displayColor.c}">${target.n}</h1>
-                <p class="mb-10 text-slate-400 font-medium">Yozuv qaysi rangda?</p>
-                <div class="grid grid-cols-2 gap-4 w-full px-4">
-                    ${colors.map(col => `<button onclick="checkColor('${col.c}', '${displayColor.c}')" class="h-24 rounded-3xl active:scale-90 transition shadow-lg" style="background: ${col.c}"></button>`).join('')}
-                </div>
-            `;
+                <h1 class="text-5xl font-black mb-12" style="color: ${displayColor.c}">${target.n}</h1>
+                <div class="grid grid-cols-2 gap-4 w-full px-4">${colors.map(col => `<button onclick="checkColor('${col.c}', '${displayColor.c}')" class="h-20 rounded-2xl shadow-lg" style="background: ${col.c}"></button>`).join('')}</div>`;
         }
 
-        window.checkColor = (picked, actual) => {
-            if(picked === actual) phaseScore += 10;
-            currentQuestionIdx++;
-            runPhase1();
-        };
+        window.checkColor = (p, a) => { if(p === a) phaseScore += 10; currentQuestionIdx++; runPhase1(); };
 
         function runPhase2() {
-            document.getElementById('phase-name').innerText = "2-Bosqich: Math Ninja";
-            if(currentQuestionIdx >= 10) {
-                currentQuestionIdx = 0;
-                currentPhase = 3;
-                return runPhase3();
-            }
+            document.getElementById('phase-name').innerText = "2-bosqich: Math Ninja";
+            if(currentQuestionIdx >= 10) { currentQuestionIdx = 0; currentPhase = 3; return runPhase3(); }
             renderQuiz(allQuestions.math[currentQuestionIdx], 'math');
         }
 
         function runPhase3() {
-            document.getElementById('phase-name').innerText = "3-Bosqich: IQ Test";
+            document.getElementById('phase-name').innerText = "3-bosqich: IQ Test";
             if(currentQuestionIdx >= 10) return finishTournament();
             renderQuiz(allQuestions.iq[currentQuestionIdx], 'iq');
         }
 
         function renderQuiz(q, type) {
             document.getElementById('game-container').innerHTML = `
-                <div class="bg-slate-800/50 p-8 rounded-3xl border border-slate-700 w-full mb-10 shadow-xl">
-                    <h2 class="text-2xl font-bold leading-tight">${q.q}</h2>
-                </div>
-                <div class="grid grid-cols-1 gap-4 w-full px-4">
-                    ${q.a.map((opt, i) => `
-                        <button onclick="checkQuiz(${i}, ${q.c}, '${type}')" class="p-5 bg-slate-800 hover:bg-slate-750 active:bg-slate-700 rounded-2xl border border-slate-700 text-left transition font-semibold text-slate-200">
-                            ${opt}
-                        </button>
-                    `).join('')}
-                </div>
-            `;
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full mb-8"><h2 class="text-xl font-bold">${q.q}</h2></div>
+                <div class="grid grid-cols-1 gap-3 w-full px-4">${q.a.map((opt, i) => `<button onclick="checkQuiz(${i}, ${q.c}, '${type}')" class="p-4 bg-slate-800 rounded-xl border border-slate-700 text-left active:bg-slate-700">${opt}</button>`).join('')}</div>`;
         }
 
-        window.checkQuiz = (picked, correct, type) => {
-            if(picked === correct) phaseScore += 10;
-            currentQuestionIdx++;
-            if(type === 'math') runPhase2(); else runPhase3();
-        };
+        window.checkQuiz = (p, c, t) => { if(p === c) phaseScore += 10; currentQuestionIdx++; if(t === 'math') runPhase2(); else runPhase3(); };
 
         async function finishTournament() {
-            clearInterval(timerInterval);
-            document.getElementById('game-overlay').classList.add('hidden');
-            tg.showConfirm(`O'yin tugadi! Ballingiz: ${phaseScore}. Saqlashni xohlaysizmi?`, async (ok) => {
-                if(ok) {
-                    await set(ref(db, 'results/' + userData.id), {
-                        fullName: userData.fullName,
-                        totalScore: phaseScore,
-                        timestamp: Date.now()
-                    });
-                    tg.showAlert("Natijangiz saqlandi!");
-                    switchTab('rating');
-                }
-            });
+            clearInterval(timerInterval); //
+            const cont = document.getElementById('game-container');
+            cont.innerHTML = `<div class="flex flex-col items-center"><div class="w-12 h-12 border-4 border-yellow-500 loader rounded-full mb-4"></div><h2 class="text-xl font-bold">Saqlanmoqda...</h2><p class="text-yellow-500 text-3xl font-black mt-2">${phaseScore} BALL</p></div>`;
+            try {
+                await set(ref(db, 'results/' + userData.id), { fullName: userData.fullName, totalScore: phaseScore, timestamp: Date.now() }); //
+                setTimeout(() => { document.getElementById('game-overlay').classList.add('hidden'); switchTab('rating'); }, 1500); //
+            } catch (e) { tg.showAlert("Xato!"); document.getElementById('game-overlay').classList.add('hidden'); }
         }
 
         window.switchTab = async (tab) => {
-            ['game', 'rating', 'settings'].forEach(t => {
-                document.getElementById(`page-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).classList.add('text-slate-500');
-                document.getElementById(`tab-${t}`).classList.remove('active-tab', 'text-white');
-            });
-            document.getElementById(`page-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).classList.add('active-tab', 'text-white');
-            
+            ['game', 'rating', 'settings'].forEach(t => { document.getElementById(`page-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).classList.remove('active-tab', 'text-white'); document.getElementById(`tab-${t}`).classList.add('text-slate-500'); });
+            document.getElementById(`page-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).classList.add('active-tab', 'text-white');
             if(tab === 'rating') {
-                const list = document.getElementById('rating-list');
-                list.innerHTML = `<p class='text-center text-slate-500 py-10 animate-pulse'>Yuklanmoqda...</p>`;
+                const list = document.getElementById('rating-list'); list.innerHTML = "Yuklanmoqda...";
                 const snap = await get(ref(db, 'results'));
                 if(snap.exists()){
                     const sorted = Object.values(snap.val()).sort((a,b) => b.totalScore - a.totalScore).slice(0, 10);
-                    list.innerHTML = sorted.map((u, i) => `
-                        <div class="flex justify-between items-center p-5 bg-slate-800 rounded-2xl border border-slate-700 shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <span class="text-lg font-black text-slate-600">${i+1}</span>
-                                <span class="font-bold text-slate-200">${u.fullName}</span>
-                            </div>
-                            <span class="text-yellow-500 font-black">${u.totalScore}</span>
-                        </div>
-                    `).join('');
-                } else { list.innerHTML = `<p class='text-center text-slate-500 py-10'>Hali natijalar yo'q.</p>`; }
+                    list.innerHTML = sorted.map((u, i) => `<div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700"><span>${i+1}. ${u.fullName}</span><span class="text-yellow-500 font-bold">${u.totalScore}</span></div>`).join('');
+                } else { list.innerHTML = "Hozircha bo'sh."; }
             }
         };
     </script>
