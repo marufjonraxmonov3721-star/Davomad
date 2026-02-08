@@ -48,7 +48,6 @@
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
-        /* Profil Stili */
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
         .p-info { color: #fff; font-size: 18px; margin: 10px 0; font-weight: bold; }
         .p-sub { color: #888; font-size: 14px; margin-bottom: 20px; }
@@ -73,12 +72,10 @@
     <div id="auth">
         <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Brain Pro</h1>
         <p style="color:#888; margin-bottom: 30px;">Zukkolik cho'qqisini zabt eting!</p>
-        
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
         <label style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
         <input type="date" id="reg-birth" class="reg-input">
-        
         <button onclick="login()" class="btn-main">BOSHLASH</button>
     </div>
 
@@ -114,13 +111,11 @@
             <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
             <div id="p-full-name" class="p-info">Ism Familiya</div>
             <div id="p-age-info" class="p-sub">Yoshingiz yuklanmoqda...</div>
-            
             <div style="margin-top:20px;">
                 <div class="p-badge">Daraja: <span id="p-level" class="gold-text">OSON</span></div>
                 <div class="p-badge">Umumiy Ball: <span id="p-points" class="gold-text">0</span></div>
             </div>
-            
-            <div id="p-countdown" style="margin-top:20px; font-size:14px; color:var(--gold);">
+            <div id="p-countdown" style="margin-top:20px; font-size:13px; color:var(--gold); font-family: monospace;">
                 Tug'ilgan kuningizga qolgan vaqt yuklanmoqda...
             </div>
         </div>
@@ -129,13 +124,13 @@
 
 <div class="bottom-nav" id="navbar" style="display:none">
     <div class="nav-link active-link" id="link-game" onclick="navigate('game')">🎮<br>O'yin</div>
-    <div class="nav-link" id="link-rank" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
+    <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
     <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br>Profil</div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -158,6 +153,7 @@
     let currentIdx = 0;
     let correctAnswers = 0; 
     let isLocked = false;
+    let timerInterval = null;
 
     const gameConfig = {
         oson: { qCount: 15, passScore: 10, title: "🟢 OSON", nextLvl: "ortacha" },
@@ -170,8 +166,9 @@
         setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
         const snap = await get(userRef);
         if (snap.exists()) {
-            userLevel = snap.val().level || "oson";
-            if(snap.val().name) {
+            const val = snap.val();
+            userLevel = val.level || "oson";
+            if(val.name) {
                 document.getElementById('reg-name').style.display = 'none';
                 document.getElementById('reg-surname').style.display = 'none';
                 document.getElementById('reg-birth').style.display = 'none';
@@ -187,18 +184,12 @@
             const name = document.getElementById('reg-name').value.trim();
             const surname = document.getElementById('reg-surname').value.trim();
             const birth = document.getElementById('reg-birth').value;
-            
-            if(!name || !surname || !birth) {
-                alert("Ism, familiya va tug'ilgan sanani to'liq kiriting!");
-                return;
-            }
-            
-            await set(userRef, { name: name, surname: surname, birth: birth, level: "oson", totalPoints: 0 });
+            if(!name || !surname || !birth) { alert("Ma'lumotlarni to'liq kiriting!"); return; }
+            await set(userRef, { name, surname, birth, level: "oson", totalPoints: 0 });
             userLevel = "oson";
         } else {
             userLevel = snap.val().level || "oson";
         }
-        
         document.getElementById('auth').classList.remove('active');
         document.getElementById('navbar').style.display = 'flex';
         navigate('game');
@@ -210,15 +201,12 @@
         gameEl.style.opacity = "0";
         document.getElementById('result-screen').classList.remove('active');
         gameEl.classList.add('active');
-        
         const config = gameConfig[userLevel];
         document.getElementById('level-title').innerText = config.title;
         document.getElementById('u-correct').innerText = "0";
-        
-        const qSnap = await get(ref(db, 'brain_questions/' + (userLevel === "juda_qiyin" ? "juda_qiyin" : userLevel)));
+        const qSnap = await get(ref(db, 'brain_questions/' + userLevel));
         const allQ = qSnap.val() || [];
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
-        
         currentIdx = 0;
         correctAnswers = 0;
         setTimeout(() => { gameEl.style.opacity = "1"; showQuestion(); }, 300);
@@ -269,25 +257,28 @@
         document.getElementById('result-score').innerText = `Natija: ${correctAnswers}/${config.qCount}`;
 
         if (isPassed) {
-            document.getElementById('result-status').innerText = "Zafaringiz Muborak! 🏆";
+            document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
             document.getElementById('result-status').style.color = "var(--gold)";
             if (userLevel !== "juda_qiyin") {
                 userLevel = config.nextLvl;
-                await set(ref(db, `brain_users/${uid}/level`), userLevel);
+                await update(userRef, { level: userLevel });
             }
+            document.getElementById('result-msg').innerText = "Bosqich muvaffaqiyatli yakunlandi.";
         } else {
             document.getElementById('result-status').innerText = "Vaqtincha Mag'lubiyat";
             document.getElementById('result-status').style.color = "#888";
+            document.getElementById('result-msg').innerText = `O'tish balli: ${config.passScore}`;
         }
         const snap = await get(userRef);
-        await set(ref(db, `brain_users/${uid}/totalPoints`), (snap.val().totalPoints || 0) + correctAnswers);
+        await update(userRef, { totalPoints: (snap.val().totalPoints || 0) + correctAnswers });
     }
 
     window.navigate = (id) => {
+        if (timerInterval) clearInterval(timerInterval);
         document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        document.getElementById('link-' + (id === 'result-screen' ? 'game' : id)).classList.add('active-link');
+        document.getElementById('link-' + id).classList.add('active-link');
         if (id === 'leaderboard') fetchRank();
         if (id === 'profile') loadProfile();
     };
@@ -296,26 +287,32 @@
         const snap = await get(userRef);
         const data = snap.val();
         if(!data) return;
-
         document.getElementById('p-img').src = tg.initDataUnsafe?.user?.photo_url || "";
         document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
         document.getElementById('p-level').innerText = data.level.toUpperCase();
         document.getElementById('p-points').innerText = data.totalPoints;
 
-        // Tug'ilgan kun hisobi
         const bDay = new Date(data.birth);
-        const today = new Date();
-        let age = today.getFullYear() - bDay.getFullYear();
-        const m = today.getMonth() - bDay.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < bDay.getDate())) age--;
-        
-        document.getElementById('p-age-info').innerText = `${age} yosh`;
+        const updateTimer = () => {
+            const now = new Date();
+            let age = now.getFullYear() - bDay.getFullYear();
+            if (now.getMonth() < bDay.getMonth() || (now.getMonth() == bDay.getMonth() && now.getDate() < bDay.getDate())) age--;
+            document.getElementById('p-age-info').innerText = `${age} yosh`;
 
-        const nextBirth = new Date(today.getFullYear(), bDay.getMonth(), bDay.getDate());
-        if (today > nextBirth) nextBirth.setFullYear(today.getFullYear() + 1);
-        const diff = Math.ceil((nextBirth - today) / (1000 * 60 * 60 * 24));
-        
-        document.getElementById('p-countdown').innerText = diff === 0 || diff === 365 ? "Bugun tug'ilgan kuningiz! 🎉" : `Tug'ilgan kuningizga ${diff} kun qoldi.`;
+            let nextBirth = new Date(now.getFullYear(), bDay.getMonth(), bDay.getDate());
+            if (now > nextBirth) nextBirth.setFullYear(now.getFullYear() + 1);
+            
+            const diff = nextBirth - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const mins = Math.floor((diff / (1000 * 60)) % 60);
+            const secs = Math.floor((diff / 1000) % 60);
+            const ms = Math.floor(diff % 1000);
+            
+            document.getElementById('p-countdown').innerText = `Tug'ilgan kuningizga: ${days} kun, ${hours} soat, ${mins} daqiqa, ${secs}.${ms} s`;
+        };
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 50);
     }
 
     async function fetchRank() {
