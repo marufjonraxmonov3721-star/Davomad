@@ -44,6 +44,9 @@
         #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: linear; }
         
         #receipt-preview { width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; display: none; border-radius: 10px; border: 1px solid var(--gold); }
+
+        .announcement-banner { background: var(--gold); color: #000; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; display: none; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -54,6 +57,8 @@
 </div>
 
 <div class="container">
+    <div id="tour-announcement" class="announcement-banner"></div>
+
     <div id="auth">
         <h1 id="app-title-auth" style="font-size: 40px;">Aql Jangi</h1>
         <p id="app-slogan-auth" style="color: #888;">Turnirda ishtirok eting!</p>
@@ -178,6 +183,7 @@
             payInfo: "Turnirda qatnashish uchun 5 000 so'm to'lov qiling.", payPrice: "💰 Kirish: <b>5 000 so'm</b>", payCard: "💳 Karta:", payOwner: "👤 Ega:",
             resFinish: "RAUND TUGADI!", resScore: "To'g'ri javoblar:", qLabel: "Savol:", logout: "TIZIMDAN CHIQISH",
             receiptLab: "To'lov chekini yuklang:", chooseFile: "RASM TANLASH",
+            tourStartMsg: "Ertaga turnir 20:00 da start!",
             ob: [
                 { t: "Xush kelibsiz!", d: "Aql Jangi — bu mantiqiy savollar orqali bilimingizni sinaydigan turnir ilovasi." },
                 { t: "Turnir Sovrinlari", d: "Turnirda jami 30 ta joy mavjud.\n\n🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm" },
@@ -193,6 +199,7 @@
             payInfo: "Турнирда қатнашиш учун 5 000 сўм тўлов қилинг.", payPrice: "💰 Кириш: <b>5 000 сўм</b>", payCard: "💳 Карта:", payOwner: "👤 Эга:",
             resFinish: "РАУНД ТУГАДИ!", resScore: "Тўғри жавоблар:", qLabel: "Савол:", logout: "ТИЗИМДАН ЧИҚИШ",
             receiptLab: "Тўлов чекини юкланг:", chooseFile: "РАСМ ТАНЛАШ",
+            tourStartMsg: "Эртага турнир 20:00 да старт!",
             ob: [
                 { t: "Хуш келибсиз!", d: "Ақл Жанги — бу мантиқий саволлар орқали билимингизни синайдиган турнир иловаси." },
                 { t: "Турнир Совринлари", d: "Турнирда жами 30 та жой мавжуд.\n\n🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм" },
@@ -237,6 +244,25 @@
         }
     };
 
+    // Odamlar sonini tekshirish
+    async function checkParticipantsCount() {
+        const snap = await get(ref(db, 'brain_users'));
+        if (snap.exists()) {
+            let activeCount = 0;
+            snap.forEach(child => {
+                if (child.val().tourStatus === 'active') activeCount++;
+            });
+            
+            const banner = document.getElementById('tour-announcement');
+            if (activeCount >= 30) {
+                banner.innerText = texts[userData?.lang || 'uz'].tourStartMsg;
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+    }
+
     window.previewReceipt = (input) => {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -259,6 +285,7 @@
             if(userData.name) {
                 document.getElementById('navbar').style.display = 'flex';
                 navigate('tournament');
+                checkParticipantsCount();
             } else { showScreen('auth'); }
         } else { 
             window.updateUI('uz');
@@ -332,6 +359,7 @@
             uploadBox.style.display = "none";
             btnStart.style.display = "block";
         }
+        checkParticipantsCount();
     }
 
     window.startTurnir = async () => {
@@ -340,13 +368,10 @@
         if(userData.tourStatus !== "active") return alert("Ruxsat yo'q!");
 
         currentLevel = userData.currentLevel || "oson";
-        
-        // Bazadan savollarni tanlangan til va bosqich bo'yicha yuklash
         const qSnap = await get(ref(db, `brain_questions/${userData.lang}/${currentLevel}`));
         if(!qSnap.exists()) return alert("Savollar topilmadi!");
         
         currentQuestions = qSnap.val().sort(() => 0.5 - Math.random()).slice(0, 10);
-        
         if(currentQuestions.length < 10) return alert("Savollar yetarli emas!");
         
         qIndex = 0; score = 0;
@@ -420,7 +445,6 @@
         }
         
         await update(userRef, { currentLevel: currentLevel });
-        // Keyingi darajaga o'tganda userData-ni yangilab, turnirni yangi bosqichdan boshlaymiz
         const snap = await get(userRef);
         userData = snap.val();
         startTurnir();
