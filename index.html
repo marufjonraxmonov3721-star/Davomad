@@ -3,332 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aql Jangi | Maruf Raxmonov</title>
+    <title>Aql Jangi | Labirint Turniri</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { 
-            --gold: #FFD700; 
-            --gold-dark: #B8860B; 
-            --bg: #000000; 
-            --card: #0a0a0a; 
-            --text: #FFD700;
-            --green: #28a745; 
-            --red: #ff3b3b; 
-        }
-        
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; transition: 0.3s; }
-        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
-        
-        #auth, #onboarding, #tournament, #game, #leaderboard, #profile, #settings, #result-screen { display: none; text-align: center; }
-        .active { display: block !important; animation: fadeIn 0.6s ease-in-out; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotate 1s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
+        :root { --gold: #FFD700; --gold-dark: #B8860B; --bg: #000000; --card: #0a0a0a; --text: #FFD700; --green: #28a745; --red: #ff3b3b; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow: hidden; user-select: none; }
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; height: 100vh; box-sizing: border-box; }
+        #auth, #onboarding, #tournament, #game, #leaderboard, #settings, #result-screen { display: none; text-align: center; height: 100%; }
+        .active { display: flex !important; flex-direction: column; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: #000; color: #fff; font-size: 16px; box-sizing: border-box; }
-        .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
-        
-        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 200px; margin-bottom: 20px; }
-        .option-btn { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; margin-bottom: 10px; color: #fff; }
-        .correct { background: var(--green) !important; color: #fff; }
-        .wrong { background: var(--red) !important; color: #fff; }
-
+        .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; cursor: pointer; text-transform: uppercase; }
+        .quiz-card { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 15px; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-link { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: var(--gold); flex: 1; text-decoration: none; }
+        .nav-link { font-size: 11px; opacity: 0.5; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
         .nav-link.active-link { opacity: 1; font-weight: bold; }
 
-        .timer-bar-container { background: #222; height: 5px; border-radius: 3px; margin: 15px 0; overflow: hidden; }
-        #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: linear; }
-        
-        #receipt-preview { width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; display: none; border-radius: 10px; border: 1px solid var(--gold); }
+        /* Labirint Dizayni */
+        #maze-container { display: grid; margin: 10px auto; background: #111; border: 2px solid var(--gold); gap: 2px; padding: 2px; user-select: none; touch-action: none; }
+        .cell { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .wall { background: #333; }
+        .player { background: var(--gold-dark); border-radius: 50%; }
+        .finish { background: var(--green); }
 
-        .announcement-banner { background: var(--gold); color: #000; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; display: none; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        
-        #participant-counter { margin: 15px 0; padding: 15px; background: #111; border-radius: 15px; border: 1px solid #222; font-size: 16px; color: #fff; display: none; }
-        .count-highlight { color: var(--gold); font-size: 22px; font-weight: 900; display: block; margin-top: 5px; }
+        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 180px; margin: 20px auto; }
+        .ctrl-btn { background: #222; border: 1px solid var(--gold); color: var(--gold); padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="loader">
-    <div class="spinner"></div>
-    <p style="margin-top: 15px; font-weight: bold; letter-spacing: 3px;">AQL JANGI</p>
+<div id="loader" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div style="width:50px; height:50px; border:5px solid #111; border-top:5px solid var(--gold); border-radius:50%; animation:rotate 1s linear infinite;"></div>
+    <p style="color:var(--gold); margin-top:15px; letter-spacing:2px;">AQL JANGI</p>
 </div>
 
 <div class="container">
-    <div id="tour-announcement" class="announcement-banner"></div>
-
     <div id="auth">
-        <h1 id="app-title-auth" style="font-size: 40px;">Aql Jangi</h1>
-        <p id="app-slogan-auth" style="color: #888;">Turnirda ishtirok eting!</p>
+        <h1>Aql Jangi</h1>
+        <p>Labirint Turniriga xush kelibsiz!</p>
         <select id="reg-lang" class="reg-input" onchange="window.updateUI(this.value)">
             <option value="uz">O'zbekcha 🇺🇿</option>
             <option value="uz_cyr">Ўзбекча 🇺🇿</option>
         </select>
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
-        <button class="btn-main" id="btn-reg-text" onclick="register()">DAVOM ETISH</button>
+        <button class="btn-main" onclick="register()">DAVOM ETISH</button>
     </div>
 
     <div id="onboarding">
-        <div class="quiz-card" id="ob-card">
-            <h2 id="ob-title" style="color: var(--gold);"></h2>
-            <p id="ob-desc" style="line-height: 1.6; color: #fff; white-space: pre-line;"></p>
-            <button class="btn-main" id="ob-next-btn" onclick="nextObStep()">KEYINGISI</button>
+        <div class="quiz-card">
+            <h2 id="ob-title"></h2>
+            <p id="ob-desc"></p>
+            <button class="btn-main" onclick="nextObStep()">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="tournament">
         <h2 id="tour-title-text">Turnir Markazi</h2>
-        <div class="quiz-card" id="tour-box">
-            <p id="tour-status-msg">Turnirda qatnashish uchun 5 000 so'm to'lov qiling.</p>
-            
-            <div id="participant-counter">
-                <span id="txt-p-label">Ishtirokchilar soni:</span>
-                <span id="p-count" class="count-highlight">0 / 30</span>
+        <div class="quiz-card">
+            <p id="tour-status-msg"></p>
+            <div id="participant-counter" style="margin:10px 0; font-weight:bold;">Ishtirokchilar: <span id="p-count">0</span> / 30</div>
+            <div id="payment-details" style="background:#111; padding:10px; border-radius:10px; border:1px dashed var(--gold); text-align:left; font-size:14px;">
+                <p>💰 Kirish: 5 000 so'm | 👤 Maruf Raxmonov</p>
+                <p>💳 Karta: 4073 4200 6816 5541</p>
             </div>
-
-            <div id="payment-details" style="background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); margin:15px 0; text-align:left;">
-                <p id="pay-price">💰 Kirish: <b>5 000 so'm</b></p>
-                <p id="pay-card">💳 Karta: <b style="color:#fff;">4073 4200 6816 5541</b></p>
-                <p id="pay-owner">👤 Ega: <b>Maruf Raxmonov</b></p>
-            </div>
-            
-            <div id="receipt-upload-section" style="margin-top: 15px;">
-                <label id="receipt-label" style="display:block; margin-bottom:10px; font-size:14px; color:#888;">To'lov chekini yuklang:</label>
-                <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="previewReceipt(this)">
-                <button class="btn-main" style="background:#222; color:var(--gold); border:1px solid var(--gold-dark);" onclick="document.getElementById('receipt-input').click()" id="btn-choose-file">RASM TANLASH</button>
-                <img id="receipt-preview">
-            </div>
-
+            <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="previewReceipt(this)">
+            <button class="btn-main" style="margin:10px 0; font-size:12px;" onclick="document.getElementById('receipt-input').click()">CHEKNI YUKLASH</button>
             <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
             <button class="btn-main" id="btn-start" style="display:none; background:var(--green);" onclick="startTurnir()">TURNIRNI BOSHLASH</button>
         </div>
     </div>
 
     <div id="game">
-        <div class="level-header">
-            <h3 id="current-level-name" style="margin:0;">OSON</h3>
-            <p id="q-counter-label">Savol: <span id="q-idx">1</span>/10</p>
-            <div class="timer-bar-container"><div id="timer-bar"></div></div>
-        </div>
-        <div class="quiz-card">
-            <h3 id="q-text" style="color:#fff;">Savol yuklanmoqda...</h3>
-            <div id="options" class="options-grid"></div>
+        <div class="quiz-card" style="padding:10px;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                <span id="current-lvl-display">OSON</span>
+                <span>Vaqt: <span id="game-timer">0.0</span>s</span>
+                <span><span id="q-idx">1</span>/10</span>
+            </div>
+            <div id="maze-container"></div>
+            <div class="controls">
+                <div></div><button class="ctrl-btn" onclick="move('up')">▲</button><div></div>
+                <button class="ctrl-btn" onclick="move('left')">◀</button>
+                <button class="ctrl-btn" onclick="move('down')">▼</button>
+                <button class="ctrl-btn" onclick="move('right')">▶</button>
+            </div>
         </div>
     </div>
 
     <div id="result-screen">
         <div class="quiz-card">
-            <h2 id="res-finished-text">RAUND TUGADI!</h2>
-            <p style="font-size: 24px;"><span id="res-score-label">To'g'ri javoblar:</span> <b id="final-score">0</b>/10</p>
-            <button class="btn-main" id="res-btn" onclick="checkNextLevel()">DAVOM ETISH</button>
+            <h2 id="res-finished-text">BOSQICH YAKUNLANDI!</h2>
+            <p>Sizning vaqtingiz: <b id="final-score">0</b>s</p>
+            <button class="btn-main" onclick="checkNextLevel()">KEYINGI BOSQICH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 id="rank-title-text">🏆 REYTING</h2>
-        <div id="rank-list" class="quiz-card" style="padding:10px;"></div>
-    </div>
-
-    <div id="settings">
-        <h2 id="set-title-text">⚙️ SOZLAMALAR</h2>
-        <div class="quiz-card">
-            <p id="set-user-info"></p>
-            <select id="set-lang" class="reg-input" onchange="changeLang(this.value)">
-                <option value="uz">O'zbekcha</option>
-                <option value="uz_cyr">Ўзбекча</option>
-            </select>
-            <button class="btn-main" id="btn-logout-text" style="background:var(--red); color:#fff;" onclick="logout()">TIZIMDAN CHIQISH</button>
-        </div>
+        <h2 id="rank-title-text">🏆 REYTING (Eng tezlar)</h2>
+        <div id="rank-list" class="quiz-card" style="padding:5px;"></div>
     </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
     <div class="nav-link" id="nav-tour" onclick="navigate('tournament')">⚔️<br><span id="nav-tour-text">Turnir</span></div>
     <div class="nav-link" id="nav-rank" onclick="navigate('leaderboard')">🏆<br><span id="nav-rank-text">Reyting</span></div>
-    <div class="nav-link" id="nav-set" onclick="navigate('settings')">⚙️<br><span id="nav-set-text">Sozlamalar</span></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-        authDomain: "gen-lang-client-0228947349.firebaseapp.com",
-        databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-        projectId: "gen-lang-client-0228947349",
-        appId: "1:253793341504:web:709752258000dab44fcfa5"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI", authDomain: "gen-lang-client-0228947349.firebaseapp.com", databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com", projectId: "gen-lang-client-0228947349", appId: "1:253793341504:web:709752258000dab44fcfa5" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
+    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf_lab";
     const userRef = ref(db, 'brain_users/' + uid);
 
     let userData = null;
-    let currentQuestions = [];
-    let qIndex = 0;
-    let score = 0;
-    let currentLevel = "oson";
-    let timer = null;
-    let obStep = 0;
+    let maze = [], playerPos = {x:0, y:0}, finishPos = {x:0, y:0}, size = 5;
+    let startTime, timerInterval, totalTime = 0, currentIdx = 0, level = "oson";
     let receiptBase64 = null;
+    let obStep = 0;
 
     const texts = {
-        uz: {
-            appTitle: "Aql Jangi", slogan: "Turnirda ishtirok eting!",
-            tour: "Turnir", rank: "Reyting", set: "Sozlamalar",
-            regBtn: "DAVOM ETISH", namePh: "Ismingiz", surnamePh: "Familiyangiz",
-            obNext: "KEYINGISI", tourTitle: "Turnir Markazi", payBtn: "TO'LOV QILDIM", startBtn: "TURNIRNI BOSHLASH",
-            payInfo: "Turnirda qatnashish uchun 5 000 so'm to'lov qiling.", payPrice: "💰 Kirish: <b>5 000 so'm</b>", payCard: "💳 Karta:", payOwner: "👤 Ega:",
-            resFinish: "RAUND TUGADI!", resScore: "To'g'ri javoblar:", qLabel: "Savol:", logout: "TIZIMDAN CHIQISH",
-            receiptLab: "To'lov chekini yuklang:", chooseFile: "RASM TANLASH",
-            tourStartMsg: "Ertaga turnir 20:00 da start!", pLabel: "Ishtirokchilar soni:",
-            ob: [
-                { t: "Xush kelibsiz!", d: "Aql Jangi — bu mantiqiy savollar orqali bilimingizni sinaydigan turnir ilovasi." },
-                { t: "Turnir Sovrinlari", d: "Turnirda jami 30 ta joy mavjud.\n\n🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm" },
-                { t: "Qatnashish Sharti", d: "Turnirda qatnashish narxi 5 000 so'm. To'lov tasdiqlangach, 30 ta joy to'lgach start beriladi." }
-            ],
-            wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! Jami 30 ta ishtirokchi to'lishini kuting."
-        },
-        uz_cyr: {
-            appTitle: "Ақл Жанги", slogan: "Турнирда иштирок этинг!",
-            tour: "Турнир", rank: "Рейтинг", set: "Созламалар",
-            regBtn: "ДАВОМ ЭТИШ", namePh: "Исмингиз", surnamePh: "Фамилиянгиз",
-            obNext: "КЕЙИНГИСИ", tourTitle: "Турнир Маркази", payBtn: "ТЎЛОВ ҚИЛДИМ", startBtn: "ТУРНИРНИ БОШЛАШ",
-            payInfo: "Турнирда қатнашиш учун 5 000 сўм тўлов қилинг.", payPrice: "💰 Кириш: <b>5 000 сўм</b>", payCard: "💳 Карта:", payOwner: "👤 Эга:",
-            resFinish: "РАУНД ТУГАДИ!", resScore: "Тўғри жавоблар:", qLabel: "Савол:", logout: "ТИЗИМДАН ЧИҚИШ",
-            receiptLab: "Тўлов чекини юкланг:", chooseFile: "РАСМ ТАНЛАШ",
-            tourStartMsg: "Эртага турнир 20:00 да старт!", pLabel: "Иштирокчилар сони:",
-            ob: [
-                { t: "Хуш келибсиз!", d: "Ақл Жанги — бу мантиқий саволлар орқали билимингизни синайдиган турнир иловаси." },
-                { t: "Турнир Совринлари", d: "Турнирда жами 30 та жой мавжуд.\n\n🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм" },
-                { t: "Қатнашиш Шарти", d: "Турнирда қатнашиш нархи 5 000 сўм. Тўлов тасдиқлангач, 30 та жой тўлгач старт берилади." }
-            ],
-            wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! Жами 30 та иштирокчи тўлишини кутинг."
-        }
-    };
-
-    window.updateUI = (lang) => {
-        const t = texts[lang];
-        if(!t) return;
-        document.getElementById('app-title-auth').innerText = t.appTitle;
-        document.getElementById('app-slogan-auth').innerText = t.slogan;
-        document.getElementById('btn-reg-text').innerText = t.regBtn;
-        document.getElementById('reg-name').placeholder = t.namePh;
-        document.getElementById('reg-surname').placeholder = t.surnamePh;
-        document.getElementById('ob-next-btn').innerText = t.obNext;
-        document.getElementById('tour-title-text').innerText = t.tourTitle;
-        document.getElementById('btn-pay').innerText = t.payBtn;
-        document.getElementById('btn-start').innerText = t.startBtn;
-        document.getElementById('pay-price').innerHTML = t.payPrice;
-        document.getElementById('receipt-label').innerText = t.receiptLab;
-        document.getElementById('btn-choose-file').innerText = t.chooseFile;
-        document.getElementById('pay-card').innerHTML = `${t.payCard} <b style="color:#fff;">4073 4200 6816 5541</b>`;
-        document.getElementById('pay-owner').innerHTML = `${t.payOwner} <b>Maruf Raxmonov</b>`;
-        document.getElementById('res-finished-text').innerText = t.resFinish;
-        document.getElementById('res-score-label').innerText = t.resScore;
-        document.getElementById('q-counter-label').innerHTML = `${t.qLabel} <span id="q-idx">${qIndex + 1}</span>/10`;
-        document.getElementById('rank-title-text').innerText = t.rank;
-        document.getElementById('set-title-text').innerText = t.set;
-        document.getElementById('btn-logout-text').innerText = t.logout;
-        document.getElementById('nav-tour-text').innerText = t.tour;
-        document.getElementById('nav-rank-text').innerText = t.rank;
-        document.getElementById('nav-set-text').innerText = t.set;
-        document.getElementById('txt-p-label').innerText = t.pLabel;
-        
-        if (userData) {
-            const msg = document.getElementById('tour-status-msg');
-            if(userData.tourStatus === "pending") msg.innerText = t.wait;
-            else if(userData.tourStatus === "active") msg.innerText = t.active;
-            else msg.innerText = t.payInfo;
-        }
-    };
-
-    // Ishtirokchilar sonini real vaqtda kuzatish
-    function syncParticipants() {
-        const usersRef = ref(db, 'brain_users');
-        onValue(usersRef, (snapshot) => {
-            let activeCount = 0;
-            snapshot.forEach((child) => {
-                if (child.val().tourStatus === 'active') activeCount++;
-            });
-
-            const counterDiv = document.getElementById('participant-counter');
-            const countSpan = document.getElementById('p-count');
-            const banner = document.getElementById('tour-announcement');
-            const btnStart = document.getElementById('btn-start');
-            const msg = document.getElementById('tour-status-msg');
-
-            // To'lov tasdiqlangan bo'lsa hisoblagichni ko'rsatish
-            if (userData && userData.tourStatus === 'active') {
-                counterDiv.style.display = 'block';
-                countSpan.innerText = activeCount + " / 30";
-
-                if (activeCount >= 30) {
-                    btnStart.style.display = 'block';
-                    msg.style.display = 'none';
-                    banner.innerText = texts[userData.lang].tourStartMsg;
-                    banner.style.display = 'block';
-                } else {
-                    btnStart.style.display = 'none';
-                    msg.style.display = 'block';
-                    banner.style.display = 'none';
-                }
-            } else {
-                counterDiv.style.display = 'none';
-            }
-        });
-    }
-
-    window.previewReceipt = (input) => {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                receiptBase64 = e.target.result;
-                const img = document.getElementById('receipt-preview');
-                img.src = receiptBase64;
-                img.style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
-
-    window.onload = async () => {
-        const snap = await get(userRef);
-        document.getElementById('loader').style.display = 'none';
-        if (snap.exists()) {
-            userData = snap.val();
-            window.updateUI(userData.lang);
-            if(userData.name) {
-                document.getElementById('navbar').style.display = 'flex';
-                navigate('tournament');
-                syncParticipants();
-            } else { showScreen('auth'); }
-        } else { 
-            window.updateUI('uz');
-            showScreen('auth'); 
-        }
+        uz: { tour: "Turnir", rank: "Reyting", ob: [{ t: "Labirint!", d: "Finishga eng tez yetib borgan g'olib bo'ladi." }, { t: "Sovrinlar", d: "1-o'rin: 80k, 2-o'rin: 50k, 3-o'rin: 20k" }, { t: "Start", d: "30 ta joy to'lgach turnir boshlanadi." }] },
+        uz_cyr: { tour: "Турнир", rank: "Рейтинг", ob: [{ t: "Лабиринт!", d: "Финишга энг тез етиб борган ғолиб бўлади." }, { t: "Совринлар", d: "1-ўрин: 80к, 2-ўрин: 50к, 3-ўрин: 20к" }, { t: "Старт", d: "30 та жой тўлгач турнир бошланади." }] }
     };
 
     window.register = async () => {
-        const name = document.getElementById('reg-name').value;
-        const surname = document.getElementById('reg-surname').value;
-        const lang = document.getElementById('reg-lang').value;
-        if(!name || !surname) return alert("To'ldiring!");
-        
-        userData = { name, surname, lang, tourStatus: "none", totalPoints: 0, currentLevel: "oson" };
+        const name = document.getElementById('reg-name').value, surname = document.getElementById('reg-surname').value, lang = document.getElementById('reg-lang').value;
+        if(!name) return alert("Ismni kiriting!");
+        userData = { name, surname, lang, tourStatus: "none", totalTime: 0, currentLevel: "oson" };
         await set(userRef, userData);
-        window.updateUI(lang);
         showScreen('onboarding');
         showObStep();
     };
@@ -339,191 +149,110 @@
         document.getElementById('ob-desc').innerText = t.d;
     }
 
-    window.nextObStep = () => {
-        if(obStep < 2) { obStep++; showObStep(); }
-        else { 
-            const confirmTxt = userData.lang === 'uz' ? "Shartlarga rozimisiz?" : "Шартларга розимисиз?";
-            if(confirm(confirmTxt)) {
-                document.getElementById('navbar').style.display = 'flex';
-                navigate('tournament');
-                syncParticipants();
-            }
-        }
-    };
+    window.nextObStep = () => { obStep < 2 ? (obStep++, showObStep()) : (document.getElementById('navbar').style.display='flex', navigate('tournament')); };
+
+    window.previewReceipt = (i) => { const r = new FileReader(); r.onload=(e)=>receiptBase64=e.target.result; r.readAsDataURL(i.files[0]); };
 
     window.pay = async () => {
-        if(!receiptBase64) {
-            const errTxt = userData.lang === 'uz' ? "Iltimos, avval to'lov chekini yuklang!" : "Илтимос, аввал тўлов чекини юкланг!";
-            return alert(errTxt);
-        }
-        
-        await update(userRef, { 
-            tourStatus: "pending", 
-            tourAppliedAt: new Date().toISOString(),
-            paymentReceipt: receiptBase64 
-        });
-        
-        const alertTxt = userData.lang === 'uz' ? "To'lov va chek yuborildi. Admin tasdiqlashini kuting." : "Тўлов ва чек юборилди. Админ тасдиқлашини кутинг.";
-        alert(alertTxt);
+        if(!receiptBase64) return alert("Chekni yuklang!");
+        await update(userRef, { tourStatus: "pending", paymentReceipt: receiptBase64 });
+        alert("Yuborildi!");
         loadTourStatus();
     };
 
     async function loadTourStatus() {
-        const snap = await get(userRef);
-        userData = snap.val();
-        window.updateUI(userData.lang);
-        const btnPay = document.getElementById('btn-pay');
-        const payBox = document.getElementById('payment-details');
-        const uploadBox = document.getElementById('receipt-upload-section');
-
-        if(userData.tourStatus === "pending") {
-            btnPay.style.display = "none";
-            payBox.style.display = "none";
-            uploadBox.style.display = "none";
-        } else if(userData.tourStatus === "active") {
-            btnPay.style.display = "none";
-            payBox.style.display = "none";
-            uploadBox.style.display = "none";
-        }
-        syncParticipants();
+        const snap = await get(userRef); userData = snap.val();
+        const msg = document.getElementById('tour-status-msg');
+        onValue(ref(db, 'brain_users'), (s) => {
+            let count = 0; s.forEach(u => u.val().tourStatus === 'active' && count++);
+            document.getElementById('p-count').innerText = count;
+            if(userData.tourStatus === 'active' && count >= 30) document.getElementById('btn-start').style.display='block';
+        });
+        msg.innerText = userData.tourStatus === 'pending' ? "Tasdiq kutilmoqda..." : (userData.tourStatus === 'active' ? "Siz turnirdasiz!" : "To'lov qiling.");
     }
 
-    window.startTurnir = async () => {
-        const snap = await get(userRef);
-        userData = snap.val();
-        if(userData.tourStatus !== "active") return alert("Ruxsat yo'q!");
-
-        currentLevel = userData.currentLevel || "oson";
-        const qSnap = await get(ref(db, `brain_questions/${userData.lang}/${currentLevel}`));
-        if(!qSnap.exists()) return alert("Savollar topilmadi!");
-        
-        currentQuestions = qSnap.val().sort(() => 0.5 - Math.random()).slice(0, 10);
-        if(currentQuestions.length < 10) return alert("Savollar yetarli emas!");
-        
-        qIndex = 0; score = 0;
+    window.startTurnir = () => {
+        level = userData.currentLevel || "oson";
+        size = level === "oson" ? 6 : (level === "ortacha" ? 10 : 14);
+        currentIdx = 0; totalTime = 0;
         showScreen('game');
-        loadQuestion();
+        generateMaze();
     };
 
-    function loadQuestion() {
-        const q = currentQuestions[qIndex];
-        document.getElementById('current-level-name').innerText = currentLevel.toUpperCase();
-        document.getElementById('q-idx').innerText = qIndex + 1;
-        document.getElementById('q-text').innerText = q.q;
-        const optBox = document.getElementById('options');
-        optBox.innerHTML = "";
-        q.a.forEach((a, i) => {
-            const b = document.createElement('div');
-            b.className = "option-btn";
-            b.innerText = a;
-            b.onclick = () => checkAns(i, q.c, b);
-            optBox.appendChild(b);
-        });
-        startTimer();
-    }
-
-    function startTimer() {
-        if(timer) clearInterval(timer);
-        let left = 20;
-        const bar = document.getElementById('timer-bar');
-        bar.style.transition = 'none'; bar.style.width = '100%';
-        setTimeout(() => { bar.style.transition = 'width 20s linear'; bar.style.width = '0%'; }, 50);
-        timer = setInterval(() => {
-            left--;
-            if(left <= 0) { clearInterval(timer); checkAns(-1, 0, null); }
-        }, 1000);
-    }
-
-    function checkAns(idx, correct, el) {
-        clearInterval(timer);
-        const btns = document.querySelectorAll('.option-btn');
-        btns.forEach(b => b.onclick = null);
-
-        if(idx === correct) {
-            if(el) el.classList.add('correct');
-            score++;
-        } else {
-            if(el) el.classList.add('wrong');
-            btns[correct].classList.add('correct');
+    function generateMaze() {
+        maze = Array(size).fill().map(() => Array(size).fill(1)); // 1 is wall
+        const stack = [{x:0, y:0}]; maze[0][0] = 0;
+        while(stack.length) {
+            let curr = stack[stack.length-1], neighbors = [];
+            [{x:0,y:-2},{x:0,y:2},{x:-2,y:0},{x:2,y:0}].forEach(d => {
+                let nx=curr.x+d.x, ny=curr.y+d.y;
+                if(nx>=0 && nx<size && ny>=0 && ny<size && maze[ny][nx]===1) neighbors.push({x:nx, y:ny, dx:d.x/2, dy:d.y/2});
+            });
+            if(neighbors.length) {
+                let next = neighbors[Math.floor(Math.random()*neighbors.length)];
+                maze[curr.y+next.dy][curr.x+next.dx] = 0; maze[next.y][next.x] = 0; stack.push(next);
+            } else stack.pop();
         }
-
-        setTimeout(() => {
-            if(qIndex < 9) { qIndex++; loadQuestion(); }
-            else { finishLevel(); }
-        }, 1200);
+        playerPos = {x:0, y:0}; finishPos = {x:size-1, y:size-1}; maze[size-1][size-1] = 0;
+        drawMaze();
+        startTime = Date.now();
+        timerInterval = setInterval(() => { document.getElementById('game-timer').innerText = ((Date.now()-startTime)/1000).toFixed(1); }, 100);
     }
 
-    async function finishLevel() {
-        showScreen('result-screen');
-        document.getElementById('final-score').innerText = score;
-        const total = (userData.totalPoints || 0) + score;
-        await update(userRef, { totalPoints: total });
+    function drawMaze() {
+        const container = document.getElementById('maze-container');
+        container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+        container.innerHTML = "";
+        for(let y=0; y<size; y++) {
+            for(let x=0; x<size; x++) {
+                const cell = document.createElement('div');
+                cell.className = `cell ${maze[y][x] ? 'wall' : ''}`;
+                if(x===playerPos.x && y===playerPos.y) cell.innerHTML = "😊";
+                if(x===finishPos.x && y===finishPos.y) cell.innerHTML = "🏁";
+                container.appendChild(cell);
+            }
+        }
     }
+
+    window.move = (dir) => {
+        let nx=playerPos.x, ny=playerPos.y;
+        if(dir==='up') ny--; if(dir==='down') ny++; if(dir==='left') nx--; if(dir==='right') nx++;
+        if(nx>=0 && nx<size && ny>=0 && ny<size && maze[ny][nx]===0) {
+            playerPos = {x:nx, y:ny}; drawMaze();
+            if(nx===finishPos.x && ny===finishPos.y) {
+                clearInterval(timerInterval);
+                totalTime += (Date.now()-startTime)/1000;
+                if(currentIdx < 9) { currentIdx++; document.getElementById('q-idx').innerText=currentIdx+1; generateMaze(); }
+                else { showScreen('result-screen'); document.getElementById('final-score').innerText=totalTime.toFixed(1); }
+            }
+        }
+    };
 
     window.checkNextLevel = async () => {
-        if(currentLevel === "oson") { currentLevel = "ortacha"; }
-        else if(currentLevel === "ortacha") { currentLevel = "qiyin"; }
-        else {
-            await update(userRef, { tourStatus: "finished", currentLevel: "oson" });
-            const finishTxt = userData.lang === 'uz' ? "Tabriklaymiz! Turnirni yakunladingiz." : "Табриклаймиз! Турнирни якунладингиз.";
-            alert(finishTxt);
-            return navigate('tournament');
-        }
-        
-        await update(userRef, { currentLevel: currentLevel });
         const snap = await get(userRef);
-        userData = snap.val();
+        let newTotal = (snap.val().totalTime || 0) + totalTime;
+        if(level === "oson") level = "ortacha";
+        else if(level === "ortacha") level = "qiyin";
+        else { level = "oson"; alert("Tabriklaymiz!"); return navigate('tournament'); }
+        await update(userRef, { totalTime: newTotal, currentLevel: level });
         startTurnir();
     };
 
     window.navigate = (id) => {
         document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
-        const navId = 'nav-' + id.substring(0,3);
-        if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-link');
-        
-        if(id === 'tournament') {
-            loadTourStatus();
-            syncParticipants();
-        }
-        if(id === 'leaderboard') fetchRank();
-        if(id === 'settings') loadSettings();
+        if(id==='tournament') loadTourStatus();
+        if(id==='leaderboard') fetchRank();
     };
 
     async function fetchRank() {
         const snap = await get(ref(db, 'brain_users'));
-        let list = [];
-        snap.forEach(c => list.push(c.val()));
-        list.sort((a,b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-        document.getElementById('rank-list').innerHTML = list.slice(0, 10).map((u, i) => `
-            <div class="rank-item">
-                <span><b>${i+1}.</b> ${u.name} ${u.surname}</span>
-                <b>${u.totalPoints || 0}</b>
-            </div>
-        `).join('');
+        let list = []; snap.forEach(u => u.val().totalTime > 0 && list.push(u.val()));
+        list.sort((a,b) => a.totalTime - b.totalTime);
+        document.getElementById('rank-list').innerHTML = list.slice(0,10).map((u, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name}</span><b>${u.totalTime.toFixed(1)}s</b></div>`).join('');
     }
 
-    function loadSettings() {
-        document.getElementById('set-user-info').innerText = `${userData.name} ${userData.surname}`;
-        document.getElementById('set-lang').value = userData.lang;
-    }
-
-    window.changeLang = async (l) => { 
-        userData.lang = l;
-        window.updateUI(l);
-        await update(userRef, { lang: l }); 
-    };
-
-    window.logout = async () => { 
-        const confirmTxt = userData.lang === 'uz' ? "Chiqasizmi?" : "Чиқасизми?";
-        if(confirm(confirmTxt)) { await remove(userRef); location.reload(); } 
-    };
-
-    function showScreen(id) {
-        document.querySelectorAll('.container > div').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
+    window.onload = () => { setTimeout(()=>document.getElementById('loader').style.display='none', 1000); navigate('auth'); };
 </script>
 </body>
 </html>
