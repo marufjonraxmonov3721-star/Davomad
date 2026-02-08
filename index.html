@@ -64,9 +64,9 @@
         .stat-label { color: #888; font-size: 14px; }
         .stat-value { color: var(--gold); font-weight: bold; font-size: 16px; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; }
-        .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--gold); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: #000; flex: 1; }
+        .nav-link.active-link { opacity: 1; color: #000; font-weight: bold; }
         
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; color: var(--text); }
@@ -280,38 +280,48 @@
         } catch (e) { return text; }
     }
 
-    // KIRISH FUNKSIYASINI ALOHIDA QILDIM (FIX)
-    window.checkUserStatus = async () => {
+    // KIRISH FUNKSIYASI TO'LIQ QAYTA YOZILDI (STABLE VERSION)
+    async function checkUserStatus() {
+        const loader = document.getElementById('loader');
         try {
             const snap = await get(userRef);
-            if (snap.exists() && snap.val().name) {
+            const userExists = snap.exists() && snap.val().name;
+
+            if (userExists) {
                 const val = snap.val();
                 userLevel = val.level || "oson";
                 userLang = val.lang || "uz";
                 userTheme = val.theme || "dark";
+                
                 applyLanguage();
                 toggleTheme(userTheme, false);
                 
-                document.getElementById('auth').classList.remove('active');
+                // Auth-ni yashirib, o'yinga o'tish
                 document.getElementById('auth').style.display = 'none';
+                document.getElementById('auth').classList.remove('active');
                 document.getElementById('navbar').style.display = 'flex';
+                
                 navigate('game');
                 startNewRound();
             } else {
+                // Foydalanuvchi yo'q - ro'yxatdan o'tishni ko'rsatish
                 applyLanguage();
+                document.getElementById('auth').style.display = 'block';
                 document.getElementById('auth').classList.add('active');
             }
         } catch (e) {
+            console.error("Firebase Error:", e);
             applyLanguage();
+            document.getElementById('auth').style.display = 'block';
             document.getElementById('auth').classList.add('active');
         } finally {
-            document.getElementById('loader').style.display = 'none';
+            // Har qanday holatda loader-ni o'chirish
+            setTimeout(() => { loader.style.display = 'none'; }, 500);
         }
-    };
+    }
 
-    window.onload = () => {
-        window.checkUserStatus();
-    };
+    // ONLOAD-GA FAQAT BIR MARTA KIRISHNI BERAMIZ
+    window.onload = checkUserStatus;
 
     window.applyLanguage = () => {
         const t = translations[userLang];
@@ -359,7 +369,6 @@
         if(confirm(confirmMsg)) { await remove(userRef); location.reload(); }
     }
 
-    // initiateLogin nomini o'zgartirdim login funksiyasi bilan bir xil bo'lishi uchun
     window.initiateLogin = async () => {
         const name = document.getElementById('reg-name').value.trim();
         const surname = document.getElementById('reg-surname').value.trim();
