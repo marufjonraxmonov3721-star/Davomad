@@ -16,7 +16,6 @@
             --red: #ff3b3b; 
         }
         
-        /* Kunduzgi rejim stili */
         body.light-mode {
             --bg: #ffffff;
             --card: #f5f5f5;
@@ -55,7 +54,7 @@
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
-        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
+        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
         .ob-card { background: var(--card); border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
         .ob-icon { font-size: 60px; margin-bottom: 20px; }
         .ob-title { font-size: 24px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
@@ -106,7 +105,7 @@
     <div id="onboarding" class="ob-screen">
         <div class="ob-card">
             <div id="ob-content"></div>
-            <button onclick="nextObStep()" class="btn-main" id="ob-btn">TUSHUNARLI</button>
+            <button onclick="nextObStep()" class="btn-main" id="ob-btn">DAVOM ETISH</button>
         </div>
     </div>
 
@@ -125,7 +124,7 @@
             <div class="lang-btn" id="lang-ru" onclick="changeLang('ru')">Русский 🇷🇺 <span id="check-ru"></span></div>
             <div class="lang-btn" id="lang-en" onclick="changeLang('en')">English 🇺🇸 <span id="check-en"></span></div>
             
-            <button class="danger-btn" onclick="logoutUser()" id="txt-logout">🔴 TIZIMDAN CHIQISH (HISOBNI O'CHIRISH)</button>
+            <button class="danger-btn" onclick="logoutUser()" id="txt-logout">🔴 HISOBNI O'CHIRISH</button>
         </div>
     </div>
 
@@ -216,12 +215,12 @@
             chooseLang: "Ilova tilini tanlang:", qCounter: "Savol", scoreLabel: "Ball", resStatus: "Raund Tugadi!",
             resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
             profLvl: "Daraja", profPts: "Ball", countdown: "Tug'ilgan kuningizga:", days: "kun", hours: "soat", min: "min", sek: "sek",
-            translating: "Savollar tarjima qilinmoqda...", chooseTheme: "Rejimni tanlang:", logout: "Tizimdan chiqish (Hisobni o'chirish)",
-            ob1: "Xush kelibsiz! Bu 'O'yin' bo'limi, bu yerda siz savollarga javob berib ball to'playsiz.",
-            ob2: "Bu 'Reyting' bo'limi. Dunyo bo'ylab eng kuchli o'yinchilar orasida o'z o'rningizni ko'ring!",
-            ob3: "Bu 'Profil'. Bu yerda yutuqlaringiz va tug'ilgan kuningizgacha qolgan vaqt ko'rinadi.",
-            ob4: "Bu 'Sozlamalar'. Bu yerda tilni va tungi/kunduzgi rejimni o'zgartirishingiz mumkin.",
-            obFinish: "Tayyormisiz? Unda boshladik! Omad yor bo'lsin!"
+            translating: "Savollar tarjima qilinmoqda...", chooseTheme: "Rejimni tanlang:", logout: "Hisobni o'chirish",
+            obT1: "Xush kelibsiz!", obD1: "Aql Jangi - bu sizning bilimingizni sinovdan o'tkazuvchi intellektual o'yin. Maqsad: O'z darajangizni oshirish va Master bo'lish!",
+            obT2: "O'yin Qoidalari", obD2: "O'yinda 4 ta bosqich bor. Har bir bosqichdan o'tish uchun belgilangan miqdordagi savollarga to'g'ri javob berish shart.",
+            obT3: "Bosqichlar va Shartlar", obD3: "🌱 Oson: 15 savol (10 ta to'g'ri)\n⚡ O'rtacha: 25 savol (17 ta to'g'ri)\n🔥 Qiyin: 35 savol (24 ta to'g'ri)\n👑 Master: 45 savol (30 ta to'g'ri)",
+            obT4: "Boshqa Bo'limlar", obD4: "🏆 Reytingda dunyo bilan bellashing, 👤 Profilingizni kuzatib boring va ⚙️ Sozlamalardan tilni yoki tungi rejimni tanlang.",
+            obFinish: "Bilimlar jangiga tayyormisiz? Unda boshladik!"
         },
         uz_cyr: {
             appName: "Ақл Жанги", slogan: "Ўз даражангизни Мастер даражасигача кўтаринг!", birthLabel: "Туғилган санангизни танланг:",
@@ -229,12 +228,12 @@
             chooseLang: "Илова тилини танланг:", qCounter: "Савол", scoreLabel: "Балл", resStatus: "Раунд Тугади!",
             resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
             profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
-            translating: "Саволлар таржима қилинмоқда...", chooseTheme: "Режимни танланг:", logout: "Тизимдан чиқиш (Ҳисобни ўчириш)",
-            ob1: "Хуш келибсиз! Бу 'Ўйин' бўлими, бу ерда сиз саволларга жавоб бериб балл тўплайсиз.",
-            ob2: "Бу 'Рейтинг' бўлими. Дунё бўйлаб энг кучли ўйинчилар орасида ўз ўрнингизни кўринг!",
-            ob3: "Бу 'Профиль'. Бу ерда ютуқларингиз ва туғилган кунингизгача қолган вақт кўринади.",
-            ob4: "Бу 'Созламалар'. Бу ерда тилни ва тунги/кундузги режимни ўзгартиришингиз мумкин.",
-            obFinish: "Тайёрмисиз? Унда бошладик! Омад ёр бўлсин!"
+            translating: "Саволлар таржима қилинмоқда...", chooseTheme: "Режимни танланг:", logout: "Ҳисобни ўчириш",
+            obT1: "Хуш келибсиз!", obD1: "Ақл Жанги - бу сизнинг билимингизни синовдан ўтказувчи интеллектуал ўйин. Мақсад: Ўз даражангизни ошириш ва Мастер бўлиш!",
+            obT2: "Ўйин Қоидалари", obD2: "Ўйинда 4 та босқич бор. Ҳар бир босқичдан ўтиш учун белгиланган миқдордаги саволларга тўғри жавоб бериш шарт.",
+            obT3: "Босқичлар ва Шартлар", obD3: "🌱 Осон: 15 савол (10 та тўғри)\n⚡ Ўртача: 25 савол (17 та тўғри)\n🔥 Қийин: 35 савол (24 та тўғри)\n👑 Мастер: 45 савол (30 та тўғри)",
+            obT4: "Бошқа Бўлимлар", obD4: "🏆 Рейтингда дунё билан беллашинг, 👤 Профилингизни кузатиб боринг ва ⚙️ Созламалардан тилни ёки тунги режимни танланг.",
+            obFinish: "Билимлар жангига тайёрмисиз? Унда бошладик!"
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
@@ -242,12 +241,12 @@
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
             profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
-            translating: "Перевод вопросов...", chooseTheme: "Выберите режим:", logout: "Выйти (Удалить аккаунт)",
-            ob1: "Добро пожаловать! Это раздел 'Игра', здесь вы отвечаете на вопросы и набираете очки.",
-            ob2: "Это раздел 'Рейтинг'. Посмотрите свое место среди лучших игроков мира!",
-            ob3: "Это 'Профиль'. Здесь видны ваши достижения и время до дня рождения.",
-            ob4: "Это 'Настройки'. Здесь можно сменить язык и ночной/дневной режим.",
-            obFinish: "Готовы? Тогда начнем! Удачи!"
+            translating: "Перевод вопросов...", chooseTheme: "Выберите режим:", logout: "Удалить аккаунт",
+            obT1: "Добро пожаловать!", obD1: "Битва Умов - это интеллектуальная игра для проверки ваших знаний. Цель: повысить свой уровень и стать Мастером!",
+            obT2: "Правила Игры", obD2: "В игре 4 этапа. Чтобы пройти каждый этап, вы должны правильно ответить на установленное количество вопросов.",
+            obT3: "Этапы и Условия", obD3: "🌱 Легко: 15 вопр. (10 верных)\n⚡ Средне: 25 вопр. (17 верных)\n🔥 Сложно: 35 вопр. (24 верных)\n👑 Мастер: 45 вопр. (30 верных)",
+            obT4: "Другие Разделы", obD4: "🏆 Соревнуйтесь со всем миром в рейтинге, следите за своим 👤 профилем и выбирайте язык или ночной режим в ⚙️ настройках.",
+            obFinish: "Готовы к битве знаний? Поехали!"
         },
         en: {
             appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
@@ -255,12 +254,12 @@
             chooseLang: "Choose app language:", qCounter: "Question", scoreLabel: "Score", resStatus: "Round Over!",
             resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
             profLvl: "Level", profPts: "Points", countdown: "Until your birthday:", days: "d", hours: "h", min: "m", sek: "s",
-            translating: "Translating questions...", chooseTheme: "Select theme:", logout: "Logout (Delete account)",
-            ob1: "Welcome! This is the 'Game' section, where you answer questions and collect points.",
-            ob2: "This is the 'Ranking' section. See your place among the best players in the world!",
-            ob3: "This is 'Profile'. Your achievements and time until your birthday are shown here.",
-            ob4: "This is 'Settings'. You can change the language and night/day mode here.",
-            obFinish: "Ready? Let's get started! Good luck!"
+            translating: "Translating questions...", chooseTheme: "Select theme:", logout: "Delete account",
+            obT1: "Welcome!", obD1: "Battle of Minds is an intellectual game to test your knowledge. Goal: Raise your level and become a Master!",
+            obT2: "Game Rules", obD2: "There are 4 stages. To pass each stage, you must correctly answer a set number of questions.",
+            obT3: "Stages and Requirements", obD3: "🌱 Easy: 15 questions (10 correct)\n⚡ Medium: 25 questions (17 correct)\n🔥 Hard: 35 questions (24 correct)\n👑 Master: 45 questions (30 correct)",
+            obT4: "Other Sections", obD4: "🏆 Compete globally in Ranking, track your 👤 Profile, and choose language or night mode in ⚙️ Settings.",
+            obFinish: "Ready for the battle? Let's go!"
         }
     };
 
@@ -342,11 +341,8 @@
     };
 
     window.logoutUser = async () => {
-        const confirmMsg = userLang === 'uz' ? "Hisobingiz va barcha ballaringiz o'chiriladi. Rozimisiz?" : "Ваш аккаунт и все баллы будут удалены. Вы согласны?";
-        if(confirm(confirmMsg)) {
-            await remove(userRef);
-            location.reload();
-        }
+        const confirmMsg = userLang === 'uz' ? "Hisobingiz butunlay o'chiriladi. Rozimisiz?" : "Ваш аккаунт будет полностью удален. Вы согласны?";
+        if(confirm(confirmMsg)) { await remove(userRef); location.reload(); }
     }
 
     window.login = async () => {
@@ -364,10 +360,10 @@
     const onboardingData = () => {
         const t = translations[userLang];
         return [
-            { icon: "🧠", title: t.appName, desc: t.ob1 },
-            { icon: "🏆", title: t.navRank, desc: t.ob2 },
-            { icon: "👤", title: t.navProfile, desc: t.ob3 },
-            { icon: "⚙️", title: t.navSettings, desc: t.ob4 },
+            { icon: "🧠", title: t.obT1, desc: t.obD1 },
+            { icon: "📜", title: t.obT2, desc: t.obD2 },
+            { icon: "📊", title: t.obT3, desc: t.obD3 },
+            { icon: "🛠️", title: t.obT4, desc: t.obD4 },
             { icon: "🚀", title: "OK!", desc: t.obFinish }
         ];
     };
@@ -382,7 +378,7 @@
         const data = onboardingData();
         const step = data[obStep];
         const content = document.getElementById('ob-content');
-        content.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
+        content.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc" style="white-space: pre-wrap;">${step.desc}</div>`;
         document.getElementById('ob-btn').innerText = obStep === data.length - 1 ? "BOSHLADIK" : "DAVOM ETISH";
     }
 
