@@ -26,19 +26,19 @@
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; transition: 0.3s; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
+        /* Barcha sahifalar boshida yashirin bo'ladi */
         #auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings, #tournament { display: none; text-align: center; }
         .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes rotateGold { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotateGold 1s linear infinite; }
+        @keyframes rotateGold { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .reg-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--gold-dark); background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-bottom: 20px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
-        #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
         
         .timer-container { background: #222; height: 6px; border-radius: 3px; margin: 15px 0; overflow: hidden; }
         #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: linear; }
@@ -57,21 +57,18 @@
 
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
 
-        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
+        .ob-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; padding: 30px; box-sizing: border-box; justify-content: center; }
         .ob-card { background: var(--card); border: 2px solid var(--gold); border-radius: 30px; padding: 30px; animation: scaleIn 0.5s ease-out; }
         .ob-icon { font-size: 60px; margin-bottom: 20px; }
         .ob-title { font-size: 24px; color: var(--gold); font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
         .ob-desc { color: var(--text); font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
-        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; }
+        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--text); flex: 1; text-decoration: none; }
         .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; }
         
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; color: var(--text); }
-
-        .lang-btn { background: var(--card); border: 1px solid var(--gold-dark); color: var(--text); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .lang-btn.selected { background: var(--gold); color: #000; }
         .danger-btn { background: var(--red); color: #fff; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
@@ -84,21 +81,20 @@
 
 <div class="container">
     <div id="auth">
-        <h1 id="txt-app-name" style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
-        <p id="txt-app-slogan" style="color:#888; margin-bottom: 30px;">Turnirda ishtirok eting va g'olib bo'ling!</p>
+        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Aql Jangi</h1>
+        <p style="color:#888; margin-bottom: 30px;">Turnirda ishtirok eting va g'olib bo'ling!</p>
         
-        <select id="reg-lang" class="reg-input" style="margin-bottom: 20px;" onchange="changeLang(this.value, false)">
+        <select id="reg-lang" class="reg-input" style="margin-bottom: 20px;">
             <option value="uz">O'zbekcha 🇺🇿</option>
-            <option value="uz_cyr">Ўзбекча 🇺🇿</option>
             <option value="ru">Русский 🇷🇺</option>
             <option value="en">English 🇺🇸</option>
         </select>
 
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
-        <label id="txt-birth-label" style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
+        <label style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
         <input type="date" id="reg-birth" class="reg-input">
-        <button id="btn-start" onclick="login()" class="btn-main">RO'YXATDAN O'TISH</button>
+        <button onclick="login()" class="btn-main">RO'YXATDAN O'TISH</button>
     </div>
 
     <div id="onboarding" class="ob-screen">
@@ -109,10 +105,10 @@
     </div>
 
     <div id="tournament">
-        <h2 id="txt-nav-tour" style="color:var(--gold)">⚔️ Haftalik Turnir</h2>
+        <h2 style="color:var(--gold)">⚔️ Haftalik Turnir</h2>
         <div class="quiz-card">
             <div id="tour-status-box">
-                <p id="tour-info" style="font-weight: bold;">Turnirda ishtirok etish uchun to'lovni amalga oshiring!</p>
+                <p id="tour-info" style="font-weight: bold;">Turnirda ishtirok etish uchun to'lov qiling!</p>
                 <div style="background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); margin:15px 0; text-align:left; color: var(--gold);">
                     <p style="margin:5px 0;">💰 Kirish puli: <b>5 000 so'm</b></p>
                     <p style="margin:5px 0;">💳 Karta: <b style="letter-spacing: 1px; color: #fff;">4073 4200 6816 5541</b></p>
@@ -126,9 +122,9 @@
 
     <div id="game">
         <div class="level-header">
-            <div id="level-title">TURNIR</div>
+            <div id="level-title" style="font-weight: 900; color: var(--gold);">TURNIR JANGI</div>
             <div style="font-size: 14px; color: #888; margin-top: 10px; font-weight: bold;">
-                <span id="txt-q-counter">Savol</span>: <span id="q-counter">0/0</span> | <span id="txt-score-label">Ball</span>: <b id="u-correct">0</b>
+                Savol: <span id="q-counter">0/15</span> | Ball: <b id="u-correct">0</b>
             </div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
             <div class="timer-container"><div id="timer-bar"></div></div>
@@ -141,51 +137,43 @@
 
     <div id="result-screen">
         <div class="quiz-card">
-            <h2 id="result-status">Turnir Tugadi!</h2>
-            <p id="result-score" style="font-size: 24px; margin: 10px 0;">Natija: 0/0</p>
-            <button id="btn-continue" class="btn-next" onclick="navigate('tournament')">YOPISH</button>
+            <h2 id="result-status" style="color: var(--gold);">Turnir Tugadi!</h2>
+            <p id="result-score" style="font-size: 32px; margin: 10px 0;">0/15</p>
+            <button class="btn-next" onclick="navigate('tournament')">YOPISH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 id="txt-nav-rank" style="color:var(--gold)">🏆 Dunyo Reytingi</h2>
+        <h2 style="color:var(--gold)">🏆 Dunyo Reytingi</h2>
         <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
     </div>
 
     <div id="profile">
-        <h2 id="txt-nav-profile" style="color:var(--gold)">👤 Mening Profilim</h2>
+        <h2 style="color:var(--gold)">👤 Mening Profilim</h2>
         <div class="quiz-card">
-            <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1340/1340333.png'">
+            <img id="p-img" src="https://cdn-icons-png.flaticon.com/512/1340/1340333.png" class="p-avatar">
             <div id="p-full-name" style="font-size:18px; font-weight:bold; margin-bottom:5px;">Ism Familiya</div>
-            <div id="p-age-info" style="color:#888; font-size:14px; margin-bottom:20px;">0 yosh</div>
-            <div style="margin-top:10px;">
-                <div style="background:var(--bg); border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;"><span id="txt-prof-pts">Umumiy Ball</span>: <span id="p-points" style="color:var(--gold)">0</span></div>
+            <div style="background:var(--bg); border:1px solid var(--gold-dark); padding:10px; border-radius:10px; display:inline-block; margin:5px;">
+                Umumiy Ball: <span id="p-points" style="color:var(--gold)">0</span>
             </div>
         </div>
     </div>
 
     <div id="settings">
-        <h2 id="txt-nav-settings" style="color:var(--gold)">⚙️ Sozlamalar</h2>
-        <div class="quiz-card" style="text-align: left;">
-            <p id="txt-choose-theme" style="margin-bottom: 10px; font-weight: bold;">Rejimni tanlang:</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                <button class="lang-btn" id="theme-dark" onclick="toggleTheme('dark')">🌙 Tungi</button>
-                <button class="lang-btn" id="theme-light" onclick="toggleTheme('light')">☀️ Kunduzgi</button>
-            </div>
-            <p id="txt-choose-lang" style="margin-bottom: 15px; font-weight: bold;">Ilova tilini tanlang:</p>
-            <div class="lang-btn" id="lang-uz" onclick="changeLang('uz')">O'zbekcha 🇺🇿</div>
-            <div class="lang-btn" id="lang-ru" onclick="changeLang('ru')">Русский 🇷🇺</div>
-            <div class="lang-btn" id="lang-en" onclick="changeLang('en')">English 🇺🇸</div>
-            <button class="danger-btn" onclick="logoutUser()" id="txt-logout">🔴 HISOBNI O'CHIRISH</button>
+        <h2 style="color:var(--gold)">⚙️ Sozlamalar</h2>
+        <div class="quiz-card">
+            <button class="reg-input" onclick="toggleTheme('dark')">🌙 Tungi rejim</button>
+            <button class="reg-input" onclick="toggleTheme('light')">☀️ Kunduzgi rejim</button>
+            <button class="danger-btn" onclick="logoutUser()">🔴 HISOBNI O'CHIRISH</button>
         </div>
     </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
-    <div class="nav-link active-link" id="link-tournament" onclick="navigate('tournament')">⚔️<br><span id="txt-nav-tour-btn">Turnir</span></div>
-    <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br><span id="txt-nav-rank2">Reyting</span></div>
-    <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br><span id="txt-nav-profile2">Profil</span></div>
-    <div class="nav-link" id="link-settings" onclick="navigate('settings')">⚙️<br><span id="txt-nav-settings2">Sozlamalar</span></div>
+    <div class="nav-link" id="link-tournament" onclick="navigate('tournament')">⚔️<br>Turnir</div>
+    <div class="nav-link" id="link-leaderboard" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
+    <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br>Profil</div>
+    <div class="nav-link" id="link-settings" onclick="navigate('settings')">⚙️<br>Sozlamalar</div>
 </div>
 
 <script type="module">
@@ -209,82 +197,29 @@
     const userRef = ref(db, 'brain_users/' + uid);
 
     let userLang = "uz";
-    let userTheme = "light"; 
     let sessionQuestions = [];
     let currentIdx = 0;
-    let correctAnswers = 0; 
+    let correctAnswers = 0;
     let isLocked = false;
     let countdownInterval = null;
     let obStep = 0;
 
-    const translations = {
-        uz: {
-            appName: "Aql Jangi", birthLabel: "Tug'ilgan sanangiz:", btnStart: "RO'YXATDAN O'TISH",
-            navRank: "Reyting", navProfile: "Profil", navSettings: "Sozlamalar", navTour: "Turnir",
-            tourWait: "To'lov tekshirilmoqda...", tourActive: "Turnir ochiq! O'yinni boshlang.",
-            obT1: "Xush kelibsiz!", obD1: "Aql Jangi turniriga xush kelibsiz. Bu yerda siz bilimingizni sinab, sovrinlar yutishingiz mumkin.",
-            obT2: "Qanday qatnashish kerak?", obD2: "Turnirda qatnashish uchun 5 000 so'm kirish pulini to'lang va admin tasdiqlashini kuting.",
-            obT3: "O'yin jarayoni", obD3: "To'lov tasdiqlangach, savollar bazadan yuklanadi. Har bir savolga cheklangan vaqt beriladi."
-        },
-        ru: {
-            appName: "Битва Умов", birthLabel: "Дата рождения:", btnStart: "РЕГИСТРАЦИЯ",
-            navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки", navTour: "Турнир",
-            tourWait: "Платеж проверяется...", tourActive: "Турнир открыт! Начинайте игру.",
-            obT1: "Добро пожаловать!", obD1: "Добро пожаловать в турнир Битва Умов.",
-            obT2: "Как участвовать?", obD2: "Для участия оплатите 5 000 сум и дождитесь подтверждения админа."
-        },
-        en: {
-            appName: "Battle of Minds", birthLabel: "Date of Birth:", btnStart: "REGISTER",
-            navRank: "Ranking", navProfile: "Profile", navSettings: "Settings", navTour: "Tournament",
-            tourWait: "Payment is pending...", tourActive: "Tournament is open! Start the game."
-        }
-    };
-
     window.onload = async () => {
-        setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
+        setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1000);
         const snap = await get(userRef);
         if (snap.exists()) {
             const val = snap.val();
             userLang = val.lang || "uz";
-            userTheme = val.theme || "light"; 
-            applyLanguage();
-            toggleTheme(userTheme, false);
             if(val.name) {
-                document.getElementById('auth').style.display = 'none';
+                document.getElementById('auth').classList.remove('active');
                 document.getElementById('navbar').style.display = 'flex';
                 navigate('tournament');
+            } else {
+                document.getElementById('auth').classList.add('active');
             }
-        } else { 
-            document.getElementById('auth').classList.add('active'); 
+        } else {
+            document.getElementById('auth').classList.add('active');
         }
-    };
-
-    window.applyLanguage = () => {
-        const t = translations[userLang] || translations['uz'];
-        document.getElementById('txt-app-name').innerText = t.appName;
-        document.getElementById('txt-birth-label').innerText = t.birthLabel;
-        document.getElementById('btn-start').innerText = t.btnStart;
-        document.getElementById('txt-nav-rank').innerText = t.navRank;
-        document.getElementById('txt-nav-rank2').innerText = t.navRank;
-        document.getElementById('txt-nav-profile').innerText = t.navProfile;
-        document.getElementById('txt-nav-profile2').innerText = t.navProfile;
-        document.getElementById('txt-nav-settings').innerText = t.navSettings;
-        document.getElementById('txt-nav-settings2').innerText = t.navSettings;
-        document.getElementById('txt-nav-tour').innerText = t.navTour;
-        document.getElementById('txt-nav-tour-btn').innerText = t.navTour;
-    };
-
-    window.toggleTheme = async (theme, sync = true) => {
-        userTheme = theme;
-        if(theme === 'light') document.body.classList.add('light-mode');
-        else document.body.classList.remove('light-mode');
-        if(sync) await update(userRef, { theme: theme });
-    };
-
-    window.changeLang = async (lang) => {
-        userLang = lang;
-        await update(userRef, { lang: lang });
-        location.reload();
     };
 
     window.login = async () => {
@@ -293,37 +228,39 @@
         const birth = document.getElementById('reg-birth').value;
         const lang = document.getElementById('reg-lang').value;
         if(!name || !surname || !birth) { alert("To'liq to'ldiring!"); return; }
-        await set(userRef, { name, surname, birth, totalPoints: 0, lang: lang, theme: userTheme, tourStatus: "none" });
+        await set(userRef, { name, surname, birth, totalPoints: 0, lang: lang, tourStatus: "none" });
         userLang = lang;
-        applyLanguage();
         startOnboarding();
     };
 
     function startOnboarding() {
-        document.getElementById('auth').style.display = 'none';
+        document.getElementById('auth').classList.remove('active');
         document.getElementById('onboarding').classList.add('active');
         showObStep();
     }
 
     function showObStep() {
-        const t = translations[userLang] || translations['uz'];
         const data = [
-            { icon: "🧠", title: t.obT1, desc: t.obD1 },
-            { icon: "💰", title: t.obT2, desc: t.obD2 },
-            { icon: "🎮", title: t.obT3, desc: t.obD3 }
+            { icon: "🧠", title: "Xush kelibsiz!", desc: "Aql Jangi turniriga xush kelibsiz. Bilimingizni sinab sovrinlar yuting!" },
+            { icon: "💰", title: "To'lov", desc: "Turnirda qatnashish uchun 5 000 so'm to'lang va admin tasdiqlashini kuting." },
+            { icon: "⚔️", title: "Jang!", desc: "Tasdiqlangach, savollar ochiladi. Har bir javobga 20 soniya beriladi." }
         ];
         const step = data[obStep];
         document.getElementById('ob-content').innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
-        document.getElementById('ob-btn').innerText = obStep === data.length - 1 ? "BOSHLADIK" : "DAVOM ETISH";
+        document.getElementById('ob-btn').innerText = obStep === 2 ? "BOSHLADIK" : "DAVOM ETISH";
     }
 
     window.nextObStep = () => {
         if (obStep < 2) { obStep++; showObStep(); }
-        else { document.getElementById('onboarding').classList.remove('active'); document.getElementById('navbar').style.display = 'flex'; navigate('tournament'); }
+        else { 
+            document.getElementById('onboarding').classList.remove('active'); 
+            document.getElementById('navbar').style.display = 'flex'; 
+            navigate('tournament'); 
+        }
     };
 
     window.joinTournament = async () => {
-        if(confirm("To'lov qildingizmi?")) {
+        if(confirm("To'lovni amalga oshirdingizmi?")) {
             await update(userRef, { tourStatus: "pending", tourAppliedAt: new Date().toISOString() });
             loadTourStatus();
         }
@@ -335,30 +272,31 @@
         const btnJoin = document.getElementById('btn-join-tour');
         const btnStart = document.getElementById('btn-start-game');
         const info = document.getElementById('tour-info');
-        const t = translations[userLang] || translations['uz'];
 
         if(data.tourStatus === "pending") {
             btnJoin.style.display = "none";
-            info.innerText = t.tourWait;
+            info.innerText = "To'lov tekshirilmoqda...";
             info.style.color = "var(--gold)";
         } else if(data.tourStatus === "active") {
             btnJoin.style.display = "none";
             btnStart.style.display = "block";
-            info.innerText = t.tourActive;
+            info.innerText = "Turnir ochiq! Jangni boshlang.";
             info.style.color = "var(--green)";
+        } else if(data.tourStatus === "finished") {
+            btnJoin.style.display = "none";
+            info.innerText = "Siz turnirda qatnashib bo'ldingiz.";
+            info.style.color = "var(--red)";
         }
     }
 
     window.startNewRound = async () => {
         const snap = await get(userRef);
-        if(snap.val().tourStatus !== "active") {
-            alert("Sizda ruxsat yo'q!");
-            return;
-        }
+        if(snap.val().tourStatus !== "active") { alert("Ruxsat yo'q!"); return; }
+        
         document.getElementById('tournament').classList.remove('active');
         document.getElementById('game').classList.add('active');
         
-        const qSnap = await get(ref(db, `brain_questions/${userLang}/oson`)); // Bazadan savollar olinadi
+        const qSnap = await get(ref(db, `brain_questions/${userLang}/oson`));
         sessionQuestions = (qSnap.val() || []).sort(() => 0.5 - Math.random()).slice(0, 15);
         currentIdx = 0; correctAnswers = 0;
         showQuestion();
@@ -370,6 +308,8 @@
         if(!q) { finishRound(); return; }
         document.getElementById('q-counter').innerText = `${currentIdx + 1}/15`;
         document.getElementById('question-text').innerText = q.q;
+        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / 15 * 100) + "%";
+        
         const box = document.getElementById('options-box');
         box.innerHTML = "";
         q.a.forEach((opt, i) => {
@@ -398,8 +338,13 @@
         if (isLocked) return;
         isLocked = true;
         clearInterval(countdownInterval);
-        if (idx === correct) { el.classList.add('correct'); correctAnswers++; }
-        else if(el) { el.classList.add('wrong'); }
+        if (idx === correct) { 
+            if(el) el.classList.add('correct'); 
+            correctAnswers++; 
+            document.getElementById('u-correct').innerText = correctAnswers;
+        } else if(el) { 
+            el.classList.add('wrong'); 
+        }
         setTimeout(() => { currentIdx++; showQuestion(); }, 1000);
     }
 
@@ -411,7 +356,7 @@
     }
 
     window.navigate = (id) => {
-        document.querySelectorAll('.container > div').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile, #onboarding, #settings, #tournament').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
         document.getElementById('link-' + id)?.classList.add('active-link');
@@ -420,22 +365,25 @@
         if (id === 'profile') loadProfile();
     };
 
+    window.logoutUser = async () => { if(confirm("O'chirilsinmi?")) { await remove(userRef); location.reload(); } };
+    window.toggleTheme = (t) => { document.body.className = t + '-mode'; update(userRef, {theme: t}); };
+
     async function loadProfile() {
         const snap = await get(userRef);
         const data = snap.val();
         document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
-        document.getElementById('p-points').innerText = data.totalPoints;
+        document.getElementById('p-points').innerText = data.totalPoints || 0;
     }
 
     async function fetchRank() {
         const snap = await get(ref(db, 'brain_users'));
         let data = [];
         snap.forEach(c => data.push(c.val()));
-        data.sort((a, b) => b.totalPoints - a.totalPoints);
+        data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
         document.getElementById('rank-list').innerHTML = data.slice(0, 10).map((u, i) => `
             <div class="rank-item">
                 <span><b>${i+1}.</b> ${u.name}</span>
-                <b>${u.totalPoints}</b>
+                <b>${u.totalPoints || 0}</b>
             </div>
         `).join('');
     }
