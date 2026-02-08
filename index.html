@@ -63,7 +63,6 @@
         .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #111; object-fit: cover; }
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; color: #eee; }
 
-        /* Sozlamalar tili stili */
         .lang-btn { background: #111; border: 1px solid var(--gold-dark); color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .lang-btn.selected { background: var(--gold); color: #000; }
     </style>
@@ -190,7 +189,8 @@
             resStatusWin: "Tabriklaymiz! 🎉", resStatusLose: "Vaqtincha Mag'lubiyat", btnContinue: "DAVOM ETISH", btnRetry: "QAYTA URINISH",
             profLvl: "Daraja", profPts: "Ball", countdown: "Tug'ilgan kuningizga:", days: "kun", hours: "soat", min: "min", sek: "sek",
             obWelcome: "Haqiqiy bilimlar to'qnashuviga xush kelibsiz! Keling, o'yin qoidalari bilan tanishamiz.", obFinish: "Hamma qoidalarni bildingiz. Endi jangni boshlash vaqti keldi! Omad yor bo'lsin.",
-            obBtnNext: "KEYINGISI", obBtnStart: "BOSHLADIK!", obQcount: "Savollar soni:", obPass: "O'tish uchun:"
+            obBtnNext: "KEYINGISI", obBtnStart: "BOSHLADIK!", obQcount: "Savollar soni:", obPass: "O'tish uchun:",
+            translating: "Savollar tarjima qilinmoqda..."
         },
         ru: {
             appName: "Битва Умов", slogan: "Поднимите свой уровень до уровня Мастера!", birthLabel: "Выберите дату рождения:",
@@ -199,7 +199,8 @@
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
             profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
             obWelcome: "Добро пожаловать в настоящую битву знаний! Давайте познакомимся с правилами игры.", obFinish: "Вы узнали все правила. Пришло время начать битву! Удачи.",
-            obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:"
+            obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:",
+            translating: "Перевод вопросов..."
         },
         en: {
             appName: "Battle of Minds", slogan: "Raise your level to Master level!", birthLabel: "Select your date of birth:",
@@ -208,7 +209,8 @@
             resStatusWin: "Congratulations! 🎉", resStatusLose: "Temporary Defeat", btnContinue: "CONTINUE", btnRetry: "RETRY",
             profLvl: "Level", profPts: "Points", countdown: "Until your birthday:", days: "d", hours: "h", min: "m", sek: "s",
             obWelcome: "Welcome to the real battle of knowledge! Let's get acquainted with the rules of the game.", obFinish: "You've learned all the rules. It's time to start the battle! Good luck.",
-            obBtnNext: "NEXT", obBtnStart: "LET'S GO!", obQcount: "Questions count:", obPass: "To pass:"
+            obBtnNext: "NEXT", obBtnStart: "LET'S GO!", obQcount: "Questions count:", obPass: "To pass:",
+            translating: "Translating questions..."
         }
     };
 
@@ -218,6 +220,19 @@
         qiyin: { qCount: 35, passScore: 24, title: {uz: "🟠 QIYINROQ", ru: "🟠 СЛОЖНО", en: "🟠 HARD"}, nextLvl: "juda_qiyin", icon: "🔥" },
         juda_qiyin: { qCount: 45, passScore: 30, title: {uz: "🔴 MASTER", ru: "🔴 МАСТЕР", en: "🔴 MASTER"}, nextLvl: "juda_qiyin", icon: "👑" }
     };
+
+    // TARJIMON FUNKSIYASI
+    async function translateText(text, targetLang) {
+        if (targetLang === 'uz') return text;
+        try {
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=uz&tl=${targetLang}&dt=t&q=${encodeURI(text)}`);
+            const data = await res.json();
+            return data[0][0][0];
+        } catch (e) {
+            console.error("Translate Error:", e);
+            return text;
+        }
+    }
 
     window.onload = async () => {
         setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
@@ -255,7 +270,6 @@
         document.getElementById('txt-score-label').innerText = t.scoreLabel;
         document.getElementById('txt-prof-lvl').innerText = t.profLvl;
         document.getElementById('txt-prof-pts').innerText = t.profPts;
-        
         document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('selected'));
         document.getElementById('lang-' + userLang).classList.add('selected');
     }
@@ -300,15 +314,9 @@
         const step = data[obStep];
         const content = document.getElementById('ob-content');
         const t = translations[userLang];
-        
         if (step.level) {
             const config = gameConfig[step.level];
-            content.innerHTML = `
-                <div class="ob-icon">${config.icon}</div>
-                <div class="ob-title">${config.title[userLang]}</div>
-                <div class="stat-line"><span class="stat-label">${t.obQcount}</span><span class="stat-value">${config.qCount}</span></div>
-                <div class="stat-line"><span class="stat-label">${t.obPass}</span><span class="stat-value">${config.passScore}</span></div>
-            `;
+            content.innerHTML = `<div class="ob-icon">${config.icon}</div><div class="ob-title">${config.title[userLang]}</div><div class="stat-line"><span class="stat-label">${t.obQcount}</span><span class="stat-value">${config.qCount}</span></div><div class="stat-line"><span class="stat-label">${t.obPass}</span><span class="stat-value">${config.passScore}</span></div>`;
         } else {
             content.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div><div class="ob-desc">${step.desc}</div>`;
         }
@@ -327,9 +335,25 @@
         const config = gameConfig[userLevel];
         document.getElementById('level-title').innerText = config.title[userLang];
         document.getElementById('u-correct').innerText = "0";
-        // TILLARGA QARAB SAVOLLAR BAZASI: brain_questions/{lang}/{level}
+
+        // SAVOLNI YUKLASH VA TARJIMA QILISH
+        document.getElementById('question-text').innerText = translations[userLang].translating;
+        document.getElementById('options-box').innerHTML = "";
+
         const qSnap = await get(ref(db, `brain_questions/${userLang}/${userLevel}`));
-        const allQ = qSnap.val() || [];
+        let allQ = qSnap.val() || [];
+
+        if (allQ.length === 0 && userLang !== 'uz') {
+            const uzSnap = await get(ref(db, `brain_questions/uz/${userLevel}`));
+            allQ = uzSnap.val() || [];
+            for (let item of allQ) {
+                item.q = await translateText(item.q, userLang);
+                for (let i = 0; i < item.a.length; i++) {
+                    item.a[i] = await translateText(item.a[i], userLang);
+                }
+            }
+        }
+
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
         currentIdx = 0; correctAnswers = 0;
         showQuestion();
@@ -368,7 +392,6 @@
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
         document.getElementById('result-score').innerText = `${correctAnswers}/${config.qCount}`;
-
         if (isPassed) {
             document.getElementById('result-status').innerText = t.resStatusWin;
             if (userLevel !== "juda_qiyin") { userLevel = config.nextLvl; await update(userRef, { level: userLevel }); }
@@ -395,13 +418,11 @@
         const snap = await get(userRef);
         const data = snap.val();
         if(!data) return;
-        // Telegram rasm olishni yaxshilash
         const userPhoto = tg.initDataUnsafe?.user?.photo_url;
         document.getElementById('p-img').src = userPhoto ? userPhoto : 'https://cdn-icons-png.flaticon.com/512/1340/1340333.png';
         document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
         document.getElementById('p-level').innerText = gameConfig[data.level].title[userLang];
         document.getElementById('p-points').innerText = data.totalPoints;
-
         const bDay = new Date(data.birth);
         const t = translations[userLang];
         const updateTimer = () => {
@@ -437,4 +458,3 @@
 </script>
 </body>
 </html>
-
