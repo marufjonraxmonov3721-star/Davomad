@@ -47,6 +47,8 @@
 
         .announcement-banner { background: var(--gold); color: #000; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; display: none; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        
+        #participant-counter { margin-top: 10px; font-size: 14px; color: var(--gold); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -95,6 +97,8 @@
                 <button class="btn-main" style="background:#222; color:var(--gold); border:1px solid var(--gold-dark);" onclick="document.getElementById('receipt-input').click()" id="btn-choose-file">RASM TANLASH</button>
                 <img id="receipt-preview">
             </div>
+
+            <div id="participant-counter" style="display:none;">Ishtirokchilar: <span id="p-count">0</span>/30</div>
 
             <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
             <button class="btn-main" id="btn-start" style="display:none; background:var(--green);" onclick="startTurnir()">TURNIRNI BOSHLASH</button>
@@ -147,7 +151,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -183,13 +187,13 @@
             payInfo: "Turnirda qatnashish uchun 5 000 so'm to'lov qiling.", payPrice: "💰 Kirish: <b>5 000 so'm</b>", payCard: "💳 Karta:", payOwner: "👤 Ega:",
             resFinish: "RAUND TUGADI!", resScore: "To'g'ri javoblar:", qLabel: "Savol:", logout: "TIZIMDAN CHIQISH",
             receiptLab: "To'lov chekini yuklang:", chooseFile: "RASM TANLASH",
-            tourStartMsg: "Ertaga turnir 20:00 da start!",
+            tourStartMsg: "Ertaga turnir 20:00 da start!", pLabel: "Ishtirokchilar:",
             ob: [
                 { t: "Xush kelibsiz!", d: "Aql Jangi — bu mantiqiy savollar orqali bilimingizni sinaydigan turnir ilovasi." },
                 { t: "Turnir Sovrinlari", d: "Turnirda jami 30 ta joy mavjud.\n\n🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm" },
-                { t: "Qatnashish Sharti", d: "Turnirda qatnashish narxi 5 000 so'm. To'lov tasdiqlangach, 30 ta savol (3 bosqich) ochiladi." }
+                { t: "Qatnashish Sharti", d: "Turnirda qatnashish narxi 5 000 so'm. To'lov tasdiqlangach, 30 ta joy to'lgach start beriladi." }
             ],
-            wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! Turnirni boshlang."
+            wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! 30 ta ishtirokchi to'lishini kuting."
         },
         uz_cyr: {
             appTitle: "Ақл Жанги", slogan: "Турнирда иштирок этинг!",
@@ -199,13 +203,13 @@
             payInfo: "Турнирда қатнашиш учун 5 000 сўм тўлов қилинг.", payPrice: "💰 Кириш: <b>5 000 сўм</b>", payCard: "💳 Карта:", payOwner: "👤 Эга:",
             resFinish: "РАУНД ТУГАДИ!", resScore: "Тўғри жавоблар:", qLabel: "Савол:", logout: "ТИЗИМДАН ЧИҚИШ",
             receiptLab: "Тўлов чекини юкланг:", chooseFile: "РАСМ ТАНЛАШ",
-            tourStartMsg: "Эртага турнир 20:00 да старт!",
+            tourStartMsg: "Эртага турнир 20:00 да старт!", pLabel: "Иштирокчилар:",
             ob: [
                 { t: "Хуш келибсиз!", d: "Ақл Жанги — бу мантиқий саволлар орқали билимингизни синайдиган турнир иловаси." },
                 { t: "Турнир Совринлари", d: "Турнирда жами 30 та жой мавжуд.\n\n🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм" },
-                { t: "Қатнашиш Шарти", d: "Турнирда қатнашиш нархи 5 000 сўм. Тўлов тасдиқлангач, 30 та савол (3 босқич) очилади." }
+                { t: "Қатнашиш Шарти", d: "Турнирда қатнашиш нархи 5 000 сўм. Тўлов тасдиқлангач, 30 та жой тўлгач старт берилади." }
             ],
-            wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! Турнирни бошланг."
+            wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! 30 та иштирокчи тўлишини кутинг."
         }
     };
 
@@ -244,23 +248,38 @@
         }
     };
 
-    // Odamlar sonini tekshirish
-    async function checkParticipantsCount() {
-        const snap = await get(ref(db, 'brain_users'));
-        if (snap.exists()) {
+    // Ishtirokchilar sonini real vaqtda kuzatish
+    function syncParticipants() {
+        const usersRef = ref(db, 'brain_users');
+        onValue(usersRef, (snapshot) => {
             let activeCount = 0;
-            snap.forEach(child => {
+            snapshot.forEach((child) => {
                 if (child.val().tourStatus === 'active') activeCount++;
             });
-            
+
+            const counterDiv = document.getElementById('participant-counter');
+            const countSpan = document.getElementById('p-count');
             const banner = document.getElementById('tour-announcement');
-            if (activeCount >= 30) {
-                banner.innerText = texts[userData?.lang || 'uz'].tourStartMsg;
-                banner.style.display = 'block';
-            } else {
-                banner.style.display = 'none';
+            const btnStart = document.getElementById('btn-start');
+            const msg = document.getElementById('tour-status-msg');
+
+            // Agar to'lov tasdiqlangan bo'lsa hisoblagichni ko'rsatish
+            if (userData && userData.tourStatus === 'active') {
+                counterDiv.style.display = 'block';
+                countSpan.innerText = activeCount;
+
+                if (activeCount >= 30) {
+                    btnStart.style.display = 'block';
+                    msg.style.display = 'none';
+                    banner.innerText = texts[userData.lang].tourStartMsg;
+                    banner.style.display = 'block';
+                } else {
+                    btnStart.style.display = 'none';
+                    msg.style.display = 'block';
+                    banner.style.display = 'none';
+                }
             }
-        }
+        });
     }
 
     window.previewReceipt = (input) => {
@@ -285,7 +304,7 @@
             if(userData.name) {
                 document.getElementById('navbar').style.display = 'flex';
                 navigate('tournament');
-                checkParticipantsCount();
+                syncParticipants();
             } else { showScreen('auth'); }
         } else { 
             window.updateUI('uz');
@@ -319,6 +338,7 @@
             if(confirm(confirmTxt)) {
                 document.getElementById('navbar').style.display = 'flex';
                 navigate('tournament');
+                syncParticipants();
             }
         }
     };
@@ -345,7 +365,6 @@
         userData = snap.val();
         window.updateUI(userData.lang);
         const btnPay = document.getElementById('btn-pay');
-        const btnStart = document.getElementById('btn-start');
         const payBox = document.getElementById('payment-details');
         const uploadBox = document.getElementById('receipt-upload-section');
 
@@ -357,9 +376,7 @@
             btnPay.style.display = "none";
             payBox.style.display = "none";
             uploadBox.style.display = "none";
-            btnStart.style.display = "block";
         }
-        checkParticipantsCount();
     }
 
     window.startTurnir = async () => {
@@ -498,3 +515,4 @@
 </script>
 </body>
 </html>
+
