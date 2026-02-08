@@ -103,7 +103,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .rank-img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+        .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
     </style>
 </head>
 <body class="pb-24">
@@ -114,35 +114,61 @@
         
         <div class="space-y-4 text-left">
             <div>
-                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ism</label>
-                <input type="text" id="firstName" placeholder="Ismingiz" readonly>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ismingiz</label>
+                <input type="text" id="firstName" placeholder="Ismingizni kiriting">
             </div>
             <div>
-                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiya</label>
-                <input type="text" id="lastName" placeholder="Familiyangiz" readonly>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiyangiz</label>
+                <input type="text" id="lastName" placeholder="Familiyangizni kiriting">
             </div>
             <div>
-                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan kun</label>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan sana</label>
                 <input type="date" id="birthDay">
             </div>
             <button onclick="register()" class="gold-button w-full p-4 rounded-xl shadow-lg mt-4 text-black">Ro'yxatdan o'tish</button>
         </div>
     </div>
 
-    <div id="intro-screen" class="hidden p-8 text-center flex flex-col justify-center min-h-screen">
-        <div class="premium-card p-8 shadow-2xl">
-            <h2 class="text-2xl font-bold mb-4 text-yellow-500">Ilova haqida</h2>
-            <div class="text-left space-y-3 text-sm opacity-90 mb-8">
-                <p>✅ <b>Telegram WebApp:</b> Avtomatik login.</p>
-                <p>✅ <b>Reyting:</b> Fanlararo kuchli raqobat.</p>
-                <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti.</p>
+    <div id="intro-screen" class="hidden p-6 flex flex-col justify-center min-h-screen">
+        <div class="premium-card p-6 shadow-2xl overflow-y-auto max-h-[80vh]">
+            <h2 class="text-2xl font-bold mb-4 text-yellow-500 border-b border-yellow-500/20 pb-2 text-center">Ilova Haqida</h2>
+            
+            <div class="space-y-4 text-sm leading-relaxed">
+                <div>
+                    <h3 class="font-bold text-yellow-500 uppercase text-xs mb-1">🎯 Maqsadimiz:</h3>
+                    <p class="opacity-80">Foydalanuvchilarning bilim darajasini testlar orqali oshirish, intellektual salohiyatni charxlash va o'z bilimi bilan peshqadamlar qatoridan joy olishiga ko'maklashish.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-yellow-500 uppercase text-xs mb-1">📚 Fanlar:</h3>
+                    <p class="opacity-80 mb-2">Ilovada jami 12 ta asosiy yo'nalish mavjud:</p>
+                    <div class="grid grid-cols-2 gap-1 text-[11px] opacity-90 italic">
+                        <span>• Matematika</span><span>• Fizika</span>
+                        <span>• Kimyo</span><span>• Ona tili</span>
+                        <span>• Adabiyot</span><span>• Geografiya</span>
+                        <span>• O'zbekiston tarixi</span><span>• Jahon tarixi</span>
+                        <span>• Ingliz tili</span><span>• Rus tili</span>
+                        <span>• Biologiya</span><span>• IQ Testlar</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-yellow-500 uppercase text-xs mb-1">🚀 Imkoniyatlar:</h3>
+                    <ul class="opacity-80 space-y-1">
+                        <li>✅ <b>Moslashuvchanlik:</b> Savollar soni va vaqtni o'zingiz belgilaysiz.</li>
+                        <li>✅ <b>Tasodifiylik:</b> Har safar yangi va random variantlar.</li>
+                        <li>✅ <b>Reyting:</b> O'z natijangizni boshqalar bilan solishtirish.</li>
+                        <li>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti orqali shaxsiy monitoring.</li>
+                    </ul>
+                </div>
             </div>
-            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Boshlash</button>
+            
+            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black mt-6">Tushunarli, Boshlash</button>
         </div>
     </div>
 
     <div id="subjects-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase">Test sozlamalari</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500">Test sozlamalari</h2>
         <div class="premium-card p-6 space-y-6">
             <div>
                 <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Fanni tanlang</label>
@@ -228,7 +254,7 @@
     </div>
 
     <div id="settings-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase">Sozlamalar</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Sozlamalar</h2>
         <div class="space-y-4">
             <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
                 <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
@@ -273,26 +299,22 @@
             tg.expand();
             applySavedTheme();
             
-            if (tgUser) {
-                document.getElementById('firstName').value = tgUser.first_name || "";
-                document.getElementById('lastName').value = tgUser.last_name || "";
-            }
-
             if(currentUser) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
             }
         };
 
-        window.register = async () => {
-            const f = document.getElementById('firstName').value;
-            const l = document.getElementById('lastName').value;
+        function register() {
+            const f = document.getElementById('firstName').value.trim();
+            const l = document.getElementById('lastName').value.trim();
             const b = document.getElementById('birthDay').value;
             
-            if(!b) return alert("Iltimos, tug'ilgan kuningizni kiriting!");
+            if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
             
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const photoUrl = tgUser?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(f + " " + l)}&background=3390ec&color=fff&size=256`;
+            const fullName = f + " " + l;
+            const photoUrl = tgUser?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
             
             const userData = { 
                 userId, 
@@ -303,14 +325,15 @@
                 photo: photoUrl 
             };
             
-            await set(ref(db, 'users/' + userId), userData);
-            localStorage.setItem('quizUser', JSON.stringify(userData));
-            currentUser = userData;
-            document.getElementById('auth-screen').classList.add('hidden');
-            showMenu('intro');
-        };
+            set(ref(db, 'users/' + userId), userData).then(() => {
+                localStorage.setItem('quizUser', JSON.stringify(userData));
+                currentUser = userData;
+                document.getElementById('auth-screen').classList.add('hidden');
+                showMenu('intro');
+            });
+        }
 
-        window.showMenu = (screen) => {
+        function showMenu(screen) {
             clearInterval(timerInterval);
             const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz'];
             screens.forEach(s => {
@@ -332,9 +355,9 @@
 
             if(screen === 'rating') loadRating();
             if(screen === 'profile') loadProfile();
-        };
+        }
 
-        window.startTest = async () => {
+        async function startTest() {
             const subj = document.getElementById('selectedSubject').value;
             const amount = parseInt(document.getElementById('qAmount').value);
             const time = parseInt(document.getElementById('qTime').value);
@@ -350,7 +373,7 @@
                 startTimer(time * 60);
                 loadQuestion();
             } else alert("Bu fanda savollar topilmadi!");
-        };
+        }
 
         function loadQuestion() {
             if(currentQIndex >= testQuestions.length) return finishTest();
@@ -399,7 +422,7 @@
             showMenu('rating');
         }
 
-        window.loadRating = async () => {
+        async function loadRating() {
             const filterSub = document.getElementById('rankFilterSubject').value;
             const rList = document.getElementById('ratingList');
             rList.innerHTML = "<p class='text-center opacity-50 italic'>Yuklanmoqda...</p>";
@@ -438,7 +461,7 @@
             } else {
                 rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>";
             }
-        };
+        }
 
         async function loadProfile() {
             const fullName = `${currentUser.fName} ${currentUser.lName}`;
@@ -490,29 +513,29 @@
             }, 1000);
         }
 
-        window.toggleTheme = () => {
+        function toggleTheme() {
             const isD = document.body.classList.toggle('dark-mode');
             localStorage.setItem('theme', isD ? 'dark' : 'light');
             document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
-        };
+        }
 
         function applySavedTheme() {
             if(localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
-                document.getElementById('theme-icon').innerText = "☀️";
+                document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
             }
         }
 
-        window.logout = () => {
+        function logout() {
             if(confirm("Tizimdan chiqilsa barcha yutuqlaringiz o'chib ketadi! Rozimisiz?")) {
                 localStorage.clear();
                 location.reload();
             }
-        };
+        }
 
-        window.confirmFinishTest = () => { if(confirm("Testni yakunlaysizmi?")) finishTest(); };
-        
-        // Expose functions to window
+        function confirmFinishTest() { if(confirm("Testni yakunlaysizmi?")) finishTest(); };
+
+        // Globals for HTML
         window.showMenu = showMenu;
         window.register = register;
         window.startTest = startTest;
@@ -520,7 +543,6 @@
         window.logout = logout;
         window.confirmFinishTest = confirmFinishTest;
         window.loadRating = loadRating;
-        
     </script>
 </body>
 </html>
