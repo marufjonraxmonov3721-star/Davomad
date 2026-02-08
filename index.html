@@ -200,7 +200,6 @@
             document.getElementById('result-status').style.color = "var(--green)";
             
             if (userLevel !== "juda_qiyin") {
-                const oldLevel = userLevel;
                 userLevel = config.nextLvl;
                 await set(ref(db, `brain_users/${uid}/level`), userLevel);
                 document.getElementById('result-msg').innerText = `Siz ${gameConfig[userLevel].title} bosqichiga o'tdingiz!`;
@@ -215,7 +214,6 @@
             document.getElementById('next-btn-text').innerText = "QAYTA URINISH";
         }
 
-        // Reyting uchun umumiy ochkoni ham yangilab qo'yamiz
         const snap = await get(userRef);
         const currentTotal = snap.val().totalPoints || 0;
         await set(ref(db, `brain_users/${uid}/totalPoints`), currentTotal + correctAnswers);
@@ -229,21 +227,34 @@
         if (id === 'leaderboard') fetchRank();
     };
 
+    // REYTINGNI ISHLATISH UCHUN YANGILANGAN QISM
     async function fetchRank() {
         const list = document.getElementById('rank-list');
         list.innerHTML = "Yuklanmoqda...";
-        const qRank = query(ref(db, 'brain_users'), orderByChild('totalPoints'), limitToLast(10));
-        const snap = await get(qRank);
+        
+        const usersRef = ref(db, 'brain_users');
+        const snap = await get(usersRef);
+        
         if (snap.exists()) {
             let data = [];
-            snap.forEach(c => data.push(c.val()));
+            snap.forEach(childSnap => {
+                data.push(childSnap.val());
+            });
+            
+            // Kodning o'zida saralash (Xp bo'yicha eng balandi tepaga)
             data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-            list.innerHTML = data.map((u, i) => `
+            
+            // Faqat birinchi 10 tani chiqarish
+            let top10 = data.slice(0, 10);
+            
+            list.innerHTML = top10.map((u, i) => `
                 <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;">
                     <span><b>${i+1}.</b> ${u.name} <small style="color:#666">(${u.level})</small></span>
                     <b>${u.totalPoints || 0} Ball</b>
                 </div>
             `).join('');
+        } else {
+            list.innerHTML = "Hozircha ma'lumot yo'q.";
         }
     }
 </script>
