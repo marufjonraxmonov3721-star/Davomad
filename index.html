@@ -307,12 +307,11 @@
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const mins = Math.floor((diff / (1000 * 60)) % 60);
             const secs = Math.floor((diff / 1000) % 60);
-            const ms = Math.floor(diff % 1000);
             
-            document.getElementById('p-countdown').innerText = `Tug'ilgan kuningizga: ${days} kun, ${hours} soat, ${mins} daqiqa, ${secs}.${ms} s`;
+            document.getElementById('p-countdown').innerText = `Tug'ilgan kuningizga: ${days} kun, ${hours} soat, ${mins} daqiqa, ${secs} sekund`;
         };
         updateTimer();
-        timerInterval = setInterval(updateTimer, 50);
+        timerInterval = setInterval(updateTimer, 1000);
     }
 
     async function fetchRank() {
