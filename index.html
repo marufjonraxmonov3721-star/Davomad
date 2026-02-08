@@ -73,9 +73,8 @@
             border: 1px solid rgba(255, 215, 0, 0.2);
             border-radius: 12px;
             text-align: left;
-            transition: 0.2s;
+            transition: all 0.3s ease;
         }
-        .option-btn:active { background: var(--gold); color: #000; }
         
         .rank-badge {
             width: 35px;
@@ -95,7 +94,7 @@
 
     <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen">
         <div class="text-center mb-10">
-            <div class="text-6xl mb-4">💎</div>
+            <div class="text-6xl mb-4">🎓</div>
             <h1 class="text-3xl font-black uppercase italic">Quiz Pro</h1>
             <p class="opacity-60 text-sm">Bilimingizni oltin darajaga olib chiqing</p>
         </div>
@@ -234,7 +233,8 @@
         window.onload = () => {
             applySavedTheme();
             if(currentUser) {
-                showMenu('intro'); // Kirganda birinchi Intro chiqadi
+                document.getElementById('auth-screen').classList.add('hidden');
+                showMenu('subjects');
             }
         }
 
@@ -278,8 +278,7 @@
             });
             document.getElementById(screen + '-screen').classList.remove('hidden');
             
-            // Intro ekranida navigatsiya chiqmasligi uchun
-            if (screen === 'intro' || screen === 'auth') {
+            if (screen === 'intro' || screen === 'auth' || screen === 'quiz') {
                 document.getElementById('main-nav').classList.add('hidden');
             } else {
                 document.getElementById('main-nav').classList.remove('hidden');
@@ -294,10 +293,9 @@
             const amountInput = document.getElementById('qAmount');
             const amount = parseInt(amountInput.value);
             
-            // XAVFSIZLIK: 50 tadan ko'p savol kiritilsa to'xtatadi
             if(amount > 50 || amount < 1 || isNaN(amount)) {
                 alert("Xatolik! Savollar soni 1 va 50 oralig'ida bo'lishi shart.");
-                amountInput.value = 20; // Standart qiymatga qaytarish
+                amountInput.value = 20;
                 return;
             }
 
@@ -310,9 +308,7 @@
                 testQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, amount);
                 currentQIndex = 0;
                 score = 0;
-                document.getElementById('subjects-screen').classList.add('hidden');
-                document.getElementById('main-nav').classList.add('hidden');
-                document.getElementById('quiz-screen').classList.remove('hidden');
+                showMenu('quiz');
                 startTimer(totalTimeAllocated * 60);
                 loadQuestion();
             } else {
@@ -328,14 +324,30 @@
             document.getElementById('questionText').innerText = q.q;
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
+            
             q.a.forEach((option, index) => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn font-medium bg-white/5";
                 btn.innerText = option;
+                
                 btn.onclick = () => {
-                    if(index === q.c) score++;
-                    currentQIndex++;
-                    loadQuestion();
+                    const allBtns = optList.querySelectorAll('button');
+                    allBtns.forEach(b => b.onclick = null); // Boshqa bosishni cheklash
+
+                    if(index === q.c) {
+                        btn.style.backgroundColor = "#10b981"; // Yashil
+                        btn.style.color = "#fff";
+                        score++;
+                    } else {
+                        btn.style.backgroundColor = "#ef4444"; // Qizil
+                        btn.style.color = "#fff";
+                        allBtns[q.c].style.border = "2px solid #10b981"; // To'g'risini ko'rsatish
+                    }
+
+                    setTimeout(() => {
+                        currentQIndex++;
+                        loadQuestion();
+                    }, 1000);
                 };
                 optList.appendChild(btn);
             });
