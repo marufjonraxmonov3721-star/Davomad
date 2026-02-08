@@ -13,14 +13,12 @@
         #auth, #game, #leaderboard, #result-screen { display: none; text-align: center; }
         .active { display: block !important; }
 
-        /* Progress Header */
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
         #level-title { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
         .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
         .progress-container { background: #222; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.5s; background: var(--p); }
 
-        /* Quiz UI */
         .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
         .question { font-size: 20px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
         .options-grid { display: grid; gap: 12px; }
@@ -28,11 +26,9 @@
         .correct { background: var(--green) !important; border-color: var(--green); }
         .wrong { background: var(--red) !important; border-color: var(--red); }
 
-        /* Result Box */
         .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
         .btn-next { background: var(--p); border: none; padding: 18px; border-radius: 15px; color: #fff; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; }
         
-        /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; }
         .nav-link.active-link { opacity: 1; color: var(--p); font-weight: bold; }
@@ -43,7 +39,7 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 50px;">Bosqichma-bosqich cho'qqiga chiqing!</p>
+        <p style="color:#666; margin-bottom: 50px;">Ball yig'ing va darajani oshiring!</p>
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
     </div>
 
@@ -98,18 +94,27 @@
     const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let totalXp = 0; // Bu bazadagi doimiy ball
+    let totalXp = 0;
     let sessionQuestions = [];
     let currentIdx = 0;
-    let roundScore = 0; // Bu faqat 15-20 ta savollik raund balli
+    let roundScore = 0;
     let isLocked = false;
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 100, title: "🟢 OSON", nextXp: 500 },
-        ortacha: { qCount: 20, passScore: 150, title: "🟡 O'RTACHA", nextXp: 1500 },
-        qiyin: { qCount: 25, passScore: 200, title: "🟠 QIYIN", nextXp: 3500 },
-        juda_qiyin: { qCount: 30, passScore: 250, title: "🔴 MASTER", nextXp: 10000 }
+        oson: { qCount: 15, passScore: 100, title: "🟢 OSON" },
+        ortacha: { qCount: 20, passScore: 150, title: "🟡 O'RTACHA" },
+        qiyin: { qCount: 25, passScore: 200, title: "🟠 QIYIN" },
+        juda_qiyin: { qCount: 30, passScore: 250, title: "🔴 MASTER" }
     };
+
+    // Darajani ballga qarab aniqlash funksiyasi
+    function getLevelKey(score) {
+        const s = Number(score);
+        if (s < 500) return "oson";
+        if (s < 1500) return "ortacha";
+        if (s < 3500) return "qiyin";
+        return "juda_qiyin";
+    }
 
     window.onload = async () => {
         const snap = await get(userRef);
@@ -118,9 +123,13 @@
     };
 
     window.login = async () => {
-        const user = tg.initDataUnsafe?.user;
         const snap = await get(userRef);
-        if (!snap.exists()) await set(userRef, { name: user?.first_name || "O'yinchi", xp: 0 });
+        if (!snap.exists()) {
+            await set(userRef, { name: tg.initDataUnsafe?.user?.first_name || "O'yinchi", xp: 0 });
+            totalXp = 0;
+        } else {
+            totalXp = Number(snap.val().xp);
+        }
         document.getElementById('auth').classList.remove('active');
         document.getElementById('navbar').style.display = 'flex';
         navigate('game');
@@ -131,16 +140,18 @@
         document.getElementById('result-screen').classList.remove('active');
         document.getElementById('game').classList.add('active');
         
-        // XP ballariga qarab joriy darajani aniqlash
-        let levelKey = totalXp < 500 ? "oson" : (totalXp < 1500 ? "ortacha" : (totalXp < 3500 ? "qiyin" : "juda_qiyin"));
+        // Darajani ballga qarab aniqlash
+        let levelKey = getLevelKey(totalXp);
         const config = gameConfig[levelKey];
         
         document.getElementById('level-title').innerText = config.title;
         document.getElementById('u-ball').innerText = totalXp;
         
-        // Bazadan joriy darajadagi barcha savollarni olish va random 15/20 tasini saralash
+        // Savollarni yuklash
         const qSnap = await get(ref(db, 'brain_questions/' + levelKey));
         const allQ = qSnap.val() || [];
+        
+        // Random 15 yoki 20 ta savol
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
         
         currentIdx = 0;
@@ -188,7 +199,7 @@
             } else {
                 processRoundEnd(lvlKey);
             }
-        }, 1000);
+        }, 800);
     }
 
     async function processRoundEnd(lvlKey) {
@@ -196,9 +207,9 @@
         const passed = roundScore >= config.passScore;
         
         if (passed) {
-            // Agar o'tgan bo'lsa, ballarni umumiy XP ga qo'shamiz va bazada yangilaymiz
-            totalXp += roundScore;
-            await set(ref(db, `brain_users/${uid}/xp`), Number(totalXp));
+            // Agar raunddan o'tgan bo'lsa ballni qo'shish va bazaga yozish
+            totalXp = Number(totalXp) + Number(roundScore);
+            await set(ref(db, `brain_users/${uid}/xp`), totalXp);
         }
 
         showFinalResult(lvlKey, passed);
@@ -215,12 +226,18 @@
         if (passed) {
             document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
             document.getElementById('result-status').style.color = "var(--green)";
-            document.getElementById('result-msg').innerText = "Siz muvaffaqiyatli o'tdingiz. Ballaringiz umumiy hisobga qo'shildi.";
+            // Agar o'tgan bo'lsa va yangi ball keyingi level chegarasiga yetgan bo'lsa
+            let nextLevel = getLevelKey(totalXp);
+            if (nextLevel !== lvlKey) {
+                document.getElementById('result-msg').innerText = `Daxshat! Siz ${nextLevel.toUpperCase()} darajasiga ko'tarildingiz!`;
+            } else {
+                document.getElementById('result-msg').innerText = "Siz muvaffaqiyatli o'tdingiz. Ballaringiz saqlandi.";
+            }
             document.getElementById('next-btn-text').innerText = "KEYINGI RAUND";
         } else {
             document.getElementById('result-status').innerText = "Yana bir bor urinib ko'ring!";
             document.getElementById('result-status').style.color = "var(--yellow)";
-            document.getElementById('result-msg').innerText = `Bosqichdan o'tish uchun kamida ${config.passScore} ball to'plashingiz kerak edi.`;
+            document.getElementById('result-msg').innerText = `Keyingi darajaga o'tish uchun kamida ${config.passScore} ball to'plashingiz kerak edi.`;
             document.getElementById('next-btn-text').innerText = "QAYTA URINISH";
         }
     }
@@ -244,7 +261,7 @@
             data.sort((a, b) => b.xp - a.xp);
             list.innerHTML = data.map((u, i) => `
                 <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;">
-                    <span>${i+1}. ${u.name}</span>
+                    <span><b>${i+1}.</b> ${u.name}</span>
                     <b>${u.xp} XP</b>
                 </div>
             `).join('');
