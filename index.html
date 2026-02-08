@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz App Pro - Premium Edition</title>
+    <title>Testlar.uz - Bilimlar Cho'qqisi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -105,7 +105,6 @@
         .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
         .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
 
-        /* Intro Animation */
         @keyframes fadeInRight {
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
@@ -121,7 +120,7 @@
         </button>
 
         <div class="text-6xl mb-4 text-yellow-500">🎓</div>
-        <h1 class="text-3xl font-black uppercase italic mb-10">Quiz Pro</h1>
+        <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar.uz</h1>
         
         <div class="space-y-4 text-left">
             <div>
@@ -145,17 +144,17 @@
             <div class="premium-card p-8 shadow-2xl text-center">
                 <div class="text-5xl mb-6">🎯</div>
                 <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Maqsadimiz</h2>
-                <p class="opacity-80 leading-relaxed">Foydalanuvchilarning bilim darajasini testlar orqali oshirish, intellektual salohiyatni charxlash va o'z bilimi bilan peshqadamlar qatoridan joy olishiga ko'maklashish.</p>
-                <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black mt-8">Keyingisi</button>
+                <p class="opacity-80 leading-relaxed text-sm">Foydalanuvchilarning bilim darajasini testlar orqali oshirish, intellektual salohiyatni charxlash va o'z bilimi bilan peshqadamlar qatoridan joy olishiga ko'maklashish.</p>
+                <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black mt-8">Davom etish</button>
             </div>
         </div>
 
         <div id="intro-step-2" class="hidden animate-slide">
-            <div class="premium-card p-8 shadow-2xl text-center">
+            <div class="premium-card p-8 shadow-2xl text-center text-sm">
                 <div class="text-5xl mb-6">📚</div>
-                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">12 ta Fan</h2>
-                <p class="opacity-80 mb-6">Barcha asosiy fanlar qamrab olingan:</p>
-                <div class="grid grid-cols-2 gap-2 text-left text-xs opacity-90 italic mb-8">
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Fanlar</h2>
+                <p class="opacity-80 mb-6 italic">Ilovada jami 12 ta asosiy yo'nalish mavjud:</p>
+                <div class="grid grid-cols-2 gap-2 text-left text-[11px] opacity-90 mb-8 font-bold">
                     <span>• Matematika</span><span>• Fizika</span>
                     <span>• Kimyo</span><span>• Ona tili</span>
                     <span>• Adabiyot</span><span>• Geografiya</span>
@@ -163,7 +162,7 @@
                     <span>• Ingliz tili</span><span>• Rus tili</span>
                     <span>• Biologiya</span><span>• IQ Testlar</span>
                 </div>
-                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
+                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Davom etish</button>
             </div>
         </div>
 
@@ -171,19 +170,19 @@
             <div class="premium-card p-8 shadow-2xl text-center">
                 <div class="text-5xl mb-6">🚀</div>
                 <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Imkoniyatlar</h2>
-                <div class="text-left space-y-4 mb-8">
-                    <p>✅ <b>Moslashuvchanlik:</b> Savollar soni va vaqtni o'zingiz belgilaysiz.</p>
-                    <p>✅ <b>Tasodifiylik:</b> Har safar yangi va random variantlar.</p>
-                    <p>✅ <b>Reyting:</b> O'z natijangizni boshqalar bilan solishtirish.</p>
-                    <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun monitoringi.</p>
+                <div class="text-left space-y-3 text-sm mb-8">
+                    <p>✅ <b>Moslashuvchan:</b> Savollar soni va vaqtni boshqaring.</p>
+                    <p>✅ <b>Random:</b> Har safar yangi variantlar.</p>
+                    <p>✅ <b>Reyting:</b> O'z natijangizni dunyo bilan solishtiring.</p>
+                    <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti.</p>
                 </div>
-                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Ilovani Boshlash</button>
+                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Boshlaymiz!</button>
             </div>
         </div>
     </div>
 
     <div id="subjects-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500">Test sozlamalari</h2>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Mavzular</h2>
         <div class="premium-card p-6 space-y-6">
             <div>
                 <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Fanni tanlang</label>
@@ -228,7 +227,7 @@
     </div>
 
     <div id="rating-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500">Reyting</h2>
+        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Reyting</h2>
         <div class="space-y-4 mb-6">
             <select id="rankFilterSubject" onchange="loadRating()" class="text-sm">
                 <option value="Matematika">Matematika</option>
@@ -249,8 +248,8 @@
     </div>
 
     <div id="profile-screen" class="hidden p-6 text-center">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500">Profil</h2>
-        <div class="premium-card p-8 mb-6">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Mening Profilim</h2>
+        <div class="premium-card p-8 mb-6 shadow-xl">
             <div class="profile-img-container">
                 <img src="" id="userProfileImg" alt="Avatar">
             </div>
@@ -258,17 +257,17 @@
             <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
             <div id="profAgeInfo" class="text-sm opacity-80 mb-4 space-y-1">
                 <p id="profBirthdayText"></p>
-                <p id="profAgeText" class="font-bold"></p>
-                <p id="profDaysLeft" class="text-xs italic"></p>
+                <p id="profAgeText" class="font-black"></p>
+                <p id="profDaysLeft" class="text-xs italic text-yellow-500"></p>
             </div>
             <div class="border-t border-yellow-500/20 pt-6 text-left">
-                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest">Mening Reytinglarim:</h4>
+                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic">Yutuqlarim:</h4>
                 <div id="myStatsList" class="space-y-3"></div>
             </div>
         </div>
     </div>
 
-    <div id="settings-screen" class="hidden p-6">
+    <div id="settings-screen" class="hidden p-6 text-center">
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500">Sozlamalar</h2>
         <div class="space-y-4">
             <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
@@ -280,7 +279,7 @@
     </div>
 
     <nav id="main-nav" class="hidden fixed bottom-0 left-0 right-0 bg-inherit border-t border-yellow-500/20 px-4 py-4 flex justify-around backdrop-blur-xl z-50">
-        <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav"><span class="text-2xl">📚</span><span>FANLAR</span></button>
+        <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav"><span class="text-2xl">📚</span><span>TESTLAR</span></button>
         <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn"><span class="text-2xl">🏆</span><span>REYTING</span></button>
         <button onclick="showMenu('profile')" id="nav-profile" class="nav-btn"><span class="text-2xl">👤</span><span>PROFIL</span></button>
         <button onclick="showMenu('settings')" id="nav-settings" class="nav-btn"><span class="text-2xl">⚙️</span><span>SOZLAMALAR</span></button>
@@ -313,7 +312,6 @@
             tg.ready();
             tg.expand();
             applySavedTheme();
-            
             if(currentUser) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
@@ -324,22 +322,10 @@
             const f = document.getElementById('firstName').value.trim();
             const l = document.getElementById('lastName').value.trim();
             const b = document.getElementById('birthDay').value;
-            
             if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
-            
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const fullName = f + " " + l;
-            const photoUrl = tgUser?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
-            
-            const userData = { 
-                userId, 
-                fName: f, 
-                lName: l, 
-                username: tgUser?.username || "",
-                birth: b, 
-                photo: photoUrl 
-            };
-            
+            const photoUrl = tgUser?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(f + " " + l)}&background=3390ec&color=fff&size=256`;
+            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
                 currentUser = userData;
@@ -357,9 +343,7 @@
                 const nav = document.getElementById('nav-' + s);
                 if(nav) nav.classList.remove('active-nav');
             });
-            
             document.getElementById(screen + '-screen').classList.remove('hidden');
-            
             if (['quiz', 'auth', 'intro'].includes(screen)) {
                 document.getElementById('main-nav').classList.add('hidden');
             } else {
@@ -367,7 +351,6 @@
                 const activeNav = document.getElementById('nav-' + screen);
                 if(activeNav) activeNav.classList.add('active-nav');
             }
-
             if(screen === 'intro') nextIntro(1);
             if(screen === 'rating') loadRating();
             if(screen === 'profile') loadProfile();
@@ -382,14 +365,11 @@
             const subj = document.getElementById('selectedSubject').value;
             const amount = parseInt(document.getElementById('qAmount').value);
             const time = parseInt(document.getElementById('qTime').value);
-
             const snapshot = await get(ref(db, 'fanlar/' + subj));
             if(snapshot.exists()) {
                 testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, amount);
-                currentQIndex = 0; 
-                score = 0;
+                currentQIndex = 0; score = 0;
                 window.currentMeta = { subj, amount, time };
-                
                 showMenu('quiz');
                 startTimer(time * 60);
                 loadQuestion();
@@ -398,28 +378,20 @@
 
         function loadQuestion() {
             if(currentQIndex >= testQuestions.length) return finishTest(true);
-            
             document.getElementById('progress-fill').style.width = (currentQIndex / testQuestions.length) * 100 + "%";
             const q = testQuestions[currentQIndex];
             document.getElementById('qProgress').innerText = `${currentQIndex + 1}/${testQuestions.length}`;
             document.getElementById('questionText').innerText = q.q;
-            
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
-            
             const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
-            
             opts.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn font-medium bg-white/5 italic";
                 btn.innerText = opt.text;
                 btn.onclick = () => {
-                    if(opt.isC) {
-                        btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff";
-                        score++;
-                    } else {
-                        btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff";
-                    }
+                    if(opt.isC) { btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; }
+                    else { btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; }
                     optList.querySelectorAll('button').forEach(b => b.onclick = null);
                     setTimeout(() => { currentQIndex++; loadQuestion(); }, 800);
                 };
@@ -429,31 +401,17 @@
 
         async function finishTest(isCompleted) {
             clearInterval(timerInterval);
-            
             if(isCompleted) {
                 const userKey = currentUser.userId.replace(/\./g, '_');
                 const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
-                
                 const existingSnap = await get(ref(db, ratingPath));
                 const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
-
                 if(score > currentBest) {
-                    const res = {
-                        name: `${currentUser.fName} ${currentUser.lName}`,
-                        photo: currentUser.photo || "",
-                        score: score,
-                        subject: window.currentMeta.subj,
-                        qCount: window.currentMeta.amount,
-                        timeSet: window.currentMeta.time,
-                        date: Date.now()
-                    };
+                    const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
                     await set(ref(db, ratingPath), res);
                 }
                 alert(`Test yakunlandi! Natija: ${score}/${window.currentMeta.amount}`);
-            } else {
-                alert(`Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi.`);
-            }
-            
+            } else { alert("Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi."); }
             showMenu('rating');
         }
 
@@ -461,40 +419,18 @@
             const filterSub = document.getElementById('rankFilterSubject').value;
             const rList = document.getElementById('ratingList');
             rList.innerHTML = "<p class='text-center opacity-50 italic'>Yuklanmoqda...</p>";
-            
             const snap = await get(ref(db, `ratings/${filterSub}`));
             if(snap.exists()) {
                 rList.innerHTML = "";
-                const sorted = Object.values(snap.val())
-                    .sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet)
-                    .slice(0, 20);
-
-                if(sorted.length === 0) {
-                    rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>";
-                    return;
-                }
-
+                const sorted = Object.values(snap.val()).sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet).slice(0, 20);
+                if(sorted.length === 0) { rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>"; return; }
                 sorted.forEach((r, i) => {
                     const div = document.createElement('div');
                     div.className = `premium-card p-4 flex justify-between items-center ${i===0?'rank-1':''}`;
-                    div.innerHTML = `
-                        <div class='flex items-center gap-4'>
-                            ${i===0?'<span class="crown">👑</span>':''}
-                            <img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img">
-                            <div>
-                                <p class='font-bold text-sm'>${r.name}</p>
-                                <p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p>
-                            </div>
-                        </div>
-                        <div class='text-right'>
-                            <span class='text-lg font-black text-yellow-500'>${r.score}</span>
-                            <span class='text-[10px] opacity-40 ml-1'>BALL</span>
-                        </div>`;
+                    div.innerHTML = `<div class='flex items-center gap-4'>${i===0?'<span class="crown">👑</span>':''}<img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img"><div><p class='font-bold text-sm'>${r.name}</p><p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p></div></div><div class='text-right'><span class='text-lg font-black text-yellow-500'>${r.score}</span><span class='text-[10px] opacity-40 ml-1'>BALL</span></div>`;
                     rList.appendChild(div);
                 });
-            } else {
-                rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>";
-            }
+            } else { rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>"; }
         }
 
         async function loadProfile() {
@@ -502,36 +438,29 @@
             document.getElementById('profName').innerText = fullName;
             document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
             document.getElementById('userProfileImg').src = currentUser.photo;
-            
             const bDate = new Date(currentUser.birth);
             const today = new Date();
             let age = today.getFullYear() - bDate.getFullYear();
             const m = today.getMonth() - bDate.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) age--;
-
             const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate());
             if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
             const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
-
             document.getElementById('profBirthdayText').innerText = `Sana: ${bDate.toLocaleDateString('uz-UZ')}`;
             document.getElementById('profAgeText').innerText = `Yosh: ${age} yosh`;
             document.getElementById('profDaysLeft').innerText = (diff === 0 || diff === 365) ? "Bugun tug'ilgan kuningiz! 🥳" : `Tug'ilgan kuningizga ${diff} kun qoldi`;
-
             const stats = document.getElementById('myStatsList');
             stats.innerHTML = "";
-            
             const snap = await get(ref(db, `ratings`));
             if(snap.exists()) {
                 const userKey = currentUser.userId.replace(/\./g, '_');
                 const allRatings = snap.val();
-                
                 Object.keys(allRatings).forEach(sub => {
                     const subData = allRatings[sub];
                     if (subData[userKey]) {
                         const myBest = subData[userKey];
                         const subArray = Object.values(subData).sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet);
                         const myRank = subArray.findIndex(r => r.name === fullName) + 1;
-                        
                         const div = document.createElement('div');
                         div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10 mb-2";
                         div.innerHTML = `<span class="text-xs font-bold">${sub}</span><span class="text-xs text-yellow-500 font-black">${myRank}-o'rin (${myBest.score} ball)</span>`;
