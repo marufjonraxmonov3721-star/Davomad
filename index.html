@@ -48,7 +48,8 @@
         .announcement-banner { background: var(--gold); color: #000; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; display: none; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
-        #participant-counter { margin-top: 10px; font-size: 14px; color: var(--gold); font-weight: bold; }
+        #participant-counter { margin: 15px 0; padding: 15px; background: #111; border-radius: 15px; border: 1px solid #222; font-size: 16px; color: #fff; display: none; }
+        .count-highlight { color: var(--gold); font-size: 22px; font-weight: 900; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -85,6 +86,12 @@
         <h2 id="tour-title-text">Turnir Markazi</h2>
         <div class="quiz-card" id="tour-box">
             <p id="tour-status-msg">Turnirda qatnashish uchun 5 000 so'm to'lov qiling.</p>
+            
+            <div id="participant-counter">
+                <span id="txt-p-label">Ishtirokchilar soni:</span>
+                <span id="p-count" class="count-highlight">0 / 30</span>
+            </div>
+
             <div id="payment-details" style="background:#111; padding:15px; border-radius:15px; border:1px dashed var(--gold); margin:15px 0; text-align:left;">
                 <p id="pay-price">💰 Kirish: <b>5 000 so'm</b></p>
                 <p id="pay-card">💳 Karta: <b style="color:#fff;">4073 4200 6816 5541</b></p>
@@ -97,8 +104,6 @@
                 <button class="btn-main" style="background:#222; color:var(--gold); border:1px solid var(--gold-dark);" onclick="document.getElementById('receipt-input').click()" id="btn-choose-file">RASM TANLASH</button>
                 <img id="receipt-preview">
             </div>
-
-            <div id="participant-counter" style="display:none;">Ishtirokchilar: <span id="p-count">0</span>/30</div>
 
             <button class="btn-main" id="btn-pay" onclick="pay()">TO'LOV QILDIM</button>
             <button class="btn-main" id="btn-start" style="display:none; background:var(--green);" onclick="startTurnir()">TURNIRNI BOSHLASH</button>
@@ -187,13 +192,13 @@
             payInfo: "Turnirda qatnashish uchun 5 000 so'm to'lov qiling.", payPrice: "💰 Kirish: <b>5 000 so'm</b>", payCard: "💳 Karta:", payOwner: "👤 Ega:",
             resFinish: "RAUND TUGADI!", resScore: "To'g'ri javoblar:", qLabel: "Savol:", logout: "TIZIMDAN CHIQISH",
             receiptLab: "To'lov chekini yuklang:", chooseFile: "RASM TANLASH",
-            tourStartMsg: "Ertaga turnir 20:00 da start!", pLabel: "Ishtirokchilar:",
+            tourStartMsg: "Ertaga turnir 20:00 da start!", pLabel: "Ishtirokchilar soni:",
             ob: [
                 { t: "Xush kelibsiz!", d: "Aql Jangi — bu mantiqiy savollar orqali bilimingizni sinaydigan turnir ilovasi." },
                 { t: "Turnir Sovrinlari", d: "Turnirda jami 30 ta joy mavjud.\n\n🥇 1-o'rin: 80 000 so'm\n🥈 2-o'rin: 50 000 so'm\n🥉 3-o'rin: 20 000 so'm" },
                 { t: "Qatnashish Sharti", d: "Turnirda qatnashish narxi 5 000 so'm. To'lov tasdiqlangach, 30 ta joy to'lgach start beriladi." }
             ],
-            wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! 30 ta ishtirokchi to'lishini kuting."
+            wait: "To'lov tekshirilmoqda...", active: "To'lov tasdiqlandi! Jami 30 ta ishtirokchi to'lishini kuting."
         },
         uz_cyr: {
             appTitle: "Ақл Жанги", slogan: "Турнирда иштирок этинг!",
@@ -203,13 +208,13 @@
             payInfo: "Турнирда қатнашиш учун 5 000 сўм тўлов қилинг.", payPrice: "💰 Кириш: <b>5 000 сўм</b>", payCard: "💳 Карта:", payOwner: "👤 Эга:",
             resFinish: "РАУНД ТУГАДИ!", resScore: "Тўғри жавоблар:", qLabel: "Савол:", logout: "ТИЗИМДАН ЧИҚИШ",
             receiptLab: "Тўлов чекини юкланг:", chooseFile: "РАСМ ТАНЛАШ",
-            tourStartMsg: "Эртага турнир 20:00 да старт!", pLabel: "Иштирокчилар:",
+            tourStartMsg: "Эртага турнир 20:00 да старт!", pLabel: "Иштирокчилар сони:",
             ob: [
                 { t: "Хуш келибсиз!", d: "Ақл Жанги — бу мантиқий саволлар орқали билимингизни синайдиган турнир иловаси." },
                 { t: "Турнир Совринлари", d: "Турнирда жами 30 та жой мавжуд.\n\n🥇 1-ўрин: 80 000 сўм\n🥈 2-ўрин: 50 000 сўм\n🥉 3-ўрин: 20 000 сўм" },
                 { t: "Қатнашиш Шарти", d: "Турнирда қатнашиш нархи 5 000 сўм. Тўлов тасдиқлангач, 30 та жой тўлгач старт берилади." }
             ],
-            wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! 30 та иштирокчи тўлишини кутинг."
+            wait: "Тўлов текширилмоқда...", active: "Тўлов тасдиқланди! Жами 30 та иштирокчи тўлишини кутинг."
         }
     };
 
@@ -239,6 +244,7 @@
         document.getElementById('nav-tour-text').innerText = t.tour;
         document.getElementById('nav-rank-text').innerText = t.rank;
         document.getElementById('nav-set-text').innerText = t.set;
+        document.getElementById('txt-p-label').innerText = t.pLabel;
         
         if (userData) {
             const msg = document.getElementById('tour-status-msg');
@@ -263,10 +269,10 @@
             const btnStart = document.getElementById('btn-start');
             const msg = document.getElementById('tour-status-msg');
 
-            // Agar to'lov tasdiqlangan bo'lsa hisoblagichni ko'rsatish
+            // To'lov tasdiqlangan bo'lsa hisoblagichni ko'rsatish
             if (userData && userData.tourStatus === 'active') {
                 counterDiv.style.display = 'block';
-                countSpan.innerText = activeCount;
+                countSpan.innerText = activeCount + " / 30";
 
                 if (activeCount >= 30) {
                     btnStart.style.display = 'block';
@@ -278,6 +284,8 @@
                     msg.style.display = 'block';
                     banner.style.display = 'none';
                 }
+            } else {
+                counterDiv.style.display = 'none';
             }
         });
     }
@@ -377,6 +385,7 @@
             payBox.style.display = "none";
             uploadBox.style.display = "none";
         }
+        syncParticipants();
     }
 
     window.startTurnir = async () => {
@@ -474,7 +483,10 @@
         const navId = 'nav-' + id.substring(0,3);
         if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-link');
         
-        if(id === 'tournament') loadTourStatus();
+        if(id === 'tournament') {
+            loadTourStatus();
+            syncParticipants();
+        }
         if(id === 'leaderboard') fetchRank();
         if(id === 'settings') loadSettings();
     };
@@ -515,4 +527,3 @@
 </script>
 </body>
 </html>
-
