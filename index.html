@@ -205,7 +205,7 @@
             namePh: "Исмингиз", surnamePh: "Фамилиянгиз", btnStart: "БОШЛАШ", navGame: "Ўйин", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Созламалар",
             chooseLang: "Илова тилини танланг:", qCounter: "Савол", scoreLabel: "Балл", resStatus: "Раунд Тугади!",
             resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
-            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
+            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", сек: "сек",
             obWelcome: "Ҳақиқий билимлар тўқнашувига хуш келибсиз! Келинг, ўйин қоидалари билан танишамиз.", obFinish: "Ҳамма қоидаларни билдингиз. Энди жангни бошлаш вақти келди! Омад ёр бўлсин.",
             obBtnNext: "КЕЙИНГИСИ", obBtnStart: "БОШЛАДИК!", obQcount: "Саволлар сони:", obPass: "Ўтиш учун:", translating: "Саволлар таржима қилинмоқда..."
         },
@@ -214,7 +214,7 @@
             namePh: "Имя", surnamePh: "Фамилия", btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
-            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
+            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", сек: "сек",
             obWelcome: "Добро пожаловать в настоящую битву знаний! Давайте познакомимся с правилами игры.", obFinish: "Вы узнали все правила. Пришло время начать битву! Удачи.",
             obBtnNext: "ДАЛЕЕ", obBtnStart: "ПОЕХАЛИ!", obQcount: "Количество вопросов:", obPass: "Для перехода:", translating: "Перевод вопросов..."
         },
@@ -263,11 +263,6 @@
                 document.getElementById('reg-birth').style.display = 'none';
                 document.getElementById('reg-lang').style.display = 'none';
                 document.getElementById('txt-birth-label').style.display = 'none';
-                
-                // Qayta kirganda tilni tekshirish va o'yin savollari bo'lsa ularni yangilash
-                if(userLang !== 'uz') {
-                    changeLang(userLang, false);
-                }
             }
         } else {
             applyLanguage();
@@ -306,29 +301,12 @@
 
     window.changeLang = async (lang, syncToDb = true) => {
         userLang = lang;
-        applyLanguage();
         if (syncToDb) {
             await update(userRef, { lang: lang });
-            if (document.getElementById('profile').classList.contains('active')) loadProfile();
-        }
-        
-        // AGAR O'YIN KETAYOTGAN BO'LSA YOKI QAYTA KIRILSA - JORIY SAVOLNI TARJIMA QILISH
-        if (sessionQuestions.length > 0 && currentIdx < sessionQuestions.length) {
-            const currentQ = sessionQuestions[currentIdx];
-            if (document.getElementById('game').classList.contains('active')) {
-                document.getElementById('question-text').innerText = translations[userLang].translating;
-            }
-            
-            // Faqat bir marta tarjima qilish (qayta-qayta chaqirmaslik uchun)
-            const translatedQ = await translateText(currentQ.q, userLang);
-            currentQ.q = translatedQ;
-            for (let i = 0; i < currentQ.a.length; i++) {
-                currentQ.a[i] = await translateText(currentQ.a[i], userLang);
-            }
-            
-            if (document.getElementById('game').classList.contains('active')) {
-                showQuestion(); 
-            }
+            // Tanlangandan so'ng ilovani qayta yuklash
+            location.reload();
+        } else {
+            applyLanguage();
         }
     };
 
@@ -400,7 +378,6 @@
         if (allQ.length === 0 && userLang !== 'uz') {
             const uzSnap = await get(ref(db, `brain_questions/uz/${userLevel}`));
             allQ = uzSnap.val() || [];
-            // Optimallashgan yuklash
             for (let item of allQ) {
                 item.q = await translateText(item.q, userLang);
                 for (let i = 0; i < item.a.length; i++) {
