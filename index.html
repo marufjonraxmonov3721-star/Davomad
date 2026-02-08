@@ -95,7 +95,13 @@
         .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; overflow: hidden; }
         #progress-fill { height: 100%; width: 0%; background: var(--gold); transition: width 0.3s ease; }
 
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); object-fit: cover; margin: 0 auto 15px; }
+        /* Telegram uslubidagi profil rasmi uchun */
+        .profile-img-container {
+            width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--gold);
+            margin: 0 auto 15px; overflow: hidden; background: #e0e0e0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body class="pb-24">
@@ -191,7 +197,9 @@
     <div id="profile-screen" class="hidden p-6 text-center">
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Profil</h2>
         <div class="premium-card p-8 mb-6">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maruf" id="userProfileImg" class="profile-img">
+            <div class="profile-img-container">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maruf&backgroundColor=ffdfbf" id="userProfileImg">
+            </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
             <p class="text-sm opacity-60 mb-6 italic">Quiz Pro Bilimdoni</p>
             <div class="border-t border-yellow-500/20 pt-6 text-left">
@@ -306,7 +314,6 @@
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
             
-            // Variantlarni random qilish
             let opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
             
             opts.forEach(opt => {
@@ -350,7 +357,6 @@
             const snap = await get(ref(db, 'ratings'));
             if(snap.exists()) {
                 rList.innerHTML = "";
-                // Filtrlash va Saralash: Ball -> Savollar soni -> Vaqt
                 const sorted = Object.values(snap.val())
                     .filter(r => r.subject === filterSub)
                     .sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet)
@@ -399,9 +405,10 @@
                     if(myBest) {
                         const div = document.createElement('div');
                         div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10";
+                        // "#" belgisi olib tashlandi
                         div.innerHTML = `
                             <span class="text-xs font-bold">${sub}</span>
-                            <span class="text-xs text-yellow-500 font-black">#${myRank} O'rin (${myBest.score} ball)</span>
+                            <span class="text-xs text-yellow-500 font-black">${myRank} O'rin (${myBest.score} ball)</span>
                         `;
                         stats.appendChild(div);
                     }
@@ -409,7 +416,6 @@
             }
         }
 
-        // Tizim funksiyalari (Timer, Theme, Logout) kodi kiritilgan...
         function startTimer(s) {
             let t = s;
             timerInterval = setInterval(() => {
@@ -434,7 +440,7 @@
         }
 
         window.logout = () => {
-            if(confirm("barcha ma'lumotlaringiz o'chib ketadi! Rozimisiz?")) {
+            if(confirm("Tizimdan chiqilsa barcha yutuqlaringiz o'chib ketadi! Rozimisiz?")) {
                 localStorage.clear();
                 location.reload();
             }
