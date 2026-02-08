@@ -14,13 +14,13 @@
         .active { display: block !important; }
 
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
-        #level-title { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        #level-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
         .progress-container { background: #222; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
-        #xp-progress-bar { height: 100%; width: 0%; transition: 0.5s; background: var(--p); }
+        #xp-progress-bar { height: 100%; width: 0%; transition: 0.4s; background: var(--p); }
 
         .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
-        .question { font-size: 20px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
+        .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
         .options-grid { display: grid; gap: 12px; }
         .option-btn { background: #222; padding: 18px; border-radius: 15px; border: 1px solid #444; text-align: left; cursor: pointer; transition: 0.2s; font-size: 16px; }
         .correct { background: var(--green) !important; border-color: var(--green); }
@@ -39,14 +39,14 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 50px;">Ball yig'ing va darajani oshiring!</p>
+        <p style="color:#666; margin-bottom: 50px;">Minimal ball to'plab yangi bosqichlarni oching!</p>
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
     </div>
 
     <div id="game">
         <div class="level-header">
-            <div id="level-title">OSON</div>
-            <div class="session-info">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-ball">0</b></div>
+            <div id="level-title">YUKLANMOQDA...</div>
+            <div class="session-info">Savol: <span id="q-counter">0/0</span> | To'g'ri: <b id="u-correct">0</b></div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
         <div class="quiz-card">
@@ -58,10 +58,9 @@
     <div id="result-screen">
         <div class="result-box">
             <h2 id="result-status">Raund Tugadi!</h2>
-            <p id="result-score">To'plangan ball: 0</p>
-            <p id="result-total">Umumiy XP: 0</p>
+            <p id="result-score" style="font-size: 20px; margin: 10px 0;">Natija: 0/0</p>
             <p id="result-msg" style="color:#888; margin-top:10px;"></p>
-            <button class="btn-next" id="next-btn-text" onclick="startNewRound()">KEYINGI RAUND</button>
+            <button class="btn-next" id="next-btn-text" onclick="startNewRound()">DAVOM ETISH</button>
         </div>
     </div>
 
@@ -91,44 +90,35 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf";
+    const uid = tg.initDataUnsafe?.user?.id || "tester_maruf_3";
     const userRef = ref(db, 'brain_users/' + uid);
 
-    let totalXp = 0;
+    let userLevel = "oson"; 
     let sessionQuestions = [];
     let currentIdx = 0;
-    let roundScore = 0;
+    let correctAnswers = 0; 
     let isLocked = false;
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 100, title: "🟢 OSON" },
-        ortacha: { qCount: 20, passScore: 150, title: "🟡 O'RTACHA" },
-        qiyin: { qCount: 25, passScore: 200, title: "🟠 QIYIN" },
-        juda_qiyin: { qCount: 30, passScore: 250, title: "🔴 MASTER" }
+        oson: { qCount: 15, passScore: 10, title: "🟢 OSON", nextLvl: "ortacha" },
+        ortacha: { qCount: 25, passScore: 17, title: "🟡 O'RTACHA", nextLvl: "qiyin" },
+        qiyin: { qCount: 35, passScore: 24, title: "🟠 QIYINROQ", nextLvl: "juda_qiyin" },
+        juda_qiyin: { qCount: 45, passScore: 30, title: "🔴 JUDA QIYIN", nextLvl: "juda_qiyin" }
     };
-
-    // Darajani ballga qarab aniqlash funksiyasi
-    function getLevelKey(score) {
-        const s = Number(score);
-        if (s < 500) return "oson";
-        if (s < 1500) return "ortacha";
-        if (s < 3500) return "qiyin";
-        return "juda_qiyin";
-    }
 
     window.onload = async () => {
         const snap = await get(userRef);
-        if (snap.exists()) totalXp = Number(snap.val().xp) || 0;
+        if (snap.exists()) userLevel = snap.val().level || "oson";
         document.getElementById('auth').classList.add('active');
     };
 
     window.login = async () => {
         const snap = await get(userRef);
         if (!snap.exists()) {
-            await set(userRef, { name: tg.initDataUnsafe?.user?.first_name || "O'yinchi", xp: 0 });
-            totalXp = 0;
+            await set(userRef, { name: tg.initDataUnsafe?.user?.first_name || "O'yinchi", level: "oson", totalPoints: 0 });
+            userLevel = "oson";
         } else {
-            totalXp = Number(snap.val().xp);
+            userLevel = snap.val().level || "oson";
         }
         document.getElementById('auth').classList.remove('active');
         document.getElementById('navbar').style.display = 'flex';
@@ -140,33 +130,27 @@
         document.getElementById('result-screen').classList.remove('active');
         document.getElementById('game').classList.add('active');
         
-        // Darajani ballga qarab aniqlash
-        let levelKey = getLevelKey(totalXp);
-        const config = gameConfig[levelKey];
-        
+        const config = gameConfig[userLevel];
         document.getElementById('level-title').innerText = config.title;
-        document.getElementById('u-ball').innerText = totalXp;
+        document.getElementById('u-correct').innerText = "0";
         
-        // Savollarni yuklash
-        const qSnap = await get(ref(db, 'brain_questions/' + levelKey));
+        const qSnap = await get(ref(db, 'brain_questions/' + (userLevel === "juda_qiyin" ? "juda_qiyin" : userLevel)));
         const allQ = qSnap.val() || [];
-        
-        // Random 15 yoki 20 ta savol
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
         
         currentIdx = 0;
-        roundScore = 0;
-        showQuestion(levelKey);
+        correctAnswers = 0;
+        showQuestion();
     };
 
-    function showQuestion(lvlKey) {
+    function showQuestion() {
         isLocked = false;
-        const qCount = gameConfig[lvlKey].qCount;
+        const config = gameConfig[userLevel];
         const q = sessionQuestions[currentIdx];
         
-        document.getElementById('q-counter').innerText = `${currentIdx + 1}/${qCount}`;
+        document.getElementById('q-counter').innerText = `${currentIdx + 1}/${config.qCount}`;
         document.getElementById('question-text').innerText = q.q;
-        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / qCount * 100) + "%";
+        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / config.qCount * 100) + "%";
 
         const box = document.getElementById('options-box');
         box.innerHTML = "";
@@ -174,18 +158,19 @@
             const btn = document.createElement('div');
             btn.className = "option-btn";
             btn.innerText = opt;
-            btn.onclick = () => check(i, q.c, btn, lvlKey);
+            btn.onclick = () => check(i, q.c, btn);
             box.appendChild(btn);
         });
     }
 
-    async function check(idx, correct, el, lvlKey) {
+    async function check(idx, correct, el) {
         if (isLocked) return;
         isLocked = true;
 
         if (idx === correct) {
             el.classList.add('correct');
-            roundScore += 10;
+            correctAnswers++;
+            document.getElementById('u-correct').innerText = correctAnswers;
             tg.HapticFeedback.notificationOccurred('success');
         } else {
             el.classList.add('wrong');
@@ -194,52 +179,46 @@
 
         setTimeout(() => {
             currentIdx++;
-            if (currentIdx < gameConfig[lvlKey].qCount) {
-                showQuestion(lvlKey);
+            if (currentIdx < gameConfig[userLevel].qCount) {
+                showQuestion();
             } else {
-                processRoundEnd(lvlKey);
+                finishRound();
             }
         }, 800);
     }
 
-    async function processRoundEnd(lvlKey) {
-        const config = gameConfig[lvlKey];
-        const passed = roundScore >= config.passScore;
+    async function finishRound() {
+        const config = gameConfig[userLevel];
+        const isPassed = correctAnswers >= config.passScore;
         
-        if (passed) {
-            // Agar raunddan o'tgan bo'lsa ballni qo'shish va bazaga yozish
-            totalXp = Number(totalXp) + Number(roundScore);
-            await set(ref(db, `brain_users/${uid}/xp`), totalXp);
-        }
-
-        showFinalResult(lvlKey, passed);
-    }
-
-    function showFinalResult(lvlKey, passed) {
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
-        
-        const config = gameConfig[lvlKey];
-        document.getElementById('result-score').innerText = `Raunddagi ball: ${roundScore}`;
-        document.getElementById('result-total').innerText = `Umumiy XP: ${totalXp}`;
-        
-        if (passed) {
+        document.getElementById('result-score').innerText = `Natija: ${correctAnswers}/${config.qCount}`;
+
+        if (isPassed) {
             document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
             document.getElementById('result-status').style.color = "var(--green)";
-            // Agar o'tgan bo'lsa va yangi ball keyingi level chegarasiga yetgan bo'lsa
-            let nextLevel = getLevelKey(totalXp);
-            if (nextLevel !== lvlKey) {
-                document.getElementById('result-msg').innerText = `Daxshat! Siz ${nextLevel.toUpperCase()} darajasiga ko'tarildingiz!`;
+            
+            if (userLevel !== "juda_qiyin") {
+                const oldLevel = userLevel;
+                userLevel = config.nextLvl;
+                await set(ref(db, `brain_users/${uid}/level`), userLevel);
+                document.getElementById('result-msg').innerText = `Siz ${gameConfig[userLevel].title} bosqichiga o'tdingiz!`;
             } else {
-                document.getElementById('result-msg').innerText = "Siz muvaffaqiyatli o'tdingiz. Ballaringiz saqlandi.";
+                document.getElementById('result-msg').innerText = correctAnswers >= 30 ? "Siz haqiqiy master ekansiz! Super natija!" : "Zo'r natija! Masterlik darajasi tasdiqlandi.";
             }
-            document.getElementById('next-btn-text').innerText = "KEYINGI RAUND";
+            document.getElementById('next-btn-text').innerText = "DAVOM ETISH";
         } else {
             document.getElementById('result-status').innerText = "Yana bir bor urinib ko'ring!";
             document.getElementById('result-status').style.color = "var(--yellow)";
-            document.getElementById('result-msg').innerText = `Keyingi darajaga o'tish uchun kamida ${config.passScore} ball to'plashingiz kerak edi.`;
+            document.getElementById('result-msg').innerText = `O'tish uchun kamida ${config.passScore} ta to'g'ri javob kerak edi.`;
             document.getElementById('next-btn-text').innerText = "QAYTA URINISH";
         }
+
+        // Reyting uchun umumiy ochkoni ham yangilab qo'yamiz
+        const snap = await get(userRef);
+        const currentTotal = snap.val().totalPoints || 0;
+        await set(ref(db, `brain_users/${uid}/totalPoints`), currentTotal + correctAnswers);
     }
 
     window.navigate = (id) => {
@@ -253,16 +232,16 @@
     async function fetchRank() {
         const list = document.getElementById('rank-list');
         list.innerHTML = "Yuklanmoqda...";
-        const qRank = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
+        const qRank = query(ref(db, 'brain_users'), orderByChild('totalPoints'), limitToLast(10));
         const snap = await get(qRank);
         if (snap.exists()) {
             let data = [];
             snap.forEach(c => data.push(c.val()));
-            data.sort((a, b) => b.xp - a.xp);
+            data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
             list.innerHTML = data.map((u, i) => `
                 <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;">
-                    <span><b>${i+1}.</b> ${u.name}</span>
-                    <b>${u.xp} XP</b>
+                    <span><b>${i+1}.</b> ${u.name} <small style="color:#666">(${u.level})</small></span>
+                    <b>${u.totalPoints || 0} Ball</b>
                 </div>
             `).join('');
         }
