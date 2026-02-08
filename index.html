@@ -107,7 +107,18 @@
 
     <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center">
         <div class="text-6xl mb-4">🎓</div>
-        <h1 class="text-3xl font-black uppercase italic mb-10">Quiz Pro</h1>
+        <h1 class="text-3xl font-black uppercase italic mb-6">Quiz Pro</h1>
+        
+        <div id="telegram-login-container" class="mb-8 flex justify-center">
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="samplebot" 
+                data-size="large" 
+                data-onauth="onTelegramAuth(user)" 
+                data-request-access="write"></script>
+        </div>
+
+        <div class="mb-4 opacity-50 text-xs uppercase font-bold">Yoki qo'lda kirish</div>
+        
         <div class="space-y-4">
             <input type="text" id="firstName" placeholder="Ismingiz">
             <input type="text" id="lastName" placeholder="Familiyangiz">
@@ -197,7 +208,7 @@
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left">Profil</h2>
         <div class="premium-card p-8 mb-6">
             <div class="profile-img-container">
-                <img src="" id="userProfileImg" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
+                <img src="" id="userProfileImg" onerror="this.src='https://ui-avatars.com/api/?name=User&background=3390ec&color=fff'">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
             <p class="text-sm opacity-60 mb-6 italic">Quiz Pro Bilimdoni</p>
@@ -255,6 +266,21 @@
             }
         };
 
+        // Telegram Auth callback
+        window.onTelegramAuth = async (user) => {
+            const userData = {
+                userId: "tg_" + user.id,
+                fName: user.first_name,
+                lName: user.last_name || "",
+                photo: user.photo_url || ""
+            };
+            await set(ref(db, 'users/' + userData.userId), userData);
+            localStorage.setItem('quizUser', JSON.stringify(userData));
+            currentUser = userData;
+            document.getElementById('auth-screen').classList.add('hidden');
+            showMenu('intro');
+        };
+
         window.showMenu = (screen) => {
             clearInterval(timerInterval);
             ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz'].forEach(s => {
@@ -282,7 +308,7 @@
             const l = document.getElementById('lastName').value;
             if(!f || !l) return alert("Ism va familiyani kiriting!");
             const userId = "user_" + Date.now();
-            const userData = { userId, fName: f, lName: l };
+            const userData = { userId, fName: f, lName: l, photo: "" };
             await set(ref(db, 'users/' + userId), userData);
             localStorage.setItem('quizUser', JSON.stringify(userData));
             currentUser = userData;
@@ -388,9 +414,13 @@
             const fullName = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profName').innerText = fullName;
             
-            // Telegram uslubidagi dinamik rasm generatori
-            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
-            document.getElementById('userProfileImg').src = avatarUrl;
+            // Telegram rasmini yoki avatarini ko'rsatish
+            const profileImg = document.getElementById('userProfileImg');
+            if (currentUser.photo) {
+                profileImg.src = currentUser.photo;
+            } else {
+                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3390ec&color=fff&size=256`;
+            }
             
             const stats = document.getElementById('myStatsList');
             stats.innerHTML = "";
