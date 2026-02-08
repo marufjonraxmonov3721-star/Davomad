@@ -3,137 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TURNIR: KIBER PROTOKOL</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Quiz App Pro - Premium Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
-        body { font-family: 'Orbitron', sans-serif; background-color: #050505; color: #fff; }
+        :root { 
+            --gold: #FFD700; 
+            --gold-dark: #B8860B;
+            --bg: #ffffff; 
+            --text: #1a1a1a; 
+            --card: #f3f4f6;
+        }
+        .dark-mode { 
+            --bg: #000000; 
+            --text: #FFD700; 
+            --card: #111111;
+        }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            transition: background 0.3s ease, color 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .premium-card {
+            background-color: var(--card);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .gold-button {
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+            color: #000;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s;
+        }
+        
+        .gold-button:active { transform: scale(0.95); }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: gray;
+        }
+        .active-nav { color: var(--gold); }
+
         .hidden { display: none; }
-        .neon-border { border: 2px solid #00f2ff; box-shadow: 0 0 15px #00f2ff; }
-        .blocked { filter: blur(5px); pointer-events: none; opacity: 0.5; }
-        .loader { border-top-color: transparent; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        input, select {
+            background: rgba(128, 128, 128, 0.1) !important;
+            border: 1px solid rgba(255, 215, 0, 0.3) !important;
+            color: var(--text) !important;
+            padding: 14px !important;
+            border-radius: 12px !important;
+            width: 100%;
+            outline: none;
+        }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="pb-24">
 
-    <div id="reg-screen" class="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 class="text-3xl font-black text-cyan-400 mb-10 tracking-widest uppercase">Ro'yxatdan o'tish</h1>
-        <div class="w-full max-w-sm space-y-6">
-            <input id="fname" type="text" placeholder="ISM" class="w-full p-4 bg-black/50 border-b-2 border-cyan-500 outline-none">
-            <input id="lname" type="text" placeholder="FAMILIYA" class="w-full p-4 bg-black/50 border-b-2 border-cyan-500 outline-none">
-            <button onclick="register()" class="w-full neon-border bg-transparent text-cyan-400 font-bold py-4 uppercase">Davom etish</button>
+    <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen">
+        <div class="text-center mb-10">
+            <div class="text-6xl mb-4">💎</div>
+            <h1 class="text-3xl font-black uppercase italic">Quiz Pro</h1>
+            <p class="opacity-60 text-sm">Bilimingizni oltin darajaga olib chiqing</p>
+        </div>
+        
+        <div class="space-y-4">
+            <input type="text" id="firstName" placeholder="Ismingiz">
+            <input type="text" id="lastName" placeholder="Familiyangiz">
+            <button onclick="register()" class="gold-button w-full p-4 rounded-xl shadow-lg mt-4">Ro'yxatdan o'tish</button>
         </div>
     </div>
 
-    <div id="intro-screen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h2 class="text-2xl font-bold text-yellow-500 mb-6 uppercase">Turnir Qoidalari</h2>
-        <div class="bg-zinc-900 p-6 rounded-lg border border-zinc-700 space-y-3 text-sm text-left mb-6">
-            <p>🏆 1-o'rin: 100 000 so'm</p>
-            <p>🥈 2-o'rin: 30 000 so'm</p>
-            <p>🥉 3-o'rin: 20 000 so'm</p>
-            <p class="text-cyan-400">🎟️ Qatnashish: 5 000 so'm (Jami 30 ta joy)</p>
-            <hr class="border-zinc-700 my-4">
-            <p class="text-xs text-zinc-400">To'lov uchun karta:</p>
-            <p class="text-lg font-mono text-white">4073 4200 6816 5541</p>
-            <p class="text-xs text-zinc-400 italic">Ega: Maruf Raxmonov</p>
-        </div>
-        <p class="text-[10px] text-red-500 mb-6 uppercase">To'lov qilib, chekni botga yuboring!</p>
-        <button onclick="checkPaymentStatus()" class="w-full neon-border py-4 font-bold text-cyan-400">TO'LOVNI TEKSHIRISH</button>
-    </div>
-
-    <div id="main-app" class="hidden min-h-screen">
-        <div id="game-lock-overlay" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 hidden">
-            <h2 class="text-xl font-bold text-red-500 mb-2 uppercase">Kutish rejimi</h2>
-            <p class="text-[10px] text-zinc-400">To'lov tasdiqlanishini kuting...</p>
-        </div>
-
-        <div id="content-to-blur" class="p-6 flex flex-col items-center justify-center h-screen">
-            <div class="w-full max-w-sm p-8 bg-zinc-900/80 border-t-4 border-cyan-500 shadow-2xl text-center">
-                <h3 class="text-xl font-bold text-cyan-400 mb-8 uppercase italic">Turnir Faol</h3>
-                <button onclick="startTournament()" class="w-full bg-cyan-500 text-black py-4 font-black uppercase shadow-lg">Boshlash</button>
+    <div id="intro-screen" class="hidden p-8 text-center flex flex-col justify-center min-h-screen">
+        <div class="premium-card p-8 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4">Ilova haqida</h2>
+            <div class="text-left space-y-3 text-sm opacity-90 mb-8">
+                <p>✅ <b>12 ta Fan:</b> Barcha asosiy darsliklar qamrab olingan.</p>
+                <p>✅ <b>Moslashuvchan:</b> Savollar soni va vaqtni o'zingiz boshqaring.</p>
+                <p>✅ <b>Random:</b> Har safar yangi, takrorlanmas savollar to'plami.</p>
+                <p>✅ <b>Reyting:</b> Eng kuchli bilimdonlar safidan joy oling.</p>
             </div>
+            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl">Tushunarli, boshladik!</button>
         </div>
-
-        <nav class="fixed bottom-0 w-full bg-black border-t border-cyan-900 flex justify-around py-4">
-            <button onclick="switchTab('game')" class="text-cyan-400 text-[10px] font-bold uppercase">Asosiy</button>
-            <button onclick="switchTab('rating')" class="text-zinc-600 text-[10px] font-bold uppercase">Reyting</button>
-        </nav>
     </div>
+
+    <div id="subjects-screen" class="hidden p-6 animate-fade-in">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3">TEST SOZLAMALARI</h2>
+        
+        <div class="premium-card p-6 space-y-6">
+            <div>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2">Fanni tanlang</label>
+                <select id="selectedSubject">
+                    <option value="Matematika">Matematika</option>
+                    <option value="Fizika">Fizika</option>
+                    <option value="Kimyo">Kimyo</option>
+                    <option value="Ona tili">Ona tili</option>
+                    <option value="Adabiyot">Adabiyot</option>
+                    <option value="Geografiya">Geografiya</option>
+                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
+                    <option value="Jahon_tarixi">Jahon tarixi</option>
+                    <option value="Ingliz_tili">Ingliz tili</option>
+                    <option value="Rus_tili">Rus tili</option>
+                    <option value="Biologiya">Biologiya</option>
+                    <option value="IQ_testlar">IQ testlar</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2">Savollar soni (Max: 50)</label>
+                <input type="number" id="qAmount" value="20" max="50" min="5">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2">Vaqt cheklovi (Daqiqa)</label>
+                <input type="number" id="qTime" value="15">
+            </div>
+
+            <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl">
+                🚀 Testni Boshlash
+            </button>
+        </div>
+    </div>
+
+    <div id="rating-screen" class="hidden p-6">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase">Peshqadamlar</h2>
+        <div id="ratingList" class="space-y-4">
+            </div>
+    </div>
+
+    <div id="settings-screen" class="hidden p-6">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase">Sozlamalar</h2>
+        
+        <div class="space-y-4">
+            <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
+                <span class="font-bold text-sm">REJIM: Tungi / Kunduzgi</span>
+                <span id="theme-icon">🌙</span>
+            </div>
+            
+            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 hover:bg-red-600 hover:text-white transition">
+                Tizimdan chiqish & Ma'lumotlarni o'chirish
+            </button>
+        </div>
+    </div>
+
+    <nav id="main-nav" class="hidden fixed bottom-0 left-0 right-0 bg-inherit border-t border-yellow-500/20 px-6 py-4 flex justify-around backdrop-blur-xl">
+        <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav">
+            <span class="text-2xl">📚</span>
+            <span>FANLAR</span>
+        </button>
+        <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn">
+            <span class="text-2xl">🏆</span>
+            <span>REYTING</span>
+        </button>
+        <button onclick="showMenu('settings')" id="nav-settings" class="nav-btn">
+            <span class="text-2xl">⚙️</span>
+            <span>SOZLAMALAR</span>
+        </button>
+    </nav>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Konfiguratsiya (O'zingizniki bilan bir xil)
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
             authDomain: "gen-lang-client-0228947349.firebaseapp.com",
             databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
             projectId: "gen-lang-client-0228947349",
+            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+            messagingSenderId: "253793341504",
             appId: "1:253793341504:web:709752258000dab44fcfa5"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        let currentUser = JSON.parse(localStorage.getItem('quizUser'));
 
-        let userData = { id: tg.initDataUnsafe?.user?.id || "dev_" + Date.now(), fullName: "", isPaid: false };
+        window.onload = () => {
+            if(currentUser) showMenu('subjects');
+        }
 
         window.register = async () => {
-            const f = document.getElementById('fname').value.trim();
-            const l = document.getElementById('lname').value.trim();
-            if(!f || !l) return tg.showAlert("ISM VA FAMILIYA SHART!");
+            const fName = document.getElementById('firstName').value;
+            const lName = document.getElementById('lastName').value;
+            if(!fName || !lName) return alert("Iltimos, ism va familiyani kiriting!");
+
+            const userId = "user_" + Date.now();
+            const userData = { userId, fName, lName };
             
-            userData.fullName = `${f} ${l}`;
+            await set(ref(db, 'users/' + userId), userData);
+            localStorage.setItem('quizUser', JSON.stringify(userData));
+            currentUser = userData;
+
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+        }
+
+        window.showMenu = (screen) => {
+            ['auth', 'intro', 'subjects', 'rating', 'settings'].forEach(s => {
+                const el = document.getElementById(s + '-screen');
+                if(el) el.classList.add('hidden');
+                const nav = document.getElementById('nav-' + s);
+                if(nav) nav.classList.remove('active-nav');
+            });
             
-            // Foydalanuvchini bazaga yozish (to'lovsiz holatda)
-            const userRef = ref(db, 'users/' + userData.id);
-            const snap = await get(userRef);
+            document.getElementById(screen + '-screen').classList.remove('hidden');
+            document.getElementById('main-nav').classList.remove('hidden');
+            const activeNav = document.getElementById('nav-' + screen);
+            if(activeNav) activeNav.classList.add('active-nav');
+
+            if(screen === 'rating') loadRating();
+        }
+
+        window.toggleTheme = () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            document.getElementById('theme-icon').innerText = isDark ? "☀️" : "🌙";
+        }
+
+        async function loadRating() {
+            const rList = document.getElementById('ratingList');
+            rList.innerHTML = "<p class='text-center opacity-50'>Yuklanmoqda...</p>";
             
-            if(!snap.exists()) {
-                await set(userRef, { 
-                    fullName: userData.fullName, 
-                    isPaid: false,
-                    registeredAt: Date.now()
+            const snapshot = await get(ref(db, 'ratings'));
+            if(snapshot.exists()) {
+                rList.innerHTML = "";
+                const data = Object.values(snapshot.val());
+                data.sort((a, b) => b.score - a.score); // Ballar bo'yicha saralash
+
+                data.forEach((res, index) => {
+                    const div = document.createElement('div');
+                    div.className = "premium-card p-4 flex justify-between items-center";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <span class="text-xl font-black italic opacity-30">#${index+1}</span>
+                            <div>
+                                <p class="font-bold">${res.name}</p>
+                                <p class="text-[10px] opacity-60 uppercase">${res.subject} • ${res.time} min</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-lg font-black text-yellow-500">${res.score}</span>
+                            <span class="text-[10px] opacity-50">BALL</span>
+                        </div>
+                    `;
+                    rList.appendChild(div);
                 });
             } else {
-                userData.isPaid = snap.val().isPaid;
+                rList.innerHTML = "<p class='text-center opacity-50'>Hozircha natijalar yo'q</p>";
             }
+        }
 
-            document.getElementById('reg-screen').classList.add('hidden');
-            document.getElementById('intro-screen').classList.remove('hidden');
-        };
+        window.logout = async () => {
+            if(confirm("DIQQAT! Barcha ma'lumotlaringiz (shu jumladan natijalar va profil) bazadan butunlay o'chiriladi. Rozimisiz?")) {
+                await remove(ref(db, 'users/' + currentUser.userId));
+                localStorage.clear();
+                location.reload();
+            }
+        }
 
-        window.checkPaymentStatus = () => {
-            // To'lov holatini Realtime tekshirishni boshlash
-            const userRef = ref(db, 'users/' + userData.id);
-            onValue(userRef, (snapshot) => {
-                const data = snapshot.val();
-                if(data && data.isPaid) {
-                    userData.isPaid = true;
-                    showMainApp(true);
-                } else {
-                    showMainApp(false);
-                }
-            });
-        };
-
-        function showMainApp(isUnlocked) {
-            document.getElementById('intro-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
+        window.startTest = async () => {
+            const subject = document.getElementById('selectedSubject').value;
+            const amount = parseInt(document.getElementById('qAmount').value);
             
-            const content = document.getElementById('content-to-blur');
-            const overlay = document.getElementById('game-lock-overlay');
+            if(amount > 50) return alert("Maksimal 50 ta savol tanlash mumkin!");
 
-            if(isUnlocked) {
-                content.classList.remove('blocked');
-                overlay.classList.add('hidden');
+            const snapshot = await get(ref(db, 'fanlar/' + subject));
+            if(snapshot.exists()) {
+                let allQ = snapshot.val();
+                let shuffled = allQ.sort(() => 0.5 - Math.random());
+                let selected = shuffled.slice(0, amount);
+                
+                alert(`Test boshlanishiga tayyor! \nFan: ${subject} \nSavollar: ${selected.length} ta`);
+                // Bu yerda test yechish ekraniga o'tish logikasi bo'ladi
             } else {
-                content.classList.add('blocked');
-                overlay.classList.remove('hidden');
-                tg.showAlert("To'lov hali tasdiqlanmadi. Maruf Raxmonovga chekni yuborganingizga ishonch hosil qiling.");
+                alert("Tanlangan fandan bazada savollar topilmadi!");
             }
         }
     </script>
