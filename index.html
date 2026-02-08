@@ -227,7 +227,7 @@
             namePh: "Исмингиз", surnamePh: "Фамилиянгиз", btnStart: "БОШЛАШ", navGame: "Ўйин", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Созламалар",
             chooseLang: "Илова тилини танланг:", qCounter: "Савол", scoreLabel: "Балл", resStatus: "Раунд Тугади!",
             resStatusWin: "Табриклаймиз! 🎉", resStatusLose: "Вақтинча Мағлубият", btnContinue: "ДАВОМ ЭТИШ", btnRetry: "ҚАЙТА УРИНИШ",
-            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", sek: "сек",
+            profLvl: "Даража", profPts: "Балл", countdown: "Туғилган кунингизга:", days: "кун", hours: "соат", min: "мин", сек: "сек",
             translating: "Саволлар таржима қилинмоқда...", chooseTheme: "Режимни танланг:", logout: "Ҳисобни ўчириш",
             obT1: "Хуш келибсиз!", obD1: "Ақл Жанги - бу сизнинг билимингизни синовдан ўтказувчи интеллектуал ўйин. Мақсад: Ўз даражангизни ошириш ва Мастер бўлиш!",
             obT2: "Ўйин Қоидалари", obD2: "Ўйинда 4 та босқич бор. Ҳар бир босқичдан ўтиш учун белгиланган миқдордаги саволларга тўғри жавоб бериш шарт.",
@@ -240,7 +240,7 @@
             namePh: "Имя", surnamePh: "Фамилия", btnStart: "НАЧАТЬ", navGame: "Игра", navRank: "Рейтинг", navProfile: "Профиль", navSettings: "Настройки",
             chooseLang: "Выберите язык приложения:", qCounter: "Вопрос", scoreLabel: "Балл", resStatus: "Раунд Окончен!",
             resStatusWin: "Поздравляем! 🎉", resStatusLose: "Временное Поражение", btnContinue: "ПРОДОЛЖИТЬ", btnRetry: "ПОПРОБОВАТЬ СНОВА",
-            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", sek: "сек",
+            profLvl: "Уровень", profPts: "Баллы", countdown: "До вашего дня рождения:", days: "дн", hours: "час", min: "мин", сек: "сек",
             translating: "Перевод вопросов...", chooseTheme: "Выберите режим:", logout: "Удалить аккаунт",
             obT1: "Добро пожаловать!", obD1: "Битва Умов - это интеллектуальная игра для проверки ваших знаний. Цель: повысить свой уровень и стать Мастером!",
             obT2: "Правила Игры", obD2: "В игре 4 этапа. Чтобы пройти каждый этап, вы должны правильно ответить на установленное количество вопросов.",
@@ -392,6 +392,8 @@
         const gameEl = document.getElementById('game');
         gameEl.classList.add('active');
         const config = gameConfig[userLevel];
+        // O'yin boshida sarlavhani to'g'irlash
+        document.getElementById('level-title').innerText = config.title[userLang];
         document.getElementById('u-correct').innerText = "0";
         document.getElementById('question-text').innerText = translations[userLang].translating;
         const qSnap = await get(ref(db, `brain_questions/${userLang}/${userLevel}`));
@@ -437,6 +439,7 @@
     }
 
     async function finishRound() {
+        const oldLevel = userLevel;
         const config = gameConfig[userLevel];
         const t = translations[userLang];
         document.getElementById('game').classList.remove('active');
@@ -444,7 +447,12 @@
         document.getElementById('result-score').innerText = `${correctAnswers}/${config.qCount}`;
         if (correctAnswers >= config.passScore) {
             document.getElementById('result-status').innerText = t.resStatusWin;
-            if (userLevel !== "juda_qiyin") { userLevel = config.nextLvl; await update(userRef, { level: userLevel }); }
+            if (userLevel !== "juda_qiyin") { 
+                userLevel = config.nextLvl; 
+                await update(userRef, { level: userLevel }); 
+                // ZAHOTI SARLAVHANI YANGILASH
+                document.getElementById('level-title').innerText = gameConfig[userLevel].title[userLang];
+            }
             document.getElementById('btn-continue').innerText = t.btnContinue;
         } else {
             document.getElementById('result-status').innerText = t.resStatusLose;
@@ -485,7 +493,7 @@
             if (now > nB) nB.setFullYear(now.getFullYear() + 1);
             const diff = nB - now;
             const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3);
-            document.getElementById('p-countdown').innerText = `${userLang === 'ru' ? "До дня рождения:" : (userLang === 'uz_cyr' ? "Туғилган кунингизга:" : "Tug'ilgan kuningizga:")} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
+            document.getElementById('p-countdown').innerText = `${userLang === 'ru' ? "До дня рождения:" : (userLang === 'uz_cyr' ? "Туғилган кунингизга:" : "Tug'ilgan kuningizga:"))} ${d}${t.days}, ${h}${t.hours}, ${m}${t.min}, ${s}${t.sek}`;
         };
         updateTimer(); timerInterval = setInterval(updateTimer, 1000);
     }
