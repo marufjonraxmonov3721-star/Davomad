@@ -13,13 +13,14 @@
         #auth, #game, #leaderboard, #result-screen { display: none; text-align: center; }
         .active { display: block !important; }
 
+        /* Progress Header */
         .level-header { background: var(--card); padding: 20px; border-radius: 25px; border: 1px solid #333; margin-bottom: 20px; }
         #level-title { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
         .session-info { font-size: 14px; color: var(--p); margin-top: 10px; font-weight: bold; }
-
         .progress-container { background: #222; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.5s; background: var(--p); }
 
+        /* Quiz UI */
         .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
         .question { font-size: 20px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; }
         .options-grid { display: grid; gap: 12px; }
@@ -27,12 +28,14 @@
         .correct { background: var(--green) !important; border-color: var(--green); }
         .wrong { background: var(--red) !important; border-color: var(--red); }
 
+        /* Result Box */
+        .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #333; margin-top: 50px; }
+        .btn-next { background: var(--p); border: none; padding: 18px; border-radius: 15px; color: #fff; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; }
+        
+        /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 1000; }
         .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: #fff; }
         .nav-link.active-link { opacity: 1; color: var(--p); font-weight: bold; }
-        
-        .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #333; }
-        .btn-next { background: var(--p); border: none; padding: 15px; border-radius: 12px; color: #fff; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -40,14 +43,14 @@
 <div class="container">
     <div id="auth">
         <h1 style="color:var(--p); font-size: 48px; margin-top: 80px;">Brain Pro</h1>
-        <p style="color:#666; margin-bottom: 50px;">Darajama-daraja cho'qqiga chiqing!</p>
+        <p style="color:#666; margin-bottom: 50px;">O'zbekistondagi eng aqlli o'yinga xush kelibsiz!</p>
         <button onclick="login()" style="background:var(--p); border:none; padding:20px; border-radius:18px; color:#fff; font-weight:bold; width:100%; font-size:20px;">BOSHLASH</button>
     </div>
 
     <div id="game">
         <div class="level-header">
             <div id="level-title">OSON</div>
-            <div class="session-info">Savol: <span id="q-counter">1/15</span></div>
+            <div class="session-info">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-ball">0</b></div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
         <div class="quiz-card">
@@ -60,8 +63,9 @@
         <div class="result-box">
             <h2 id="result-status">Raund Tugadi!</h2>
             <p id="result-score">To'plangan ball: 0</p>
-            <p id="result-msg" style="color:#888"></p>
-            <button class="btn-next" id="next-lvl-btn" onclick="startNewRound()">KEYINGI RAUND</button>
+            <p id="result-total">Umumiy XP: 0</p>
+            <p id="result-msg" style="color:#888; margin-top:10px;"></p>
+            <button class="btn-next" onclick="startNewRound()">KEYINGI RAUND</button>
         </div>
     </div>
 
@@ -101,10 +105,10 @@
     let isLocked = false;
 
     const gameConfig = {
-        oson: { qCount: 15, passScore: 100, next: 'ortacha', title: "🟢 OSON" },
-        ortacha: { qCount: 20, passScore: 150, next: 'qiyin', title: "🟡 O'RTACHA" },
-        qiyin: { qCount: 25, passScore: 200, next: 'juda_qiyin', title: "🟠 QIYIN" },
-        juda_qiyin: { qCount: 30, passScore: 250, next: 'juda_qiyin', title: "🔴 MASTER" }
+        oson: { qCount: 15, passScore: 100, title: "🟢 OSON" },
+        ortacha: { qCount: 20, passScore: 150, title: "🟡 O'RTACHA" },
+        qiyin: { qCount: 25, passScore: 200, title: "🟠 QIYIN" },
+        juda_qiyin: { qCount: 30, passScore: 250, title: "🔴 MASTER" }
     };
 
     window.onload = async () => {
@@ -123,33 +127,37 @@
         startNewRound();
     };
 
-    async function startNewRound() {
+    window.startNewRound = async () => {
+        // Hamma oynalarni yopish va o'yinni boshlash
         document.getElementById('result-screen').classList.remove('active');
+        document.getElementById('leaderboard').classList.remove('active');
         document.getElementById('game').classList.add('active');
         
+        // XP ga qarab darajani aniqlash
         let levelKey = totalXp < 500 ? "oson" : (totalXp < 1500 ? "ortacha" : (totalXp < 3500 ? "qiyin" : "juda_qiyin"));
         const config = gameConfig[levelKey];
         
         document.getElementById('level-title').innerText = config.title;
+        document.getElementById('u-ball').innerText = totalXp;
         
+        // Bazadan savollarni olish
         const qSnap = await get(ref(db, 'brain_questions/' + levelKey));
         const allQ = qSnap.val() || [];
         sessionQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, config.qCount);
         
         currentIdx = 0;
         roundScore = 0;
-        showQuestion();
-    }
+        showQuestion(levelKey);
+    };
 
-    function showQuestion() {
+    function showQuestion(lvlKey) {
         isLocked = false;
-        const levelKey = totalXp < 500 ? "oson" : (totalXp < 1500 ? "ortacha" : (totalXp < 3500 ? "qiyin" : "juda_qiyin"));
-        const totalInRound = gameConfig[levelKey].qCount;
-        
+        const qCount = gameConfig[lvlKey].qCount;
         const q = sessionQuestions[currentIdx];
-        document.getElementById('q-counter').innerText = `${currentIdx + 1}/${totalInRound}`;
+        
+        document.getElementById('q-counter').innerText = `${currentIdx + 1}/${qCount}`;
         document.getElementById('question-text').innerText = q.q;
-        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / totalInRound * 100) + "%";
+        document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / qCount * 100) + "%";
 
         const box = document.getElementById('options-box');
         box.innerHTML = "";
@@ -157,12 +165,12 @@
             const btn = document.createElement('div');
             btn.className = "option-btn";
             btn.innerText = opt;
-            btn.onclick = () => check(i, q.c, btn);
+            btn.onclick = () => check(i, q.c, btn, lvlKey);
             box.appendChild(btn);
         });
     }
 
-    async function check(idx, correct, el) {
+    async function check(idx, correct, el, lvlKey) {
         if (isLocked) return;
         isLocked = true;
 
@@ -170,7 +178,7 @@
             el.classList.add('correct');
             roundScore += 10;
             totalXp += 10;
-            await set(ref(db, `brain_users/${uid}/xp`), totalXp);
+            await set(ref(db, `brain_users/${uid}/xp`), Number(totalXp));
             tg.HapticFeedback.notificationOccurred('success');
         } else {
             el.classList.add('wrong');
@@ -179,14 +187,10 @@
 
         setTimeout(() => {
             currentIdx++;
-            let levelKey = totalXp < (totalXp - roundScore + 1) ? "oson" : "oson"; // dummy logic to get current round level
-            // To'g'ri levelKey'ni aniqlash (round boshidagi holat bo'yicha)
-            let currentLvlKey = (totalXp - roundScore) < 500 ? "oson" : ((totalXp - roundScore) < 1500 ? "ortacha" : ((totalXp - roundScore) < 3500 ? "qiyin" : "juda_qiyin"));
-            
-            if (currentIdx < gameConfig[currentLvlKey].qCount) {
-                showQuestion();
+            if (currentIdx < gameConfig[lvlKey].qCount) {
+                showQuestion(lvlKey);
             } else {
-                showFinalResult(currentLvlKey);
+                showFinalResult(lvlKey);
             }
         }, 1000);
     }
@@ -197,37 +201,44 @@
         
         const config = gameConfig[lvlKey];
         document.getElementById('result-score').innerText = `Raunddagi ball: ${roundScore}`;
+        document.getElementById('result-total').innerText = `Umumiy XP: ${totalXp}`;
         
         if (roundScore >= config.passScore) {
             document.getElementById('result-status').innerText = "Tabriklaymiz! 🎉";
             document.getElementById('result-status').style.color = "var(--green)";
-            document.getElementById('result-msg').innerText = "Siz keyingi bosqich talabini bajardingiz.";
-            document.getElementById('next-lvl-btn').innerText = "DAVOM ETISH";
+            document.getElementById('result-msg').innerText = "Siz muvaffaqiyatli o'tdingiz. Keyingi raundda darajangiz yangilanadi.";
         } else {
-            document.getElementById('result-status').innerText = "Yomon emas!";
+            document.getElementById('result-status').innerText = "Yana bir bor urinib ko'ring!";
             document.getElementById('result-status').style.color = "var(--yellow)";
-            document.getElementById('result-msg').innerText = `Keyingi darajaga o'tish uchun kamida ${config.passScore} ball kerak. Yana urinib ko'ring!`;
-            document.getElementById('next-lvl-btn').innerText = "QAYTA URINISH";
+            document.getElementById('result-msg').innerText = `Keyingi bosqich uchun kamida ${config.passScore} ball kerak edi.`;
         }
     }
 
     window.navigate = (id) => {
-        document.querySelectorAll('#game, #leaderboard, #result-screen').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        
         document.getElementById('link-game').classList.toggle('active-link', id === 'game' || id === 'result-screen');
         document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
+        
         if (id === 'leaderboard') fetchRank();
     };
 
     async function fetchRank() {
         const list = document.getElementById('rank-list');
+        list.innerHTML = "Yuklanmoqda...";
         const qRank = query(ref(db, 'brain_users'), orderByChild('xp'), limitToLast(10));
         const snap = await get(qRank);
         if (snap.exists()) {
             let data = [];
             snap.forEach(c => data.push(c.val()));
             data.sort((a, b) => b.xp - a.xp);
-            list.innerHTML = data.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;"><span>${i+1}. ${u.name}</span><b>${u.xp} XP</b></div>`).join('');
+            list.innerHTML = data.map((u, i) => `
+                <div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #222;">
+                    <span>${i+1}. ${u.name}</span>
+                    <b>${u.xp} XP</b>
+                </div>
+            `).join('');
         }
     }
 </script>
