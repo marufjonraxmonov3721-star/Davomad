@@ -6,7 +6,6 @@
     <title>Brain Pro | Maruf Raxmonov</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* 1. DIZAYN: Tim qora va Oltin ranglar */
         :root { 
             --gold: #FFD700; 
             --gold-dark: #B8860B; 
@@ -19,14 +18,12 @@
         body { background: var(--bg); color: var(--gold); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; overflow-x: hidden; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        #auth, #game, #leaderboard, #result-screen { display: none; text-align: center; }
+        #auth, #game, #leaderboard, #result-screen, #profile { display: none; text-align: center; }
         .active { display: block !important; animation: fadeIn 0.8s ease-in-out; }
 
-        /* 2. ANIMATSIYALAR */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes rotateGold { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        /* Kirish Loader */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 50px; height: 50px; border: 5px solid #111; border-top: 5px solid var(--gold); border-radius: 50%; animation: rotateGold 1s linear infinite; }
 
@@ -40,23 +37,25 @@
         .progress-container { background: #111; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #222; }
         #xp-progress-bar { height: 100%; width: 0%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
 
-        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #1a1a1a; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
+        .quiz-card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #1a1a1a; min-height: 250px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 20px; }
         .question { font-size: 19px; font-weight: 600; line-height: 1.5; margin-bottom: 25px; text-align: left; color: #fff; }
         
         .options-grid { display: grid; gap: 12px; }
         .option-btn { background: #050505; padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: left; cursor: pointer; transition: 0.3s; font-size: 16px; color: #ccc; }
-        .option-btn:active { transform: scale(0.98); background: #111; }
         
-        /* To'g'ri va Xato ranglari o'zgarmadi lekin oltin hoshiya bilan boyitildi */
         .correct { background: var(--green) !important; border-color: var(--gold); color: #fff; }
         .wrong { background: var(--red) !important; border-color: #500; color: #fff; }
 
-        .result-box { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid var(--gold-dark); margin-top: 50px; }
         .btn-next, .btn-main { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; padding: 18px; border-radius: 15px; color: #000; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 18px; text-transform: uppercase; transition: 0.3s; }
-        .btn-main:active { transform: scale(0.95); }
+
+        /* Profil Stili */
+        .p-avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+        .p-info { color: #fff; font-size: 18px; margin: 10px 0; font-weight: bold; }
+        .p-sub { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .p-badge { background: #111; border: 1px solid var(--gold-dark); padding: 10px; border-radius: 10px; display: inline-block; margin: 5px; font-size: 12px; }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #111; z-index: 1000; }
-        .nav-link { font-size: 11px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--gold); }
+        .nav-link { font-size: 10px; opacity: 0.4; cursor: pointer; text-align: center; color: var(--gold); flex: 1; }
         .nav-link.active-link { opacity: 1; color: var(--gold); font-weight: bold; text-shadow: 0 0 5px var(--gold); }
         
         .rank-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #111; align-items: center; color: #eee; }
@@ -72,45 +71,66 @@
 
 <div class="container">
     <div id="auth">
-        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);">Brain Pro</h1>
+        <h1 style="color:var(--gold); font-size: 52px; margin-top: 50px;">Brain Pro</h1>
         <p style="color:#888; margin-bottom: 30px;">Zukkolik cho'qqisini zabt eting!</p>
         
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
+        <label style="display:block; margin-bottom:10px; font-size:12px; color:#555;">Tug'ilgan sanangizni tanlang:</label>
+        <input type="date" id="reg-birth" class="reg-input">
         
         <button onclick="login()" class="btn-main">BOSHLASH</button>
     </div>
 
     <div id="game">
         <div class="level-header">
-            <div id="level-title">YUKLANMOQDA...</div>
-            <div class="session-info">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-correct" style="color:var(--gold)">0</b></div>
+            <div id="level-title">OSON</div>
+            <div class="session-info">Savol: <span id="q-counter">0/0</span> | Ball: <b id="u-correct">0</b></div>
             <div class="progress-container"><div id="xp-progress-bar"></div></div>
         </div>
         <div class="quiz-card">
-            <div class="question" id="question-text">Savolni o'ylayapman...</div>
+            <div class="question" id="question-text">Savol tayyorlanmoqda...</div>
             <div id="options-box" class="options-grid"></div>
         </div>
     </div>
 
     <div id="result-screen">
-        <div class="result-box">
+        <div class="quiz-card">
             <h2 id="result-status">Raund Tugadi!</h2>
             <p id="result-score" style="font-size: 24px; margin: 10px 0; color:#fff;">Natija: 0/0</p>
             <p id="result-msg" style="color:#aaa; margin-top:10px; font-style: italic;"></p>
-            <button class="btn-next" id="next-btn-text" onclick="startNewRound()">DAVOM ETISH</button>
+            <button class="btn-next" onclick="startNewRound()">DAVOM ETISH</button>
         </div>
     </div>
 
     <div id="leaderboard">
-        <h2 style="color:var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);">🏆 Dunyo Reytingi</h2>
+        <h2 style="color:var(--gold)">🏆 Dunyo Reytingi</h2>
         <div id="rank-list" class="quiz-card" style="padding: 10px; min-height: auto;"></div>
+    </div>
+
+    <div id="profile">
+        <h2 style="color:var(--gold)">👤 Mening Profilim</h2>
+        <div class="quiz-card">
+            <img id="p-img" src="" class="p-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            <div id="p-full-name" class="p-info">Ism Familiya</div>
+            <div id="p-age-info" class="p-sub">Yoshingiz yuklanmoqda...</div>
+            
+            <div style="margin-top:20px;">
+                <div class="p-badge">Daraja: <span id="p-level" class="gold-text">OSON</span></div>
+                <div class="p-badge">Umumiy Ball: <span id="p-points" class="gold-text">0</span></div>
+            </div>
+            
+            <div id="p-countdown" style="margin-top:20px; font-size:14px; color:var(--gold);">
+                Tug'ilgan kuningizga qolgan vaqt yuklanmoqda...
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="bottom-nav" id="navbar" style="display:none">
     <div class="nav-link active-link" id="link-game" onclick="navigate('game')">🎮<br>O'yin</div>
     <div class="nav-link" id="link-rank" onclick="navigate('leaderboard')">🏆<br>Reyting</div>
+    <div class="nav-link" id="link-profile" onclick="navigate('profile')">👤<br>Profil</div>
 </div>
 
 <script type="module">
@@ -128,6 +148,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
+    tg.expand();
+
     const uid = tg.initDataUnsafe?.user?.id || "tester_maruf_3";
     const userRef = ref(db, 'brain_users/' + uid);
 
@@ -145,15 +167,15 @@
     };
 
     window.onload = async () => {
-        // Ilova yuklanganda loader 1.5 soniya aylanadi
         setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
-
         const snap = await get(userRef);
         if (snap.exists()) {
             userLevel = snap.val().level || "oson";
             if(snap.val().name) {
                 document.getElementById('reg-name').style.display = 'none';
                 document.getElementById('reg-surname').style.display = 'none';
+                document.getElementById('reg-birth').style.display = 'none';
+                document.querySelector('label').style.display = 'none';
             }
         }
         document.getElementById('auth').classList.add('active');
@@ -161,17 +183,17 @@
 
     window.login = async () => {
         const snap = await get(userRef);
-        
         if (!snap.exists()) {
             const name = document.getElementById('reg-name').value.trim();
             const surname = document.getElementById('reg-surname').value.trim();
+            const birth = document.getElementById('reg-birth').value;
             
-            if(!name || !surname) {
-                alert("Iltimos, oltin harflar bilan ismingizni yozing!");
+            if(!name || !surname || !birth) {
+                alert("Ism, familiya va tug'ilgan sanani to'liq kiriting!");
                 return;
             }
             
-            await set(userRef, { name: name, surname: surname, level: "oson", totalPoints: 0 });
+            await set(userRef, { name: name, surname: surname, birth: birth, level: "oson", totalPoints: 0 });
             userLevel = "oson";
         } else {
             userLevel = snap.val().level || "oson";
@@ -184,10 +206,8 @@
     };
 
     window.startNewRound = async () => {
-        // Har raund boshida kichik "fade" animatsiyasi
         const gameEl = document.getElementById('game');
         gameEl.style.opacity = "0";
-        
         document.getElementById('result-screen').classList.remove('active');
         gameEl.classList.add('active');
         
@@ -201,7 +221,6 @@
         
         currentIdx = 0;
         correctAnswers = 0;
-        
         setTimeout(() => { gameEl.style.opacity = "1"; showQuestion(); }, 300);
     };
 
@@ -209,11 +228,9 @@
         isLocked = false;
         const config = gameConfig[userLevel];
         const q = sessionQuestions[currentIdx];
-        
         document.getElementById('q-counter').innerText = `${currentIdx + 1}/${config.qCount}`;
         document.getElementById('question-text').innerText = q.q;
         document.getElementById('xp-progress-bar').style.width = ((currentIdx + 1) / config.qCount * 100) + "%";
-
         const box = document.getElementById('options-box');
         box.innerHTML = "";
         q.a.forEach((opt, i) => {
@@ -228,7 +245,6 @@
     async function check(idx, correct, el) {
         if (isLocked) return;
         isLocked = true;
-
         if (idx === correct) {
             el.classList.add('correct');
             correctAnswers++;
@@ -238,21 +254,16 @@
             el.classList.add('wrong');
             tg.HapticFeedback.notificationOccurred('error');
         }
-
         setTimeout(() => {
             currentIdx++;
-            if (currentIdx < gameConfig[userLevel].qCount) {
-                showQuestion();
-            } else {
-                finishRound();
-            }
+            if (currentIdx < gameConfig[userLevel].qCount) showQuestion();
+            else finishRound();
         }, 800);
     }
 
     async function finishRound() {
         const config = gameConfig[userLevel];
         const isPassed = correctAnswers >= config.passScore;
-        
         document.getElementById('game').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
         document.getElementById('result-score').innerText = `Natija: ${correctAnswers}/${config.qCount}`;
@@ -260,56 +271,67 @@
         if (isPassed) {
             document.getElementById('result-status').innerText = "Zafaringiz Muborak! 🏆";
             document.getElementById('result-status').style.color = "var(--gold)";
-            
             if (userLevel !== "juda_qiyin") {
                 userLevel = config.nextLvl;
                 await set(ref(db, `brain_users/${uid}/level`), userLevel);
-                document.getElementById('result-msg').innerText = `Oltin yo'l ochildi! Siz ${gameConfig[userLevel].title} bosqichiga o'tdingiz!`;
-            } else {
-                document.getElementById('result-msg').innerText = correctAnswers >= 30 ? "Siz haqiqiy Master ekansiz! Super natija!" : "Zo'r natija! Masterlik darajasi tasdiqlandi.";
             }
-            document.getElementById('next-btn-text').innerText = "OLGA DAVOM";
         } else {
             document.getElementById('result-status').innerText = "Vaqtincha Mag'lubiyat";
             document.getElementById('result-status').style.color = "#888";
-            document.getElementById('result-msg').innerText = `O'tish uchun kamida ${config.passScore} ta to'g'ri javob kerak edi. Bilimingizni charxlab qayting.`;
-            document.getElementById('next-btn-text').innerText = "QAYTA URINISH";
         }
-
         const snap = await get(userRef);
-        const currentTotal = snap.val().totalPoints || 0;
-        await set(ref(db, `brain_users/${uid}/totalPoints`), currentTotal + correctAnswers);
+        await set(ref(db, `brain_users/${uid}/totalPoints`), (snap.val().totalPoints || 0) + correctAnswers);
     }
 
     window.navigate = (id) => {
-        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#auth, #game, #leaderboard, #result-screen, #profile').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.getElementById('link-game').classList.toggle('active-link', id === 'game' || id === 'result-screen');
-        document.getElementById('link-rank').classList.toggle('active-link', id === 'leaderboard');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
+        document.getElementById('link-' + (id === 'result-screen' ? 'game' : id)).classList.add('active-link');
         if (id === 'leaderboard') fetchRank();
+        if (id === 'profile') loadProfile();
     };
+
+    async function loadProfile() {
+        const snap = await get(userRef);
+        const data = snap.val();
+        if(!data) return;
+
+        document.getElementById('p-img').src = tg.initDataUnsafe?.user?.photo_url || "";
+        document.getElementById('p-full-name').innerText = `${data.name} ${data.surname}`;
+        document.getElementById('p-level').innerText = data.level.toUpperCase();
+        document.getElementById('p-points').innerText = data.totalPoints;
+
+        // Tug'ilgan kun hisobi
+        const bDay = new Date(data.birth);
+        const today = new Date();
+        let age = today.getFullYear() - bDay.getFullYear();
+        const m = today.getMonth() - bDay.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < bDay.getDate())) age--;
+        
+        document.getElementById('p-age-info').innerText = `${age} yosh`;
+
+        const nextBirth = new Date(today.getFullYear(), bDay.getMonth(), bDay.getDate());
+        if (today > nextBirth) nextBirth.setFullYear(today.getFullYear() + 1);
+        const diff = Math.ceil((nextBirth - today) / (1000 * 60 * 60 * 24));
+        
+        document.getElementById('p-countdown').innerText = diff === 0 || diff === 365 ? "Bugun tug'ilgan kuningiz! 🎉" : `Tug'ilgan kuningizga ${diff} kun qoldi.`;
+    }
 
     async function fetchRank() {
         const list = document.getElementById('rank-list');
         list.innerHTML = "<div class='spinner' style='margin: 20px auto;'></div>";
-        
-        const usersRef = ref(db, 'brain_users');
-        const snap = await get(usersRef);
-        
+        const snap = await get(ref(db, 'brain_users'));
         if (snap.exists()) {
             let data = [];
-            snap.forEach(childSnap => { data.push(childSnap.val()); });
+            snap.forEach(c => { data.push(c.val()); });
             data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-            
-            let top10 = data.slice(0, 10);
-            list.innerHTML = top10.map((u, i) => `
+            list.innerHTML = data.slice(0, 10).map((u, i) => `
                 <div class="rank-item">
                     <span><b class="gold-text">${i+1}.</b> ${u.name} ${u.surname || ''} <br><small style="color:#555">${u.level.toUpperCase()}</small></span>
                     <b class="gold-text">${u.totalPoints || 0} Ball</b>
                 </div>
             `).join('');
-        } else {
-            list.innerHTML = "Hozircha bo'shliq...";
         }
     }
 </script>
