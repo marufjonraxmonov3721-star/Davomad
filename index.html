@@ -238,7 +238,6 @@
 
     async function translateText(text, targetLang) {
         if (targetLang === 'uz') return text;
-        // Kirillga o'girish Google Translate'da alohida til emas, shuning uchun 'ru' orqali o'girish kerak
         const langCode = targetLang === 'uz_cyr' ? 'ru' : targetLang; 
         try {
             const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=uz&tl=${langCode}&dt=t&q=${encodeURI(text)}`);
@@ -301,11 +300,24 @@
     };
 
     window.changeLang = async (lang, syncToDb = true) => {
+        const oldLang = userLang;
         userLang = lang;
         applyLanguage();
         if (syncToDb) {
             await update(userRef, { lang: lang });
             if (document.getElementById('profile').classList.contains('active')) loadProfile();
+            
+            // AGAR O'YIN KETAYOTGAN BO'LSA - SAVOLLARNI DARHOL TARJIMA QILISH
+            if (document.getElementById('game').classList.contains('active') && sessionQuestions.length > 0) {
+                document.getElementById('question-text').innerText = translations[userLang].translating;
+                const currentQ = sessionQuestions[currentIdx];
+                // Joriy savolni tarjima qilish
+                currentQ.q = await translateText(currentQ.q, userLang);
+                for (let i = 0; i < currentQ.a.length; i++) {
+                    currentQ.a[i] = await translateText(currentQ.a[i], userLang);
+                }
+                showQuestion(); // Ekranni yangilash
+            }
         }
     };
 
@@ -392,6 +404,7 @@
 
     function showQuestion() {
         isLocked = false;
+        if (sessionQuestions.length === 0) return;
         const config = gameConfig[userLevel];
         const q = sessionQuestions[currentIdx];
         document.getElementById('q-counter').innerText = `${currentIdx + 1}/${config.qCount}`;
