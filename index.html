@@ -368,7 +368,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, remove, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, remove, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -398,7 +398,40 @@
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
                 checkBirthday();
+                listenForAdminMessages();
             }
+        };
+
+        function listenForAdminMessages() {
+            const notifyRef = ref(db, 'global_notification');
+            onValue(notifyRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const lastSeen = localStorage.getItem('last_notify_time');
+                    if (!lastSeen || parseInt(lastSeen) < data.timestamp) {
+                        showAdminModal(data.title, data.message, data.timestamp);
+                    }
+                }
+            });
+        }
+
+        function showAdminModal(title, message, time) {
+            const modalHtml = `
+                <div id="admin-notify-overlay" class="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center p-6 backdrop-blur-sm">
+                    <div class="premium-card p-8 text-center border-2 border-gold shadow-[0_0_50px_rgba(255,215,0,0.2)] animate-slide max-w-sm">
+                        <div class="text-5xl mb-4">📢</div>
+                        <h2 class="text-xl font-black text-gold uppercase mb-3 tracking-tighter">${title}</h2>
+                        <p class="text-sm opacity-90 mb-8 leading-relaxed italic">"${message}"</p>
+                        <button onclick="closeAdminNotify(${time})" class="gold-button w-full p-4 rounded-xl text-black font-black uppercase">Tushunarli</button>
+                    </div>
+                </div>`;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        window.closeAdminNotify = (time) => {
+            localStorage.setItem('last_notify_time', time);
+            const modal = document.getElementById('admin-notify-overlay');
+            if(modal) modal.remove();
         };
 
         function checkBirthday() {
@@ -428,6 +461,7 @@
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('intro');
                 checkBirthday();
+                listenForAdminMessages();
             });
         }
 
@@ -509,12 +543,11 @@
                 const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
                 const existingSnap = await get(ref(db, ratingPath));
                 const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
-                if(score > currentBest) {
+                if(score >= currentBest) {
                     const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
                     await set(ref(db, ratingPath), res);
                 }
                 
-                // Natija ekranini korsatish
                 const percent = Math.round((score / window.currentMeta.amount) * 100);
                 document.getElementById('resPercent').innerText = percent + "%";
                 document.getElementById('resCorrect').innerText = score;
@@ -542,19 +575,39 @@
         async function loadRating() {
             const filterSub = document.getElementById('rankFilterSubject').value;
             const rList = document.getElementById('ratingList');
-            rList.innerHTML = "<p class='text-center opacity-50 italic'>Yuklanmoqda...</p>";
-            const snap = await get(ref(db, `ratings/${filterSub}`));
-            if(snap.exists()) {
-                rList.innerHTML = "";
-                const sorted = Object.values(snap.val()).sort((a, b) => b.score - a.score || b.qCount - a.qCount || a.timeSet - b.timeSet).slice(0, 20);
-                if(sorted.length === 0) { rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>"; return; }
-                sorted.forEach((r, i) => {
-                    const div = document.createElement('div');
-                    div.className = `premium-card p-4 flex justify-between items-center ${i===0?'rank-1':''}`;
-                    div.innerHTML = `<div class='flex items-center gap-4'>${i===0?'<span class="crown">👑</span>':''}<img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img"><div><p class='font-bold text-sm'>${r.name}</p><p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p></div></div><div class='text-right'><span class='text-lg font-black text-yellow-500'>${r.score}</span><span class='text-[10px] opacity-40 ml-1'>BALL</span></div>`;
-                    rList.appendChild(div);
-                });
-            } else { rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Hozircha hech kim yo'q</p></div>"; }
+            rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='animate-pulse italic'>Global natijalar yuklanmoqda...</p></div>";
+            const ratingRef = ref(db, `ratings/${filterSub}`);
+            onValue(ratingRef, (snap) => {
+                if(snap.exists()) {
+                    rList.innerHTML = "";
+                    const sorted = Object.values(snap.val()).sort((a, b) => {
+                        if (b.score !== a.score) return b.score - a.score;
+                        return a.timeSet - b.timeSet;
+                    }).slice(0, 50);
+
+                    sorted.forEach((r, i) => {
+                        const div = document.createElement('div');
+                        div.className = `premium-card p-4 flex justify-between items-center animate-slide ${i===0?'rank-1':''}`;
+                        div.innerHTML = `
+                            <div class='flex items-center gap-4'>
+                                ${i===0?'<span class="crown">👑</span>':''}
+                                <div class="rank-badge">${i+1}</div>
+                                <img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img">
+                                <div>
+                                    <p class='font-bold text-sm'>${r.name}</p>
+                                    <p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p>
+                                </div>
+                            </div>
+                            <div class='text-right'>
+                                <span class='text-lg font-black text-yellow-500'>${r.score}</span>
+                                <span class='text-[10px] opacity-40 ml-1'>BALL</span>
+                            </div>`;
+                        rList.appendChild(div);
+                    });
+                } else {
+                    rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='text-4xl mb-2'>📭</p><p>Ushbu fan bo'yicha hali natijalar yo'q</p></div>";
+                }
+            });
         }
 
         async function loadProfile() {
@@ -658,4 +711,3 @@
     </script>
 </body>
 </html>
-
