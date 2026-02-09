@@ -130,6 +130,17 @@
             70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
+
+        /* Rank Notify Style */
+        .rank-notify {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 3000; width: 90%; max-width: 350px;
+            background: #111; border: 2px solid var(--gold); border-radius: 15px;
+            padding: 15px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 12px;
+            animation: slideDown 0.5s ease forwards;
+        }
+        @keyframes slideDown { from { top: -100px; } to { top: 20px; } }
     </style>
 </head>
 <body class="pb-24">
@@ -149,7 +160,7 @@
         </button>
 
         <div class="text-6xl mb-4 text-yellow-500">🎓</div>
-        <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar  Rasmiy</h1>
+        <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar Rasmiy</h1>
         
         <div class="space-y-4 text-left">
             <div>
@@ -572,6 +583,36 @@
             });
         }
 
+        // Reyting o'zgarishini solishtirish funksiyasi
+        function checkRankChange(subject, newRank) {
+            const storageKey = `last_rank_${subject}`;
+            const oldRank = localStorage.getItem(storageKey);
+            
+            if (oldRank && oldRank != newRank) {
+                const diff = oldRank - newRank;
+                let msg = "";
+                let icon = "";
+                
+                if (diff > 0) {
+                    icon = "📈";
+                    msg = `${subject} fanidan reytingingiz ${diff} pog'onaga ko'tarildi! Hozirgi o'rningiz: ${newRank}`;
+                } else {
+                    icon = "📉";
+                    msg = `${subject} fanidan reytingingiz ${Math.abs(diff)} pog'onaga tushdi. Hozirgi o'rningiz: ${newRank}`;
+                }
+                showRankToast(icon, msg);
+            }
+            localStorage.setItem(storageKey, newRank);
+        }
+
+        function showRankToast(icon, message) {
+            const toast = document.createElement('div');
+            toast.className = "rank-notify";
+            toast.innerHTML = `<div class="text-2xl">${icon}</div><div class="text-[11px] font-bold uppercase tracking-tight">${message}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
         async function loadRating() {
             const filterSub = document.getElementById('rankFilterSubject').value;
             const rList = document.getElementById('ratingList');
@@ -584,6 +625,11 @@
                         if (b.score !== a.score) return b.score - a.score;
                         return a.timeSet - b.timeSet;
                     }).slice(0, 50);
+
+                    // O'rinni tekshirish
+                    const fullName = `${currentUser.fName} ${currentUser.lName}`;
+                    const myCurrentRank = sorted.findIndex(r => r.name === fullName) + 1;
+                    if (myCurrentRank > 0) checkRankChange(filterSub, myCurrentRank);
 
                     sorted.forEach((r, i) => {
                         const div = document.createElement('div');
