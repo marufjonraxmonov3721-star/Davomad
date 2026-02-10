@@ -195,9 +195,18 @@
     </div>
 
     <div id="edit-profile-modal" class="bday-modal hidden">
-        <div class="premium-card p-6 w-full max-w-sm border-2 border-gold animate-slide">
+        <div class="premium-card p-6 w-full max-w-sm border-2 border-gold animate-slide overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-gold uppercase mb-6 text-center italic">Profilni tahrirlash</h2>
             <div class="space-y-4 text-left">
+                <div class="flex flex-col items-center mb-4">
+                    <div class="profile-img-container" style="cursor: pointer;" onclick="document.getElementById('editPhotoInput').click()">
+                        <img id="editPreviewImg" src="" alt="Preview">
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
+                            <span class="text-white text-xs font-bold uppercase">O'zgartirish</span>
+                        </div>
+                    </div>
+                    <input type="file" id="editPhotoInput" class="hidden" accept="image/*" onchange="previewImage(this)">
+                </div>
                 <div>
                     <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ism</label>
                     <input type="text" id="editFirstName">
@@ -429,12 +438,12 @@
         <div class="premium-card p-8 shadow-2xl animate-slide border-2 border-gold">
             <div class="flex justify-around items-center mb-10">
                 <div class="text-center">
-                    <img src="" id="duel-my-img" class="duel-avatar mb-3">
+                    <img src="" id="duel-my-img" class="duel-avatar mb-3" onerror="this.src='https://i.imgur.com/6VBx3io.png'">
                     <p class="text-[10px] font-black uppercase">Siz</p>
                 </div>
                 <div class="vs-badge">VS</div>
                 <div class="text-center">
-                    <img src="" id="duel-opp-img" class="duel-avatar mb-3">
+                    <img src="" id="duel-opp-img" class="duel-avatar mb-3" onerror="this.src='https://i.imgur.com/6VBx3io.png'">
                     <p class="text-[10px] font-black uppercase" id="duel-opp-name">Raqib</p>
                 </div>
             </div>
@@ -511,7 +520,7 @@
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
         <div class="premium-card p-8 mb-6 shadow-xl relative">
             <div class="profile-img-container">
-                <img src="" id="userProfileImg" alt="Avatar">
+                <img src="" id="userProfileImg" alt="Avatar" onerror="this.src='https://i.imgur.com/6VBx3io.png'">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
             <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
@@ -570,6 +579,7 @@
         let userTestLogs = [];
         let isDuelMode = false;
         let currentDuelRoom = null;
+        let editedPhotoBase64 = null;
 
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
@@ -591,10 +601,41 @@
             }
         };
 
+        window.previewImage = (input) => {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                alert("Rasm hajmi juda katta (max 2MB)");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxDim = 300;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
+                    else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    editedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('editPreviewImg').src = editedPhotoBase64;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
         window.openEditModal = () => {
             document.getElementById('editFirstName').value = currentUser.fName;
             document.getElementById('editLastName').value = currentUser.lName;
             document.getElementById('editBirth').value = currentUser.birth;
+            editedPhotoBase64 = currentUser.photo;
+            document.getElementById('editPreviewImg').src = editedPhotoBase64 || getAvatarUrl(currentUser.fName, currentUser.lName);
             document.getElementById('edit-profile-modal').classList.remove('hidden');
         };
 
@@ -609,15 +650,13 @@
             
             if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
 
-            const updatedPhoto = getAvatarUrl(f, l);
             const userRef = ref(db, 'users/' + currentUser.userId);
-            
             const updatedData = {
                 ...currentUser,
                 fName: f,
                 lName: l,
                 birth: b,
-                photo: updatedPhoto
+                photo: editedPhotoBase64 || getAvatarUrl(f, l)
             };
 
             await update(userRef, updatedData);
@@ -714,8 +753,13 @@
             showMenu('duel-vs');
             const isP1 = room.p1.userId === currentUser.userId;
             const opp = isP1 ? room.p2 : room.p1;
-            document.getElementById('duel-my-img').src = currentUser.photo;
-            document.getElementById('duel-opp-img').src = opp ? opp.photo : "https://ui-avatars.com/api/?name=Raqib&background=333&color=fff";
+            
+            const myAvatar = document.getElementById('duel-my-img');
+            const oppAvatar = document.getElementById('duel-opp-img');
+            
+            myAvatar.src = currentUser.photo || getAvatarUrl(currentUser.fName, currentUser.lName);
+            oppAvatar.src = opp && opp.photo ? opp.photo : "https://i.imgur.com/6VBx3io.png";
+            
             document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "RAQIB";
             let count = 3;
             const cdInterval = setInterval(() => {
@@ -817,7 +861,7 @@
                 localStorage.setItem('quizUser', JSON.stringify(userData));
                 currentUser = userData;
                 document.getElementById('auth-screen').classList.add('hidden');
-                showMenu('intro');
+                showMenu('subjects');
                 checkBirthday();
                 listenForAdminMessages();
                 checkUpdateNotification();
@@ -1004,9 +1048,9 @@
                             <div class='flex items-start gap-4'>
                                 ${i === 0 ? '<span class="crown">👑</span>' : ''}
                                 <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo}" 
+                                <img src="${user.photo || getAvatarUrl(user.name, '')}" 
                                      class="rank-img" 
-                                     onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff';">
+                                     onerror="this.onerror=null; this.src='https://i.imgur.com/6VBx3io.png';">
                                 <div class="flex-1">
                                     <p class='font-bold text-sm mb-1'>${user.name}</p>
                                     <p class='text-[10px] text-gold uppercase font-black mb-3 italic tracking-wider'>Jami: ${user.totalScore} ball</p>
@@ -1032,7 +1076,7 @@
             
             const profileImg = document.getElementById('userProfileImg');
             if(profileImg) {
-                profileImg.src = currentUser.photo;
+                profileImg.src = currentUser.photo || getAvatarUrl(currentUser.fName, currentUser.lName);
                 profileImg.onerror = function() {
                     this.src = getAvatarUrl(currentUser.fName, currentUser.lName);
                 };
