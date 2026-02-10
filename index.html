@@ -118,7 +118,6 @@
             display: flex; align-items: center; justify-content: center; padding: 20px;
         }
 
-        /* Natija animatsiyasi */
         .result-circle {
             width: 150px; height: 150px; border-radius: 50%; border: 8px solid var(--gold);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -131,7 +130,6 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
 
-        /* Rank Notify Style */
         .rank-notify {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             z-index: 3000; width: 90%; max-width: 350px;
@@ -142,7 +140,6 @@
         }
         @keyframes slideDown { from { top: -100px; } to { top: 20px; } }
 
-        /* Duel Animatsiyalari */
         .searching-loader {
             width: 80px; height: 80px; border: 5px solid rgba(255, 215, 0, 0.2);
             border-top: 5px solid var(--gold); border-radius: 50%;
@@ -175,10 +172,8 @@
         <button onclick="toggleTheme()" class="absolute top-6 right-6 text-2xl p-2 premium-card">
             <span id="theme-icon-auth">🌙</span>
         </button>
-
         <div class="text-6xl mb-4 text-yellow-500">🎓</div>
         <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar Rasmiy</h1>
-        
         <div class="space-y-4 text-left">
             <div>
                 <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ismingiz</label>
@@ -205,7 +200,6 @@
                 <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black mt-8">Davom etish</button>
             </div>
         </div>
-
         <div id="intro-step-2" class="hidden animate-slide">
             <div class="premium-card p-8 shadow-2xl text-center text-sm">
                 <div class="text-5xl mb-6">📚</div>
@@ -222,7 +216,6 @@
                 <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Davom etish</button>
             </div>
         </div>
-
         <div id="intro-step-3" class="hidden animate-slide">
             <div class="premium-card p-8 shadow-2xl text-center">
                 <div class="text-5xl mb-6">🚀</div>
@@ -312,6 +305,13 @@
                     <option value="Fizika">Fizika</option>
                     <option value="Kimyo">Kimyo</option>
                     <option value="Ona tili">Ona tili</option>
+                    <option value="Adabiyot">Adabiyot</option>
+                    <option value="Geografiya">Geografiya</option>
+                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
+                    <option value="Jahon_tarixi">Jahon tarixi</option>
+                    <option value="Ingliz_tili">Ingliz tili</option>
+                    <option value="Rus_tili">Rus tili</option>
+                    <option value="Biologiya">Biologiya</option>
                     <option value="IQ_testlar">IQ testlar</option>
                 </select>
             </div>
@@ -320,17 +320,30 @@
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar</label>
                     <select id="duelQAmount">
                         <option value="5">5 ta</option>
-                        <option value="10" selected>10 ta</option>
+                        <option value="10">10 ta</option>
                         <option value="15">15 ta</option>
-                        <option value="20">20 ta</option>
+                        <option value="20" selected>20 ta</option>
+                        <option value="25">25 ta</option>
+                        <option value="30">30 ta</option>
+                        <option value="35">35 ta</option>
+                        <option value="40">40 ta</option>
+                        <option value="45">45 ta</option>
+                        <option value="50">50 ta</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Min)</label>
                     <select id="duelQTime">
-                        <option value="2" selected>2 min</option>
                         <option value="5">5 min</option>
                         <option value="10">10 min</option>
+                        <option value="15" selected>15 min</option>
+                        <option value="20">20 min</option>
+                        <option value="25">25 min</option>
+                        <option value="30">30 min</option>
+                        <option value="35">35 min</option>
+                        <option value="40">40 min</option>
+                        <option value="45">45 min</option>
+                        <option value="50">50 min</option>
                     </select>
                 </div>
             </div>
@@ -430,23 +443,8 @@
     </div>
 
     <div id="rating-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Reyting</h2>
-        <div class="space-y-4 mb-6">
-            <select id="rankFilterSubject" onchange="loadRating()" class="text-sm">
-                <option value="Matematika">Matematika</option>
-                <option value="Fizika">Fizika</option>
-                <option value="Kimyo">Kimyo</option>
-                <option value="Ona tili">Ona tili</option>
-                <option value="Adabiyot">Adabiyot</option>
-                <option value="Geografiya">Geografiya</option>
-                <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
-                <option value="Jahon_tarixi">Jahon tarixi</option>
-                <option value="Ingliz_tili">Ingliz tili</option>
-                <option value="Rus_tili">Rus tili</option>
-                <option value="Biologiya">Biologiya</option>
-                <option value="IQ_testlar">IQ testlar</option>
-            </select>
-        </div>
+        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Global Reyting</h2>
+        <p class="text-[10px] opacity-50 mb-4 italic uppercase">Har bir foydalanuvchining eng yuqori natijasi</p>
         <div id="ratingList" class="space-y-4"></div>
     </div>
 
@@ -464,7 +462,7 @@
                 <p id="profDaysLeft" class="text-xs italic text-yellow-500"></p>
             </div>
             <div class="border-t border-yellow-500/20 pt-6 text-left">
-                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic text-yellow-500">Reyting:</h4>
+                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic text-yellow-500">Shaxsiy Natijalar:</h4>
                 <div id="myStatsList" class="space-y-3"></div>
             </div>
         </div>
@@ -527,7 +525,6 @@
             }
         };
 
-        // --- DUEL LOGIKASI (PES USLUBIDA) ---
         window.showDuelCreate = () => showMenu('duel-create');
         window.showDuelJoin = () => showMenu('duel-join');
 
@@ -563,7 +560,6 @@
             await set(ref(db, `duel_rooms/${roomCode}`), roomData);
             onDisconnect(ref(db, `duel_rooms/${roomCode}`)).remove();
 
-            // Raqib kirishini va natijalarni kuzatish
             onValue(ref(db, `duel_rooms/${roomCode}`), (snap) => {
                 const data = snap.val();
                 if (data && data.status === 'starting' && !currentDuelRoom) {
@@ -579,40 +575,30 @@
         async function joinDuelRoom() {
             const code = document.getElementById('join-code-input').value.trim();
             if (code.length !== 6) return alert("6 xonali kodni kiriting!");
-
             const roomRef = ref(db, `duel_rooms/${code}`);
             const snap = await get(roomRef);
-
             if (snap.exists()) {
                 const data = snap.val();
                 if (data.status !== 'waiting') return alert("Xona band yoki o'yin boshlangan!");
-
                 await update(roomRef, { p2: currentUser, status: 'starting' });
                 currentDuelRoom = code;
-                
-                // Natijalarni kutish
                 onValue(roomRef, (s) => {
                     const d = s.val();
                     if (d && d.p1Score !== -1 && d.p2Score !== -1) {
                         finalizeDuel(d);
                     }
                 });
-
                 startDuelUI(data);
-            } else {
-                alert("Match ID not found!");
-            }
+            } else { alert("Match ID not found!"); }
         }
 
         function startDuelUI(room) {
             showMenu('duel-vs');
             const isP1 = room.p1.userId === currentUser.userId;
             const opp = isP1 ? room.p2 : room.p1;
-            
             document.getElementById('duel-my-img').src = currentUser.photo;
             document.getElementById('duel-opp-img').src = opp ? opp.photo : "";
             document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "AWAY";
-            
             let count = 3;
             const cdInterval = setInterval(() => {
                 count--;
@@ -634,10 +620,8 @@
             const isP1 = room.p1.userId === currentUser.userId;
             const myFinal = isP1 ? room.p1Score : room.p2Score;
             const oppFinal = isP1 ? room.p2Score : room.p1Score;
-
             document.getElementById('duel-my-final-score').innerText = myFinal;
             document.getElementById('duel-opp-final-score').innerText = oppFinal;
-
             const statusText = document.getElementById('duel-final-status');
             if (myFinal > oppFinal) {
                 statusText.innerText = "G'ALABA!";
@@ -658,7 +642,6 @@
             return snap.val().sort(() => 0.5 - Math.random()).slice(0, amount);
         }
 
-        // --- ASOSIY FUNKSIYALAR ---
         function listenForAdminMessages() {
             const notifyRef = ref(db, 'global_notification');
             onValue(notifyRef, (snapshot) => {
@@ -781,7 +764,6 @@
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
             const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
-            
             opts.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn font-medium bg-white/5 italic";
@@ -810,10 +792,9 @@
                     const existingSnap = await get(ref(db, ratingPath));
                     const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
                     if(score >= currentBest) {
-                        const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
+                        const res = { userId: currentUser.userId, name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
                         await set(ref(db, ratingPath), res);
                     }
-                    
                     const percent = Math.round((score / window.currentMeta.amount) * 100);
                     document.getElementById('resPercent').innerText = percent + "%";
                     document.getElementById('resCorrect').innerText = score;
@@ -821,15 +802,9 @@
                     if(percent >= 60) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                     showMenu('result');
                 } else {
-                    // Duel natijasini Firebasega yozish
                     const roomRef = ref(db, `duel_rooms/${currentDuelRoom}`);
-                    const snap = await get(roomRef);
-                    const roomData = snap.val();
-                    const isP1 = roomData.p1.userId === currentUser.userId;
-                    const field = isP1 ? 'p1Score' : 'p2Score';
+                    const field = (await get(roomRef)).val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
                     await update(roomRef, { [field]: score });
-                    
-                    // Kutish xabari
                     document.getElementById('quiz-screen').innerHTML = `
                         <div class="flex flex-col items-center justify-center min-h-screen text-center p-10">
                             <div class="searching-loader"></div>
@@ -837,10 +812,7 @@
                             <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kuting...</p>
                         </div>`;
                 }
-            } else { 
-                alert("Test yakunlandi."); 
-                showMenu('subjects');
-            }
+            } else { showMenu('subjects'); }
         }
 
         window.showAnalysis = () => {
@@ -855,43 +827,39 @@
             });
         }
 
-        function checkRankChange(subject, newRank) {
-            const storageKey = `last_rank_${subject}`;
-            const oldRank = localStorage.getItem(storageKey);
-            if (oldRank && oldRank != newRank) {
-                const diff = oldRank - newRank;
-                let msg = diff > 0 ? `${subject} fanidan reytingingiz ${diff} pog'onaga ko'tarildi! Hozirgi o'rningiz: ${newRank}` : `${subject} fanidan reytingingiz ${Math.abs(diff)} pog'onaga tushdi. Hozirgi o'rningiz: ${newRank}`;
-                showRankToast(diff > 0 ? "📈" : "📉", msg);
-            }
-            localStorage.setItem(storageKey, newRank);
-        }
-
-        function showRankToast(icon, message) {
-            const toast = document.createElement('div');
-            toast.className = "rank-notify";
-            toast.innerHTML = `<div class="text-2xl">${icon}</div><div class="text-[11px] font-bold uppercase tracking-tight">${message}</div>`;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 500); }, 4000);
-        }
-
         async function loadRating() {
-            const filterSub = document.getElementById('rankFilterSubject').value;
             const rList = document.getElementById('ratingList');
             rList.innerHTML = "<div class='text-center p-10 opacity-50'><p class='animate-pulse italic'>Global natijalar yuklanmoqda...</p></div>";
-            onValue(ref(db, `ratings/${filterSub}`), (snap) => {
-                if(snap.exists()) {
-                    rList.innerHTML = "";
-                    const sorted = Object.values(snap.val()).sort((a, b) => b.score - a.score || a.timeSet - b.timeSet).slice(0, 50);
-                    const myCurrentRank = sorted.findIndex(r => r.name === `${currentUser.fName} ${currentUser.lName}`) + 1;
-                    if (myCurrentRank > 0) checkRankChange(filterSub, myCurrentRank);
-                    sorted.forEach((r, i) => {
-                        const div = document.createElement('div');
-                        div.className = `premium-card p-4 flex justify-between items-center animate-slide ${i===0?'rank-1':''}`;
-                        div.innerHTML = `<div class='flex items-center gap-4'>${i===0?'<span class="crown">👑</span>':''}<div class="rank-badge">${i+1}</div><img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img"><div><p class='font-bold text-sm'>${r.name}</p><p class='text-[9px] opacity-60 uppercase'>${r.qCount} savol • ${r.timeSet} min</p></div></div><div class='text-right'><span class='text-lg font-black text-yellow-500'>${r.score}</span><span class='text-[10px] opacity-40 ml-1'>BALL</span></div>`;
-                        rList.appendChild(div);
+            const snap = await get(ref(db, `ratings`));
+            if(snap.exists()) {
+                rList.innerHTML = "";
+                let uniqueUsers = {}; 
+
+                const allRatings = snap.val();
+                Object.keys(allRatings).forEach(sub => {
+                    const subRatings = allRatings[sub];
+                    Object.keys(subRatings).forEach(uKey => {
+                        const res = subRatings[uKey];
+                        const uid = res.userId;
+                        
+                        if (!uniqueUsers[uid] || res.score > uniqueUsers[uid].score) {
+                            uniqueUsers[uid] = res;
+                        } else if (res.score === uniqueUsers[uid].score) {
+                            if (res.timeSet < uniqueUsers[uid].timeSet) {
+                                uniqueUsers[uid] = res;
+                            }
+                        }
                     });
-                } else rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Natijalar yo'q</p></div>";
-            });
+                });
+
+                const sorted = Object.values(uniqueUsers).sort((a, b) => b.score - a.score || a.timeSet - b.timeSet).slice(0, 50);
+                sorted.forEach((r, i) => {
+                    const div = document.createElement('div');
+                    div.className = `premium-card p-4 flex justify-between items-center animate-slide ${i===0?'rank-1':''}`;
+                    div.innerHTML = `<div class='flex items-center gap-4'>${i===0?'<span class="crown">👑</span>':''}<div class="rank-badge">${i+1}</div><img src="${r.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img"><div><p class='font-bold text-sm'>${r.name}</p><p class='text-[9px] opacity-60 uppercase'>${r.subject} • ${r.qCount} savol</p></div></div><div class='text-right'><span class='text-lg font-black text-yellow-500'>${r.score}</span><span class='text-[10px] opacity-40 ml-1'>BALL</span></div>`;
+                    rList.appendChild(div);
+                });
+            } else rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Hali natijalar yo'q</p></div>";
         }
 
         async function loadProfile() {
@@ -901,8 +869,7 @@
             const bDate = new Date(currentUser.birth);
             const today = new Date();
             let age = today.getFullYear() - bDate.getFullYear();
-            const m = today.getMonth() - bDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) age--;
+            if (today < new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate())) age--;
             const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate());
             if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
             const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
@@ -915,13 +882,11 @@
             if(snap.exists()) {
                 const userKey = currentUser.userId.replace(/\./g, '_');
                 Object.keys(snap.val()).forEach(sub => {
-                    const subData = snap.val()[sub];
-                    if (subData[userKey]) {
-                        const myBest = subData[userKey];
-                        const myRank = Object.values(subData).sort((a,b)=>b.score-a.score).findIndex(r=>r.name===`${currentUser.fName} ${currentUser.lName}`)+1;
+                    if (snap.val()[sub][userKey]) {
+                        const myBest = snap.val()[sub][userKey];
                         const div = document.createElement('div');
                         div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10 mb-2";
-                        div.innerHTML = `<span class="text-xs font-bold">${sub}</span><span class="text-xs text-yellow-500 font-black">${myRank}-o'rin (${myBest.score} ball)</span>`;
+                        div.innerHTML = `<span class="text-xs font-bold">${sub}</span><span class="text-xs text-yellow-500 font-black">${myBest.score} ball</span>`;
                         stats.appendChild(div);
                     }
                 });
