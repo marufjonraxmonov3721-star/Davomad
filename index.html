@@ -549,12 +549,14 @@
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
 
-        // Rasm URL manzili yaroqliligini tekshirish (SVG cheklovi bilan)
-        function getValidPhotoUrl(rawUrl, userName) {
-            if (!rawUrl || rawUrl.toLowerCase().endsWith('.svg')) {
-                return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=random&color=fff&size=256&format=png`;
+        // URL formatlash mantiqi (_3.svg -> .svg)
+        function formatPhotoUrl(url) {
+            if (!url) return "";
+            // Agar _3.svg bilan tugasa, uni .svg ga almashtiramiz
+            if (url.toLowerCase().endsWith('_3.svg')) {
+                return url.slice(0, -6) + '.svg';
             }
-            return rawUrl;
+            return url;
         }
 
         window.onload = () => {
@@ -576,12 +578,13 @@
             const userId = "tg_" + tgUser.id;
             const userRef = ref(db, 'users/' + userId);
             
+            // Telegramdan kelayotgan rasm manzilini formatlab olish
+            const freshPhotoUrl = formatPhotoUrl(tgUser.photo_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
+
             const snap = await get(userRef);
             if (snap.exists()) {
                 const data = snap.val();
-                // Telegramdan kelayotgan yangi rasm URL'ini tekshirib olish
-                const freshPhotoUrl = getValidPhotoUrl(tgUser.photo_url, `${data.fName} ${data.lName}`);
-
+                
                 if (data.photo !== freshPhotoUrl || data.username !== (tgUser.username || "")) {
                     const updatedData = {
                         ...data,
@@ -779,7 +782,7 @@
             const b = document.getElementById('birthDay').value;
             if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const photoUrl = getValidPhotoUrl(tgUser?.photo_url, `${f} ${l}`);
+            const photoUrl = formatPhotoUrl(tgUser?.photo_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(f + " " + l)}&background=3390ec&color=fff&size=256`;
             const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
@@ -948,7 +951,7 @@
                         rankingData.push({
                             uid: uid,
                             name: `${user.fName} ${user.lName}`,
-                            photo: user.photo,
+                            photo: formatPhotoUrl(user.photo),
                             totalScore: totalScore,
                             subjects: userSubjects
                         });
@@ -969,19 +972,13 @@
 
                         if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
 
-                        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff&size=256&format=png`;
-                        
-                        // .svg bilan tugasa darhol fallback'ga o'tish
-                        let displayPhoto = user.photo;
-                        if (displayPhoto && displayPhoto.toLowerCase().endsWith('.svg')) {
-                            displayPhoto = fallbackAvatar;
-                        }
+                        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff`;
 
                         div.innerHTML = `
                             <div class='flex items-start gap-4'>
                                 ${i === 0 ? '<span class="crown">👑</span>' : ''}
                                 <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${displayPhoto || fallbackAvatar}" 
+                                <img src="${user.photo || fallbackAvatar}" 
                                      class="rank-img" 
                                      onerror="this.onerror=null; this.src='${fallbackAvatar}';">
                                 <div class="flex-1">
@@ -1004,7 +1001,8 @@
         }
 
         async function loadProfile() {
-            const freshPhoto = getValidPhotoUrl(tgUser?.photo_url || currentUser?.photo, `${currentUser?.fName} ${currentUser?.lName}`);
+            // Telegram API-dan rasm olganda ham formatlash
+            const freshPhoto = formatPhotoUrl(tgUser?.photo_url) || formatPhotoUrl(currentUser?.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
             
             document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
@@ -1013,7 +1011,7 @@
             if(profileImg) {
                 profileImg.src = freshPhoto;
                 profileImg.onerror = function() {
-                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff&size=256&format=png`;
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
                 };
             }
             
