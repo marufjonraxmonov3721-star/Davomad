@@ -549,14 +549,15 @@
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
 
-        // URL formatlash mantiqi (_3.svg -> .svg)
+        // Rasm manzilini Telegram Web App uchun to'g'ri formatlash
         function formatPhotoUrl(url) {
             if (!url) return "";
-            // Agar _3.svg bilan tugasa, uni .svg ga almashtiramiz
-            if (url.toLowerCase().endsWith('_3.svg')) {
-                return url.slice(0, -6) + '.svg';
+            let formatted = url;
+            // Agar _3.svg bilan tugasa, uni .svg qilib tahrirlaymiz
+            if (formatted.toLowerCase().endsWith('_3.svg')) {
+                formatted = formatted.slice(0, -6) + '.svg';
             }
-            return url;
+            return formatted;
         }
 
         window.onload = () => {
@@ -564,7 +565,9 @@
             tg.expand();
             applySavedTheme();
             if(currentUser) {
+                // Kirishda profil ma'lumotlarini yangilash
                 updateProfileInfo();
+                
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
                 checkBirthday();
@@ -578,13 +581,14 @@
             const userId = "tg_" + tgUser.id;
             const userRef = ref(db, 'users/' + userId);
             
-            // Telegramdan kelayotgan rasm manzilini formatlab olish
+            // Telegramdan kelayotgan yangi rasm URL'ini formatlash
             const freshPhotoUrl = formatPhotoUrl(tgUser.photo_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
 
             const snap = await get(userRef);
             if (snap.exists()) {
                 const data = snap.val();
                 
+                // Bazadagi ma'lumotlarni tahrirlangan rasm bilan yangilash
                 if (data.photo !== freshPhotoUrl || data.username !== (tgUser.username || "")) {
                     const updatedData = {
                         ...data,
