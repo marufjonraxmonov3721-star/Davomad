@@ -549,13 +549,15 @@
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
 
-        // Rasm manzilini Telegram Web App uchun to'g'ri formatlash
+        // URL formatlash mantiqi (-3.svg va _3.svg ni .svg ga almashtirish)
         function formatPhotoUrl(url) {
             if (!url) return "";
             let formatted = url;
-            // Agar _3.svg bilan tugasa, uni .svg qilib tahrirlaymiz
-            if (formatted.toLowerCase().endsWith('_3.svg')) {
-                formatted = formatted.slice(0, -6) + '.svg';
+            // Agar -3.svg yoki _3.svg bilan tugasa
+            if (formatted.toLowerCase().endsWith('-3.svg') || formatted.toLowerCase().endsWith('_3.svg')) {
+                // Oxiridan 6 ta belgini kesib (.svg qolishi uchun 4 ta emas, chunki format -3.svg)
+                // Lekin eng ishonchli yo'li replace ishlatish
+                formatted = formatted.replace(/-3\.svg$/i, '.svg').replace(/_3\.svg$/i, '.svg');
             }
             return formatted;
         }
@@ -565,9 +567,7 @@
             tg.expand();
             applySavedTheme();
             if(currentUser) {
-                // Kirishda profil ma'lumotlarini yangilash
                 updateProfileInfo();
-                
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
                 checkBirthday();
@@ -581,14 +581,13 @@
             const userId = "tg_" + tgUser.id;
             const userRef = ref(db, 'users/' + userId);
             
-            // Telegramdan kelayotgan yangi rasm URL'ini formatlash
+            // Telegramdan yangi rasm URL'ini formatlab olish
             const freshPhotoUrl = formatPhotoUrl(tgUser.photo_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
 
             const snap = await get(userRef);
             if (snap.exists()) {
                 const data = snap.val();
                 
-                // Bazadagi ma'lumotlarni tahrirlangan rasm bilan yangilash
                 if (data.photo !== freshPhotoUrl || data.username !== (tgUser.username || "")) {
                     const updatedData = {
                         ...data,
