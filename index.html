@@ -3,64 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yangilanish ketmoqda</title>
+    <title>Yangilanish - Testlar Rasmiy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f7f6;
+        :root { 
+            --gold: #FFD700; 
+            --gold-dark: #B8860B;
+            --bg: #000000; /* Dark mode dizayningizga mos */
+            --text: #FFD700; 
+            --card: #111111;
+        }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            margin: 0;
+            overflow: hidden;
         }
 
-        .container {
-            text-align: center;
-            padding: 20px;
+        .premium-card {
+            background-color: var(--card);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
         }
 
-        /* Yuklanish aylanasi (Spinner) */
-        .loader {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        .searching-loader {
+            width: 80px; height: 80px; border: 5px solid rgba(255, 215, 0, 0.2);
+            border-top: 5px solid var(--gold); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        p {
-            font-size: 16px;
-            color: #666;
-        }
-
-        .update-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
+        .animate-main { animation: fadeIn 0.8s ease-out forwards; }
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen p-6">
 
-    <div class="container">
-        <div class="update-icon">⚙️</div>
-        <div class="loader"></div>
-        <h1>Ilovada yangilanish ketmoqda</h1>
-        <p>Biz xizmatni yaxshilash ustida ishlayapmiz. <br> Iltimos, birozdan so'ng qayta urinib ko'ring.</p>
+    <div class="animate-main text-center max-w-sm w-full">
+        <div class="text-7xl mb-6 drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">⚙️</div>
+        
+        <h1 class="text-3xl font-black uppercase italic mb-2 tracking-tighter">
+            Testlar <span class="text-white">Rasmiy</span>
+        </h1>
+        
+        <div class="w-16 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mb-10"></div>
+
+        <div class="premium-card p-10 shadow-2xl border-2 border-gold/20">
+            <div class="searching-loader"></div>
+            
+            <h2 class="text-xl font-bold uppercase tracking-widest mb-4">Yangilanish</h2>
+            
+            <p class="text-sm opacity-70 leading-relaxed italic">
+                Ilovada texnik yangilanish ishlari olib borilmoqda. 
+                <br><br>
+                Iltimos, birozdan so'ng qayta urinib ko'ring.
+            </p>
+        </div>
+
+        <p class="mt-10 text-[10px] font-bold uppercase opacity-30 tracking-[4px] animate-pulse">
+            Technical Maintenance
+        </p>
     </div>
 
 </body>
