@@ -930,6 +930,10 @@
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
             const photoUrl = getAvatarUrl(f, l);
             const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
+            
+            // Mark updates as seen for NEW users
+            localStorage.setItem('last_update_v1', 'seen');
+            
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
                 currentUser = userData;
@@ -937,7 +941,7 @@
                 showMenu('intro');
                 checkBirthday();
                 listenForAdminMessages();
-                checkUpdateNotification();
+                // We skip checkUpdateNotification() here because we just set it to 'seen'
             });
         }
 
