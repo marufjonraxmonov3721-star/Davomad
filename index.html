@@ -346,7 +346,6 @@
                     <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
                     <option value="Jahon_tarixi">Jahon tarixi</option>
                     <option value="Ingliz_tili">Ingliz tili</option>
-                    <option value="Rus_tili">Rus tili</option>
                     <option value="Biologiya">Biologiya</option>
                     <option value="IQ_testlar">IQ testlar</option>
                 </select>
@@ -406,12 +405,12 @@
         <div class="premium-card p-8 shadow-2xl animate-slide border-2 border-gold">
             <div class="flex justify-around items-center mb-10">
                 <div class="text-center">
-                    <img src="" id="duel-my-img" class="duel-avatar mb-3">
+                    <img src="" id="duel-my-img" class="duel-avatar mb-3" onerror="this.src='https://ui-avatars.com/api/?name=Siz&background=random&color=fff'">
                     <p class="text-[10px] font-black uppercase">Siz</p>
                 </div>
                 <div class="vs-badge">VS</div>
                 <div class="text-center">
-                    <img src="" id="duel-opp-img" class="duel-avatar mb-3">
+                    <img src="" id="duel-opp-img" class="duel-avatar mb-3" onerror="this.src='https://ui-avatars.com/api/?name=Raqib&background=random&color=fff'">
                     <p class="text-[10px] font-black uppercase" id="duel-opp-name">Raqib</p>
                 </div>
             </div>
@@ -488,7 +487,7 @@
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
         <div class="premium-card p-8 mb-6 shadow-xl">
             <div class="profile-img-container">
-                <img src="" id="userProfileImg" alt="Avatar">
+                <img src="" id="userProfileImg" alt="Avatar" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random&color=fff'">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
             <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
@@ -570,17 +569,20 @@
             if (!tgUser) return;
             const userId = "tg_" + tgUser.id;
             const userRef = ref(db, 'users/' + userId);
-            const snap = await get(userRef);
             
+            // Telegramdan yangi rasm URL'ini olish
+            const freshPhotoUrl = tgUser.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
+
+            const snap = await get(userRef);
             if (snap.exists()) {
                 const data = snap.val();
-                const currentPhoto = tgUser.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fName + " " + data.lName)}&background=3390ec&color=fff&size=256`;
                 
-                // Agar bazadagi rasm yoki username o'zgargan bo'lsa yangilaymiz
-                if (data.photo !== currentPhoto || data.username !== (tgUser.username || "")) {
+                // Rasmni har doim yangilash (Telegram URL'lari vaqtinchalik bo'lishi mumkin)
+                // Yoki username o'zgargan bo'lsa yangilaymiz
+                if (data.photo !== freshPhotoUrl || data.username !== (tgUser.username || "")) {
                     const updatedData = {
                         ...data,
-                        photo: currentPhoto,
+                        photo: freshPhotoUrl,
                         username: tgUser.username || ""
                     };
                     await update(userRef, updatedData);
@@ -960,11 +962,16 @@
 
                         if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
 
+                        // Har bir rasm uchun dinamik onerror mexanizmi qo'shildi
+                        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff`;
+
                         div.innerHTML = `
                             <div class='flex items-start gap-4'>
                                 ${i === 0 ? '<span class="crown">👑</span>' : ''}
                                 <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img">
+                                <img src="${user.photo || fallbackAvatar}" 
+                                     class="rank-img" 
+                                     onerror="this.onerror=null; this.src='${fallbackAvatar}';">
                                 <div class="flex-1">
                                     <p class='font-bold text-sm mb-1'>${user.name}</p>
                                     <p class='text-[10px] text-gold uppercase font-black mb-3 italic tracking-wider'>Jami: ${user.totalScore} ball</p>
@@ -985,9 +992,12 @@
         }
 
         async function loadProfile() {
+            const freshPhoto = tgUser?.photo_url || currentUser?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
+            
             document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
-            document.getElementById('userProfileImg').src = currentUser.photo;
+            document.getElementById('userProfileImg').src = freshPhoto;
+            
             const bDate = new Date(currentUser.birth);
             const today = new Date();
             let age = today.getFullYear() - bDate.getFullYear();
