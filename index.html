@@ -200,13 +200,13 @@
             <h2 class="text-xl font-black text-gold uppercase mb-6 text-center italic">Profilni tahrirlash</h2>
             <div class="space-y-4 text-left">
                 <div class="flex flex-col items-center mb-4">
-                    <div class="profile-img-container" style="cursor: pointer;" id="changePhotoBtn">
+                    <div class="profile-img-container" style="cursor: pointer;" onclick="document.getElementById('editPhotoInput').click()">
                         <img id="editPreviewImg" src="" alt="Preview">
                         <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
                             <span class="text-white text-[8px] font-bold uppercase">O'zgartirish</span>
                         </div>
                     </div>
-                    <input type="file" id="editPhotoInput" class="hidden" accept="image/*">
+                    <input type="file" id="editPhotoInput" class="hidden" accept="image/*" onchange="previewImage(this)">
                 </div>
                 <div>
                     <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ism</label>
@@ -585,9 +585,39 @@
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
 
-        function getAvatarUrl(fName, lName) {
+        // Global funksiyalarni e'lon qilish
+        window.getAvatarUrl = (fName, lName) => {
             return `https://ui-avatars.com/api/?name=${encodeURIComponent(fName + " " + lName)}&background=random&color=fff&size=256&bold=true`;
-        }
+        };
+
+        window.previewImage = (input) => {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 1.5 * 1024 * 1024) {
+                alert("Rasm hajmi juda katta (max 1.5MB)");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxDim = 400;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
+                    else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    editedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('editPreviewImg').src = editedPhotoBase64;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
 
         window.onload = () => {
             tg.ready();
@@ -600,39 +630,6 @@
                 listenForAdminMessages();
                 checkUpdateNotification();
             }
-
-            // Photo input listener
-            document.getElementById('changePhotoBtn')?.addEventListener('click', () => {
-                document.getElementById('editPhotoInput').click();
-            });
-
-            document.getElementById('editPhotoInput')?.addEventListener('change', function() {
-                const file = this.files[0];
-                if (!file) return;
-                if (file.size > 1 * 1024 * 1024) {
-                    alert("Rasm hajmi juda katta (max 1MB)");
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const maxDim = 300;
-                        let w = img.width;
-                        let h = img.height;
-                        if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
-                        else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
-                        canvas.width = w; canvas.height = h;
-                        ctx.drawImage(img, 0, 0, w, h);
-                        editedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        document.getElementById('editPreviewImg').src = editedPhotoBase64;
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
         };
 
         window.openEditModal = () => {
@@ -640,7 +637,7 @@
             document.getElementById('editLastName').value = currentUser.lName;
             document.getElementById('editBirth').value = currentUser.birth;
             editedPhotoBase64 = currentUser.photo;
-            document.getElementById('editPreviewImg').src = editedPhotoBase64 || getAvatarUrl(currentUser.fName, currentUser.lName);
+            document.getElementById('editPreviewImg').src = editedPhotoBase64 || window.getAvatarUrl(currentUser.fName, currentUser.lName);
             document.getElementById('edit-profile-modal').classList.remove('hidden');
         };
 
@@ -661,7 +658,7 @@
                 fName: f,
                 lName: l,
                 birth: b,
-                photo: editedPhotoBase64 || getAvatarUrl(f, l)
+                photo: editedPhotoBase64 || window.getAvatarUrl(f, l)
             };
 
             await update(userRef, updatedData);
@@ -762,7 +759,7 @@
             const myAvatar = document.getElementById('duel-my-img');
             const oppAvatar = document.getElementById('duel-opp-img');
             
-            myAvatar.src = currentUser.photo || getAvatarUrl(currentUser.fName, currentUser.lName);
+            myAvatar.src = currentUser.photo || window.getAvatarUrl(currentUser.fName, currentUser.lName);
             oppAvatar.src = opp && opp.photo ? opp.photo : "https://i.imgur.com/6VBx3io.png";
             
             document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "RAQIB";
@@ -860,7 +857,7 @@
             const b = document.getElementById('birthDay').value;
             if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const photoUrl = getAvatarUrl(f, l);
+            const photoUrl = window.getAvatarUrl(f, l);
             const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
@@ -1053,7 +1050,7 @@
                             <div class='flex items-start gap-4'>
                                 ${i === 0 ? '<span class="crown">👑</span>' : ''}
                                 <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo || getAvatarUrl(user.name, '')}" 
+                                <img src="${user.photo || window.getAvatarUrl(user.name, '')}" 
                                      class="rank-img" 
                                      onerror="this.onerror=null; this.src='https://i.imgur.com/6VBx3io.png';">
                                 <div class="flex-1">
@@ -1081,9 +1078,9 @@
             
             const profileImg = document.getElementById('userProfileImg');
             if(profileImg) {
-                profileImg.src = currentUser.photo || getAvatarUrl(currentUser.fName, currentUser.lName);
+                profileImg.src = currentUser.photo || window.getAvatarUrl(currentUser.fName, currentUser.lName);
                 profileImg.onerror = function() {
-                    this.src = getAvatarUrl(currentUser.fName, currentUser.lName);
+                    this.src = window.getAvatarUrl(currentUser.fName, currentUser.lName);
                 };
             }
             
