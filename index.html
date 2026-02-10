@@ -346,6 +346,7 @@
                     <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
                     <option value="Jahon_tarixi">Jahon tarixi</option>
                     <option value="Ingliz_tili">Ingliz tili</option>
+                    <option value="Rus_tili">Rus tili</option>
                     <option value="Biologiya">Biologiya</option>
                     <option value="IQ_testlar">IQ testlar</option>
                 </select>
@@ -570,15 +571,15 @@
             const userId = "tg_" + tgUser.id;
             const userRef = ref(db, 'users/' + userId);
             
-            // Telegramdan yangi rasm URL'ini olish
+            // Telegram WebApp API orqali eng yangi ma'lumotlarni olish
             const freshPhotoUrl = tgUser.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
 
             const snap = await get(userRef);
             if (snap.exists()) {
                 const data = snap.val();
                 
-                // Rasmni har doim yangilash (Telegram URL'lari vaqtinchalik bo'lishi mumkin)
-                // Yoki username o'zgargan bo'lsa yangilaymiz
+                // Rasm manzilini Telegram WebApp orqali yangilash
+                // Bu qism muhim: Telegram URL'lari keshda qolishi yoki o'zgarishi mumkin
                 if (data.photo !== freshPhotoUrl || data.username !== (tgUser.username || "")) {
                     const updatedData = {
                         ...data,
@@ -588,6 +589,10 @@
                     await update(userRef, updatedData);
                     localStorage.setItem('quizUser', JSON.stringify(updatedData));
                     currentUser = updatedData;
+                    
+                    // DOM-dagi rasmni darhol yangilash
+                    const profileImg = document.getElementById('userProfileImg');
+                    if (profileImg) profileImg.src = freshPhotoUrl;
                 }
             }
         }
@@ -940,6 +945,7 @@
                         });
 
                         rankingData.push({
+                            uid: uid,
                             name: `${user.fName} ${user.lName}`,
                             photo: user.photo,
                             totalScore: totalScore,
@@ -962,14 +968,20 @@
 
                         if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
 
-                        // Har bir rasm uchun dinamik onerror mexanizmi qo'shildi
+                        // MUHIM: Rasm yuklashda onerror ishlatish
                         const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff`;
+                        
+                        // Telegram UID orqali fresh URL yaratishga urinish (faqat o'zi uchun)
+                        let userPhoto = user.photo;
+                        if(user.uid.startsWith("tg_") && user.uid === ("tg_" + tgUser?.id)) {
+                             userPhoto = tgUser?.photo_url || user.photo;
+                        }
 
                         div.innerHTML = `
                             <div class='flex items-start gap-4'>
                                 ${i === 0 ? '<span class="crown">👑</span>' : ''}
                                 <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo || fallbackAvatar}" 
+                                <img src="${userPhoto || fallbackAvatar}" 
                                      class="rank-img" 
                                      onerror="this.onerror=null; this.src='${fallbackAvatar}';">
                                 <div class="flex-1">
@@ -992,11 +1004,19 @@
         }
 
         async function loadProfile() {
+            // Telegram API-dan eng yangi rasmni olish
             const freshPhoto = tgUser?.photo_url || currentUser?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
             
             document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
-            document.getElementById('userProfileImg').src = freshPhoto;
+            
+            const profileImg = document.getElementById('userProfileImg');
+            if(profileImg) {
+                profileImg.src = freshPhoto;
+                profileImg.onerror = function() {
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
+                };
+            }
             
             const bDate = new Date(currentUser.birth);
             const today = new Date();
