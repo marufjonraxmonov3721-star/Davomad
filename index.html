@@ -554,13 +554,41 @@
             tg.expand();
             applySavedTheme();
             if(currentUser) {
+                // Har gal kirganda Telegram rasmini yangilab turish mantiqi
+                updateProfileInfo();
+                
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('subjects');
                 checkBirthday();
                 listenForAdminMessages();
-                checkUpdateNotification(); // Yangilanishlarni tekshirish
+                checkUpdateNotification();
             }
         };
+
+        // Telegram ma'lumotlarini bazada yangilab qo'yish (rasm, username va h.k)
+        async function updateProfileInfo() {
+            if (!tgUser) return;
+            const userId = "tg_" + tgUser.id;
+            const userRef = ref(db, 'users/' + userId);
+            const snap = await get(userRef);
+            
+            if (snap.exists()) {
+                const data = snap.val();
+                const currentPhoto = tgUser.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fName + " " + data.lName)}&background=3390ec&color=fff&size=256`;
+                
+                // Agar bazadagi rasm yoki username o'zgargan bo'lsa yangilaymiz
+                if (data.photo !== currentPhoto || data.username !== (tgUser.username || "")) {
+                    const updatedData = {
+                        ...data,
+                        photo: currentPhoto,
+                        username: tgUser.username || ""
+                    };
+                    await update(userRef, updatedData);
+                    localStorage.setItem('quizUser', JSON.stringify(updatedData));
+                    currentUser = updatedData;
+                }
+            }
+        }
 
         window.showDuelCreate = () => showMenu('duel-create');
         window.showDuelJoin = () => showMenu('duel-join');
@@ -572,7 +600,6 @@
             alert("O'yin kodi nusxalandi!");
         };
 
-        // Yangilanish oynasini tekshirish funksiyasi
         function checkUpdateNotification() {
             const lastVersionSeen = localStorage.getItem('last_update_v1');
             if (!lastVersionSeen) {
@@ -1038,4 +1065,3 @@
     </script>
 </body>
 </html>
-
