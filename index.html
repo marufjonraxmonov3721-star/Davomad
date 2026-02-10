@@ -184,9 +184,33 @@
             animation: pulse 2s infinite;
             cursor: pointer;
         }
+        
+        /* New Styles for Waiting Logic */
+        .waiting-text {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body class="pb-24">
+
+    <div id="tournament-waiting-modal" class="bday-modal hidden">
+        <div class="premium-card p-8 text-center shadow-2xl max-w-sm border-2 border-gold">
+            <div class="searching-loader"></div>
+            <h2 class="text-xl font-black text-gold uppercase italic mb-2">Turnir kutilmoqda</h2>
+            <p class="text-xs opacity-70 mb-6 italic">Savollar yuklanishi uchun kamida 30 kishi to'planishi kerak.</p>
+            
+            <div class="bg-black/40 p-4 rounded-xl mb-6">
+                <p class="text-[10px] uppercase opacity-50 font-bold mb-1">Hozir onlayn:</p>
+                <div class="text-4xl font-black text-gold italic"><span id="online-count">0</span> / 30</div>
+            </div>
+            
+            <button onclick="cancelTournamentWaiting()" class="w-full p-4 rounded-xl border border-red-500/50 text-red-500 font-bold uppercase text-[10px]">Bekor qilish</button>
+        </div>
+    </div>
 
     <div id="updates-overlay" class="bday-modal hidden">
         <div class="premium-card p-8 text-center shadow-2xl max-w-sm border-2 border-gold relative overflow-hidden">
@@ -627,6 +651,7 @@
         let currentDuelRoom = null;
         let tempBase64Photo = "";
         let introInterval;
+        let tournamentSub = null; // Turnir uchun listenerni saqlash
 
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
@@ -646,8 +671,17 @@
                 listenForAdminMessages();
                 checkUpdateNotification();
                 checkTournamentStatus();
+                updatePresence();
             }
         };
+
+        // USER PRESENCE (Onlayn hisoblagich uchun)
+        function updatePresence() {
+            if(!currentUser) return;
+            const myPresenceRef = ref(db, `online_users/${currentUser.userId}`);
+            set(myPresenceRef, true);
+            onDisconnect(myPresenceRef).remove();
+        }
 
         window.previewImage = (input) => {
             if (input.files && input.files[0]) {
@@ -700,7 +734,7 @@
             alert("Profil yangilandi!");
         };
 
-        // TOURNAMENT LOGIC
+        // TOURNAMENT LOGIC (UPDATED WITH 30 USERS CHECK)
         async function checkTournamentStatus() {
             onValue(ref(db, 'active_tournament'), (snap) => {
                 const data = snap.val();
@@ -712,17 +746,39 @@
             });
         }
 
+        window.cancelTournamentWaiting = () => {
+            if(tournamentSub) tournamentSub(); // Stop listening
+            document.getElementById('tournament-waiting-modal').classList.add('hidden');
+        };
+
         window.startTournament = async () => {
-            const snap = await get(ref(db, 'active_tournament'));
-            if(snap.exists() && snap.val().active) {
-                const tournament = snap.val();
-                testQuestions = tournament.questions;
-                currentQIndex = 0; score = 0; userTestLogs = [];
-                window.currentMeta = { subj: "Grand Tournament", amount: testQuestions.length, time: 20 };
-                showMenu('quiz');
-                startTimer(20 * 60);
-                loadQuestion();
-            }
+            // Avval onlayn foydalanuvchilar sonini kuzatishni boshlaymiz
+            document.getElementById('tournament-waiting-modal').classList.remove('hidden');
+            
+            const onlineRef = ref(db, 'online_users');
+            tournamentSub = onValue(onlineRef, async (onlineSnap) => {
+                const onlineCount = onlineSnap.exists() ? Object.keys(onlineSnap.val()).length : 0;
+                document.getElementById('online-count').innerText = onlineCount;
+
+                if (onlineCount >= 30) {
+                    // Agar 30 kishi to'plansa, turnir ma'lumotlarini olamiz
+                    const snap = await get(ref(db, 'active_tournament'));
+                    if(snap.exists() && snap.val().active) {
+                        // Listenerni to'xtatamiz
+                        if(tournamentSub) tournamentSub();
+                        document.getElementById('tournament-waiting-modal').classList.add('hidden');
+                        
+                        const tournament = snap.val();
+                        testQuestions = tournament.questions;
+                        currentQIndex = 0; score = 0; userTestLogs = [];
+                        window.currentMeta = { subj: "Grand Tournament", amount: testQuestions.length, time: 20 };
+                        showMenu('quiz');
+                        startTimer(20 * 60);
+                        loadQuestion();
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    }
+                }
+            });
         };
 
         // INTRO FUNCTIONS
@@ -743,7 +799,8 @@
                 
                 const snap = await get(ref(db, `fanlar/${sub}`));
                 if (snap.exists()) {
-                    const q = snap.val()[0];
+                    const qArr = snap.val();
+                    const q = qArr[0];
                     qTextEl.innerText = q.q;
                     optionsEl.innerHTML = q.a.map((ans, i) => `
                         <div class="mock-option ${i === q.c ? 'mock-correct' : ''}">${ans}</div>
@@ -958,12 +1015,12 @@
             const photoUrl = getAvatarUrl(f, l);
             const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
             
-            // Mark updates as seen for NEW users
             localStorage.setItem('last_update_v1', 'seen');
             
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
                 currentUser = userData;
+                updatePresence();
                 document.getElementById('auth-screen').classList.add('hidden');
                 showMenu('intro');
                 checkBirthday();
@@ -1065,13 +1122,14 @@
                     showMenu('result');
                 } else {
                     const roomRef = ref(db, `duel_rooms/${currentDuelRoom}`);
-                    const field = (await get(roomRef)).val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
+                    const roomSnap = await get(roomRef);
+                    const field = roomSnap.val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
                     await update(roomRef, { [field]: score });
                     document.getElementById('quiz-screen').innerHTML = `
                         <div class="flex flex-col items-center justify-center min-h-screen text-center p-10">
                             <div class="searching-loader"></div>
                             <h2 class="text-xl font-bold italic text-gold animate-pulse uppercase">Match tugadi!</h2>
-                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kuting...</p>
+                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kiting...</p>
                         </div>`;
                 }
             } else { showMenu('subjects'); }
@@ -1238,6 +1296,8 @@
 
         async function logout() {
             if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
+                const myPresenceRef = ref(db, `online_users/${currentUser.userId}`);
+                await remove(myPresenceRef);
                 await remove(ref(db, 'users/' + currentUser.userId));
                 localStorage.clear();
                 location.reload();
