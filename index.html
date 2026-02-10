@@ -3,13 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yangilanish - Testlar Rasmiy</title>
+    <title>Testlar.uz - Bilimlar Cho'qqisi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
             --gold: #FFD700; 
             --gold-dark: #B8860B;
-            --bg: #000000; /* Dark mode dizayningizga mos */
+            --bg: #ffffff; 
+            --text: #1a1a1a; 
+            --card: #f3f4f6;
+        }
+        .dark-mode { 
+            --bg: #000000; 
             --text: #FFD700; 
             --card: #111111;
         }
@@ -17,9 +24,9 @@
         body { 
             background-color: var(--bg); 
             color: var(--text); 
+            transition: background 0.3s ease, color 0.3s ease;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow: hidden;
+            -webkit-user-select: none;
         }
 
         .premium-card {
@@ -29,48 +36,1006 @@
             backdrop-filter: blur(10px);
         }
 
+        .gold-button {
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+            color: #000;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s;
+        }
+        
+        .gold-button:active { transform: scale(0.95); }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: gray;
+        }
+        .active-nav { color: var(--gold); }
+
+        .hidden { display: none; }
+
+        input, select {
+            background: rgba(128, 128, 128, 0.1) !important;
+            border: 1px solid rgba(255, 215, 0, 0.3) !important;
+            color: var(--text) !important;
+            padding: 14px !important;
+            border-radius: 12px !important;
+            width: 100%;
+            outline: none;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        
+        .rank-badge {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+            color: black;
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .rank-1 { border: 2px solid #FFD700; position: relative; }
+        .crown { position: absolute; top: -12px; left: -5px; font-size: 20px; transform: rotate(-20deg); }
+
+        .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; overflow: hidden; }
+        #progress-fill { height: 100%; width: 0%; background: var(--gold); transition: width 0.3s ease; }
+
+        .profile-img-container {
+            width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--gold);
+            margin: 0 auto 15px; overflow: hidden; background: #333;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide { animation: fadeInRight 0.5s ease-out forwards; }
+
+        .bday-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+
+        .result-circle {
+            width: 150px; height: 150px; border-radius: 50%; border: 8px solid var(--gold);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 0 auto 20px; background: rgba(255, 215, 0, 0.1);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+
+        .rank-notify {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 3000; width: 90%; max-width: 350px;
+            background: #111; border: 2px solid var(--gold); border-radius: 15px;
+            padding: 15px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 12px;
+            animation: slideDown 0.5s ease forwards;
+        }
+        @keyframes slideDown { from { top: -100px; } to { top: 20px; } }
+
         .searching-loader {
             width: 80px; height: 80px; border: 5px solid rgba(255, 215, 0, 0.2);
             border-top: 5px solid var(--gold); border-radius: 50%;
             animation: spin 1s linear infinite; margin: 0 auto 20px;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .duel-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--gold); object-fit: cover; }
+        .vs-badge { font-size: 28px; font-weight: 900; color: var(--gold); font-style: italic; animation: pulse 1s infinite; }
+        
+        .room-code-display {
+            font-size: 32px; font-weight: 900; letter-spacing: 8px; color: var(--gold);
+            background: rgba(255,215,0,0.1); padding: 15px; border-radius: 15px; border: 2px dashed var(--gold);
+            cursor: pointer;
         }
-        .animate-main { animation: fadeIn 0.8s ease-out forwards; }
+
+        /* Yangilanishlar animatsiyasi uchun */
+        .update-item {
+            transform: scale(0.9);
+            opacity: 0;
+            animation: popIn 0.5s ease-out forwards;
+        }
+        @keyframes popIn {
+            to { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-6">
+<body class="pb-24">
 
-    <div class="animate-main text-center max-w-sm w-full">
-        <div class="text-7xl mb-6 drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">⚙️</div>
-        
-        <h1 class="text-3xl font-black uppercase italic mb-2 tracking-tighter">
-            Testlar <span class="text-white">Rasmiy</span>
-        </h1>
-        
-        <div class="w-16 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mb-10"></div>
+    <div id="updates-overlay" class="bday-modal hidden">
+        <div class="premium-card p-8 text-center shadow-2xl max-w-sm border-2 border-gold relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gold/10 rounded-full blur-3xl"></div>
+            <h2 class="text-3xl font-black text-gold uppercase italic mb-6 tracking-tighter">Yangi imkoniyatlar!</h2>
+            
+            <div class="space-y-6 text-left mb-8">
+                <div class="update-item flex items-center gap-4" style="animation-delay: 0.2s;">
+                    <div class="text-4xl">🏆</div>
+                    <div>
+                        <h4 class="font-black uppercase text-xs text-gold">1. Global Reyting</h4>
+                        <p class="text-[11px] opacity-70 italic">Endi siz barcha foydalanuvchilar orasida nechanchi o'rinda ekanligingizni ko'rishingiz mumkin!</p>
+                    </div>
+                </div>
+                <div class="update-item flex items-center gap-4" style="animation-delay: 0.4s;">
+                    <div class="text-4xl">⚔️</div>
+                    <div>
+                        <h4 class="font-black uppercase text-xs text-gold">2. Duel rejimi</h4>
+                        <p class="text-[11px] opacity-70 italic">Do'stlaringiz bilan real vaqtda test orqali bellashing va bilimingizni isbotlang!</p>
+                    </div>
+                </div>
+            </div>
 
-        <div class="premium-card p-10 shadow-2xl border-2 border-gold/20">
-            <div class="searching-loader"></div>
-            
-            <h2 class="text-xl font-bold uppercase tracking-widest mb-4">Yangilanish</h2>
-            
-            <p class="text-sm opacity-70 leading-relaxed italic">
-                Ilovada texnik yangilanish ishlari olib borilmoqda. 
-                <br><br>
-                Iltimos, birozdan so'ng qayta urinib ko'ring.
-            </p>
+            <button onclick="closeUpdates()" class="gold-button w-full p-4 rounded-xl text-black font-black">Tushunarli</button>
         </div>
-
-        <p class="mt-10 text-[10px] font-bold uppercase opacity-30 tracking-[4px] animate-pulse">
-            
-        </p>
     </div>
 
+    <div id="bday-overlay" class="bday-modal hidden">
+        <div class="premium-card p-8 text-center shadow-2xl animate-slide border-2 border-gold">
+            <div class="text-6xl mb-4">🎂</div>
+            <h2 class="text-2xl font-black text-gold uppercase mb-2">Tug'ilgan kuningiz bilan!</h2>
+            <p class="text-sm opacity-90 mb-6">Hurmatli <span id="bday-user-name" class="font-bold"></span>, sizga sihat-salomatlik va barcha testlardan eng yuqori ballarni tilaymiz! 🎉</p>
+            <button onclick="closeBday()" class="gold-button w-full p-4 rounded-xl text-black">Rahmat!</button>
+        </div>
+    </div>
+
+    <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center relative">
+        <button onclick="toggleTheme()" class="absolute top-6 right-6 text-2xl p-2 premium-card">
+            <span id="theme-icon-auth">🌙</span>
+        </button>
+        <div class="text-6xl mb-4 text-yellow-500">🎓</div>
+        <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar Rasmiy</h1>
+        <div class="space-y-4 text-left">
+            <div>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ismingiz</label>
+                <input type="text" id="firstName" placeholder="Ismingizni kiriting">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiyangiz</label>
+                <input type="text" id="lastName" placeholder="Familiyangizni kiriting">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan sana</label>
+                <input type="date" id="birthDay">
+            </div>
+            <button onclick="register()" class="gold-button w-full p-4 rounded-xl shadow-lg mt-4 text-black">Ro'yxatdan o'tish</button>
+        </div>
+    </div>
+
+    <div id="intro-screen" class="hidden p-6 flex flex-col justify-center min-h-screen">
+        <div id="intro-step-1" class="animate-slide">
+            <div class="premium-card p-8 shadow-2xl text-center">
+                <div class="text-5xl mb-6">🎯</div>
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Maqsadimiz</h2>
+                <p class="opacity-80 leading-relaxed text-sm">Foydalanuvchilarning bilim darajasini testlar orqali oshirish, intellektual salohiyatni charxlash va o'z bilimi bilan peshqadamlar qatoridan joy olishiga ko'maklashish.</p>
+                <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black mt-8">Davom etish</button>
+            </div>
+        </div>
+        <div id="intro-step-2" class="hidden animate-slide">
+            <div class="premium-card p-8 shadow-2xl text-center text-sm">
+                <div class="text-5xl mb-6">📚</div>
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Fanlar</h2>
+                <p class="opacity-80 mb-6 italic">Ilovada jami 12 ta asosiy yo'nalish mavjud:</p>
+                <div class="grid grid-cols-2 gap-2 text-left text-[11px] opacity-90 mb-8 font-bold">
+                    <span>• Matematika</span><span>• Fizika</span>
+                    <span>• Kimyo</span><span>• Ona tili</span>
+                    <span>• Adabiyot</span><span>• Geografiya</span>
+                    <span>• O'zbekiston tarixi</span><span>• Jahon tarixi</span>
+                    <span>• Ingliz tili</span><span>• Rus tili</span>
+                    <span>• Biologiya</span><span>• IQ Testlar</span>
+                </div>
+                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Davom etish</button>
+            </div>
+        </div>
+        <div id="intro-step-3" class="hidden animate-slide">
+            <div class="premium-card p-8 shadow-2xl text-center">
+                <div class="text-5xl mb-6">🚀</div>
+                <h2 class="text-2xl font-black mb-4 text-yellow-500 uppercase">Imkoniyatlar</h2>
+                <div class="text-left space-y-3 text-sm mb-8">
+                    <p>✅ <b>Moslashuvchan:</b> Savollar soni va vaqtni boshqaring.</p>
+                    <p>✅ <b>Random:</b> Har safar yeni variantlar.</p>
+                    <p>✅ <b>Reyting:</b> O'z natijangizni dunyo bilan solishtiring.</p>
+                    <p>✅ <b>Profil:</b> Yosh va tug'ilgan kun hisoboti.</p>
+                </div>
+                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Boshlaymiz!</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="subjects-screen" class="hidden p-6">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
+        <div class="premium-card p-6 space-y-6">
+            <div>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Fanni tanlang</label>
+                <select id="selectedSubject">
+                    <option value="Matematika">Matematika</option>
+                    <option value="Fizika">Fizika</option>
+                    <option value="Kimyo">Kimyo</option>
+                    <option value="Ona_tili">Ona tili</option>
+                    <option value="Adabiyot">Adabiyot</option>
+                    <option value="Geografiya">Geografiya</option>
+                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
+                    <option value="Jahon_tarixi">Jahon tarixi</option>
+                    <option value="Ingliz_tili">Ingliz tili</option>
+                    <option value="Rus_tili">Rus tili</option>
+                    <option value="Biologiya">Biologiya</option>
+                    <option value="IQ_testlar">IQ testlar</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar soni</label>
+                    <select id="qAmount">
+                        <option value="5">5 ta</option>
+                        <option value="10">10 ta</option>
+                        <option value="15">15 ta</option>
+                        <option value="20" selected>20 ta</option>
+                        <option value="25">25 ta</option>
+                        <option value="30">30 ta</option>
+                        <option value="35">35 ta</option>
+                        <option value="40">40 ta</option>
+                        <option value="45">45 ta</option>
+                        <option value="50">50 ta</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Daqiqa)</label>
+                    <select id="qTime">
+                        <option value="5">5 min</option>
+                        <option value="10">10 min</option>
+                        <option value="15" selected>15 min</option>
+                        <option value="20">20 min</option>
+                        <option value="25">25 min</option>
+                        <option value="30">30 min</option>
+                        <option value="35">35 min</option>
+                        <option value="40">40 min</option>
+                        <option value="45">45 min</option>
+                        <option value="50">50 min</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl text-black">🚀 Testni Boshlash</button>
+        </div>
+    </div>
+
+    <div id="duel-menu-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <h2 class="text-3xl font-black mb-10 uppercase italic text-yellow-500 tracking-widest">Do'stona bellashuv</h2>
+        <div class="premium-card p-6 space-y-6">
+            <button onclick="showDuelCreate()" class="gold-button w-full p-5 rounded-2xl text-black">Xona yaratish</button>
+            <button onclick="showDuelJoin()" class="w-full p-5 rounded-2xl border-2 border-gold text-gold font-bold uppercase italic">Xonaga qo'shilish</button>
+        </div>
+    </div>
+
+    <div id="duel-create-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <h2 class="text-2xl font-black mb-6 uppercase text-yellow-500">O'yin sozlamalari</h2>
+        <div class="premium-card p-6 space-y-6">
+            <div>
+                <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Duel fani</label>
+                <select id="duelSubject">
+                    <option value="Matematika">Matematika</option>
+                    <option value="Fizika">Fizika</option>
+                    <option value="Kimyo">Kimyo</option>
+                    <option value="Ona_tili">Ona tili</option>
+                    <option value="Adabiyot">Adabiyot</option>
+                    <option value="Geografiya">Geografiya</option>
+                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
+                    <option value="Jahon_tarixi">Jahon tarixi</option>
+                    <option value="Ingliz_tili">Ingliz tili</option>
+                    <option value="Rus_tili">Rus tili</option>
+                    <option value="Biologiya">Biologiya</option>
+                    <option value="IQ_testlar">IQ testlar</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar</label>
+                    <select id="duelQAmount">
+                        <option value="5">5 ta</option>
+                        <option value="10">10 ta</option>
+                        <option value="15">15 ta</option>
+                        <option value="20" selected>20 ta</option>
+                        <option value="25">25 ta</option>
+                        <option value="30">30 ta</option>
+                        <option value="35">35 ta</option>
+                        <option value="40">40 ta</option>
+                        <option value="45">45 ta</option>
+                        <option value="50">50 ta</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Min)</label>
+                    <select id="duelQTime">
+                        <option value="5">5 min</option>
+                        <option value="10">10 min</option>
+                        <option value="15" selected>15 min</option>
+                        <option value="20">20 min</option>
+                        <option value="25">25 min</option>
+                        <option value="30">30 min</option>
+                        <option value="35">35 min</option>
+                        <option value="40">40 min</option>
+                        <option value="45">45 min</option>
+                        <option value="50">50 min</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="generateDuelRoom()" class="gold-button w-full p-5 rounded-xl text-black font-black">Kod yaratish</button>
+            <div id="room-code-area" class="hidden space-y-4 animate-slide">
+                <p class="text-xs opacity-60 font-bold italic">O'yin ID raqami (Nusxalash uchun bosing):</p>
+                <div id="generated-code" class="room-code-display" onclick="copyDuelCode()">000000</div>
+                <p class="text-xs text-yellow-500 animate-pulse font-black uppercase">Raqib kutilmoqda...</p>
+            </div>
+        </div>
+        <button onclick="showMenu('duel-menu')" class="mt-8 text-xs font-bold uppercase opacity-40">Bekor qilish</button>
+    </div>
+
+    <div id="duel-join-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-yellow-500">O'yinga kirish</h2>
+        <div class="premium-card p-6 space-y-6">
+            <input type="number" id="join-code-input" placeholder="6 XONALI KOD" class="text-center text-2xl tracking-[10px] font-black">
+            <button onclick="joinDuelRoom()" class="gold-button w-full p-5 rounded-xl text-black">Boshlash</button>
+        </div>
+        <button onclick="showMenu('duel-menu')" class="mt-8 text-xs font-bold uppercase opacity-40">Orqaga</button>
+    </div>
+
+    <div id="duel-vs-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <div class="premium-card p-8 shadow-2xl animate-slide border-2 border-gold">
+            <div class="flex justify-around items-center mb-10">
+                <div class="text-center">
+                    <img src="" id="duel-my-img" class="duel-avatar mb-3">
+                    <p class="text-[10px] font-black uppercase">Siz</p>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="text-center">
+                    <img src="" id="duel-opp-img" class="duel-avatar mb-3">
+                    <p class="text-[10px] font-black uppercase" id="duel-opp-name">Raqib</p>
+                </div>
+            </div>
+            <p id="duel-countdown" class="text-2xl font-black italic text-yellow-500">O'yin boshlanadi: 3...</p>
+        </div>
+    </div>
+
+    <div id="duel-result-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <div class="premium-card p-8 shadow-2xl animate-slide border-4 border-gold">
+            <h2 id="duel-final-status" class="text-4xl font-black mb-8 italic uppercase tracking-tighter">G'ALABA!</h2>
+            <div class="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-gold/20 mb-8">
+                <div class="text-center">
+                    <p class="text-[10px] opacity-60 font-bold uppercase">SIZ</p>
+                    <p id="duel-my-final-score" class="text-4xl font-black">0</p>
+                </div>
+                <div class="vs-badge text-xl">VS</div>
+                <div class="text-center">
+                    <p class="text-[10px] opacity-60 font-bold uppercase">RAQIB</p>
+                    <p id="duel-opp-final-score" class="text-4xl font-black text-white/50">0</p>
+                </div>
+            </div>
+            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-2xl text-black font-black italic">Bosh sahifaga qaytish</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden p-6 min-h-screen">
+        <div class="mb-4"><div class="progress-container"><div id="progress-fill"></div></div></div>
+        <div class="flex justify-between items-center mb-6">
+            <span id="timer" class="text-xl font-black text-yellow-500">00:00</span>
+            <span id="qProgress" class="text-sm opacity-60 font-bold uppercase">1/20</span>
+        </div>
+        <div class="premium-card p-6 mb-6"><h3 id="questionText" class="text-lg font-bold italic"></h3></div>
+        <div id="optionsList" class="space-y-2 mb-8"></div>
+        <button onclick="confirmFinishTest()" class="w-full border border-red-500/30 text-red-500 p-4 rounded-xl font-bold uppercase text-xs tracking-widest opacity-60 italic">Testni yakunlash</button>
+    </div>
+
+    <div id="result-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <div class="premium-card p-8 shadow-2xl animate-slide">
+            <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-yellow-500">Natija</h2>
+            <div class="result-circle">
+                <span id="resPercent" class="text-4xl font-black text-yellow-500">0%</span>
+                <span class="text-[10px] opacity-60 font-bold">UMUMIY</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-8 text-sm">
+                <div class="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                    <p class="opacity-60 font-bold uppercase text-[10px]">To'g'ri</p>
+                    <p id="resCorrect" class="text-xl font-black text-green-500">0</p>
+                </div>
+                <div class="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                    <p class="opacity-60 font-bold uppercase text-[10px]">Xato</p>
+                    <p id="resWrong" class="text-xl font-black text-red-500">0</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <button onclick="showAnalysis()" class="w-full p-4 rounded-xl font-bold border border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10 transition">Xatolarni Ko'rish</button>
+                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl shadow-lg text-black">Asosiy Menyu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="analysis-screen" class="hidden p-6">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Tahlil</h2>
+        <div id="analysisList" class="space-y-4 mb-10"></div>
+        <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Mavzularga qaytish</button>
+    </div>
+
+    <div id="rating-screen" class="hidden p-6">
+        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Global Reyting</h2>
+        <p class="text-[10px] opacity-50 mb-4 italic uppercase">Har bir foydalanuvchining umumiy yutuqlari</p>
+        <div id="ratingList" class="space-y-4"></div>
+    </div>
+
+    <div id="profile-screen" class="hidden p-6 text-center">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
+        <div class="premium-card p-8 mb-6 shadow-xl">
+            <div class="profile-img-container">
+                <img src="" id="userProfileImg" alt="Avatar">
+            </div>
+            <h3 id="profName" class="text-2xl font-black mb-1"></h3>
+            <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
+            <div id="profAgeInfo" class="text-sm opacity-80 mb-4 space-y-1">
+                <p id="profBirthdayText"></p>
+                <p id="profAgeText" class="font-black"></p>
+                <p id="profDaysLeft" class="text-xs italic text-yellow-500"></p>
+            </div>
+            <div class="border-t border-yellow-500/20 pt-6 text-left">
+                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic text-yellow-500">Shaxsiy Natijalar:</h4>
+                <div id="myStatsList" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-screen" class="hidden p-6 text-center">
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Sozlamalar</h2>
+        <div class="space-y-4">
+            <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
+                <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
+                <span id="theme-icon">🌙</span>
+            </div>
+            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish & O'chirish</button>
+        </div>
+    </div>
+
+    <nav id="main-nav" class="hidden fixed bottom-0 left-0 right-0 bg-inherit border-t border-yellow-500/20 px-4 py-4 flex justify-around backdrop-blur-xl z-50">
+        <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav"><span class="text-2xl">📚</span><span>TESTLAR</span></button>
+        <button onclick="showMenu('duel-menu')" id="nav-duel-menu" class="nav-btn"><span class="text-2xl">⚔️</span><span>DUEL</span></button>
+        <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn"><span class="text-2xl">🏆</span><span>REYTING</span></button>
+        <button onclick="showMenu('profile')" id="nav-profile" class="nav-btn"><span class="text-2xl">👤</span><span>PROFIL</span></button>
+        <button onclick="showMenu('settings')" id="nav-settings" class="nav-btn"><span class="text-2xl">⚙️</span><span>SOZLAMALAR</span></button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, remove, update, push, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+            databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+            projectId: "gen-lang-client-0228947349",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let currentUser = JSON.parse(localStorage.getItem('quizUser'));
+        let timerInterval;
+        let testQuestions = [];
+        let currentQIndex = 0;
+        let score = 0;
+        let userTestLogs = [];
+        let isDuelMode = false;
+        let currentDuelRoom = null;
+
+        const tg = window.Telegram.WebApp;
+        const tgUser = tg.initDataUnsafe?.user;
+
+        window.onload = () => {
+            tg.ready();
+            tg.expand();
+            applySavedTheme();
+            if(currentUser) {
+                document.getElementById('auth-screen').classList.add('hidden');
+                showMenu('subjects');
+                checkBirthday();
+                listenForAdminMessages();
+                checkUpdateNotification(); // Yangilanishlarni tekshirish
+            }
+        };
+
+        window.showDuelCreate = () => showMenu('duel-create');
+        window.showDuelJoin = () => showMenu('duel-join');
+
+        window.copyDuelCode = () => {
+            const code = document.getElementById('generated-code').innerText;
+            navigator.clipboard.writeText(code);
+            tg.HapticFeedback.notificationOccurred('success');
+            alert("O'yin kodi nusxalandi!");
+        };
+
+        // Yangilanish oynasini tekshirish funksiyasi
+        function checkUpdateNotification() {
+            const lastVersionSeen = localStorage.getItem('last_update_v1');
+            if (!lastVersionSeen) {
+                document.getElementById('updates-overlay').classList.remove('hidden');
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        window.closeUpdates = () => {
+            localStorage.setItem('last_update_v1', 'seen');
+            document.getElementById('updates-overlay').classList.add('hidden');
+        };
+
+        async function generateDuelRoom() {
+            const subj = document.getElementById('duelSubject').value;
+            const amount = parseInt(document.getElementById('duelQAmount').value);
+            const time = parseInt(document.getElementById('duelQTime').value);
+            const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            document.getElementById('generated-code').innerText = roomCode;
+            document.getElementById('room-code-area').classList.remove('hidden');
+
+            const questions = await getRandomQuestions(subj, amount);
+            const roomData = {
+                code: roomCode,
+                subj: subj,
+                amount: amount,
+                time: time,
+                p1: currentUser,
+                status: 'waiting',
+                questions: questions,
+                p1Score: -1,
+                p2Score: -1
+            };
+
+            await set(ref(db, `duel_rooms/${roomCode}`), roomData);
+            onDisconnect(ref(db, `duel_rooms/${roomCode}`)).remove();
+
+            onValue(ref(db, `duel_rooms/${roomCode}`), (snap) => {
+                const data = snap.val();
+                if (data && data.status === 'starting' && !currentDuelRoom) {
+                    currentDuelRoom = roomCode;
+                    startDuelUI(data);
+                }
+                if (data && data.p1Score !== -1 && data.p2Score !== -1) {
+                    finalizeDuel(data);
+                }
+            });
+        }
+
+        async function joinDuelRoom() {
+            const code = document.getElementById('join-code-input').value.trim();
+            if (code.length !== 6) return alert("6 xonali kodni kiriting!");
+            const roomRef = ref(db, `duel_rooms/${code}`);
+            const snap = await get(roomRef);
+            if (snap.exists()) {
+                const data = snap.val();
+                if (data.status !== 'waiting') return alert("Xona band yoki o'yin boshlangan!");
+                await update(roomRef, { p2: currentUser, status: 'starting' });
+                currentDuelRoom = code;
+                onValue(roomRef, (s) => {
+                    const d = s.val();
+                    if (d && d.p1Score !== -1 && d.p2Score !== -1) {
+                        finalizeDuel(d);
+                    }
+                });
+                startDuelUI(data);
+            } else { alert("O'yin kodi topilmadi!"); }
+        }
+
+        function startDuelUI(room) {
+            showMenu('duel-vs');
+            const isP1 = room.p1.userId === currentUser.userId;
+            const opp = isP1 ? room.p2 : room.p1;
+            document.getElementById('duel-my-img').src = currentUser.photo;
+            document.getElementById('duel-opp-img').src = opp ? opp.photo : "";
+            document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "RAQIB";
+            let count = 3;
+            const cdInterval = setInterval(() => {
+                count--;
+                document.getElementById('duel-countdown').innerText = `O'yin boshlanadi: ${count}...`;
+                if (count <= 0) {
+                    clearInterval(cdInterval);
+                    testQuestions = room.questions;
+                    window.currentMeta = { subj: room.subj + " (Duel)", amount: room.amount, time: room.time };
+                    isDuelMode = true;
+                    showMenu('quiz');
+                    startTimer(room.time * 60);
+                    loadQuestion();
+                }
+            }, 1000);
+        }
+
+        async function finalizeDuel(room) {
+            showMenu('duel-result');
+            const isP1 = room.p1.userId === currentUser.userId;
+            const myFinal = isP1 ? room.p1Score : room.p2Score;
+            const oppFinal = isP1 ? room.p2Score : room.p1Score;
+            document.getElementById('duel-my-final-score').innerText = myFinal;
+            document.getElementById('duel-opp-final-score').innerText = oppFinal;
+            const statusText = document.getElementById('duel-final-status');
+            if (myFinal > oppFinal) {
+                statusText.innerText = "G'ALABA!";
+                statusText.style.color = "#FFD700";
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            } else if (myFinal < oppFinal) {
+                statusText.innerText = "MAG'LUBIYAT";
+                statusText.style.color = "#ef4444";
+            } else {
+                statusText.innerText = "DURANG";
+                statusText.style.color = "gray";
+            }
+        }
+
+        async function getRandomQuestions(subj, amount) {
+            const snap = await get(ref(db, 'fanlar/' + subj));
+            if (!snap.exists()) return [];
+            return snap.val().sort(() => 0.5 - Math.random()).slice(0, amount);
+        }
+
+        function listenForAdminMessages() {
+            const notifyRef = ref(db, 'global_notification');
+            onValue(notifyRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const lastSeen = localStorage.getItem('last_notify_time');
+                    if (!lastSeen || parseInt(lastSeen) < data.timestamp) {
+                        showAdminModal(data.title, data.message, data.timestamp);
+                    }
+                }
+            });
+        }
+
+        function showAdminModal(title, message, time) {
+            const modalHtml = `
+                <div id="admin-notify-overlay" class="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center p-6 backdrop-blur-sm">
+                    <div class="premium-card p-8 text-center border-2 border-gold shadow-[0_0_50px_rgba(255,215,0,0.2)] animate-slide max-w-sm">
+                        <div class="text-5xl mb-4">📢</div>
+                        <h2 class="text-xl font-black text-gold uppercase mb-3 tracking-tighter">${title}</h2>
+                        <p class="text-sm opacity-90 mb-8 leading-relaxed italic">"${message}"</p>
+                        <button onclick="closeAdminNotify(${time})" class="gold-button w-full p-4 rounded-xl text-black font-black uppercase">Tushunarli</button>
+                    </div>
+                </div>`;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        window.closeAdminNotify = (time) => {
+            localStorage.setItem('last_notify_time', time);
+            const modal = document.getElementById('admin-notify-overlay');
+            if(modal) modal.remove();
+        };
+
+        function checkBirthday() {
+            if(!currentUser) return;
+            const bDate = new Date(currentUser.birth);
+            const today = new Date();
+            if (today.getMonth() === bDate.getMonth() && today.getDate() === bDate.getDate()) {
+                document.getElementById('bday-user-name').innerText = currentUser.fName;
+                document.getElementById('bday-overlay').classList.remove('hidden');
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        window.closeBday = () => { document.getElementById('bday-overlay').classList.add('hidden'); };
+
+        function register() {
+            const f = document.getElementById('firstName').value.trim();
+            const l = document.getElementById('lastName').value.trim();
+            const b = document.getElementById('birthDay').value;
+            if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
+            const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
+            const photoUrl = tgUser?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(f + " " + l)}&background=3390ec&color=fff&size=256`;
+            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
+            set(ref(db, 'users/' + userId), userData).then(() => {
+                localStorage.setItem('quizUser', JSON.stringify(userData));
+                currentUser = userData;
+                document.getElementById('auth-screen').classList.add('hidden');
+                showMenu('intro');
+                checkBirthday();
+                listenForAdminMessages();
+                checkUpdateNotification();
+            });
+        }
+
+        function showMenu(screen) {
+            clearInterval(timerInterval);
+            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result', 'duel-menu', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'];
+            screens.forEach(s => {
+                const el = document.getElementById(s + '-screen');
+                if(el) el.classList.add('hidden');
+                const nav = document.getElementById('nav-' + s);
+                if(nav) nav.classList.remove('active-nav');
+                const navAlt = document.getElementById('nav-duel-menu');
+                if(navAlt) navAlt.classList.remove('active-nav');
+            });
+            const target = document.getElementById(screen + '-screen');
+            if(target) target.classList.remove('hidden');
+
+            if (['quiz', 'auth', 'intro', 'analysis', 'result', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'].includes(screen)) {
+                document.getElementById('main-nav').classList.add('hidden');
+            } else {
+                document.getElementById('main-nav').classList.remove('hidden');
+                if(screen === 'duel-menu') document.getElementById('nav-duel-menu').classList.add('active-nav');
+                else {
+                    const activeNav = document.getElementById('nav-' + screen);
+                    if(activeNav) activeNav.classList.add('active-nav');
+                }
+            }
+            if(screen === 'intro') nextIntro(1);
+            if(screen === 'rating') loadRating();
+            if(screen === 'profile') loadProfile();
+        }
+
+        window.nextIntro = (step) => {
+            [1, 2, 3].forEach(i => document.getElementById('intro-step-' + i).classList.add('hidden'));
+            document.getElementById('intro-step-' + step).classList.remove('hidden');
+        };
+
+        async function startTest() {
+            isDuelMode = false;
+            const subj = document.getElementById('selectedSubject').value;
+            const amount = parseInt(document.getElementById('qAmount').value);
+            const time = parseInt(document.getElementById('qTime').value);
+            const snapshot = await get(ref(db, 'fanlar/' + subj));
+            if(snapshot.exists()) {
+                testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, amount);
+                currentQIndex = 0; score = 0; userTestLogs = [];
+                window.currentMeta = { subj, amount, time };
+                showMenu('quiz');
+                startTimer(time * 60);
+                loadQuestion();
+            } else alert("Bu fanda savollar topilmadi!");
+        }
+
+        function loadQuestion() {
+            if(currentQIndex >= testQuestions.length) return finishTest(true);
+            document.getElementById('progress-fill').style.width = (currentQIndex / testQuestions.length) * 100 + "%";
+            const q = testQuestions[currentQIndex];
+            document.getElementById('qProgress').innerText = `${currentQIndex + 1}/${testQuestions.length}`;
+            document.getElementById('questionText').innerText = q.q;
+            const optList = document.getElementById('optionsList');
+            optList.innerHTML = "";
+            const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn font-medium bg-white/5 italic";
+                btn.innerText = opt.text;
+                btn.onclick = () => {
+                    const buttons = optList.querySelectorAll('button');
+                    buttons.forEach(b => b.onclick = null);
+                    userTestLogs.push({ question: q.q, selected: opt.text, correct: q.a[q.c], isRight: opt.isC });
+                    if(opt.isC) { btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; }
+                    else { 
+                        btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; 
+                        buttons.forEach(b => { if(b.innerText === q.a[q.c]) b.style.border = "2px solid #10b981"; });
+                    }
+                    setTimeout(() => { currentQIndex++; loadQuestion(); }, 1000);
+                };
+                optList.appendChild(btn);
+            });
+        }
+
+        async function finishTest(isCompleted) {
+            clearInterval(timerInterval);
+            if(isCompleted) {
+                if (!isDuelMode) {
+                    const userKey = currentUser.userId.replace(/\./g, '_');
+                    const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
+                    const existingSnap = await get(ref(db, ratingPath));
+                    const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
+                    if(score >= currentBest) {
+                        const res = { userId: currentUser.userId, name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
+                        await set(ref(db, ratingPath), res);
+                    }
+                    const percent = Math.round((score / window.currentMeta.amount) * 100);
+                    document.getElementById('resPercent').innerText = percent + "%";
+                    document.getElementById('resCorrect').innerText = score;
+                    document.getElementById('resWrong').innerText = window.currentMeta.amount - score;
+                    if(percent >= 60) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    showMenu('result');
+                } else {
+                    const roomRef = ref(db, `duel_rooms/${currentDuelRoom}`);
+                    const field = (await get(roomRef)).val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
+                    await update(roomRef, { [field]: score });
+                    document.getElementById('quiz-screen').innerHTML = `
+                        <div class="flex flex-col items-center justify-center min-h-screen text-center p-10">
+                            <div class="searching-loader"></div>
+                            <h2 class="text-xl font-bold italic text-gold animate-pulse uppercase">Match tugadi!</h2>
+                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kuting...</p>
+                        </div>`;
+                }
+            } else { showMenu('subjects'); }
+        }
+
+        window.showAnalysis = () => {
+            showMenu('analysis');
+            const list = document.getElementById('analysisList');
+            list.innerHTML = "";
+            userTestLogs.forEach((log, i) => {
+                const div = document.createElement('div');
+                div.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
+                div.innerHTML = `<p class="text-xs opacity-50 mb-1">Savol ${i+1}:</p><p class="font-bold text-sm mb-2">${log.question}</p><p class="text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'} italic">Sizning javobingiz: ${log.selected}</p>${!log.isRight ? `<p class="text-xs text-green-500 font-bold">To'g'ri javob: ${log.correct}</p>` : ''}`;
+                list.appendChild(div);
+            });
+        }
+
+        async function loadRating() {
+            const rList = document.getElementById('ratingList');
+            rList.innerHTML = "<div class='text-center p-10 opacity-50'><div class='searching-loader'></div><p class='animate-pulse italic'>Reyting yangilanmoqda...</p></div>";
+            
+            try {
+                const [usersSnap, ratingsSnap] = await Promise.all([
+                    get(ref(db, 'users')),
+                    get(ref(db, 'ratings'))
+                ]);
+
+                if (usersSnap.exists()) {
+                    rList.innerHTML = "";
+                    const users = usersSnap.val();
+                    const ratings = ratingsSnap.exists() ? ratingsSnap.val() : {};
+                    let rankingData = [];
+
+                    Object.keys(users).forEach(uid => {
+                        const user = users[uid];
+                        let totalScore = 0;
+                        let userSubjects = {};
+
+                        Object.keys(ratings).forEach(subject => {
+                            const subRatings = ratings[subject];
+                            const userKey = uid.replace(/\./g, '_');
+                            if (subRatings[userKey]) {
+                                const scoreValue = parseInt(subRatings[userKey].score || 0);
+                                totalScore += scoreValue;
+                                userSubjects[subject] = scoreValue;
+                            }
+                        });
+
+                        rankingData.push({
+                            name: `${user.fName} ${user.lName}`,
+                            photo: user.photo,
+                            totalScore: totalScore,
+                            subjects: userSubjects
+                        });
+                    });
+
+                    rankingData.sort((a, b) => b.totalScore - a.totalScore);
+
+                    rankingData.forEach((user, i) => {
+                        const div = document.createElement('div');
+                        div.className = `premium-card p-5 animate-slide mb-5 border-l-4 ${i === 0 ? 'rank-1 border-gold' : 'border-gold/20'}`;
+                        
+                        let subjectsHtml = Object.entries(user.subjects).map(([subName, bestScore]) => 
+                            `<div class='flex justify-between items-center text-[10px] opacity-80 mt-1 italic pl-2 border-l border-gold/30'>
+                                <span>${subName.replace(/_/g, ' ')}</span>
+                                <span class='text-gold font-bold'>${bestScore} ball</span>
+                            </div>`
+                        ).join('');
+
+                        if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
+
+                        div.innerHTML = `
+                            <div class='flex items-start gap-4'>
+                                ${i === 0 ? '<span class="crown">👑</span>' : ''}
+                                <div class="rank-badge mt-1">${i + 1}</div>
+                                <img src="${user.photo || 'https://ui-avatars.com/api/?name=User'}" class="rank-img">
+                                <div class="flex-1">
+                                    <p class='font-bold text-sm mb-1'>${user.name}</p>
+                                    <p class='text-[10px] text-gold uppercase font-black mb-3 italic tracking-wider'>Jami: ${user.totalScore} ball</p>
+                                    <div class="space-y-1 bg-black/20 p-2 rounded-lg">
+                                        ${subjectsHtml}
+                                    </div>
+                                </div>
+                            </div>`;
+                        rList.appendChild(div);
+                    });
+                } else {
+                    rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Foydalanuvchilar topilmadi</p></div>";
+                }
+            } catch (error) {
+                console.error("Rating load error:", error);
+                rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Yuklashda xatolik yuz berdi</p></div>";
+            }
+        }
+
+        async function loadProfile() {
+            document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
+            document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
+            document.getElementById('userProfileImg').src = currentUser.photo;
+            const bDate = new Date(currentUser.birth);
+            const today = new Date();
+            let age = today.getFullYear() - bDate.getFullYear();
+            if (today < new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate())) age--;
+            const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate());
+            if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
+            const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
+            document.getElementById('profBirthdayText').innerText = `Sana: ${bDate.toLocaleDateString('uz-UZ')}`;
+            document.getElementById('profAgeText').innerText = `Yosh: ${age} yosh`;
+            document.getElementById('profDaysLeft').innerText = (diff === 0 || diff === 365) ? "Bugun tug'ilgan kuningiz! 🥳" : `Tug'ilgan kuningizga ${diff} kun qoldi`;
+            const stats = document.getElementById('myStatsList');
+            stats.innerHTML = "";
+            const snap = await get(ref(db, `ratings`));
+            if(snap.exists()) {
+                const userKey = currentUser.userId.replace(/\./g, '_');
+                Object.keys(snap.val()).forEach(sub => {
+                    if (snap.val()[sub][userKey]) {
+                        const myBest = snap.val()[sub][userKey];
+                        const div = document.createElement('div');
+                        div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10 mb-2";
+                        div.innerHTML = `<span class="text-xs font-bold">${sub.replace(/_/g, ' ')}</span><span class="text-xs text-yellow-500 font-black">${myBest.score} ball</span>`;
+                        stats.appendChild(div);
+                    }
+                });
+            }
+        }
+
+        function startTimer(s) {
+            let t = s;
+            timerInterval = setInterval(() => {
+                let m = Math.floor(t / 60); let sc = t % 60;
+                document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
+                if(t <= 0) { clearInterval(timerInterval); finishTest(true); }
+                t--;
+            }, 1000);
+        }
+
+        function toggleTheme() {
+            const isD = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isD ? 'dark' : 'light');
+            document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
+            document.getElementById('theme-icon-auth').innerText = isD ? "☀️" : "🌙";
+        }
+
+        function applySavedTheme() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-icon').innerText = "☀️";
+                document.getElementById('theme-icon-auth').innerText = "☀️";
+            }
+        }
+
+        async function logout() {
+            if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
+                await remove(ref(db, 'users/' + currentUser.userId));
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function confirmFinishTest() { if(confirm("Testni yakunlamoqchimisiz?")) finishTest(false); };
+
+        window.showMenu = showMenu;
+        window.register = register;
+        window.startTest = startTest;
+        window.toggleTheme = toggleTheme;
+        window.logout = logout;
+        window.confirmFinishTest = confirmFinishTest;
+        window.loadRating = loadRating;
+        window.nextIntro = nextIntro;
+        window.showAnalysis = showAnalysis;
+        window.generateDuelRoom = generateDuelRoom;
+        window.joinDuelRoom = joinDuelRoom;
+        window.closeUpdates = closeUpdates;
+    </script>
 </body>
 </html>
+
