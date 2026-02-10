@@ -141,6 +141,17 @@
             animation: slideDown 0.5s ease forwards;
         }
         @keyframes slideDown { from { top: -100px; } to { top: 20px; } }
+
+        /* Duel Animatsiyalari */
+        .searching-loader {
+            width: 80px; height: 80px; border: 5px solid rgba(255, 215, 0, 0.2);
+            border-top: 5px solid var(--gold); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .duel-avatar { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+        .vs-badge { font-size: 24px; font-weight: 900; color: var(--gold); font-style: italic; }
     </style>
 </head>
 <body class="pb-24">
@@ -277,6 +288,32 @@
         </div>
     </div>
 
+    <div id="duel-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
+        <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-yellow-500">Onlayn Duel</h2>
+        
+        <div id="duel-searching" class="premium-card p-10 shadow-2xl animate-slide">
+            <div class="searching-loader"></div>
+            <p class="text-lg font-bold italic mb-2">Raqib qidirilmoqda...</p>
+            <p class="text-xs opacity-60">Matematika fani bo'yicha munosib raqib izlanmoqda</p>
+            <button onclick="cancelSearch()" class="mt-10 text-red-500 text-xs font-bold uppercase tracking-widest opacity-60">Bekor qilish</button>
+        </div>
+
+        <div id="duel-found" class="hidden premium-card p-8 shadow-2xl animate-slide">
+            <div class="flex justify-around items-center mb-8">
+                <div class="text-center">
+                    <img src="" id="duel-my-img" class="duel-avatar mb-2">
+                    <p class="text-xs font-bold" id="duel-my-name">Siz</p>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="text-center">
+                    <img src="" id="duel-opp-img" class="duel-avatar mb-2">
+                    <p class="text-xs font-bold" id="duel-opp-name">Raqib</p>
+                </div>
+            </div>
+            <p class="text-sm italic animate-pulse">Jang boshlanmoqda: 3...</p>
+        </div>
+    </div>
+
     <div id="quiz-screen" class="hidden p-6 min-h-screen">
         <div class="mb-4"><div class="progress-container"><div id="progress-fill"></div></div></div>
         <div class="flex justify-between items-center mb-6">
@@ -372,6 +409,7 @@
 
     <nav id="main-nav" class="hidden fixed bottom-0 left-0 right-0 bg-inherit border-t border-yellow-500/20 px-4 py-4 flex justify-around backdrop-blur-xl z-50">
         <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav"><span class="text-2xl">📚</span><span>TESTLAR</span></button>
+        <button onclick="findDuel()" id="nav-duel" class="nav-btn"><span class="text-2xl">⚔️</span><span>DUEL</span></button>
         <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn"><span class="text-2xl">🏆</span><span>REYTING</span></button>
         <button onclick="showMenu('profile')" id="nav-profile" class="nav-btn"><span class="text-2xl">👤</span><span>PROFIL</span></button>
         <button onclick="showMenu('settings')" id="nav-settings" class="nav-btn"><span class="text-2xl">⚙️</span><span>SOZLAMALAR</span></button>
@@ -379,7 +417,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, remove, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, remove, update, push, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -397,6 +435,8 @@
         let currentQIndex = 0;
         let score = 0;
         let userTestLogs = [];
+        let isDuelMode = false;
+        let currentDuelRoom = null;
 
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
@@ -413,6 +453,88 @@
             }
         };
 
+        // --- DUEL LOGIKASI ---
+        async function findDuel() {
+            showMenu('duel');
+            isDuelMode = true;
+            document.getElementById('duel-searching').classList.remove('hidden');
+            document.getElementById('duel-found').classList.add('hidden');
+
+            const queueRef = ref(db, 'duel_queue');
+            const queueSnap = await get(queueRef);
+            
+            if (queueSnap.exists()) {
+                const players = queueSnap.val();
+                const oppId = Object.keys(players)[0];
+                const opponent = players[oppId];
+                
+                if (oppId !== currentUser.userId) {
+                    // Raqib topildi! Xona yaratamiz
+                    const roomId = `room_${Date.now()}`;
+                    currentDuelRoom = roomId;
+                    await remove(ref(db, `duel_queue/${oppId}`));
+                    
+                    const roomData = {
+                        p1: opponent,
+                        p2: currentUser,
+                        status: 'starting',
+                        questions: await getRandomQuestions('Matematika', 10)
+                    };
+                    await set(ref(db, `duel_rooms/${roomId}`), roomData);
+                    startDuelUI(roomData, roomId);
+                }
+            } else {
+                // Navbatga turish
+                await set(ref(db, `duel_queue/${currentUser.userId}`), currentUser);
+                onDisconnect(ref(db, `duel_queue/${currentUser.userId}`)).remove();
+                
+                // Xona ochilishini kutish
+                onValue(ref(db, 'duel_rooms'), (snap) => {
+                    if (snap.exists()) {
+                        const rooms = snap.val();
+                        for (let id in rooms) {
+                            if (rooms[id].p1.userId === currentUser.userId || rooms[id].p2.userId === currentUser.userId) {
+                                currentDuelRoom = id;
+                                startDuelUI(rooms[id], id);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        async function getRandomQuestions(subj, amount) {
+            const snap = await get(ref(db, 'fanlar/' + subj));
+            return snap.val().sort(() => 0.5 - Math.random()).slice(0, amount);
+        }
+
+        function startDuelUI(room, roomId) {
+            document.getElementById('duel-searching').classList.add('hidden');
+            document.getElementById('duel-found').classList.remove('hidden');
+            
+            const isP1 = room.p1.userId === currentUser.userId;
+            const opp = isP1 ? room.p2 : room.p1;
+            
+            document.getElementById('duel-my-img').src = currentUser.photo;
+            document.getElementById('duel-opp-img').src = opp.photo;
+            document.getElementById('duel-opp-name').innerText = opp.fName;
+            
+            setTimeout(() => {
+                testQuestions = room.questions;
+                window.currentMeta = { subj: 'Matematika Duel', amount: 10, time: 2 };
+                isDuelMode = true;
+                showMenu('quiz');
+                startTimer(120);
+                loadQuestion();
+            }, 3000);
+        }
+
+        async function cancelSearch() {
+            await remove(ref(db, `duel_queue/${currentUser.userId}`));
+            showMenu('subjects');
+        }
+
+        // --- ASOSIY FUNKSIYALAR ---
         function listenForAdminMessages() {
             const notifyRef = ref(db, 'global_notification');
             onValue(notifyRef, (snapshot) => {
@@ -478,7 +600,7 @@
 
         function showMenu(screen) {
             clearInterval(timerInterval);
-            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result'];
+            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result', 'duel'];
             screens.forEach(s => {
                 const el = document.getElementById(s + '-screen');
                 if(el) el.classList.add('hidden');
@@ -486,7 +608,7 @@
                 if(nav) nav.classList.remove('active-nav');
             });
             document.getElementById(screen + '-screen').classList.remove('hidden');
-            if (['quiz', 'auth', 'intro', 'analysis', 'result'].includes(screen)) {
+            if (['quiz', 'auth', 'intro', 'analysis', 'result', 'duel'].includes(screen)) {
                 document.getElementById('main-nav').classList.add('hidden');
             } else {
                 document.getElementById('main-nav').classList.remove('hidden');
@@ -504,6 +626,7 @@
         };
 
         async function startTest() {
+            isDuelMode = false;
             const subj = document.getElementById('selectedSubject').value;
             const amount = parseInt(document.getElementById('qAmount').value);
             const time = parseInt(document.getElementById('qTime').value);
@@ -550,13 +673,19 @@
         async function finishTest(isCompleted) {
             clearInterval(timerInterval);
             if(isCompleted) {
-                const userKey = currentUser.userId.replace(/\./g, '_');
-                const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
-                const existingSnap = await get(ref(db, ratingPath));
-                const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
-                if(score >= currentBest) {
-                    const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
-                    await set(ref(db, ratingPath), res);
+                if (!isDuelMode) {
+                    const userKey = currentUser.userId.replace(/\./g, '_');
+                    const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
+                    const existingSnap = await get(ref(db, ratingPath));
+                    const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
+                    if(score >= currentBest) {
+                        const res = { name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
+                        await set(ref(db, ratingPath), res);
+                    }
+                } else {
+                    // Duel natijasini xonaga yozish
+                    const resultRef = ref(db, `duel_rooms/${currentDuelRoom}/${currentUser.userId}`);
+                    await set(resultRef, score);
                 }
                 
                 const percent = Math.round((score / window.currentMeta.amount) * 100);
@@ -566,7 +695,7 @@
                 if(percent >= 60) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                 showMenu('result');
             } else { 
-                alert("Test to'xtatildi. Oxirigacha yechilmagani uchun reytingga yozilmadi."); 
+                alert("Test to'xtatildi."); 
                 showMenu('subjects');
             }
         }
@@ -740,7 +869,7 @@
         }
 
         function confirmFinishTest() { 
-            if(confirm("Testni hozir yakunlamoqchimisiz? (Oxirigacha yetkazmasangiz natija yozilmaydi)")) {
+            if(confirm("Testni hozir yakunlamoqchimisiz?")) {
                 finishTest(false); 
             }
         };
@@ -754,6 +883,8 @@
         window.loadRating = loadRating;
         window.nextIntro = nextIntro;
         window.showAnalysis = showAnalysis;
+        window.findDuel = findDuel;
+        window.cancelSearch = cancelSearch;
     </script>
 </body>
 </html>
