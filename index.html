@@ -406,12 +406,12 @@
         <div class="premium-card p-8 shadow-2xl animate-slide border-2 border-gold">
             <div class="flex justify-around items-center mb-10">
                 <div class="text-center">
-                    <img src="" id="duel-my-img" class="duel-avatar mb-3" onerror="this.src='https://ui-avatars.com/api/?name=Siz&background=random&color=fff'">
+                    <img src="" id="duel-my-img" class="duel-avatar mb-3" onerror="this.src='https://i.imgur.com/6VBx3io.png'">
                     <p class="text-[10px] font-black uppercase">Siz</p>
                 </div>
                 <div class="vs-badge">VS</div>
                 <div class="text-center">
-                    <img src="" id="duel-opp-img" class="duel-avatar mb-3" onerror="this.src='https://ui-avatars.com/api/?name=Raqib&background=random&color=fff'">
+                    <img src="" id="duel-opp-img" class="duel-avatar mb-3" onerror="this.src='https://i.imgur.com/6VBx3io.png'">
                     <p class="text-[10px] font-black uppercase" id="duel-opp-name">Raqib</p>
                 </div>
             </div>
@@ -488,7 +488,7 @@
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
         <div class="premium-card p-8 mb-6 shadow-xl">
             <div class="profile-img-container">
-                <img src="" id="userProfileImg" alt="Avatar" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random&color=fff'">
+                <img id="userProfileImg" width="110" height="110" style="border-radius:50%" onerror="this.src='https://i.imgur.com/6VBx3io.png'">
             </div>
             <h3 id="profName" class="text-2xl font-black mb-1"></h3>
             <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
@@ -549,14 +549,11 @@
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
 
-        // URL formatlash mantiqi (-3.svg va _3.svg ni .svg ga almashtirish)
+        // Rasm URL formatlash (SVG xatolarni to'g'rilash)
         function formatPhotoUrl(url) {
-            if (!url) return "";
+            if (!url) return "https://i.imgur.com/6VBx3io.png";
             let formatted = url;
-            // Agar -3.svg yoki _3.svg bilan tugasa
             if (formatted.toLowerCase().endsWith('-3.svg') || formatted.toLowerCase().endsWith('_3.svg')) {
-                // Oxiridan 6 ta belgini kesib (.svg qolishi uchun 4 ta emas, chunki format -3.svg)
-                // Lekin eng ishonchli yo'li replace ishlatish
                 formatted = formatted.replace(/-3\.svg$/i, '.svg').replace(/_3\.svg$/i, '.svg');
             }
             return formatted;
@@ -581,8 +578,8 @@
             const userId = "tg_" + tgUser.id;
             const userRef = ref(db, 'users/' + userId);
             
-            // Telegramdan yangi rasm URL'ini formatlab olish
-            const freshPhotoUrl = formatPhotoUrl(tgUser.photo_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
+            // Telegram WebApp orqali yangi rasm URL'ini olish
+            const freshPhotoUrl = tgUser.photo_url ? formatPhotoUrl(tgUser.photo_url) : "https://i.imgur.com/6VBx3io.png";
 
             const snap = await get(userRef);
             if (snap.exists()) {
@@ -688,8 +685,14 @@
             showMenu('duel-vs');
             const isP1 = room.p1.userId === currentUser.userId;
             const opp = isP1 ? room.p2 : room.p1;
-            document.getElementById('duel-my-img').src = currentUser.photo;
-            document.getElementById('duel-opp-img').src = opp ? opp.photo : "";
+            
+            // Avatar yuklash
+            const myAvatar = document.getElementById('duel-my-img');
+            const oppAvatar = document.getElementById('duel-opp-img');
+            
+            myAvatar.src = formatPhotoUrl(currentUser.photo);
+            oppAvatar.src = opp ? formatPhotoUrl(opp.photo) : "https://i.imgur.com/6VBx3io.png";
+            
             document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "RAQIB";
             let count = 3;
             const cdInterval = setInterval(() => {
@@ -785,8 +788,11 @@
             const b = document.getElementById('birthDay').value;
             if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const photoUrl = formatPhotoUrl(tgUser?.photo_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent(f + " " + l)}&background=3390ec&color=fff&size=256`;
-            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
+            
+            // Avatar yuklash
+            const freshPhoto = tgUser?.photo_url ? formatPhotoUrl(tgUser.photo_url) : "https://i.imgur.com/6VBx3io.png";
+            
+            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: freshPhoto };
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
                 currentUser = userData;
@@ -902,7 +908,7 @@
                         <div class="flex flex-col items-center justify-center min-h-screen text-center p-10">
                             <div class="searching-loader"></div>
                             <h2 class="text-xl font-bold italic text-gold animate-pulse uppercase">Match tugadi!</h2>
-                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kuting...</p>
+                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kiting...</p>
                         </div>`;
                 }
             } else { showMenu('subjects'); }
@@ -952,7 +958,6 @@
                         });
 
                         rankingData.push({
-                            uid: uid,
                             name: `${user.fName} ${user.lName}`,
                             photo: formatPhotoUrl(user.photo),
                             totalScore: totalScore,
@@ -975,15 +980,13 @@
 
                         if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
 
-                        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff`;
-
                         div.innerHTML = `
                             <div class='flex items-start gap-4'>
                                 ${i === 0 ? '<span class="crown">👑</span>' : ''}
                                 <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo || fallbackAvatar}" 
+                                <img src="${user.photo}" 
                                      class="rank-img" 
-                                     onerror="this.onerror=null; this.src='${fallbackAvatar}';">
+                                     onerror="this.onerror=null; this.src='https://i.imgur.com/6VBx3io.png';">
                                 <div class="flex-1">
                                     <p class='font-bold text-sm mb-1'>${user.name}</p>
                                     <p class='text-[10px] text-gold uppercase font-black mb-3 italic tracking-wider'>Jami: ${user.totalScore} ball</p>
@@ -1004,18 +1007,20 @@
         }
 
         async function loadProfile() {
-            // Telegram API-dan rasm olganda ham formatlash
-            const freshPhoto = formatPhotoUrl(tgUser?.photo_url) || formatPhotoUrl(currentUser?.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
+            // Telegram API-dan eng yangi ma'lumotlarni olish
+            let freshPhotoUrl = "https://i.imgur.com/6VBx3io.png";
+            if (tgUser && tgUser.photo_url) {
+                freshPhotoUrl = formatPhotoUrl(tgUser.photo_url);
+            } else if (currentUser && currentUser.photo) {
+                freshPhotoUrl = formatPhotoUrl(currentUser.photo);
+            }
             
             document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
             
             const profileImg = document.getElementById('userProfileImg');
             if(profileImg) {
-                profileImg.src = freshPhoto;
-                profileImg.onerror = function() {
-                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fName || 'User')}&background=random&color=fff`;
-                };
+                profileImg.src = freshPhotoUrl;
             }
             
             const bDate = new Date(currentUser.birth);
