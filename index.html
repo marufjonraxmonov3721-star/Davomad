@@ -168,6 +168,22 @@
             40% {transform: translateY(-10px);}
             60% {transform: translateY(-5px);}
         }
+
+        /* Tournament banner specific style */
+        .tournament-banner {
+            background: linear-gradient(135deg, #FFD700, #B8860B);
+            color: #000;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 900;
+            text-transform: uppercase;
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+            border: 2px solid white;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="pb-24">
@@ -181,8 +197,8 @@
                 <div class="update-item flex items-center gap-4" style="animation-delay: 0.2s;">
                     <div class="text-4xl">🏆</div>
                     <div>
-                        <h4 class="font-black uppercase text-xs text-gold">1. Global Reyting</h4>
-                        <p class="text-[11px] opacity-70 italic">Endi siz barcha foydalanuvchilar orasida nechanchi o'rinda ekanligingizni ko'rishingiz mumkin!</p>
+                        <h4 class="font-black uppercase text-xs text-gold">1. Turnirlar (Tournament Mode)</h4>
+                        <p class="text-[11px] opacity-70 italic">Endi siz maxsus vaqt oralig'ida o'tkaziladigan turnirlarda qatnashib, katta sovrinlar va unvonlar uchun kurashishingiz mumkin!</p>
                     </div>
                 </div>
                 <div class="update-item flex items-center gap-4" style="animation-delay: 0.4s;">
@@ -283,8 +299,18 @@
 
         <div id="intro-step-2" class="hidden animate-slide">
             <div class="premium-card p-6 text-center border-gold/50 border-2">
+                <span class="intro-feature-icon">🏆</span>
+                <h2 class="text-2xl font-black text-gold uppercase mb-4">2. Turnirlar</h2>
+                <p class="text-xs opacity-70 mb-6 italic">Haftalik umumiy turnirlarda qatnashing, eng yuqori natijani qayd eting va maxsus unvonlarga ega bo'ling!</p>
+                <div class="tournament-banner text-xs">Turnirda ishtirok etish</div>
+                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
+            </div>
+        </div>
+
+        <div id="intro-step-3" class="hidden animate-slide">
+            <div class="premium-card p-6 text-center border-gold/50 border-2">
                 <span class="intro-feature-icon">⚔️</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">2. Duel</h2>
+                <h2 class="text-2xl font-black text-gold uppercase mb-4">3. Duel</h2>
                 <p class="text-xs opacity-70 mb-4 italic">Do'stlaringiz bilan real vaqtda bellashing!</p>
                 
                 <div class="flex justify-around items-center mb-6 bg-white/5 p-4 rounded-2xl">
@@ -298,35 +324,6 @@
                         <p class="text-[8px] font-bold">RAQIB</p>
                     </div>
                 </div>
-                <p class="text-[10px] text-left opacity-90 leading-relaxed mb-6">
-                    ✅ Maxsus kod orqali xona yarating<br>
-                    ✅ Bir xil savollarga tezroq javob bering<br>
-                    ✅ G'olib bo'ling va reytingingizni oshiring
-                </p>
-                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
-            </div>
-        </div>
-
-        <div id="intro-step-3" class="hidden animate-slide">
-            <div class="premium-card p-6 text-center border-gold/50 border-2">
-                <span class="intro-feature-icon">🏆</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">3. Reyting</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Dunyo bo'ylab bilimdonlar orasida o'z o'rningizni ko'ring!</p>
-                
-                <div class="space-y-2 mb-8">
-                    <div class="flex items-center gap-3 bg-gold/20 p-2 rounded-lg border border-gold">
-                        <span class="font-black text-gold">1</span>
-                        <div class="w-6 h-6 bg-gray-500 rounded-full"></div>
-                        <span class="text-[10px] font-bold flex-1 text-left">Lider Foydalanuvchi</span>
-                        <span class="text-[10px] font-black">2500 ball</span>
-                    </div>
-                    <div class="flex items-center gap-3 bg-white/5 p-2 rounded-lg opacity-50">
-                        <span class="font-black">2</span>
-                        <div class="w-6 h-6 bg-gray-500 rounded-full"></div>
-                        <span class="text-[10px] font-bold flex-1 text-left">Keyingi O'rin</span>
-                        <span class="text-[10px] font-black">2100 ball</span>
-                    </div>
-                </div>
                 <button onclick="nextIntro(4)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
             </div>
         </div>
@@ -334,14 +331,8 @@
         <div id="intro-step-4" class="hidden animate-slide">
             <div class="premium-card p-6 text-center border-gold/50 border-2">
                 <span class="intro-feature-icon">👤</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">4. Profil</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Shaxsiy natijalar va tug'ilgan kun tabriklari!</p>
-                
-                <div class="text-left bg-white/5 p-4 rounded-xl border border-gold/10 mb-8 space-y-2">
-                    <p class="text-[10px] font-bold">🎂 Tug'ilgan kun hisoblagichi</p>
-                    <p class="text-[10px] font-bold">📊 Fanlar bo'yicha shaxsiy statistika</p>
-                    <p class="text-[10px] font-bold">🖼️ Galereyadan rasm yuklash</p>
-                </div>
+                <h2 class="text-2xl font-black text-gold uppercase mb-4">4. Profil & Reyting</h2>
+                <p class="text-xs opacity-70 mb-6 italic">O'z natijalaringizni kuzating va dunyo reytingida o'rningizni ko'ring.</p>
                 <button onclick="finishIntro()" class="gold-button w-full p-4 rounded-xl text-black">Boshladik!</button>
             </div>
         </div>
@@ -349,6 +340,13 @@
 
     <div id="subjects-screen" class="hidden p-6">
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
+        
+        <div id="tournament-container" class="hidden">
+            <div class="tournament-banner" onclick="startTournament()">
+                🏆 Grand Turnirda qatnashish!
+            </div>
+        </div>
+
         <div class="premium-card p-6 space-y-6">
             <div>
                 <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Fanni tanlang</label>
@@ -647,6 +645,7 @@
                 checkBirthday();
                 listenForAdminMessages();
                 checkUpdateNotification();
+                checkTournamentStatus();
             }
         };
 
@@ -701,6 +700,31 @@
             alert("Profil yangilandi!");
         };
 
+        // TOURNAMENT LOGIC
+        async function checkTournamentStatus() {
+            onValue(ref(db, 'active_tournament'), (snap) => {
+                const data = snap.val();
+                if(data && data.active) {
+                    document.getElementById('tournament-container').classList.remove('hidden');
+                } else {
+                    document.getElementById('tournament-container').classList.add('hidden');
+                }
+            });
+        }
+
+        window.startTournament = async () => {
+            const snap = await get(ref(db, 'active_tournament'));
+            if(snap.exists() && snap.val().active) {
+                const tournament = snap.val();
+                testQuestions = tournament.questions;
+                currentQIndex = 0; score = 0; userTestLogs = [];
+                window.currentMeta = { subj: "Grand Tournament", amount: testQuestions.length, time: 20 };
+                showMenu('quiz');
+                startTimer(20 * 60);
+                loadQuestion();
+            }
+        };
+
         // INTRO FUNCTIONS
         async function runIntroAnimation() {
             const subjects = [
@@ -739,7 +763,10 @@
 
         window.nextIntro = (step) => {
             if (step === 1) runIntroAnimation();
-            [1, 2, 3, 4].forEach(i => document.getElementById('intro-step-' + i).classList.add('hidden'));
+            [1, 2, 3, 4].forEach(i => {
+                const el = document.getElementById('intro-step-' + i);
+                if(el) el.classList.add('hidden');
+            });
             const next = document.getElementById('intro-step-' + step);
             if(next) {
                 next.classList.remove('hidden');
@@ -941,7 +968,7 @@
                 showMenu('intro');
                 checkBirthday();
                 listenForAdminMessages();
-                // We skip checkUpdateNotification() here because we just set it to 'seen'
+                checkTournamentStatus();
             });
         }
 
@@ -1185,7 +1212,8 @@
             let t = s;
             timerInterval = setInterval(() => {
                 let m = Math.floor(t / 60); let sc = t % 60;
-                document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
+                const timerEl = document.getElementById('timer');
+                if(timerEl) timerEl.innerText = `${m}:${sc<10?'0'+sc:sc}`;
                 if(t <= 0) { clearInterval(timerInterval); finishTest(true); }
                 t--;
             }, 1000);
@@ -1194,37 +1222,23 @@
         function toggleTheme() {
             const isD = document.body.classList.toggle('dark-mode');
             localStorage.setItem('theme', isD ? 'dark' : 'light');
-            document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
             document.getElementById('theme-icon-auth').innerText = isD ? "☀️" : "🌙";
+            const themeIcon = document.getElementById('theme-icon');
+            if(themeIcon) themeIcon.innerText = isD ? "☀️" : "🌙";
         }
 
         function applySavedTheme() {
             if(localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
-                document.getElementById('theme-icon').innerText = "☀️";
                 document.getElementById('theme-icon-auth').innerText = "☀️";
+                const themeIcon = document.getElementById('theme-icon');
+                if(themeIcon) themeIcon.innerText = "☀️";
             }
         }
 
         async function logout() {
             if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
-                const userId = currentUser.userId;
-                const userKey = userId.replace(/\./g, '_');
-
-                // 1. O'chirish: Profil
-                await remove(ref(db, 'users/' + userId));
-
-                // 2. O'chirish: Barcha reytinglardagi ballar
-                const ratingsSnap = await get(ref(db, 'ratings'));
-                if (ratingsSnap.exists()) {
-                    const ratings = ratingsSnap.val();
-                    for (const subject in ratings) {
-                        if (ratings[subject][userKey]) {
-                            await remove(ref(db, `ratings/${subject}/${userKey}`));
-                        }
-                    }
-                }
-
+                await remove(ref(db, 'users/' + currentUser.userId));
                 localStorage.clear();
                 location.reload();
             }
@@ -1249,6 +1263,7 @@
         window.openEditModal = openEditModal;
         window.closeEditModal = closeEditModal;
         window.saveProfileChanges = saveProfileChanges;
+        window.startTournament = startTournament;
     </script>
 </body>
 </html>
