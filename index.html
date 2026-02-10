@@ -10,115 +10,110 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family: "Segoe UI", sans-serif;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-/* animated background */
 body{
     height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    overflow:hidden;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color:white;
-    background: linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#1b2735);
-    background-size:400% 400%;
-    animation:bg 8s ease infinite;
-}
-
-@keyframes bg{
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
-}
-
-/* main card */
-.card{
-    width:340px;
-    padding:30px 25px;
-    border-radius:25px;
-    background:rgba(255,255,255,0.08);
-    backdrop-filter:blur(18px);
     text-align:center;
-    box-shadow:0 0 40px rgba(0,0,0,.6);
+    overflow:hidden;
 }
 
-/* title */
+/* Card */
+.box{
+    width:90%;
+    max-width:380px;
+    padding:35px;
+    border-radius:20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    box-shadow:0 0 40px rgba(0,0,0,0.6);
+    animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(20px)}
+    to{opacity:1; transform:translateY(0)}
+}
+
 h1{
     font-size:22px;
     margin-bottom:10px;
 }
 
-.sub{
-    font-size:13px;
-    opacity:.8;
-    margin-bottom:18px;
+p{
+    opacity:.85;
+    font-size:14px;
+    margin-bottom:25px;
 }
 
-/* spinner */
+/* Loader spinner */
 .spinner{
-    width:60px;
-    height:60px;
+    width:70px;
+    height:70px;
     border:6px solid rgba(255,255,255,.2);
-    border-top:6px solid #00e5ff;
+    border-top:6px solid #00ffcc;
     border-radius:50%;
-    margin:0 auto 20px;
-    animation:spin 1s linear infinite;
+    margin:0 auto 25px;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin{
-    100%{transform:rotate(360deg)}
+    100%{ transform:rotate(360deg); }
 }
 
-/* progress */
+/* Progress bar */
 .progress{
-    height:12px;
-    background:#1c2c38;
-    border-radius:20px;
+    width:100%;
+    height:10px;
+    background:rgba(255,255,255,.2);
+    border-radius:10px;
     overflow:hidden;
-    margin-bottom:10px;
+    margin-top:15px;
 }
 
 .bar{
     height:100%;
     width:0%;
-    background:linear-gradient(90deg,#00ffcc,#00c6ff);
-    box-shadow:0 0 15px #00e5ff;
+    background:linear-gradient(90deg,#00ffcc,#00ffaa);
+    transition:width .2s;
 }
 
-/* percent */
 .percent{
-    font-size:14px;
-    margin-bottom:15px;
-}
-
-/* updates list */
-.updates{
-    text-align:left;
-    font-size:13px;
-    opacity:.9;
-    line-height:22px;
     margin-top:10px;
+    font-size:14px;
+    font-weight:bold;
+    color:#00ffcc;
 }
 
-/* countdown */
-.timer{
-    margin-top:15px;
-    font-weight:bold;
-    font-size:14px;
-    color:#00e5ff;
+/* dots animation */
+.dots::after{
+    content:'';
+    animation:dots 1.5s steps(4,end) infinite;
+}
+@keyframes dots{
+    0%{content:''}
+    25%{content:'.'}
+    50%{content:'..'}
+    75%{content:'...'}
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<div class="box">
+
+    <h1>🔄 Yangilanish ketmoqda</h1>
+
+    <p class="dots">Iltimos kuting</p>
 
     <div class="spinner"></div>
-
-    <h1>Yangilanish ketmoqda...</h1>
-    <div class="sub">Iltimos kuting, ilova yaxshilanmoqda 🚀</div>
 
     <div class="progress">
         <div class="bar" id="bar"></div>
@@ -126,51 +121,30 @@ h1{
 
     <div class="percent" id="percent">0%</div>
 
-    <!-- userni ushlab turadigan qism -->
-    <div class="updates">
-        ✅ Tezlik oshirildi <br>
-        ✅ Yangi dizayn qo‘shildi <br>
-        ✅ Xatolar tuzatildi <br>
-        ✅ Bonus tizimi yangilandi
-    </div>
-
-    <div class="timer" id="timer">10 soniya qoldi...</div>
-
 </div>
 
 <script>
-let p = 0;
-let seconds = 10;
-
+let progress = 0;
 let bar = document.getElementById("bar");
 let percent = document.getElementById("percent");
-let timer = document.getElementById("timer");
 
-let loading = setInterval(()=>{
-    p+=2;
+let interval = setInterval(() => {
+    progress += Math.floor(Math.random()*4)+1;
 
-    bar.style.width = p + "%";
-    percent.innerText = p + "%";
+    if(progress >= 100){
+        progress = 100;
+        clearInterval(interval);
 
-    if(p>=100){
-        clearInterval(loading);
-        percent.innerText = "Tayyor ✅";
-
+        percent.innerHTML = "Tayyor ✅";
         setTimeout(()=>{
-            // sahifa ochiladi
-            // window.location.href = "index.html";
-        },800);
+            location.reload(); // yoki boshqa sahifaga yo'naltirasiz
+        },1500);
     }
-},100);
 
-let count = setInterval(()=>{
-    seconds--;
-    timer.innerText = seconds + " soniya qoldi...";
+    bar.style.width = progress + "%";
+    percent.innerHTML = progress + "%";
 
-    if(seconds<=0){
-        clearInterval(count);
-    }
-},1000);
+},120);
 </script>
 
 </body>
