@@ -270,14 +270,12 @@
             <div class="premium-card p-6 text-center border-gold/50 border-2">
                 <span class="intro-feature-icon">📚</span>
                 <h2 class="text-2xl font-black text-gold uppercase mb-4">1. Testlar</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Bazadagi 12 ta fandan minglab savollar sizni kutmoqda.</p>
+                <p class="text-xs opacity-70 mb-6 italic">Barcha fanlar va namunaviy savollar:</p>
                 
                 <div class="bg-white/5 p-4 rounded-xl text-left border border-gold/20 mb-6">
-                    <p class="text-[10px] text-gold font-bold mb-2 uppercase tracking-tighter">Matematika Namunasi:</p>
-                    <p class="text-sm font-bold mb-3">2 + 2 * 2 = ?</p>
-                    <div class="mock-option">4</div>
-                    <div id="mock-correct-trigger" class="mock-option">6</div>
-                    <div class="mock-option">8</div>
+                    <p id="intro-subject-name" class="text-[10px] text-gold font-bold mb-2 uppercase tracking-tighter">Yuklanmoqda...</p>
+                    <p id="intro-question-text" class="text-sm font-bold mb-3 min-h-[40px]">?</p>
+                    <div id="intro-mock-options" class="space-y-1"></div>
                 </div>
                 <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
             </div>
@@ -329,7 +327,6 @@
                         <span class="text-[10px] font-black">2100 ball</span>
                     </div>
                 </div>
-                <p class="text-[10px] italic opacity-60 mb-6">Har bir to'g'ri javob sizni yuqoriga ko'taradi.</p>
                 <button onclick="nextIntro(4)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
             </div>
         </div>
@@ -345,7 +342,7 @@
                     <p class="text-[10px] font-bold">📊 Fanlar bo'yicha shaxsiy statistika</p>
                     <p class="text-[10px] font-bold">🖼️ Galereyadan rasm yuklash</p>
                 </div>
-                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Boshladik!</button>
+                <button onclick="finishIntro()" class="gold-button w-full p-4 rounded-xl text-black">Boshladik!</button>
             </div>
         </div>
     </div>
@@ -631,6 +628,7 @@
         let isDuelMode = false;
         let currentDuelRoom = null;
         let tempBase64Photo = "";
+        let introInterval;
 
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
@@ -701,6 +699,52 @@
             loadProfile();
             tg.HapticFeedback.notificationOccurred('success');
             alert("Profil yangilandi!");
+        };
+
+        // INTRO FUNCTIONS
+        async function runIntroAnimation() {
+            const subjects = [
+                "Matematika", "Fizika", "Kimyo", "Ona_tili", "Adabiyot", 
+                "Geografiya", "Uzbekiston_tarixi", "Jahon_tarixi", 
+                "Ingliz_tili", "Rus_tili", "Biologiya", "IQ_testlar"
+            ];
+            let subIdx = 0;
+            const subNameEl = document.getElementById('intro-subject-name');
+            const qTextEl = document.getElementById('intro-question-text');
+            const optionsEl = document.getElementById('intro-mock-options');
+
+            const updateMock = async () => {
+                const sub = subjects[subIdx];
+                subNameEl.innerText = sub.replace(/_/g, ' ');
+                
+                const snap = await get(ref(db, `fanlar/${sub}`));
+                if (snap.exists()) {
+                    const q = snap.val()[0];
+                    qTextEl.innerText = q.q;
+                    optionsEl.innerHTML = q.a.map((ans, i) => `
+                        <div class="mock-option ${i === q.c ? 'mock-correct' : ''}">${ans}</div>
+                    `).join('');
+                }
+                subIdx = (subIdx + 1) % subjects.length;
+            };
+
+            updateMock();
+            introInterval = setInterval(updateMock, 2000);
+        }
+
+        window.finishIntro = () => {
+            clearInterval(introInterval);
+            showMenu('subjects');
+        };
+
+        window.nextIntro = (step) => {
+            if (step === 1) runIntroAnimation();
+            [1, 2, 3, 4].forEach(i => document.getElementById('intro-step-' + i).classList.add('hidden'));
+            const next = document.getElementById('intro-step-' + step);
+            if(next) {
+                next.classList.remove('hidden');
+                tg.HapticFeedback.impactOccurred('light');
+            }
         };
 
         window.showDuelCreate = () => showMenu('duel-create');
@@ -921,25 +965,10 @@
                     if(activeNav) activeNav.classList.add('active-nav');
                 }
             }
-            if(screen === 'intro') {
-                // Reset intro mock animation
-                setTimeout(() => {
-                    const trigger = document.getElementById('mock-correct-trigger');
-                    if(trigger) trigger.classList.add('mock-correct');
-                }, 2000);
-            }
+            if(screen === 'intro') runIntroAnimation();
             if(screen === 'rating') loadRating();
             if(screen === 'profile') loadProfile();
         }
-
-        window.nextIntro = (step) => {
-            [1, 2, 3, 4].forEach(i => document.getElementById('intro-step-' + i).classList.add('hidden'));
-            const next = document.getElementById('intro-step-' + step);
-            if(next) {
-                next.classList.remove('hidden');
-                tg.HapticFeedback.impactOccurred('light');
-            }
-        };
 
         async function startTest() {
             isDuelMode = false;
@@ -1175,7 +1204,23 @@
 
         async function logout() {
             if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
-                await remove(ref(db, 'users/' + currentUser.userId));
+                const userId = currentUser.userId;
+                const userKey = userId.replace(/\./g, '_');
+
+                // 1. O'chirish: Profil
+                await remove(ref(db, 'users/' + userId));
+
+                // 2. O'chirish: Barcha reytinglardagi ballar
+                const ratingsSnap = await get(ref(db, 'ratings'));
+                if (ratingsSnap.exists()) {
+                    const ratings = ratingsSnap.val();
+                    for (const subject in ratings) {
+                        if (ratings[subject][userKey]) {
+                            await remove(ref(db, `ratings/${subject}/${userKey}`));
+                        }
+                    }
+                }
+
                 localStorage.clear();
                 location.reload();
             }
@@ -1191,10 +1236,15 @@
         window.confirmFinishTest = confirmFinishTest;
         window.loadRating = loadRating;
         window.nextIntro = nextIntro;
+        window.finishIntro = finishIntro;
         window.showAnalysis = showAnalysis;
         window.generateDuelRoom = generateDuelRoom;
         window.joinDuelRoom = joinDuelRoom;
         window.closeUpdates = closeUpdates;
+        window.previewImage = previewImage;
+        window.openEditModal = openEditModal;
+        window.closeEditModal = closeEditModal;
+        window.saveProfileChanges = saveProfileChanges;
     </script>
 </body>
 </html>
