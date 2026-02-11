@@ -169,7 +169,6 @@
             60% {transform: translateY(-5px);}
         }
 
-        /* Tournament banner specific style */
         .tournament-banner {
             background: linear-gradient(135deg, #FFD700, #B8860B);
             color: #000;
@@ -185,7 +184,6 @@
             cursor: pointer;
         }
         
-        /* New Styles for Waiting Logic */
         .waiting-text {
             font-size: 12px;
             text-transform: uppercase;
@@ -193,6 +191,31 @@
             letter-spacing: 1px;
             margin-top: 5px;
         }
+
+        .wallet-badge {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--gold);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 900;
+            color: var(--gold);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tournament-card {
+            background: var(--card);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .tournament-card:active { transform: scale(0.98); }
+        .tournament-card.locked { opacity: 0.6; filter: grayscale(1); cursor: not-allowed; }
     </style>
 </head>
 <body class="pb-24">
@@ -201,11 +224,11 @@
         <div class="premium-card p-8 text-center shadow-2xl max-w-sm border-2 border-gold">
             <div class="searching-loader"></div>
             <h2 class="text-xl font-black text-gold uppercase italic mb-2">Turnir kutilmoqda</h2>
-            <p class="text-xs opacity-70 mb-6 italic">Savollar yuklanishi uchun kamida 30 kishi to'planishi kerak.</p>
+            <p class="text-xs opacity-70 mb-6 italic">Savollar yuklanishi uchun kerakli ishtirokchilar to'planishi kerak.</p>
             
             <div class="bg-black/40 p-4 rounded-xl mb-6">
                 <p class="text-[10px] uppercase opacity-50 font-bold mb-1">Hozir onlayn:</p>
-                <div class="text-4xl font-black text-gold italic"><span id="online-count">0</span> / 30</div>
+                <div class="text-4xl font-black text-gold italic"><span id="online-count">0</span> / <span id="target-count">30</span></div>
             </div>
             
             <button onclick="cancelTournamentWaiting()" class="w-full p-4 rounded-xl border border-red-500/50 text-red-500 font-bold uppercase text-[10px]">Bekor qilish</button>
@@ -218,18 +241,18 @@
             <h2 class="text-3xl font-black text-gold uppercase italic mb-6 tracking-tighter">Yangi imkoniyatlar!</h2>
             
             <div class="space-y-6 text-left mb-8">
-                <div class="update-item flex items-center gap-4" style="animation-delay: 0.2s;">
+                <div class="update-item flex items-center gap-4">
                     <div class="text-4xl">🏆</div>
                     <div>
-                        <h4 class="font-black uppercase text-xs text-gold">1. Turnirlar (Tournament Mode)</h4>
-                        <p class="text-[11px] opacity-70 italic">Endi siz maxsus vaqt oralig'ida o'tkaziladigan turnirlarda qatnashib, katta sovrinlar va unvonlar uchun kurashishingiz mumkin!</p>
+                        <h4 class="font-black uppercase text-xs text-gold">1. Pullik Turnirlar</h4>
+                        <p class="text-[11px] opacity-70 italic">Balansingizni to'ldiring va sovrinli turnirlarda ishtirok eting!</p>
                     </div>
                 </div>
-                <div class="update-item flex items-center gap-4" style="animation-delay: 0.4s;">
-                    <div class="text-4xl">⚔️</div>
+                <div class="update-item flex items-center gap-4">
+                    <div class="text-4xl">💰</div>
                     <div>
-                        <h4 class="font-black uppercase text-xs text-gold">2. Duel rejimi</h4>
-                        <p class="text-[11px] opacity-70 italic">Do'stlaringiz bilan real vaqtda test orqali bellashing va bilimingizni isbotlang!</p>
+                        <h4 class="font-black uppercase text-xs text-gold">2. Shaxsiy Hamyon</h4>
+                        <p class="text-[11px] opacity-70 italic">Yutuqlaringizni yig'ing va balansingizni kuzating.</p>
                     </div>
                 </div>
             </div>
@@ -311,7 +334,6 @@
                 <span class="intro-feature-icon">📚</span>
                 <h2 class="text-2xl font-black text-gold uppercase mb-4">1. Testlar</h2>
                 <p class="text-xs opacity-70 mb-6 italic">Barcha fanlar va namunaviy savollar:</p>
-                
                 <div class="bg-white/5 p-4 rounded-xl text-left border border-gold/20 mb-6">
                     <p id="intro-subject-name" class="text-[10px] text-gold font-bold mb-2 uppercase tracking-tighter">Yuklanmoqda...</p>
                     <p id="intro-question-text" class="text-sm font-bold mb-3 min-h-[40px]">?</p>
@@ -336,7 +358,6 @@
                 <span class="intro-feature-icon">⚔️</span>
                 <h2 class="text-2xl font-black text-gold uppercase mb-4">3. Duel</h2>
                 <p class="text-xs opacity-70 mb-4 italic">Do'stlaringiz bilan real vaqtda bellashing!</p>
-                
                 <div class="flex justify-around items-center mb-6 bg-white/5 p-4 rounded-2xl">
                     <div class="text-center">
                         <div class="w-10 h-10 bg-blue-500 rounded-full mx-auto border-2 border-white mb-1"></div>
@@ -363,11 +384,14 @@
     </div>
 
     <div id="subjects-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-black border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
+            <div class="wallet-badge">💰 <span id="header-balance">0</span></div>
+        </div>
         
         <div id="tournament-container" class="hidden">
-            <div class="tournament-banner" onclick="startTournament()">
-                🏆 Grand Turnirda qatnashish!
+            <div class="tournament-banner" onclick="showMenu('tournament')">
+                🏆 Grand Turnirlar Ochildi!
             </div>
         </div>
 
@@ -395,13 +419,7 @@
                     <select id="qAmount">
                         <option value="5">5 ta</option>
                         <option value="10">10 ta</option>
-                        <option value="15">15 ta</option>
                         <option value="20" selected>20 ta</option>
-                        <option value="25">25 ta</option>
-                        <option value="30">30 ta</option>
-                        <option value="35">35 ta</option>
-                        <option value="40">40 ta</option>
-                        <option value="45">45 ta</option>
                         <option value="50">50 ta</option>
                     </select>
                 </div>
@@ -409,19 +427,60 @@
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Daqiqa)</label>
                     <select id="qTime">
                         <option value="5">5 min</option>
-                        <option value="10">10 min</option>
                         <option value="15" selected>15 min</option>
-                        <option value="20">20 min</option>
-                        <option value="25">25 min</option>
                         <option value="30">30 min</option>
-                        <option value="35">35 min</option>
-                        <option value="40">40 min</option>
-                        <option value="45">45 min</option>
-                        <option value="50">50 min</option>
                     </select>
                 </div>
             </div>
             <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl text-black">🚀 Testni Boshlash</button>
+        </div>
+    </div>
+
+    <div id="tournament-screen" class="hidden p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-black border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Turnirlar</h2>
+            <div class="wallet-badge">💰 <span id="tournament-balance">0</span></div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="tournament-card" onclick="joinSpecificTournament(1000, 10, 'BRONZE')">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="bg-orange-900/50 text-orange-500 text-[10px] font-black px-2 py-1 rounded">BRONZE</span>
+                    <span class="text-gold font-black">1,000 UZS</span>
+                </div>
+                <h3 class="text-lg font-black uppercase italic">Mini Turnir</h3>
+                <p class="text-[10px] opacity-60 italic mb-4">10 kishi yig'ilsa start beriladi</p>
+                <div class="flex justify-between items-center text-[10px] font-bold opacity-80 uppercase">
+                    <span>Sovrin: 8,000 UZS</span>
+                    <span>Min: 10 ta</span>
+                </div>
+            </div>
+
+            <div class="tournament-card" onclick="joinSpecificTournament(5000, 30, 'SILVER')">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="bg-gray-500/50 text-gray-300 text-[10px] font-black px-2 py-1 rounded">SILVER</span>
+                    <span class="text-gold font-black">5,000 UZS</span>
+                </div>
+                <h3 class="text-lg font-black uppercase italic">Standart Turnir</h3>
+                <p class="text-[10px] opacity-60 italic mb-4">30 kishi yig'ilsa start beriladi</p>
+                <div class="flex justify-between items-center text-[10px] font-bold opacity-80 uppercase">
+                    <span>Sovrin: 120,000 UZS</span>
+                    <span>Min: 30 ta</span>
+                </div>
+            </div>
+
+            <div class="tournament-card" onclick="joinSpecificTournament(10000, 100, 'GOLD')">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="bg-yellow-500/20 text-yellow-500 text-[10px] font-black px-2 py-1 rounded">GOLD</span>
+                    <span class="text-gold font-black">10,000 UZS</span>
+                </div>
+                <h3 class="text-lg font-black uppercase italic">Mega Turnir</h3>
+                <p class="text-[10px] opacity-60 italic mb-4">100 kishi yig'ilsa start beriladi</p>
+                <div class="flex justify-between items-center text-[10px] font-bold opacity-80 uppercase">
+                    <span>Sovrin: 800,000 UZS</span>
+                    <span>Min: 100 ta</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -441,15 +500,7 @@
                 <select id="duelSubject">
                     <option value="Matematika">Matematika</option>
                     <option value="Fizika">Fizika</option>
-                    <option value="Kimyo">Kimyo</option>
-                    <option value="Ona_tili">Ona tili</option>
-                    <option value="Adabiyot">Adabiyot</option>
-                    <option value="Geografiya">Geografiya</option>
-                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
-                    <option value="Jahon_tarixi">Jahon tarixi</option>
                     <option value="Ingliz_tili">Ingliz tili</option>
-                    <option value="Rus_tili">Rus tili</option>
-                    <option value="Biologiya">Biologiya</option>
                     <option value="IQ_testlar">IQ testlar</option>
                 </select>
             </div>
@@ -458,30 +509,15 @@
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar</label>
                     <select id="duelQAmount">
                         <option value="5">5 ta</option>
-                        <option value="10">10 ta</option>
-                        <option value="15">15 ta</option>
-                        <option value="20" selected>20 ta</option>
-                        <option value="25">25 ta</option>
-                        <option value="30">30 ta</option>
-                        <option value="35">35 ta</option>
-                        <option value="40">40 ta</option>
-                        <option value="45">45 ta</option>
-                        <option value="50">50 ta</option>
+                        <option value="10" selected>10 ta</option>
+                        <option value="20">20 ta</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Min)</label>
                     <select id="duelQTime">
                         <option value="5">5 min</option>
-                        <option value="10">10 min</option>
-                        <option value="15" selected>15 min</option>
-                        <option value="20">20 min</option>
-                        <option value="25">25 min</option>
-                        <option value="30">30 min</option>
-                        <option value="35">35 min</option>
-                        <option value="40">40 min</option>
-                        <option value="45">45 min</option>
-                        <option value="50">50 min</option>
+                        <option value="10" selected>10 min</option>
                     </select>
                 </div>
             </div>
@@ -589,6 +625,7 @@
     <div id="profile-screen" class="hidden p-6 text-center">
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
         <div class="premium-card p-8 mb-6 shadow-xl relative">
+            <div class="absolute top-4 right-4 wallet-badge" style="font-size: 12px;">💰 <span id="profile-balance">0</span></div>
             <div class="profile-img-container">
                 <img src="" id="userProfileImg" alt="Avatar">
             </div>
@@ -597,7 +634,6 @@
             <div id="profAgeInfo" class="text-sm opacity-80 mb-6 space-y-1">
                 <p id="profBirthdayText"></p>
                 <p id="profAgeText" class="font-black"></p>
-                <p id="profDaysLeft" class="text-xs italic text-yellow-500"></p>
             </div>
             <button onclick="openEditModal()" class="w-full p-4 rounded-2xl border border-yellow-500/30 text-yellow-500 font-black uppercase italic text-xs mb-8 transition hover:bg-yellow-500/10">Profilni tahrirlash</button>
             
@@ -621,10 +657,10 @@
 
     <nav id="main-nav" class="hidden fixed bottom-0 left-0 right-0 bg-inherit border-t border-yellow-500/20 px-4 py-4 flex justify-around backdrop-blur-xl z-50">
         <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav"><span class="text-2xl">📚</span><span>TESTLAR</span></button>
+        <button onclick="showMenu('tournament')" id="nav-tournament" class="nav-btn"><span class="text-2xl">🏆</span><span>TURNIR</span></button>
         <button onclick="showMenu('duel-menu')" id="nav-duel-menu" class="nav-btn"><span class="text-2xl">⚔️</span><span>DUEL</span></button>
-        <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn"><span class="text-2xl">🏆</span><span>REYTING</span></button>
+        <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn"><span class="text-2xl">📊</span><span>REYTING</span></button>
         <button onclick="showMenu('profile')" id="nav-profile" class="nav-btn"><span class="text-2xl">👤</span><span>PROFIL</span></button>
-        <button onclick="showMenu('settings')" id="nav-settings" class="nav-btn"><span class="text-2xl">⚙️</span><span>SOZLAMALAR</span></button>
     </nav>
 
     <script type="module">
@@ -651,7 +687,7 @@
         let currentDuelRoom = null;
         let tempBase64Photo = "";
         let introInterval;
-        let tournamentSub = null; // Turnir uchun listenerni saqlash
+        let tournamentSub = null;
 
         const tg = window.Telegram.WebApp;
         const tgUser = tg.initDataUnsafe?.user;
@@ -672,10 +708,20 @@
                 checkUpdateNotification();
                 checkTournamentStatus();
                 updatePresence();
+                syncBalance();
             }
         };
 
-        // USER PRESENCE (Onlayn hisoblagich uchun)
+        function syncBalance() {
+            if(!currentUser) return;
+            onValue(ref(db, `users/${currentUser.userId}/balance`), (snap) => {
+                const bal = snap.val() || 0;
+                document.getElementById('header-balance').innerText = bal.toLocaleString();
+                document.getElementById('profile-balance').innerText = bal.toLocaleString();
+                document.getElementById('tournament-balance').innerText = bal.toLocaleString();
+            });
+        }
+
         function updatePresence() {
             if(!currentUser) return;
             const myPresenceRef = ref(db, `online_users/${currentUser.userId}`);
@@ -686,7 +732,7 @@
         window.previewImage = (input) => {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = (e) => {
                     tempBase64Photo = e.target.result;
                     document.getElementById('editPreviewImg').src = tempBase64Photo;
                 }
@@ -703,75 +749,60 @@
             document.getElementById('edit-profile-modal').classList.remove('hidden');
         };
 
-        window.closeEditModal = () => {
-            document.getElementById('edit-profile-modal').classList.add('hidden');
-        };
+        window.closeEditModal = () => document.getElementById('edit-profile-modal').classList.add('hidden');
 
         window.saveProfileChanges = async () => {
             const f = document.getElementById('editFirstName').value.trim();
             const l = document.getElementById('editLastName').value.trim();
             const b = document.getElementById('editBirth').value;
-            
-            if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
-
-            const userRef = ref(db, 'users/' + currentUser.userId);
-            
-            const updatedData = {
-                ...currentUser,
-                fName: f,
-                lName: l,
-                birth: b,
-                photo: tempBase64Photo || currentUser.photo
-            };
-
-            await update(userRef, updatedData);
+            if(!f || !l || !b) return alert("Barcha qatorlarni to'ldiring!");
+            const updatedData = { ...currentUser, fName: f, lName: l, birth: b, photo: tempBase64Photo || currentUser.photo };
+            await update(ref(db, 'users/' + currentUser.userId), updatedData);
             localStorage.setItem('quizUser', JSON.stringify(updatedData));
             currentUser = updatedData;
-            
             closeEditModal();
             loadProfile();
-            tg.HapticFeedback.notificationOccurred('success');
             alert("Profil yangilandi!");
         };
 
-        // TOURNAMENT LOGIC (UPDATED WITH 30 USERS CHECK)
         async function checkTournamentStatus() {
             onValue(ref(db, 'active_tournament'), (snap) => {
                 const data = snap.val();
-                if(data && data.active) {
-                    document.getElementById('tournament-container').classList.remove('hidden');
-                } else {
-                    document.getElementById('tournament-container').classList.add('hidden');
-                }
+                if(data && data.active) document.getElementById('tournament-container').classList.remove('hidden');
+                else document.getElementById('tournament-container').classList.add('hidden');
             });
         }
 
         window.cancelTournamentWaiting = () => {
-            if(tournamentSub) tournamentSub(); // Stop listening
+            if(tournamentSub) tournamentSub();
             document.getElementById('tournament-waiting-modal').classList.add('hidden');
         };
 
-        window.startTournament = async () => {
-            // Avval onlayn foydalanuvchilar sonini kuzatishni boshlaymiz
+        window.joinSpecificTournament = async (price, target, type) => {
+            const userSnap = await get(ref(db, `users/${currentUser.userId}/balance`));
+            const currentBal = userSnap.val() || 0;
+            if(currentBal < price) return alert("Mablag' yetarli emas! Iltimos balansingizni to'ldiring.");
+
+            if(!confirm(`${price} UZS evaziga ${type} turnirga qo'shilmoqchimisiz?`)) return;
+
+            // Balance deduction
+            await update(ref(db, `users/${currentUser.userId}`), { balance: currentBal - price });
+            
+            document.getElementById('target-count').innerText = target;
             document.getElementById('tournament-waiting-modal').classList.remove('hidden');
             
-            const onlineRef = ref(db, 'online_users');
-            tournamentSub = onValue(onlineRef, async (onlineSnap) => {
+            tournamentSub = onValue(ref(db, 'online_users'), async (onlineSnap) => {
                 const onlineCount = onlineSnap.exists() ? Object.keys(onlineSnap.val()).length : 0;
                 document.getElementById('online-count').innerText = onlineCount;
 
-                if (onlineCount >= 30) {
-                    // Agar 30 kishi to'plansa, turnir ma'lumotlarini olamiz
+                if (onlineCount >= target) {
                     const snap = await get(ref(db, 'active_tournament'));
                     if(snap.exists() && snap.val().active) {
-                        // Listenerni to'xtatamiz
                         if(tournamentSub) tournamentSub();
                         document.getElementById('tournament-waiting-modal').classList.add('hidden');
-                        
-                        const tournament = snap.val();
-                        testQuestions = tournament.questions;
+                        testQuestions = snap.val().questions;
                         currentQIndex = 0; score = 0; userTestLogs = [];
-                        window.currentMeta = { subj: "Grand Tournament", amount: testQuestions.length, time: 20 };
+                        window.currentMeta = { subj: `${type} Tournament`, amount: testQuestions.length, time: 20 };
                         showMenu('quiz');
                         startTimer(20 * 60);
                         loadQuestion();
@@ -781,13 +812,8 @@
             });
         };
 
-        // INTRO FUNCTIONS
         async function runIntroAnimation() {
-            const subjects = [
-                "Matematika", "Fizika", "Kimyo", "Ona_tili", "Adabiyot", 
-                "Geografiya", "Uzbekiston_tarixi", "Jahon_tarixi", 
-                "Ingliz_tili", "Rus_tili", "Biologiya", "IQ_testlar"
-            ];
+            const subjects = ["Matematika", "Fizika", "Ingliz_tili"];
             let subIdx = 0;
             const subNameEl = document.getElementById('intro-subject-name');
             const qTextEl = document.getElementById('intro-question-text');
@@ -796,282 +822,156 @@
             const updateMock = async () => {
                 const sub = subjects[subIdx];
                 subNameEl.innerText = sub.replace(/_/g, ' ');
-                
                 const snap = await get(ref(db, `fanlar/${sub}`));
                 if (snap.exists()) {
-                    const qArr = snap.val();
-                    const q = qArr[0];
+                    const q = snap.val()[0];
                     qTextEl.innerText = q.q;
-                    optionsEl.innerHTML = q.a.map((ans, i) => `
-                        <div class="mock-option ${i === q.c ? 'mock-correct' : ''}">${ans}</div>
-                    `).join('');
+                    optionsEl.innerHTML = q.a.map((ans, i) => `<div class="mock-option ${i === q.c ? 'mock-correct' : ''}">${ans}</div>`).join('');
                 }
                 subIdx = (subIdx + 1) % subjects.length;
             };
-
             updateMock();
             introInterval = setInterval(updateMock, 2000);
         }
 
-        window.finishIntro = () => {
-            clearInterval(introInterval);
-            showMenu('subjects');
-        };
-
+        window.finishIntro = () => { clearInterval(introInterval); showMenu('subjects'); };
         window.nextIntro = (step) => {
             if (step === 1) runIntroAnimation();
-            [1, 2, 3, 4].forEach(i => {
-                const el = document.getElementById('intro-step-' + i);
-                if(el) el.classList.add('hidden');
-            });
-            const next = document.getElementById('intro-step-' + step);
-            if(next) {
-                next.classList.remove('hidden');
-                tg.HapticFeedback.impactOccurred('light');
-            }
+            [1, 2, 3, 4].forEach(i => document.getElementById('intro-step-' + i)?.classList.add('hidden'));
+            document.getElementById('intro-step-' + step)?.classList.remove('hidden');
         };
 
         window.showDuelCreate = () => showMenu('duel-create');
         window.showDuelJoin = () => showMenu('duel-join');
-
         window.copyDuelCode = () => {
-            const code = document.getElementById('generated-code').innerText;
-            navigator.clipboard.writeText(code);
-            tg.HapticFeedback.notificationOccurred('success');
-            alert("O'yin kodi nusxalandi!");
+            navigator.clipboard.writeText(document.getElementById('generated-code').innerText);
+            alert("Nusxalandi!");
         };
 
         function checkUpdateNotification() {
-            const lastVersionSeen = localStorage.getItem('last_update_v1');
-            if (!lastVersionSeen) {
-                document.getElementById('updates-overlay').classList.remove('hidden');
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            }
+            if (!localStorage.getItem('last_update_v1')) document.getElementById('updates-overlay').classList.remove('hidden');
         }
-
-        window.closeUpdates = () => {
-            localStorage.setItem('last_update_v1', 'seen');
-            document.getElementById('updates-overlay').classList.add('hidden');
-        };
+        window.closeUpdates = () => { localStorage.setItem('last_update_v1', 'seen'); document.getElementById('updates-overlay').classList.add('hidden'); };
 
         async function generateDuelRoom() {
             const subj = document.getElementById('duelSubject').value;
             const amount = parseInt(document.getElementById('duelQAmount').value);
             const time = parseInt(document.getElementById('duelQTime').value);
             const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
-            
             document.getElementById('generated-code').innerText = roomCode;
             document.getElementById('room-code-area').classList.remove('hidden');
-
             const questions = await getRandomQuestions(subj, amount);
-            const roomData = {
-                code: roomCode,
-                subj: subj,
-                amount: amount,
-                time: time,
-                p1: currentUser,
-                status: 'waiting',
-                questions: questions,
-                p1Score: -1,
-                p2Score: -1
-            };
-
+            const roomData = { code: roomCode, subj, amount, time, p1: currentUser, status: 'waiting', questions, p1Score: -1, p2Score: -1 };
             await set(ref(db, `duel_rooms/${roomCode}`), roomData);
             onDisconnect(ref(db, `duel_rooms/${roomCode}`)).remove();
-
             onValue(ref(db, `duel_rooms/${roomCode}`), (snap) => {
                 const data = snap.val();
-                if (data && data.status === 'starting' && !currentDuelRoom) {
-                    currentDuelRoom = roomCode;
-                    startDuelUI(data);
-                }
-                if (data && data.p1Score !== -1 && data.p2Score !== -1) {
-                    finalizeDuel(data);
-                }
+                if (data && data.status === 'starting' && !currentDuelRoom) { currentDuelRoom = roomCode; startDuelUI(data); }
+                if (data && data.p1Score !== -1 && data.p2Score !== -1) finalizeDuel(data);
             });
         }
 
         async function joinDuelRoom() {
             const code = document.getElementById('join-code-input').value.trim();
-            if (code.length !== 6) return alert("6 xonali kodni kiriting!");
-            const roomRef = ref(db, `duel_rooms/${code}`);
-            const snap = await get(roomRef);
-            if (snap.exists()) {
-                const data = snap.val();
-                if (data.status !== 'waiting') return alert("Xona band yoki o'yin boshlangan!");
-                await update(roomRef, { p2: currentUser, status: 'starting' });
+            const snap = await get(ref(db, `duel_rooms/${code}`));
+            if (snap.exists() && snap.val().status === 'waiting') {
+                await update(ref(db, `duel_rooms/${code}`), { p2: currentUser, status: 'starting' });
                 currentDuelRoom = code;
-                onValue(roomRef, (s) => {
-                    const d = s.val();
-                    if (d && d.p1Score !== -1 && d.p2Score !== -1) {
-                        finalizeDuel(d);
-                    }
-                });
-                startDuelUI(data);
-            } else { alert("O'yin kodi topilmadi!"); }
+                onValue(ref(db, `duel_rooms/${code}`), (s) => { if (s.val()?.p1Score !== -1 && s.val()?.p2Score !== -1) finalizeDuel(s.val()); });
+                startDuelUI(snap.val());
+            } else alert("Xona topilmadi!");
         }
 
         function startDuelUI(room) {
             showMenu('duel-vs');
-            const isP1 = room.p1.userId === currentUser.userId;
-            const opp = isP1 ? room.p2 : room.p1;
+            const opp = room.p1.userId === currentUser.userId ? room.p2 : room.p1;
             document.getElementById('duel-my-img').src = currentUser.photo;
-            document.getElementById('duel-opp-img').src = opp ? opp.photo : "https://ui-avatars.com/api/?name=Raqib&background=333&color=fff";
-            document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "RAQIB";
+            document.getElementById('duel-opp-img').src = opp ? opp.photo : getAvatarUrl("R", "Q");
+            document.getElementById('duel-opp-name').innerText = opp ? opp.fName : "RAQIB";
             let count = 3;
-            const cdInterval = setInterval(() => {
-                count--;
-                document.getElementById('duel-countdown').innerText = `O'yin boshlanadi: ${count}...`;
-                if (count <= 0) {
-                    clearInterval(cdInterval);
-                    testQuestions = room.questions;
-                    window.currentMeta = { subj: room.subj + " (Duel)", amount: room.amount, time: room.time };
-                    isDuelMode = true;
-                    showMenu('quiz');
-                    startTimer(room.time * 60);
-                    loadQuestion();
-                }
+            const cd = setInterval(() => {
+                count--; document.getElementById('duel-countdown').innerText = `Boshlanadi: ${count}...`;
+                if (count <= 0) { clearInterval(cd); testQuestions = room.questions; window.currentMeta = { subj: room.subj, amount: room.amount, time: room.time }; isDuelMode = true; showMenu('quiz'); startTimer(room.time * 60); loadQuestion(); }
             }, 1000);
         }
 
-        async function finalizeDuel(room) {
+        function finalizeDuel(room) {
             showMenu('duel-result');
             const isP1 = room.p1.userId === currentUser.userId;
-            const myFinal = isP1 ? room.p1Score : room.p2Score;
-            const oppFinal = isP1 ? room.p2Score : room.p1Score;
-            document.getElementById('duel-my-final-score').innerText = myFinal;
-            document.getElementById('duel-opp-final-score').innerText = oppFinal;
-            const statusText = document.getElementById('duel-final-status');
-            if (myFinal > oppFinal) {
-                statusText.innerText = "G'ALABA!";
-                statusText.style.color = "#FFD700";
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            } else if (myFinal < oppFinal) {
-                statusText.innerText = "MAG'LUBIYAT";
-                statusText.style.color = "#ef4444";
-            } else {
-                statusText.innerText = "DURANG";
-                statusText.style.color = "gray";
-            }
+            const my = isP1 ? room.p1Score : room.p2Score;
+            const op = isP1 ? room.p2Score : room.p1Score;
+            document.getElementById('duel-my-final-score').innerText = my;
+            document.getElementById('duel-opp-final-score').innerText = op;
+            const st = document.getElementById('duel-final-status');
+            st.innerText = my > op ? "G'ALABA!" : (my < op ? "MAG'LUBIYAT" : "DURANG");
+            if(my > op) confetti({ particleCount: 100 });
         }
 
         async function getRandomQuestions(subj, amount) {
             const snap = await get(ref(db, 'fanlar/' + subj));
-            if (!snap.exists()) return [];
-            return snap.val().sort(() => 0.5 - Math.random()).slice(0, amount);
+            return snap.exists() ? snap.val().sort(() => 0.5 - Math.random()).slice(0, amount) : [];
         }
 
         function listenForAdminMessages() {
-            const notifyRef = ref(db, 'global_notification');
-            onValue(notifyRef, (snapshot) => {
+            onValue(ref(db, 'global_notification'), (snapshot) => {
                 if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const lastSeen = localStorage.getItem('last_notify_time');
-                    if (!lastSeen || parseInt(lastSeen) < data.timestamp) {
-                        showAdminModal(data.title, data.message, data.timestamp);
+                    const d = snapshot.val();
+                    if (!localStorage.getItem('last_notify_time') || parseInt(localStorage.getItem('last_notify_time')) < d.timestamp) {
+                        const html = `<div id="adm-not" class="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center p-6"><div class="premium-card p-8 text-center border-2 border-gold max-w-sm"><h2 class="text-xl font-black text-gold uppercase mb-3">${d.title}</h2><p class="text-sm opacity-90 mb-8 italic">${d.message}</p><button onclick="this.parentElement.parentElement.remove(); localStorage.setItem('last_notify_time', ${d.timestamp})" class="gold-button w-full p-4 rounded-xl text-black font-black uppercase">OK</button></div></div>`;
+                        document.body.insertAdjacentHTML('beforeend', html);
                     }
                 }
             });
         }
 
-        function showAdminModal(title, message, time) {
-            const modalHtml = `
-                <div id="admin-notify-overlay" class="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center p-6 backdrop-blur-sm">
-                    <div class="premium-card p-8 text-center border-2 border-gold shadow-[0_0_50px_rgba(255,215,0,0.2)] animate-slide max-w-sm">
-                        <div class="text-5xl mb-4">📢</div>
-                        <h2 class="text-xl font-black text-gold uppercase mb-3 tracking-tighter">${title}</h2>
-                        <p class="text-sm opacity-90 mb-8 leading-relaxed italic">"${message}"</p>
-                        <button onclick="closeAdminNotify(${time})" class="gold-button w-full p-4 rounded-xl text-black font-black uppercase">Tushunarli</button>
-                    </div>
-                </div>`;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-
-        window.closeAdminNotify = (time) => {
-            localStorage.setItem('last_notify_time', time);
-            const modal = document.getElementById('admin-notify-overlay');
-            if(modal) modal.remove();
-        };
-
         function checkBirthday() {
-            if(!currentUser) return;
-            const bDate = new Date(currentUser.birth);
-            const today = new Date();
-            if (today.getMonth() === bDate.getMonth() && today.getDate() === bDate.getDate()) {
+            const b = new Date(currentUser.birth); const t = new Date();
+            if (t.getMonth() === b.getMonth() && t.getDate() === b.getDate()) {
                 document.getElementById('bday-user-name').innerText = currentUser.fName;
                 document.getElementById('bday-overlay').classList.remove('hidden');
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                confetti({ particleCount: 150 });
             }
         }
-
-        window.closeBday = () => { document.getElementById('bday-overlay').classList.add('hidden'); };
+        window.closeBday = () => document.getElementById('bday-overlay').classList.add('hidden');
 
         function register() {
             const f = document.getElementById('firstName').value.trim();
             const l = document.getElementById('lastName').value.trim();
             const b = document.getElementById('birthDay').value;
-            if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
+            if(!f || !l || !b) return alert("To'ldiring!");
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const photoUrl = getAvatarUrl(f, l);
-            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
-            
-            localStorage.setItem('last_update_v1', 'seen');
-            
+            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: getAvatarUrl(f, l), balance: 0 };
             set(ref(db, 'users/' + userId), userData).then(() => {
                 localStorage.setItem('quizUser', JSON.stringify(userData));
                 currentUser = userData;
-                updatePresence();
-                document.getElementById('auth-screen').classList.add('hidden');
-                showMenu('intro');
-                checkBirthday();
-                listenForAdminMessages();
-                checkTournamentStatus();
+                location.reload();
             });
         }
 
         function showMenu(screen) {
-            clearInterval(timerInterval);
-            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result', 'duel-menu', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'];
+            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result', 'duel-menu', 'duel-create', 'duel-join', 'duel-vs', 'duel-result', 'tournament'];
             screens.forEach(s => {
-                const el = document.getElementById(s + '-screen');
-                if(el) el.classList.add('hidden');
-                const nav = document.getElementById('nav-' + s);
-                if(nav) nav.classList.remove('active-nav');
-                const navAlt = document.getElementById('nav-duel-menu');
-                if(navAlt) navAlt.classList.remove('active-nav');
+                document.getElementById(s + (s.includes('screen') ? '' : '-screen'))?.classList.add('hidden');
+                document.getElementById('nav-' + s)?.classList.remove('active-nav');
             });
-            const target = document.getElementById(screen + '-screen');
-            if(target) target.classList.remove('hidden');
-
-            if (['quiz', 'auth', 'intro', 'analysis', 'result', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'].includes(screen)) {
-                document.getElementById('main-nav').classList.add('hidden');
-            } else {
-                document.getElementById('main-nav').classList.remove('hidden');
-                if(screen === 'duel-menu') document.getElementById('nav-duel-menu').classList.add('active-nav');
-                else {
-                    const activeNav = document.getElementById('nav-' + screen);
-                    if(activeNav) activeNav.classList.add('active-nav');
-                }
-            }
-            if(screen === 'intro') runIntroAnimation();
+            document.getElementById(screen + (screen.includes('screen') ? '' : '-screen'))?.classList.remove('hidden');
+            if (['quiz', 'auth', 'intro', 'analysis', 'result', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'].includes(screen)) document.getElementById('main-nav').classList.add('hidden');
+            else { document.getElementById('main-nav').classList.remove('hidden'); document.getElementById('nav-' + screen)?.classList.add('active-nav'); }
             if(screen === 'rating') loadRating();
             if(screen === 'profile') loadProfile();
         }
 
         async function startTest() {
-            isDuelMode = false;
             const subj = document.getElementById('selectedSubject').value;
             const amount = parseInt(document.getElementById('qAmount').value);
             const time = parseInt(document.getElementById('qTime').value);
-            const snapshot = await get(ref(db, 'fanlar/' + subj));
-            if(snapshot.exists()) {
-                testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, amount);
+            const snap = await get(ref(db, 'fanlar/' + subj));
+            if(snap.exists()) {
+                testQuestions = snap.val().sort(() => 0.5 - Math.random()).slice(0, amount);
                 currentQIndex = 0; score = 0; userTestLogs = [];
                 window.currentMeta = { subj, amount, time };
-                showMenu('quiz');
-                startTimer(time * 60);
-                loadQuestion();
-            } else alert("Bu fanda savollar topilmadi!");
+                showMenu('quiz'); startTimer(time * 60); loadQuestion();
+            }
         }
 
         function loadQuestion() {
@@ -1082,239 +982,121 @@
             document.getElementById('questionText').innerText = q.q;
             const optList = document.getElementById('optionsList');
             optList.innerHTML = "";
-            const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
-            opts.forEach(opt => {
+            q.a.forEach((text, idx) => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn font-medium bg-white/5 italic";
-                btn.innerText = opt.text;
+                btn.innerText = text;
                 btn.onclick = () => {
-                    const buttons = optList.querySelectorAll('button');
-                    buttons.forEach(b => b.onclick = null);
-                    userTestLogs.push({ question: q.q, selected: opt.text, correct: q.a[q.c], isRight: opt.isC });
-                    if(opt.isC) { btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; }
-                    else { 
-                        btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; 
-                        buttons.forEach(b => { if(b.innerText === q.a[q.c]) b.style.border = "2px solid #10b981"; });
-                    }
-                    setTimeout(() => { currentQIndex++; loadQuestion(); }, 1000);
+                    const isC = idx === q.c;
+                    userTestLogs.push({ question: q.q, selected: text, correct: q.a[q.c], isRight: isC });
+                    if(isC) { btn.style.backgroundColor = "#10b981"; score++; }
+                    else btn.style.backgroundColor = "#ef4444";
+                    setTimeout(() => { currentQIndex++; loadQuestion(); }, 800);
                 };
                 optList.appendChild(btn);
             });
         }
 
-        async function finishTest(isCompleted) {
+        async function finishTest(completed) {
             clearInterval(timerInterval);
-            if(isCompleted) {
+            if(completed) {
                 if (!isDuelMode) {
-                    const userKey = currentUser.userId.replace(/\./g, '_');
-                    const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
-                    const existingSnap = await get(ref(db, ratingPath));
-                    const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
-                    if(score >= currentBest) {
-                        const res = { userId: currentUser.userId, name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
-                        await set(ref(db, ratingPath), res);
+                    const path = `ratings/${window.currentMeta.subj}/${currentUser.userId}`;
+                    const snap = await get(ref(db, path));
+                    if(score >= (snap.val()?.score || -1)) {
+                        await set(ref(db, path), { userId: currentUser.userId, name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo, score });
                     }
-                    const percent = Math.round((score / window.currentMeta.amount) * 100);
-                    document.getElementById('resPercent').innerText = percent + "%";
+                    document.getElementById('resPercent').innerText = Math.round((score / window.currentMeta.amount) * 100) + "%";
                     document.getElementById('resCorrect').innerText = score;
                     document.getElementById('resWrong').innerText = window.currentMeta.amount - score;
-                    if(percent >= 60) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                     showMenu('result');
                 } else {
-                    const roomRef = ref(db, `duel_rooms/${currentDuelRoom}`);
-                    const roomSnap = await get(roomRef);
-                    const field = roomSnap.val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
-                    await update(roomRef, { [field]: score });
-                    document.getElementById('quiz-screen').innerHTML = `
-                        <div class="flex flex-col items-center justify-center min-h-screen text-center p-10">
-                            <div class="searching-loader"></div>
-                            <h2 class="text-xl font-bold italic text-gold animate-pulse uppercase">Match tugadi!</h2>
-                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kiting...</p>
-                        </div>`;
+                    const field = (await get(ref(db, `duel_rooms/${currentDuelRoom}`))).val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
+                    await update(ref(db, `duel_rooms/${currentDuelRoom}`), { [field]: score });
+                    document.getElementById('quiz-screen').innerHTML = `<div class='p-10 text-center'><div class='searching-loader'></div><h2 class='text-gold font-black'>Match tugadi! Raqib kutilmoqda...</h2></div>`;
                 }
-            } else { showMenu('subjects'); }
+            } else showMenu('subjects');
         }
 
         window.showAnalysis = () => {
             showMenu('analysis');
-            const list = document.getElementById('analysisList');
-            list.innerHTML = "";
+            const list = document.getElementById('analysisList'); list.innerHTML = "";
             userTestLogs.forEach((log, i) => {
-                const div = document.createElement('div');
-                div.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
-                div.innerHTML = `<p class="text-xs opacity-50 mb-1">Savol ${i+1}:</p><p class="font-bold text-sm mb-2">${log.question}</p><p class="text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'} italic">Sizning javobingiz: ${log.selected}</p>${!log.isRight ? `<p class="text-xs text-green-500 font-bold">To'g'ri javob: ${log.correct}</p>` : ''}`;
-                list.appendChild(div);
+                const d = document.createElement('div');
+                d.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
+                d.innerHTML = `<p class='text-xs opacity-50'>Savol ${i+1}:</p><p class='font-bold text-sm'>${log.question}</p><p class='text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'}'>Siz: ${log.selected}</p>${!log.isRight ? `<p class='text-xs text-green-500'>To'g'ri: ${log.correct}</p>` : ''}`;
+                list.appendChild(d);
             });
-        }
+        };
 
         async function loadRating() {
-            const rList = document.getElementById('ratingList');
-            rList.innerHTML = "<div class='text-center p-10 opacity-50'><div class='searching-loader'></div><p class='animate-pulse italic'>Reyting yangilanmoqda...</p></div>";
-            
-            try {
-                const [usersSnap, ratingsSnap] = await Promise.all([
-                    get(ref(db, 'users')),
-                    get(ref(db, 'ratings'))
-                ]);
-
-                if (usersSnap.exists()) {
-                    rList.innerHTML = "";
-                    const users = usersSnap.val();
-                    const ratings = ratingsSnap.exists() ? ratingsSnap.val() : {};
-                    let rankingData = [];
-
-                    Object.keys(users).forEach(uid => {
-                        const user = users[uid];
-                        let totalScore = 0;
-                        let userSubjects = {};
-
-                        Object.keys(ratings).forEach(subject => {
-                            const subRatings = ratings[subject];
-                            const userKey = uid.replace(/\./g, '_');
-                            if (subRatings[userKey]) {
-                                const scoreValue = parseInt(subRatings[userKey].score || 0);
-                                totalScore += scoreValue;
-                                userSubjects[subject] = scoreValue;
-                            }
-                        });
-
-                        rankingData.push({
-                            name: `${user.fName} ${user.lName}`,
-                            photo: user.photo,
-                            totalScore: totalScore,
-                            subjects: userSubjects
-                        });
-                    });
-
-                    rankingData.sort((a, b) => b.totalScore - a.totalScore);
-
-                    rankingData.forEach((user, i) => {
-                        const div = document.createElement('div');
-                        div.className = `premium-card p-5 animate-slide mb-5 border-l-4 ${i === 0 ? 'rank-1 border-gold' : 'border-gold/20'}`;
-                        
-                        let subjectsHtml = Object.entries(user.subjects).map(([subName, bestScore]) => 
-                            `<div class='flex justify-between items-center text-[10px] opacity-80 mt-1 italic pl-2 border-l border-gold/30'>
-                                <span>${subName.replace(/_/g, ' ')}</span>
-                                <span class='text-gold font-bold'>${bestScore} ball</span>
-                            </div>`
-                        ).join('');
-
-                        if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
-
-                        div.innerHTML = `
-                            <div class='flex items-start gap-4'>
-                                ${i === 0 ? '<span class="crown">👑</span>' : ''}
-                                <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo}" 
-                                     class="rank-img" 
-                                     onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff';">
-                                <div class="flex-1">
-                                    <p class='font-bold text-sm mb-1'>${user.name}</p>
-                                    <p class='text-[10px] text-gold uppercase font-black mb-3 italic tracking-wider'>Jami: ${user.totalScore} ball</p>
-                                    <div class="space-y-1 bg-black/20 p-2 rounded-lg">
-                                        ${subjectsHtml}
-                                    </div>
-                                </div>
-                            </div>`;
-                        rList.appendChild(div);
-                    });
-                } else {
-                    rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Foydalanuvchilar topilmadi</p></div>";
-                }
-            } catch (error) {
-                console.error("Rating load error:", error);
-                rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Yuklashda xatolik yuz berdi</p></div>";
+            const rList = document.getElementById('ratingList'); rList.innerHTML = "<div class='searching-loader'></div>";
+            const [uS, rS] = await Promise.all([get(ref(db, 'users')), get(ref(db, 'ratings'))]);
+            if(uS.exists()){
+                rList.innerHTML = "";
+                let data = [];
+                Object.keys(uS.val()).forEach(uid => {
+                    let total = 0;
+                    if(rS.exists()) Object.keys(rS.val()).forEach(s => { if(rS.val()[s][uid]) total += rS.val()[s][uid].score; });
+                    data.push({ name: uS.val()[uid].fName, photo: uS.val()[uid].photo, total });
+                });
+                data.sort((a,b) => b.total - a.total).forEach((u, i) => {
+                    const d = document.createElement('div');
+                    d.className = "premium-card p-4 flex items-center gap-4 mb-2";
+                    d.innerHTML = `<div class='rank-badge'>${i+1}</div><img src='${u.photo}' class='rank-img'><div><p class='font-bold'>${u.name}</p><p class='text-[10px] text-gold font-black'>Ball: ${u.total}</p></div>`;
+                    rList.appendChild(d);
+                });
             }
         }
 
         async function loadProfile() {
             document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
             document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
-            
-            const profileImg = document.getElementById('userProfileImg');
-            if(profileImg) {
-                profileImg.src = currentUser.photo;
-                profileImg.onerror = function() {
-                    this.src = getAvatarUrl(currentUser.fName, currentUser.lName);
-                };
-            }
-            
-            const bDate = new Date(currentUser.birth);
-            const today = new Date();
-            let age = today.getFullYear() - bDate.getFullYear();
-            if (today < new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate())) age--;
-            const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate());
-            if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
-            const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
-            document.getElementById('profBirthdayText').innerText = `Sana: ${bDate.toLocaleDateString('uz-UZ')}`;
-            document.getElementById('profAgeText').innerText = `Yosh: ${age} yosh`;
-            document.getElementById('profDaysLeft').innerText = (diff === 0 || diff === 365) ? "Bugun tug'ilgan kuningiz! 🥳" : `Tug'ilgan kuningizga ${diff} kun qoldi`;
-            const stats = document.getElementById('myStatsList');
-            stats.innerHTML = "";
-            const snap = await get(ref(db, `ratings`));
-            if(snap.exists()) {
-                const userKey = currentUser.userId.replace(/\./g, '_');
-                Object.keys(snap.val()).forEach(sub => {
-                    if (snap.val()[sub][userKey]) {
-                        const myBest = snap.val()[sub][userKey];
-                        const div = document.createElement('div');
-                        div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10 mb-2";
-                        div.innerHTML = `<span class="text-xs font-bold">${sub.replace(/_/g, ' ')}</span><span class="text-xs text-yellow-500 font-black">${myBest.score} ball</span>`;
-                        stats.appendChild(div);
-                    }
-                });
-            }
+            document.getElementById('userProfileImg').src = currentUser.photo;
+            const b = new Date(currentUser.birth);
+            document.getElementById('profBirthdayText').innerText = `Sana: ${b.toLocaleDateString()}`;
+            document.getElementById('profAgeText').innerText = `Yosh: ${new Date().getFullYear() - b.getFullYear()}`;
+            const stats = document.getElementById('myStatsList'); stats.innerHTML = "";
+            const s = await get(ref(db, 'ratings'));
+            if(s.exists()) Object.keys(s.val()).forEach(sub => {
+                if(s.val()[sub][currentUser.userId]) {
+                    const d = document.createElement('div'); d.className="flex justify-between p-3 bg-yellow-500/5 rounded-xl border border-yellow-500/10 mb-2";
+                    d.innerHTML = `<span class='text-xs font-bold'>${sub}</span><span class='text-xs text-gold font-black'>${s.val()[sub][currentUser.userId].score} ball</span>`;
+                    stats.appendChild(d);
+                }
+            });
         }
 
         function startTimer(s) {
             let t = s;
             timerInterval = setInterval(() => {
                 let m = Math.floor(t / 60); let sc = t % 60;
-                const timerEl = document.getElementById('timer');
-                if(timerEl) timerEl.innerText = `${m}:${sc<10?'0'+sc:sc}`;
-                if(t <= 0) { clearInterval(timerInterval); finishTest(true); }
-                t--;
+                document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
+                if(t-- <= 0) finishTest(true);
             }, 1000);
         }
 
         function toggleTheme() {
-            const isD = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isD ? 'dark' : 'light');
-            document.getElementById('theme-icon-auth').innerText = isD ? "☀️" : "🌙";
-            const themeIcon = document.getElementById('theme-icon');
-            if(themeIcon) themeIcon.innerText = isD ? "☀️" : "🌙";
+            const d = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', d ? 'dark' : 'light');
+            document.getElementById('theme-icon-auth').innerText = d ? "☀️" : "🌙";
+            if(document.getElementById('theme-icon')) document.getElementById('theme-icon').innerText = d ? "☀️" : "🌙";
         }
 
-        function applySavedTheme() {
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-mode');
-                document.getElementById('theme-icon-auth').innerText = "☀️";
-                const themeIcon = document.getElementById('theme-icon');
-                if(themeIcon) themeIcon.innerText = "☀️";
-            }
-        }
+        function applySavedTheme() { if(localStorage.getItem('theme') === 'dark') toggleTheme(); }
 
         async function logout() {
-            if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
-                const myPresenceRef = ref(db, `online_users/${currentUser.userId}`);
-                await remove(myPresenceRef);
+            if(confirm("Ma'lumotlar o'chadi. Rozimisiz?")) {
                 await remove(ref(db, 'users/' + currentUser.userId));
-                localStorage.clear();
-                location.reload();
+                localStorage.clear(); location.reload();
             }
         }
-
-        function confirmFinishTest() { if(confirm("Testni yakunlamoqchimisiz?")) finishTest(false); };
 
         window.showMenu = showMenu;
         window.register = register;
         window.startTest = startTest;
         window.toggleTheme = toggleTheme;
         window.logout = logout;
-        window.confirmFinishTest = confirmFinishTest;
-        window.loadRating = loadRating;
-        window.nextIntro = nextIntro;
-        window.finishIntro = finishIntro;
         window.showAnalysis = showAnalysis;
         window.generateDuelRoom = generateDuelRoom;
         window.joinDuelRoom = joinDuelRoom;
@@ -1323,7 +1105,10 @@
         window.openEditModal = openEditModal;
         window.closeEditModal = closeEditModal;
         window.saveProfileChanges = saveProfileChanges;
-        window.startTournament = startTournament;
+        window.joinSpecificTournament = joinSpecificTournament;
+        window.cancelTournamentWaiting = cancelTournamentWaiting;
+        window.nextIntro = nextIntro;
+        window.finishIntro = finishIntro;
     </script>
 </body>
 </html>
