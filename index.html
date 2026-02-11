@@ -183,53 +183,31 @@
             cursor: pointer;
         }
         
-        .waiting-text {
-            font-size: 12px;
-            text-transform: uppercase;
-            font-weight: 900;
-            letter-spacing: 1px;
-            margin-top: 5px;
-        }
-
-        /* Wallet & Tournament Specific Styles */
-        .wallet-badge {
-            background: rgba(255, 215, 0, 0.1);
+        /* Hamyon va Turnir uchun maxsus stillar */
+        .wallet-card {
+            background: linear-gradient(135deg, #1a1a1a, #333);
             border: 1px solid var(--gold);
-            padding: 5px 15px;
-            border-radius: 50px;
-            font-weight: 900;
-            color: var(--gold);
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .tournament-card {
-            background: var(--card);
-            border: 2px solid rgba(255, 215, 0, 0.2);
             border-radius: 20px;
             padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tier-card {
+            background: var(--card);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 15px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
+            transition: transform 0.2s;
         }
+        .tier-card:active { transform: scale(0.98); }
 
-        .tournament-card:active { transform: scale(0.98); }
-
-        .tier-badge {
-            font-size: 10px;
-            padding: 2px 10px;
-            border-radius: 5px;
-            font-weight: 900;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-
-        .tier-bronze { background: #cd7f32; color: white; }
-        .tier-silver { background: #c0c0c0; color: black; }
-        .tier-gold { background: #ffd700; color: black; }
+        .tier-bronze { border-left: 5px solid #cd7f32; }
+        .tier-silver { border-left: 5px solid #c0c0c0; }
+        .tier-gold { border-left: 5px solid #ffd700; }
     </style>
 </head>
 <body class="pb-24">
@@ -238,10 +216,10 @@
         <div class="premium-card p-8 text-center shadow-2xl max-w-sm border-2 border-gold">
             <div class="searching-loader"></div>
             <h2 class="text-xl font-black text-gold uppercase italic mb-2">Turnir kutilmoqda</h2>
-            <p class="text-xs opacity-70 mb-6 italic">Savollar yuklanishi uchun ishtirokchilar to'planishi kerak.</p>
+            <p class="text-xs opacity-70 mb-6 italic">Savollar yuklanishi uchun kerakli ishtirokchilar to'planishi kerak.</p>
             
             <div class="bg-black/40 p-4 rounded-xl mb-6">
-                <p class="text-[10px] uppercase opacity-50 font-bold mb-1">Hozir onlayn:</p>
+                <p class="text-[10px] uppercase opacity-50 font-bold mb-1">Hozir navbatda:</p>
                 <div class="text-4xl font-black text-gold italic"><span id="online-count">0</span> / <span id="target-count">30</span></div>
             </div>
             
@@ -256,17 +234,17 @@
             
             <div class="space-y-6 text-left mb-8">
                 <div class="update-item flex items-center gap-4">
-                    <div class="text-4xl">🏆</div>
+                    <div class="text-4xl">💰</div>
                     <div>
-                        <h4 class="font-black uppercase text-xs text-gold">1. Pullik Turnirlar</h4>
-                        <p class="text-[11px] opacity-70 italic">Balansingizni to'ldiring va sovrinli turnirlarda ishtirok eting!</p>
+                        <h4 class="font-black uppercase text-xs text-gold">1. Shaxsiy Hamyon</h4>
+                        <p class="text-[11px] opacity-70 italic">Endi sizda shaxsiy balans mavjud. Balansingizni to'ldirib turnirlarda qatnashing!</p>
                     </div>
                 </div>
                 <div class="update-item flex items-center gap-4">
-                    <div class="text-4xl">💰</div>
+                    <div class="text-4xl">🏆</div>
                     <div>
-                        <h4 class="font-black uppercase text-xs text-gold">2. Shaxsiy Hamyon</h4>
-                        <p class="text-[11px] opacity-70 italic">Kirish pullari va yutuqlaringiz uchun maxsus hamyon ochildi.</p>
+                        <h4 class="font-black uppercase text-xs text-gold">2. Pullik Turnirlar</h4>
+                        <p class="text-[11px] opacity-70 italic">Bronze, Silver va Gold turnirlarida bilimingizni sinab ko'ring va sovrin yuting!</p>
                     </div>
                 </div>
             </div>
@@ -361,7 +339,7 @@
             <div class="premium-card p-6 text-center border-gold/50 border-2">
                 <span class="intro-feature-icon">🏆</span>
                 <h2 class="text-2xl font-black text-gold uppercase mb-4">2. Turnirlar</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Haftalik umumiy turnirlarda qatnashing, eng yuqori natijani qayd eting va maxsus unvonlarga ega bo'ling!</p>
+                <p class="text-xs opacity-70 mb-6 italic">Turnirlarda qatnashing, eng yuqori natijani qayd eting va sovrin yuting!</p>
                 <div class="tournament-banner text-xs">Turnirda ishtirok etish</div>
                 <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
             </div>
@@ -390,22 +368,27 @@
         <div id="intro-step-4" class="hidden animate-slide">
             <div class="premium-card p-6 text-center border-gold/50 border-2">
                 <span class="intro-feature-icon">👤</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">4. Profil & Reyting</h2>
-                <p class="text-xs opacity-70 mb-6 italic">O'z natijalaringizni kuzating va dunyo reytingida o'rningizni ko'ring.</p>
+                <h2 class="text-2xl font-black text-gold uppercase mb-4">4. Profil & Hamyon</h2>
+                <p class="text-xs opacity-70 mb-6 italic">Balansingizni kuzating va dunyo reytingida o'rningizni ko'ring.</p>
                 <button onclick="finishIntro()" class="gold-button w-full p-4 rounded-xl text-black">Boshladik!</button>
             </div>
         </div>
     </div>
 
     <div id="subjects-screen" class="hidden p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
-            <div class="wallet-badge">💰 <span id="header-balance">0</span></div>
-        </div>
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
         
+        <div class="wallet-card">
+            <div>
+                <p class="text-[10px] text-white/50 uppercase font-bold">Balansingiz</p>
+                <p class="text-2xl font-black text-gold"><span id="user-balance-display">0</span> UZS</p>
+            </div>
+            <button class="bg-gold text-black text-[10px] font-black px-4 py-2 rounded-lg">TO'LDIRISH</button>
+        </div>
+
         <div id="tournament-container" class="hidden">
             <div class="tournament-banner" onclick="showMenu('tournament')">
-                🏆 Turnirlarda qatnashish!
+                🏆 Grand Turnirlar Ochildi!
             </div>
         </div>
 
@@ -432,8 +415,9 @@
                     <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar soni</label>
                     <select id="qAmount">
                         <option value="5">5 ta</option>
-                        <option value="10" selected>10 ta</option>
-                        <option value="20">20 ta</option>
+                        <option value="10">10 ta</option>
+                        <option value="15">15 ta</option>
+                        <option value="20" selected>20 ta</option>
                         <option value="50">50 ta</option>
                     </select>
                 </div>
@@ -451,62 +435,44 @@
     </div>
 
     <div id="tournament-screen" class="hidden p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Turnirlar</h2>
-            <div class="wallet-badge">💰 <span id="tournament-balance">0</span></div>
-        </div>
-
+        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Turnirlar</h2>
+        
         <div class="space-y-4">
-            <div class="tournament-card" onclick="joinSpecificTournament(1000, 10, 'Bronze')">
-                <span class="tier-badge tier-bronze">Bronze</span>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <h3 class="text-lg font-black uppercase italic">Kichik Turnir</h3>
-                        <p class="text-[10px] opacity-60">Kamida 10 kishi kutiladi</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] uppercase font-bold opacity-50">Kirish</p>
-                        <p class="text-gold font-black">1,000 UZS</p>
-                    </div>
+            <div class="tier-card tier-bronze" onclick="joinTierTournament(1000, 10, 'BRONZE')">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black uppercase text-orange-400">Bronze Toifa</span>
+                    <span class="text-gold font-bold">1,000 UZS</span>
                 </div>
-                <div class="mt-4 flex justify-between text-[10px] font-bold uppercase opacity-80 border-t border-gold/10 pt-3">
-                    <span>Sovrin: 8,000 UZS</span>
+                <h4 class="text-lg font-black italic mb-1 uppercase">Kichik Turnir</h4>
+                <p class="text-[10px] opacity-60 mb-4 italic">Navbat: 10 ta ishtirokchi</p>
+                <div class="flex justify-between text-[10px] font-bold opacity-80 uppercase">
+                    <span>Yutuq: 8,000 UZS</span>
                     <span>Savollar: 10 ta</span>
                 </div>
             </div>
 
-            <div class="tournament-card" onclick="joinSpecificTournament(5000, 30, 'Silver')">
-                <span class="tier-badge tier-silver">Silver</span>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <h3 class="text-lg font-black uppercase italic">O'rta Turnir</h3>
-                        <p class="text-[10px] opacity-60">Kamida 30 kishi kutiladi</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] uppercase font-bold opacity-50">Kirish</p>
-                        <p class="text-gold font-black">5,000 UZS</p>
-                    </div>
+            <div class="tier-card tier-silver" onclick="joinTierTournament(5000, 30, 'SILVER')">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black uppercase text-gray-400">Silver Toifa</span>
+                    <span class="text-gold font-bold">5,000 UZS</span>
                 </div>
-                <div class="mt-4 flex justify-between text-[10px] font-bold uppercase opacity-80 border-t border-gold/10 pt-3">
-                    <span>Sovrin: 120,000 UZS</span>
+                <h4 class="text-lg font-black italic mb-1 uppercase">O'rta Turnir</h4>
+                <p class="text-[10px] opacity-60 mb-4 italic">Navbat: 30 ta ishtirokchi</p>
+                <div class="flex justify-between text-[10px] font-bold opacity-80 uppercase">
+                    <span>Yutuq: 120,000 UZS</span>
                     <span>Savollar: 20 ta</span>
                 </div>
             </div>
 
-            <div class="tournament-card" onclick="joinSpecificTournament(10000, 100, 'Gold')">
-                <span class="tier-badge tier-gold">Gold</span>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <h3 class="text-lg font-black uppercase italic">Katta Turnir</h3>
-                        <p class="text-[10px] opacity-60">Kamida 100 kishi kutiladi</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] uppercase font-bold opacity-50">Kirish</p>
-                        <p class="text-gold font-black">10,000 UZS</p>
-                    </div>
+            <div class="tier-card tier-gold" onclick="joinTierTournament(10000, 100, 'GOLD')">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black uppercase text-yellow-400">Gold Toifa</span>
+                    <span class="text-gold font-bold">10,000 UZS</span>
                 </div>
-                <div class="mt-4 flex justify-between text-[10px] font-bold uppercase opacity-80 border-t border-gold/10 pt-3">
-                    <span>Sovrin: 800,000 UZS</span>
+                <h4 class="text-lg font-black italic mb-1 uppercase">Mega Turnir</h4>
+                <p class="text-[10px] opacity-60 mb-4 italic">Navbat: 100 ta ishtirokchi</p>
+                <div class="flex justify-between text-[10px] font-bold opacity-80 uppercase">
+                    <span>Yutuq: 800,000 UZS</span>
                     <span>Savollar: 30 ta</span>
                 </div>
             </div>
@@ -552,7 +518,7 @@
             </div>
             <button onclick="generateDuelRoom()" class="gold-button w-full p-5 rounded-xl text-black font-black">Kod yaratish</button>
             <div id="room-code-area" class="hidden space-y-4 animate-slide">
-                <p class="text-xs opacity-60 font-bold italic">O'yin ID raqami (Nusxalash uchun bosing):</p>
+                <p class="text-xs opacity-60 font-bold italic">ID (Nusxalash uchun bosing):</p>
                 <div id="generated-code" class="room-code-display" onclick="copyDuelCode()">000000</div>
                 <p class="text-xs text-yellow-500 animate-pulse font-black uppercase">Raqib kutilmoqda...</p>
             </div>
@@ -647,14 +613,12 @@
 
     <div id="rating-screen" class="hidden p-6">
         <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Global Reyting</h2>
-        <p class="text-[10px] opacity-50 mb-4 italic uppercase">Har bir foydalanuvchining umumiy yutuqlari</p>
         <div id="ratingList" class="space-y-4"></div>
     </div>
 
     <div id="profile-screen" class="hidden p-6 text-center">
         <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
         <div class="premium-card p-8 mb-6 shadow-xl relative">
-            <div class="absolute top-4 right-4 wallet-badge" style="font-size: 11px;">💰 <span id="profile-balance">0</span></div>
             <div class="profile-img-container">
                 <img src="" id="userProfileImg" alt="Avatar">
             </div>
@@ -665,7 +629,6 @@
                 <p id="profAgeText" class="font-black"></p>
             </div>
             <button onclick="openEditModal()" class="w-full p-4 rounded-2xl border border-yellow-500/30 text-yellow-500 font-black uppercase italic text-xs mb-8 transition hover:bg-yellow-500/10">Profilni tahrirlash</button>
-            
             <div class="border-t border-yellow-500/20 pt-6 text-left">
                 <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic text-yellow-500">Shaxsiy Natijalar:</h4>
                 <div id="myStatsList" class="space-y-3"></div>
@@ -680,7 +643,7 @@
                 <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
                 <span id="theme-icon">🌙</span>
             </div>
-            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish & O'chirish</button>
+            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish</button>
         </div>
     </div>
 
@@ -745,9 +708,7 @@
             if(!currentUser) return;
             onValue(ref(db, `users/${currentUser.userId}/balance`), (snap) => {
                 const bal = snap.val() || 0;
-                document.getElementById('header-balance').innerText = bal.toLocaleString();
-                document.getElementById('profile-balance').innerText = bal.toLocaleString();
-                document.getElementById('tournament-balance').innerText = bal.toLocaleString();
+                document.getElementById('user-balance-display').innerText = bal.toLocaleString();
             });
         }
 
@@ -761,7 +722,7 @@
         window.previewImage = (input) => {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = (e) => {
                     tempBase64Photo = e.target.result;
                     document.getElementById('editPreviewImg').src = tempBase64Photo;
                 }
@@ -784,7 +745,7 @@
             const f = document.getElementById('editFirstName').value.trim();
             const l = document.getElementById('editLastName').value.trim();
             const b = document.getElementById('editBirth').value;
-            if(!f || !l || !b) return alert("To'ldiring!");
+            if(!f || !l || !b) return alert("Hamma maydonlarni to'ldiring!");
             const updatedData = { ...currentUser, fName: f, lName: l, birth: b, photo: tempBase64Photo || currentUser.photo };
             await update(ref(db, 'users/' + currentUser.userId), updatedData);
             localStorage.setItem('quizUser', JSON.stringify(updatedData));
@@ -806,16 +767,14 @@
             document.getElementById('tournament-waiting-modal').classList.add('hidden');
         };
 
-        window.joinSpecificTournament = async (fee, target, tier) => {
+        window.joinTierTournament = async (fee, target, tier) => {
             const userRef = ref(db, `users/${currentUser.userId}`);
             const snap = await get(userRef);
             const currentBalance = snap.val().balance || 0;
 
-            if (currentBalance < fee) {
-                return alert("Hamyonda mablag' yetarli emas! Iltimos balansingizni to'ldiring.");
-            }
+            if (currentBalance < fee) return alert("Hamyonda mablag' yetarli emas!");
 
-            if (!confirm(`${fee.toLocaleString()} UZS evaziga ${tier} turnirga qo'shilasizmi?`)) return;
+            if (!confirm(`${fee.toLocaleString()} UZS evaziga qo'shilasizmi?`)) return;
 
             await update(userRef, { balance: currentBalance - fee });
             
@@ -833,8 +792,8 @@
                         if(tournamentSub) tournamentSub();
                         document.getElementById('tournament-waiting-modal').classList.add('hidden');
                         testQuestions = tSnap.val().questions;
-                        currentQIndex = 0; score = 0; userTestLogs = [];
-                        window.currentMeta = { subj: `${tier} Tournament`, amount: testQuestions.length, time: 20 };
+                        currentQIndex = 0; score = 0;
+                        window.currentMeta = { subj: tier + " Turniri", amount: testQuestions.length, time: 20 };
                         showMenu('quiz');
                         startTimer(20 * 60);
                         loadQuestion();
@@ -872,18 +831,6 @@
             [1, 2, 3, 4].forEach(i => document.getElementById('intro-step-' + i)?.classList.add('hidden'));
             document.getElementById('intro-step-' + step)?.classList.remove('hidden');
         };
-
-        window.showDuelCreate = () => showMenu('duel-create');
-        window.showDuelJoin = () => showMenu('duel-join');
-        window.copyDuelCode = () => {
-            navigator.clipboard.writeText(document.getElementById('generated-code').innerText);
-            alert("Nusxalandi!");
-        };
-
-        function checkUpdateNotification() {
-            if (!localStorage.getItem('last_update_v1')) document.getElementById('updates-overlay').classList.remove('hidden');
-        }
-        window.closeUpdates = () => { localStorage.setItem('last_update_v1', 'seen'); document.getElementById('updates-overlay').classList.add('hidden'); };
 
         async function generateDuelRoom() {
             const subj = document.getElementById('duelSubject').value;
@@ -949,18 +896,12 @@
                 if (snapshot.exists()) {
                     const d = snapshot.val();
                     if (!localStorage.getItem('last_notify_time') || parseInt(localStorage.getItem('last_notify_time')) < d.timestamp) {
-                        showAdminModal(d.title, d.message, d.timestamp);
+                        alert(d.title + ": " + d.message);
+                        localStorage.setItem('last_notify_time', d.timestamp);
                     }
                 }
             });
         }
-
-        function showAdminModal(title, message, time) {
-            const html = `<div id="admin-notify-overlay" class="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center p-6"><div class="premium-card p-8 text-center border-2 border-gold max-w-sm"><h2 class="text-xl font-black text-gold uppercase mb-3">${title}</h2><p class="text-sm opacity-90 mb-8 italic">${message}</p><button onclick="closeAdminNotify(${time})" class="gold-button w-full p-4 rounded-xl text-black font-black uppercase">OK</button></div></div>`;
-            document.body.insertAdjacentHTML('beforeend', html);
-        }
-
-        window.closeAdminNotify = (time) => { localStorage.setItem('last_notify_time', time); document.getElementById('admin-notify-overlay').remove(); };
 
         function checkBirthday() {
             const b = new Date(currentUser.birth); const t = new Date();
@@ -970,13 +911,12 @@
                 confetti({ particleCount: 150 });
             }
         }
-        window.closeBday = () => document.getElementById('bday-overlay').classList.add('hidden');
 
         function register() {
             const f = document.getElementById('firstName').value.trim();
             const l = document.getElementById('lastName').value.trim();
             const b = document.getElementById('birthDay').value;
-            if(!f || !l || !b) return alert("Hamma maydonlarni to'ldiring!");
+            if(!f || !l || !b) return alert("To'ldiring!");
             const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
             const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: getAvatarUrl(f, l), balance: 0 };
             set(ref(db, 'users/' + userId), userData).then(() => {
@@ -1041,8 +981,7 @@
             if(completed) {
                 if (!isDuelMode) {
                     const path = `ratings/${window.currentMeta.subj}/${currentUser.userId}`;
-                    const snap = await get(ref(db, path));
-                    if(score >= (snap.val()?.score || -1)) await set(ref(db, path), { userId: currentUser.userId, name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo, score });
+                    await set(ref(db, path), { userId: currentUser.userId, name: currentUser.fName, score });
                     document.getElementById('resPercent').innerText = Math.round((score / window.currentMeta.amount) * 100) + "%";
                     document.getElementById('resCorrect').innerText = score;
                     document.getElementById('resWrong').innerText = window.currentMeta.amount - score;
@@ -1055,44 +994,36 @@
             } else showMenu('subjects');
         }
 
-        window.showAnalysis = () => {
-            showMenu('analysis');
-            const list = document.getElementById('analysisList'); list.innerHTML = "";
-            userTestLogs.forEach((log, i) => {
-                const d = document.createElement('div');
-                d.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
-                d.innerHTML = `<p class='text-xs opacity-50'>Savol ${i+1}:</p><p class='font-bold text-sm'>${log.question}</p><p class='text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'}'>Siz: ${log.selected}</p>${!log.isRight ? `<p class='text-xs text-green-500'>To'g'ri: ${log.correct}</p>` : ''}`;
-                list.appendChild(d);
-            });
-        };
+        function startTimer(s) {
+            let t = s;
+            timerInterval = setInterval(() => {
+                let m = Math.floor(t / 60); let sc = t % 60;
+                document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
+                if(t-- <= 0) finishTest(true);
+            }, 1000);
+        }
 
         async function loadRating() {
             const rList = document.getElementById('ratingList'); rList.innerHTML = "<div class='searching-loader'></div>";
-            const [uS, rS] = await Promise.all([get(ref(db, 'users')), get(ref(db, 'ratings'))]);
+            const uS = await get(ref(db, 'users'));
             if(uS.exists()){
                 rList.innerHTML = "";
-                let data = [];
-                Object.keys(uS.val()).forEach(uid => {
-                    let total = 0;
-                    if(rS.exists()) Object.keys(rS.val()).forEach(s => { if(rS.val()[s][uid]) total += rS.val()[s][uid].score; });
-                    data.push({ name: uS.val()[uid].fName, photo: uS.val()[uid].photo, total });
-                });
-                data.sort((a,b) => b.total - a.total).forEach((u, i) => {
+                Object.keys(uS.val()).forEach((uid, i) => {
+                    const u = uS.val()[uid];
                     const d = document.createElement('div');
                     d.className = "premium-card p-4 flex items-center gap-4 mb-2";
-                    d.innerHTML = `<div class='rank-badge'>${i+1}</div><img src='${u.photo}' class='rank-img'><div><p class='font-bold'>${u.name}</p><p class='text-[10px] text-gold font-black'>Jami ball: ${u.total}</p></div>`;
+                    d.innerHTML = `<div class='rank-badge'>${i+1}</div><img src='${u.photo}' class='rank-img'><div><p class='font-bold'>${u.fName}</p><p class='text-[10px] text-gold font-black'>Balans: ${u.balance || 0} UZS</p></div>`;
                     rList.appendChild(d);
                 });
             }
         }
 
         async function loadProfile() {
-            document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
-            document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
+            document.getElementById('profName').innerText = currentUser.fName + " " + currentUser.lName;
             document.getElementById('userProfileImg').src = currentUser.photo;
             const b = new Date(currentUser.birth);
-            document.getElementById('profBirthdayText').innerText = `Sana: ${b.toLocaleDateString()}`;
-            document.getElementById('profAgeText').innerText = `Yosh: ${new Date().getFullYear() - b.getFullYear()}`;
+            document.getElementById('profBirthdayText').innerText = "Sana: " + b.toLocaleDateString();
+            document.getElementById('profAgeText').innerText = "Yosh: " + (new Date().getFullYear() - b.getFullYear());
             const stats = document.getElementById('myStatsList'); stats.innerHTML = "";
             const s = await get(ref(db, 'ratings'));
             if(s.exists()) Object.keys(s.val()).forEach(sub => {
@@ -1104,36 +1035,18 @@
             });
         }
 
-        function startTimer(s) {
-            let t = s;
-            timerInterval = setInterval(() => {
-                let m = Math.floor(t / 60); let sc = t % 60;
-                document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
-                if(t-- <= 0) finishTest(true);
-            }, 1000);
-        }
-
         function toggleTheme() {
             const d = document.body.classList.toggle('dark-mode');
             localStorage.setItem('theme', d ? 'dark' : 'light');
-            document.getElementById('theme-icon-auth').innerText = d ? "☀️" : "🌙";
-            if(document.getElementById('theme-icon')) document.getElementById('theme-icon').innerText = d ? "☀️" : "🌙";
         }
 
         function applySavedTheme() { if(localStorage.getItem('theme') === 'dark') toggleTheme(); }
-
-        async function logout() {
-            if(confirm("Ma'lumotlar o'chadi. Rozimisiz?")) {
-                await remove(ref(db, `online_users/${currentUser.userId}`));
-                localStorage.clear(); location.reload();
-            }
-        }
 
         window.showMenu = showMenu;
         window.register = register;
         window.startTest = startTest;
         window.toggleTheme = toggleTheme;
-        window.logout = logout;
+        window.logout = () => { localStorage.clear(); location.reload(); };
         window.showAnalysis = showAnalysis;
         window.generateDuelRoom = generateDuelRoom;
         window.joinDuelRoom = joinDuelRoom;
@@ -1142,11 +1055,13 @@
         window.openEditModal = openEditModal;
         window.closeEditModal = closeEditModal;
         window.saveProfileChanges = saveProfileChanges;
-        window.joinSpecificTournament = joinSpecificTournament;
+        window.joinTierTournament = joinTierTournament;
         window.cancelTournamentWaiting = cancelTournamentWaiting;
         window.nextIntro = nextIntro;
         window.finishIntro = finishIntro;
-        window.closeAdminNotify = closeAdminNotify;
+        window.closeBday = closeBday;
+        window.confirmFinishTest = confirmFinishTest;
+        window.copyDuelCode = () => { navigator.clipboard.writeText(document.getElementById('generated-code').innerText); alert("Nusxalandi!"); };
     </script>
 </body>
 </html>
