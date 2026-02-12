@@ -136,9 +136,19 @@ window.sendReceipt = () => {
 
 window.checkPromoCode = () => {
     const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
-    const subPrefix = activeSub.substring(0, 3).toUpperCase();
+    const sub = activeSub.toLowerCase();
+    let subPrefix = "FAN";
+
+    // Bazadagi 5 ta fan uchun prefixlar
+    if (sub.includes("dinshunoslik")) subPrefix = "DIN";
+    else if (sub.includes("fizika")) subPrefix = "FIZ";
+    else if (sub.includes("oliy matematika")) subPrefix = "MAT";
+    else if (sub.includes("texnik_tizimlarda_akt")) subPrefix = "AKT";
+    else if (sub.includes("yo'nalishga kirish")) subPrefix = "YON";
+
     let usedCodes = JSON.parse(localStorage.getItem('used_promos')) || [];
 
+    // Tekshirish: Kod aynan shu fan prefixi bilan boshlanadimi va ishlatilmaganmi
     if(code.startsWith(subPrefix + '_YK') && code.length === 10 && !usedCodes.includes(code)) {
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
         if(!paid.includes(activeSub)) {
