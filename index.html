@@ -3,1253 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Testlar.uz - Bilimlar Cho'qqisi</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <title>Yakuniyga tayyorlovchi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --gold: #FFD700; 
-            --gold-dark: #B8860B;
-            --bg: #ffffff; 
-            --text: #1a1a1a; 
-            --card: #f3f4f6;
+        :root {
+            --bg: #ffffff; --text: #ff0000; --card: #ffffff; --nav-bg: #ffffff; --accent: #ff0000;
         }
-        .dark-mode { 
-            --bg: #000000; 
-            --text: #FFD700; 
-            --card: #111111;
+        [data-theme="dark"] {
+            --bg: #000000; --text: #ffd700; --card: #000000; --nav-bg: #000000; --accent: #ffd700;
+        }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text);
+            margin: 0; padding-bottom: 100px; transition: 0.3s;
+        }
+        .container { padding: 20px; max-width: 600px; margin: auto; }
+        
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; background: var(--nav-bg);
+            display: flex; justify-content: space-around; padding: 15px 0;
+            border-top: 2px solid var(--accent); z-index: 1000;
+        }
+        .nav-item { text-align: center; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; color: var(--accent); }
+        
+        .header { text-align: center; font-weight: 800; font-size: 22px; padding: 25px 0; text-transform: uppercase; }
+        .card { background: var(--card); border: 2px solid var(--accent); padding: 20px; margin-bottom: 15px; border-radius: 12px; cursor: pointer; text-align: center; font-weight: 800; }
+        
+        #quiz-screen, #errors-screen, #settings-screen, #mode-screen, #result-screen, #payment-screen { display: none; }
+        
+        .timer-display { 
+            text-align: center; font-size: 42px; font-weight: 900; 
+            margin-bottom: 15px; color: var(--accent); display: block;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
         
-        body { 
-            background-color: var(--bg); 
-            color: var(--text); 
-            transition: background 0.3s ease, color 0.3s ease;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-user-select: none;
-        }
-
-        .premium-card {
-            background-color: var(--card);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .gold-button {
-            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
-            color: #000;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.2s;
-        }
+        .mode-title { text-align: center; font-size: 20px; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; opacity: 0.8; }
+        .question-text { font-size: 19px; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
+        .option { border: 2px solid var(--accent); padding: 16px; margin: 12px 0; border-radius: 14px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         
-        .gold-button:active { transform: scale(0.95); }
-
-        .nav-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            font-weight: 600;
-            color: gray;
-        }
-        .active-nav { color: var(--gold); }
-
-        .hidden { display: none; }
-
-        input, select {
-            background: rgba(128, 128, 128, 0.1) !important;
-            border: 1px solid rgba(255, 215, 0, 0.3) !important;
-            color: var(--text) !important;
-            padding: 14px !important;
-            border-radius: 12px !important;
-            width: 100%;
-            outline: none;
-        }
-
-        .option-btn {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 12px;
-            text-align: left;
-            transition: all 0.3s ease;
-        }
+        .correct { background: #22c55e !important; color: white !important; border-color: #22c55e; }
+        .wrong { background: #ef4444 !important; color: white !important; border-color: #ef4444; }
         
-        .rank-badge {
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
-            color: black;
-            font-weight: 900;
-            font-size: 14px;
-        }
+        .mode-btn { width: 100%; padding: 20px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); font-weight: 800; border-radius: 12px; cursor: pointer; font-size: 16px; text-transform: uppercase; }
+        .theme-btn { width: 100%; padding: 18px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); font-weight: 800; border-radius: 10px; cursor: pointer; }
 
-        .rank-1 { border: 2px solid #FFD700; position: relative; }
-        .crown { position: absolute; top: -12px; left: -5px; font-size: 20px; transform: rotate(-20deg); }
-
-        .progress-container { width: 100%; height: 6px; background: rgba(128,128,128,0.2); border-radius: 10px; overflow: hidden; }
-        #progress-fill { height: 100%; width: 0%; background: var(--gold); transition: width 0.3s ease; }
-
-        .profile-img-container {
-            width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--gold);
-            margin: 0 auto 15px; overflow: hidden; background: #333;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
-
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .animate-slide { animation: fadeInRight 0.5s ease-out forwards; }
-
-        .bday-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000;
-            display: flex; align-items: center; justify-content: center; padding: 20px;
-        }
-
-        .result-circle {
-            width: 150px; height: 150px; border-radius: 50%; border: 8px solid var(--gold);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            margin: 0 auto 20px; background: rgba(255, 215, 0, 0.1);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-
-        .searching-loader {
-            width: 80px; height: 80px; border: 5px solid rgba(255, 215, 0, 0.2);
-            border-top: 5px solid var(--gold); border-radius: 50%;
-            animation: spin 1s linear infinite; margin: 0 auto 20px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result-container, .payment-container { background: var(--card); border: 4px solid var(--accent); padding: 40px 20px; border-radius: 25px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .big-score { font-size: 60px; font-weight: 900; margin: 20px 0; }
         
-        .duel-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--gold); object-fit: cover; }
-        .vs-badge { font-size: 28px; font-weight: 900; color: var(--gold); font-style: italic; animation: pulse 1s infinite; }
-        
-        .room-code-display {
-            font-size: 32px; font-weight: 900; letter-spacing: 8px; color: var(--gold);
-            background: rgba(255,215,0,0.1); padding: 15px; border-radius: 15px; border: 2px dashed var(--gold);
-            cursor: pointer;
-        }
-
-        /* Intro Specific Animations */
-        .mock-option {
-            border: 1px solid rgba(255,215,0,0.2);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            font-size: 12px;
-            transition: all 0.5s;
-        }
-        .mock-correct { background: #10b981 !important; color: white !important; border-color: #10b981 !important; }
-        
-        .intro-feature-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            display: inline-block;
-            animation: bounce 2s infinite;
-        }
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
-        }
+        .promo-input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); border-radius: 10px; text-align: center; font-weight: 800; font-size: 18px; box-sizing: border-box; }
     </style>
 </head>
-<body class="pb-24">
+<body data-theme="dark">
 
-    <div id="updates-overlay" class="bday-modal hidden">
-        <div class="premium-card p-8 text-center shadow-2xl max-w-sm border-2 border-gold relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gold/10 rounded-full blur-3xl"></div>
-            <h2 class="text-3xl font-black text-gold uppercase italic mb-6 tracking-tighter">Yangi imkoniyatlar!</h2>
-            
-            <div class="space-y-6 text-left mb-8">
-                <div class="update-item flex items-center gap-4" style="animation-delay: 0.2s;">
-                    <div class="text-4xl">🏆</div>
-                    <div>
-                        <h4 class="font-black uppercase text-xs text-gold">1. Global Reyting</h4>
-                        <p class="text-[11px] opacity-70 italic">Endi siz barcha foydalanuvchilar orasida nechanchi o'rinda ekanligingizni ko'rishingiz mumkin!</p>
-                    </div>
-                </div>
-                <div class="update-item flex items-center gap-4" style="animation-delay: 0.4s;">
-                    <div class="text-4xl">⚔️</div>
-                    <div>
-                        <h4 class="font-black uppercase text-xs text-gold">2. Duel rejimi</h4>
-                        <p class="text-[11px] opacity-70 italic">Do'stlaringiz bilan real vaqtda test orqali bellashing va bilimingizni isbotlang!</p>
-                    </div>
-                </div>
-            </div>
+<div class="container">
+    <div id="home-screen">
+        <div class="header">Yakuniyga tayyorlovchi</div>
+        <div id="loader" style="text-align:center;">Yuklanmoqda...</div>
+        <div id="subjects-list"></div>
+    </div>
 
-            <button onclick="closeUpdates()" class="gold-button w-full p-4 rounded-xl text-black font-black">Tushunarli</button>
+    <div id="mode-screen">
+        <div class="header" id="mode-subject-name">FAN NOMI</div>
+        <button class="mode-btn" onclick="startQuizProcess('practice')">📖 MASHQ QILISH</button>
+        <button class="mode-btn" onclick="startQuizProcess('exam')">⏱ IMTIHON (35 SAVOL)</button>
+        <button class="theme-btn" onclick="showScreen('home')">ORQAGA</button>
+    </div>
+
+    <div id="quiz-screen">
+        <div id="timer-box" class="timer-display">35:00</div>
+        <div id="quiz-label" class="mode-title">MASHQ</div>
+        <div id="question-box" class="question-text"></div>
+        <div id="options-box"></div>
+    </div>
+
+    <div id="result-screen">
+        <div class="result-container">
+            <h1 id="res-status">NATIJA</h1>
+            <div id="res-score" class="big-score">0/70</div>
+            <p id="res-info" style="font-size: 18px; font-weight: bold;"></p>
+            <button class="mode-btn" onclick="showScreen('home')">YANA BOSHLASH</button>
         </div>
     </div>
 
-    <div id="edit-profile-modal" class="bday-modal hidden">
-        <div class="premium-card p-6 w-full max-w-sm border-2 border-gold animate-slide">
-            <h2 class="text-xl font-black text-gold uppercase mb-6 text-center italic">Profilni tahrirlash</h2>
-            <div class="space-y-4 text-left">
-                <div class="text-center mb-4">
-                    <div class="profile-img-container" style="width: 80px; height: 80px;">
-                        <img src="" id="editPreviewImg">
-                    </div>
-                    <label class="gold-button px-4 py-2 rounded-lg text-[10px] cursor-pointer inline-block">
-                        Rasm tanlash
-                        <input type="file" id="editPhotoInput" accept="image/*" class="hidden" onchange="previewImage(this)">
-                    </label>
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ism</label>
-                    <input type="text" id="editFirstName">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiya</label>
-                    <input type="text" id="editLastName">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan sana</label>
-                    <input type="date" id="editBirth">
-                </div>
-                <div class="flex gap-2 mt-6">
-                    <button onclick="closeEditModal()" class="w-1/3 p-3 rounded-xl border border-red-500 text-red-500 font-bold uppercase text-[10px]">Bekor qilish</button>
-                    <button onclick="saveProfileChanges()" class="gold-button flex-1 p-3 rounded-xl text-black font-bold uppercase text-[10px]">Saqlash</button>
-                </div>
+    <div id="payment-screen">
+        <div class="payment-container">
+            <h1>FANNI OCHISH</h1>
+            <p>Barcha savollar uchun <b>10 000 so'm</b> to'lov qiling.</p>
+            <div style="border: 2px dashed var(--accent); padding: 10px; border-radius: 10px; margin: 10px 0;">
+                <p style="color: var(--accent); font-size: 20px; font-weight: 900; margin: 5px 0;">4073 4200 6816 5541</p>
+                <p style="margin: 0; font-weight: 700;">Maruf Raxmonov</p>
             </div>
+            <button class="mode-btn" style="background: #0088cc; color: white; border: none; padding: 12px;" onclick="sendReceipt()">Chekni Telegramga yuborish</button>
+            <hr style="border: 1px solid var(--accent); opacity: 0.3; margin: 15px 0;">
+            <p>Kodingiz bormi? Bu yerga kiriting:</p>
+            <input type="text" id="promoCodeInput" class="promo-input" placeholder="PROMO KOD">
+            <button class="mode-btn" onclick="checkPromoCode()">TASDIQLASH</button>
+            <button class="theme-btn" onclick="showScreen('home')">ORQAGA</button>
         </div>
     </div>
 
-    <div id="bday-overlay" class="bday-modal hidden">
-        <div class="premium-card p-8 text-center shadow-2xl animate-slide border-2 border-gold">
-            <div class="text-6xl mb-4">🎂</div>
-            <h2 class="text-2xl font-black text-gold uppercase mb-2">Tug'ilgan kuningiz bilan!</h2>
-            <p class="text-sm opacity-90 mb-6">Hurmatli <span id="bday-user-name" class="font-bold"></span>, sizga sihat-salomatlik va barcha testlardan eng yuqori ballarni tilaymiz! 🎉</p>
-            <button onclick="closeBday()" class="gold-button w-full p-4 rounded-xl text-black">Rahmat!</button>
-        </div>
+    <div id="errors-screen">
+        <div class="header">Xatolar Ustida Ishlash</div>
+        <div id="errors-list"></div>
+        <button class="theme-btn" onclick="clearErrors()" style="margin-top: 20px;">TOZALASH</button>
     </div>
 
-    <div id="auth-screen" class="p-8 flex flex-col justify-center min-h-screen text-center relative">
-        <button onclick="toggleTheme()" class="absolute top-6 right-6 text-2xl p-2 premium-card">
-            <span id="theme-icon-auth">🌙</span>
-        </button>
-        <div class="text-6xl mb-4 text-yellow-500">🎓</div>
-        <h1 class="text-3xl font-black uppercase italic mb-10 tracking-tighter">Testlar Rasmiy</h1>
-        <div class="space-y-4 text-left">
-            <div>
-                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Ismingiz</label>
-                <input type="text" id="firstName" placeholder="Ismingizni kiriting">
-            </div>
-            <div>
-                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Familiyangiz</label>
-                <input type="text" id="lastName" placeholder="Familiyangizni kiriting">
-            </div>
-            <div>
-                <label class="text-[10px] uppercase font-bold opacity-50 ml-2">Tug'ilgan sana</label>
-                <input type="date" id="birthDay">
-            </div>
-            <button onclick="register()" class="gold-button w-full p-4 rounded-xl shadow-lg mt-4 text-black">Ro'yxatdan o'tish</button>
-        </div>
+    <div id="settings-screen">
+        <div class="header">Sozlamalar</div>
+        <button class="theme-btn" onclick="setTheme('light')">KUNDUZGI (OQ/QIZIL)</button>
+        <button class="theme-btn" onclick="setTheme('dark')">TUNGI (QORA/TILLA)</button>
     </div>
+</div>
 
-    <div id="intro-screen" class="hidden p-6 flex flex-col justify-center min-h-screen bg-black">
-        <h1 class="text-center text-gold font-black text-2xl mb-8 uppercase italic tracking-widest">Ilova imkoniyatlari</h1>
+<div class="bottom-nav">
+    <div class="nav-item" onclick="showScreen('home')">🏠<br>Fanlar</div>
+    <div class="nav-item" onclick="showScreen('errors')">❌<br>Xatolar</div>
+    <div class="nav-item" onclick="showScreen('settings')">⚙️<br>Sozlamalar</div>
+</div>
 
-        <div id="intro-step-1" class="animate-slide">
-            <div class="premium-card p-6 text-center border-gold/50 border-2">
-                <span class="intro-feature-icon">📚</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">1. Testlar</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Barcha fanlar va namunaviy savollar:</p>
-                
-                <div class="bg-white/5 p-4 rounded-xl text-left border border-gold/20 mb-6">
-                    <p id="intro-subject-name" class="text-[10px] text-gold font-bold mb-2 uppercase tracking-tighter">Yuklanmoqda...</p>
-                    <p id="intro-question-text" class="text-sm font-bold mb-3 min-h-[40px]">?</p>
-                    <div id="intro-mock-options" class="space-y-1"></div>
-                </div>
-                <button onclick="nextIntro(2)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
-            </div>
-        </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        <div id="intro-step-2" class="hidden animate-slide">
-            <div class="premium-card p-6 text-center border-gold/50 border-2">
-                <span class="intro-feature-icon">⚔️</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">2. Duel</h2>
-                <p class="text-xs opacity-70 mb-4 italic">Do'stlaringiz bilan real vaqtda bellashing!</p>
-                
-                <div class="flex justify-around items-center mb-6 bg-white/5 p-4 rounded-2xl">
-                    <div class="text-center">
-                        <div class="w-10 h-10 bg-blue-500 rounded-full mx-auto border-2 border-white mb-1"></div>
-                        <p class="text-[8px] font-bold">SIZ</p>
-                    </div>
-                    <div class="text-gold font-black italic text-xl animate-pulse">VS</div>
-                    <div class="text-center">
-                        <div class="w-10 h-10 bg-red-500 rounded-full mx-auto border-2 border-white mb-1"></div>
-                        <p class="text-[8px] font-bold">RAQIB</p>
-                    </div>
-                </div>
-                <p class="text-[10px] text-left opacity-90 leading-relaxed mb-6">
-                    ✅ Maxsus kod orqali xona yarating<br>
-                    ✅ Bir xil savollarga tezroq javob bering<br>
-                    ✅ G'olib bo'ling va reytingingizni oshiring
-                </p>
-                <button onclick="nextIntro(3)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
-            </div>
-        </div>
+const firebaseConfig = {
+    apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+    authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+    databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+    projectId: "gen-lang-client-0228947349",
+    storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+    messagingSenderId: "253793341504",
+    appId: "1:253793341504:web:709752258000dab44fcfa5"
+};
 
-        <div id="intro-step-3" class="hidden animate-slide">
-            <div class="premium-card p-6 text-center border-gold/50 border-2">
-                <span class="intro-feature-icon">🏆</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">3. Reyting</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Dunyo bo'ylab bilimdonlar orasida o'z o'rningizni ko'ring!</p>
-                
-                <div class="space-y-2 mb-8">
-                    <div class="flex items-center gap-3 bg-gold/20 p-2 rounded-lg border border-gold">
-                        <span class="font-black text-gold">1</span>
-                        <div class="w-6 h-6 bg-gray-500 rounded-full"></div>
-                        <span class="text-[10px] font-bold flex-1 text-left">Lider Foydalanuvchi</span>
-                        <span class="text-[10px] font-black">2500 ball</span>
-                    </div>
-                    <div class="flex items-center gap-3 bg-white/5 p-2 rounded-lg opacity-50">
-                        <span class="font-black">2</span>
-                        <div class="w-6 h-6 bg-gray-500 rounded-full"></div>
-                        <span class="text-[10px] font-bold flex-1 text-left">Keyingi O'rin</span>
-                        <span class="text-[10px] font-black">2100 ball</span>
-                    </div>
-                </div>
-                <button onclick="nextIntro(4)" class="gold-button w-full p-4 rounded-xl text-black">Keyingisi</button>
-            </div>
-        </div>
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-        <div id="intro-step-4" class="hidden animate-slide">
-            <div class="premium-card p-6 text-center border-gold/50 border-2">
-                <span class="intro-feature-icon">👤</span>
-                <h2 class="text-2xl font-black text-gold uppercase mb-4">4. Profil</h2>
-                <p class="text-xs opacity-70 mb-6 italic">Shaxsiy natijalar va tug'ilgan kun tabriklari!</p>
-                
-                <div class="text-left bg-white/5 p-4 rounded-xl border border-gold/10 mb-8 space-y-2">
-                    <p class="text-[10px] font-bold">🎂 Tug'ilgan kun hisoblagichi</p>
-                    <p class="text-[10px] font-bold">📊 Fanlar bo'yicha shaxsiy statistika</p>
-                    <p class="text-[10px] font-bold">🖼️ Galereyadan rasm yuklash</p>
-                </div>
-                <button onclick="finishIntro()" class="gold-button w-full p-4 rounded-xl text-black">Boshladik!</button>
-            </div>
-        </div>
-    </div>
+let allData = {};
+let currentSet = [];
+let activeSub = "";
+let idx = 0;
+let mode = "";
+let countdownInterval = null;
+let points = 0;
+let corrects = 0;
+let totalSeconds = 0;
 
-    <div id="subjects-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Testlar</h2>
-        <div class="premium-card p-6 space-y-6">
-            <div>
-                <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Fanni tanlang</label>
-                <select id="selectedSubject">
-                    <option value="Matematika">Matematika</option>
-                    <option value="Fizika">Fizika</option>
-                    <option value="Kimyo">Kimyo</option>
-                    <option value="Ona_tili">Ona tili</option>
-                    <option value="Adabiyot">Adabiyot</option>
-                    <option value="Geografiya">Geografiya</option>
-                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
-                    <option value="Jahon_tarixi">Jahon tarixi</option>
-                    <option value="Ingliz_tili">Ingliz tili</option>
-                    <option value="Rus_tili">Rus tili</option>
-                    <option value="Biologiya">Biologiya</option>
-                    <option value="IQ_testlar">IQ testlar</option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar soni</label>
-                    <select id="qAmount">
-                        <option value="5">5 ta</option>
-                        <option value="10">10 ta</option>
-                        <option value="15">15 ta</option>
-                        <option value="20" selected>20 ta</option>
-                        <option value="25">25 ta</option>
-                        <option value="30">30 ta</option>
-                        <option value="35">35 ta</option>
-                        <option value="40">40 ta</option>
-                        <option value="45">45 ta</option>
-                        <option value="50">50 ta</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Daqiqa)</label>
-                    <select id="qTime">
-                        <option value="5">5 min</option>
-                        <option value="10">10 min</option>
-                        <option value="15" selected>15 min</option>
-                        <option value="20">20 min</option>
-                        <option value="25">25 min</option>
-                        <option value="30">30 min</option>
-                        <option value="35">35 min</option>
-                        <option value="40">40 min</option>
-                        <option value="45">45 min</option>
-                        <option value="50">50 min</option>
-                    </select>
-                </div>
-            </div>
-            <button onclick="startTest()" class="gold-button w-full p-5 rounded-2xl text-lg shadow-xl text-black">🚀 Testni Boshlash</button>
-        </div>
-    </div>
+window.showScreen = (name) => {
+    if(name !== 'quiz' && countdownInterval){
+        clearInterval(countdownInterval);
+        countdownInterval=null;
+    }
+    ['home','mode','quiz','errors','settings','result','payment'].forEach(s=>{
+        const e=document.getElementById(s+'-screen');
+        if(e) e.style.display='none';
+    });
+    document.getElementById(name+'-screen').style.display='block';
+};
 
-    <div id="duel-menu-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
-        <h2 class="text-3xl font-black mb-10 uppercase italic text-yellow-500 tracking-widest">Do'stona bellashuv</h2>
-        <div class="premium-card p-6 space-y-6">
-            <button onclick="showDuelCreate()" class="gold-button w-full p-5 rounded-2xl text-black">Xona yaratish</button>
-            <button onclick="showDuelJoin()" class="w-full p-5 rounded-2xl border-2 border-gold text-gold font-bold uppercase italic">Xonaga qo'shilish</button>
-        </div>
-    </div>
+onValue(ref(db,'questions'), (snap)=>{
+    if(snap.exists()){
+        allData=snap.val();
+        document.getElementById('loader').style.display='none';
+        renderList();
+    }
+});
 
-    <div id="duel-create-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
-        <h2 class="text-2xl font-black mb-6 uppercase text-yellow-500">O'yin sozlamalari</h2>
-        <div class="premium-card p-6 space-y-6">
-            <div>
-                <label class="block text-xs font-bold uppercase opacity-60 mb-2 italic">Duel fani</label>
-                <select id="duelSubject">
-                    <option value="Matematika">Matematika</option>
-                    <option value="Fizika">Fizika</option>
-                    <option value="Kimyo">Kimyo</option>
-                    <option value="Ona_tili">Ona tili</option>
-                    <option value="Adabiyot">Adabiyot</option>
-                    <option value="Geografiya">Geografiya</option>
-                    <option value="Uzbekiston_tarixi">O‘zbekiston tarixi</option>
-                    <option value="Jahon_tarixi">Jahon tarixi</option>
-                    <option value="Ingliz_tili">Ingliz tili</option>
-                    <option value="Rus_tili">Rus tili</option>
-                    <option value="Biologiya">Biologiya</option>
-                    <option value="IQ_testlar">IQ testlar</option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Savollar</label>
-                    <select id="duelQAmount">
-                        <option value="5">5 ta</option>
-                        <option value="10">10 ta</option>
-                        <option value="15">15 ta</option>
-                        <option value="20" selected>20 ta</option>
-                        <option value="25">25 ta</option>
-                        <option value="30">30 ta</option>
-                        <option value="35">35 ta</option>
-                        <option value="40">40 ta</option>
-                        <option value="45">45 ta</option>
-                        <option value="50">50 ta</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold uppercase opacity-60 mb-2 italic">Vaqt (Min)</label>
-                    <select id="duelQTime">
-                        <option value="5">5 min</option>
-                        <option value="10">10 min</option>
-                        <option value="15" selected>15 min</option>
-                        <option value="20">20 min</option>
-                        <option value="25">25 min</option>
-                        <option value="30">30 min</option>
-                        <option value="35">35 min</option>
-                        <option value="40">40 min</option>
-                        <option value="45">45 min</option>
-                        <option value="50">50 min</option>
-                    </select>
-                </div>
-            </div>
-            <button onclick="generateDuelRoom()" class="gold-button w-full p-5 rounded-xl text-black font-black">Kod yaratish</button>
-            <div id="room-code-area" class="hidden space-y-4 animate-slide">
-                <p class="text-xs opacity-60 font-bold italic">O'yin ID raqami (Nusxalash uchun bosing):</p>
-                <div id="generated-code" class="room-code-display" onclick="copyDuelCode()">000000</div>
-                <p class="text-xs text-yellow-500 animate-pulse font-black uppercase">Raqib kutilmoqda...</p>
-            </div>
-        </div>
-        <button onclick="showMenu('duel-menu')" class="mt-8 text-xs font-bold uppercase opacity-40">Bekor qilish</button>
-    </div>
+function isSubjectPaid(subName) {
+    const paidSubjects = JSON.parse(localStorage.getItem('paid_subjects')) || [];
+    return paidSubjects.includes(subName);
+}
 
-    <div id="duel-join-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
-        <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-yellow-500">O'yinga kirish</h2>
-        <div class="premium-card p-6 space-y-6">
-            <input type="number" id="join-code-input" placeholder="6 XONALI KOD" class="text-center text-2xl tracking-[10px] font-black">
-            <button onclick="joinDuelRoom()" class="gold-button w-full p-5 rounded-xl text-black">Boshlash</button>
-        </div>
-        <button onclick="showMenu('duel-menu')" class="mt-8 text-xs font-bold uppercase opacity-40">Orqaga</button>
-    </div>
-
-    <div id="duel-vs-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
-        <div class="premium-card p-8 shadow-2xl animate-slide border-2 border-gold">
-            <div class="flex justify-around items-center mb-10">
-                <div class="text-center">
-                    <img src="" id="duel-my-img" class="duel-avatar mb-3">
-                    <p class="text-[10px] font-black uppercase">Siz</p>
-                </div>
-                <div class="vs-badge">VS</div>
-                <div class="text-center">
-                    <img src="" id="duel-opp-img" class="duel-avatar mb-3">
-                    <p class="text-[10px] font-black uppercase" id="duel-opp-name">Raqib</p>
-                </div>
-            </div>
-            <p id="duel-countdown" class="text-2xl font-black italic text-yellow-500">O'yin boshlanadi: 3...</p>
-        </div>
-    </div>
-
-    <div id="duel-result-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
-        <div class="premium-card p-8 shadow-2xl animate-slide border-4 border-gold">
-            <h2 id="duel-final-status" class="text-4xl font-black mb-8 italic uppercase tracking-tighter">G'ALABA!</h2>
-            <div class="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-gold/20 mb-8">
-                <div class="text-center">
-                    <p class="text-[10px] opacity-60 font-bold uppercase">SIZ</p>
-                    <p id="duel-my-final-score" class="text-4xl font-black">0</p>
-                </div>
-                <div class="vs-badge text-xl">VS</div>
-                <div class="text-center">
-                    <p class="text-[10px] opacity-60 font-bold uppercase">RAQIB</p>
-                    <p id="duel-opp-final-score" class="text-4xl font-black text-white/50">0</p>
-                </div>
-            </div>
-            <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-2xl text-black font-black italic">Bosh sahifaga qaytish</button>
-        </div>
-    </div>
-
-    <div id="quiz-screen" class="hidden p-6 min-h-screen">
-        <div class="mb-4"><div class="progress-container"><div id="progress-fill"></div></div></div>
-        <div class="flex justify-between items-center mb-6">
-            <span id="timer" class="text-xl font-black text-yellow-500">00:00</span>
-            <span id="qProgress" class="text-sm opacity-60 font-bold uppercase">1/20</span>
-        </div>
-        <div class="premium-card p-6 mb-6"><h3 id="questionText" class="text-lg font-bold italic"></h3></div>
-        <div id="optionsList" class="space-y-2 mb-8"></div>
-        <button onclick="confirmFinishTest()" class="w-full border border-red-500/30 text-red-500 p-4 rounded-xl font-bold uppercase text-xs tracking-widest opacity-60 italic">Testni yakunlash</button>
-    </div>
-
-    <div id="result-screen" class="hidden p-6 flex flex-col justify-center min-h-screen text-center">
-        <div class="premium-card p-8 shadow-2xl animate-slide">
-            <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-yellow-500">Natija</h2>
-            <div class="result-circle">
-                <span id="resPercent" class="text-4xl font-black text-yellow-500">0%</span>
-                <span class="text-[10px] opacity-60 font-bold">UMUMIY</span>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-8 text-sm">
-                <div class="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
-                    <p class="opacity-60 font-bold uppercase text-[10px]">To'g'ri</p>
-                    <p id="resCorrect" class="text-xl font-black text-green-500">0</p>
-                </div>
-                <div class="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
-                    <p class="opacity-60 font-bold uppercase text-[10px]">Xato</p>
-                    <p id="resWrong" class="text-xl font-black text-red-500">0</p>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <button onclick="showAnalysis()" class="w-full p-4 rounded-xl font-bold border border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10 transition">Xatolarni Ko'rish</button>
-                <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl shadow-lg text-black">Asosiy Menyu</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="analysis-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Tahlil</h2>
-        <div id="analysisList" class="space-y-4 mb-10"></div>
-        <button onclick="showMenu('subjects')" class="gold-button w-full p-4 rounded-xl text-black">Mavzularga qaytish</button>
-    </div>
-
-    <div id="rating-screen" class="hidden p-6">
-        <h2 class="text-2xl font-black mb-4 border-l-4 border-yellow-500 pl-3 uppercase text-yellow-500 tracking-tighter">Global Reyting</h2>
-        <p class="text-[10px] opacity-50 mb-4 italic uppercase">Har bir foydalanuvchining umumiy yutuqlari</p>
-        <div id="ratingList" class="space-y-4"></div>
-    </div>
-
-    <div id="profile-screen" class="hidden p-6 text-center">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Profil</h2>
-        <div class="premium-card p-8 mb-6 shadow-xl relative">
-            <div class="profile-img-container">
-                <img src="" id="userProfileImg" alt="Avatar">
-            </div>
-            <h3 id="profName" class="text-2xl font-black mb-1"></h3>
-            <p id="profUsername" class="text-sm text-yellow-500 mb-4 font-bold"></p>
-            <div id="profAgeInfo" class="text-sm opacity-80 mb-6 space-y-1">
-                <p id="profBirthdayText"></p>
-                <p id="profAgeText" class="font-black"></p>
-                <p id="profDaysLeft" class="text-xs italic text-yellow-500"></p>
-            </div>
-            <button onclick="openEditModal()" class="w-full p-4 rounded-2xl border border-yellow-500/30 text-yellow-500 font-black uppercase italic text-xs mb-8 transition hover:bg-yellow-500/10">Profilni tahrirlash</button>
-            
-            <div class="border-t border-yellow-500/20 pt-6 text-left">
-                <h4 class="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest italic text-yellow-500">Shaxsiy Natijalar:</h4>
-                <div id="myStatsList" class="space-y-3"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="settings-screen" class="hidden p-6 text-center">
-        <h2 class="text-2xl font-black mb-6 border-l-4 border-yellow-500 pl-3 uppercase text-left text-yellow-500 tracking-tighter">Sozlamalar</h2>
-        <div class="space-y-4">
-            <div onclick="toggleTheme()" class="premium-card p-5 flex justify-between items-center cursor-pointer">
-                <span class="font-bold text-sm italic uppercase">TUNGI REJIM</span>
-                <span id="theme-icon">🌙</span>
-            </div>
-            <button onclick="logout()" class="w-full bg-red-600/10 text-red-500 border border-red-600/30 font-black p-5 rounded-2xl mt-12 transition hover:bg-red-600 hover:text-white uppercase italic">Tizimdan chiqish & O'chirish</button>
-        </div>
-    </div>
-
-    <nav id="main-nav" class="hidden fixed bottom-0 left-0 right-0 bg-inherit border-t border-yellow-500/20 px-4 py-4 flex justify-around backdrop-blur-xl z-50">
-        <button onclick="showMenu('subjects')" id="nav-subjects" class="nav-btn active-nav"><span class="text-2xl">📚</span><span>TESTLAR</span></button>
-        <button onclick="showMenu('duel-menu')" id="nav-duel-menu" class="nav-btn"><span class="text-2xl">⚔️</span><span>DUEL</span></button>
-        <button onclick="showMenu('rating')" id="nav-rating" class="nav-btn"><span class="text-2xl">🏆</span><span>REYTING</span></button>
-        <button onclick="showMenu('profile')" id="nav-profile" class="nav-btn"><span class="text-2xl">👤</span><span>PROFIL</span></button>
-        <button onclick="showMenu('settings')" id="nav-settings" class="nav-btn"><span class="text-2xl">⚙️</span><span>SOZLAMALAR</span></button>
-    </nav>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, remove, update, push, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
-            databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-            projectId: "gen-lang-client-0228947349",
+function renderList(){
+    const list=document.getElementById('subjects-list');
+    list.innerHTML="";
+    Object.keys(allData).forEach(s=>{
+        const isPaid = isSubjectPaid(s);
+        const c=document.createElement('div');
+        c.className='card';
+        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${isPaid ? "✅ OCHILGAN" : "🔓 SINOV (5 TA SAVOL)"}</small>`;
+        c.onclick=()=>{
+            activeSub=s;
+            document.getElementById('mode-subject-name').innerText=s.toUpperCase();
+            showScreen('mode');
         };
+        list.appendChild(c);
+    });
+}
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
-        let currentUser = JSON.parse(localStorage.getItem('quizUser'));
-        let timerInterval;
-        let testQuestions = [];
-        let currentQIndex = 0;
-        let score = 0;
-        let userTestLogs = [];
-        let isDuelMode = false;
-        let currentDuelRoom = null;
-        let tempBase64Photo = "";
-        let introInterval;
+window.startQuizProcess=(m)=>{
+    mode=m; idx=0; points=0; corrects=0;
+    const src=allData[activeSub];
+    const isPaid = isSubjectPaid(activeSub);
+    const timerEl=document.getElementById('timer-box');
 
-        const tg = window.Telegram.WebApp;
-        const tgUser = tg.initDataUnsafe?.user;
+    if(m==='exam'){
+        const tempSet = [...src].sort(()=>Math.random()-0.5);
+        currentSet = isPaid ? tempSet.slice(0,35) : tempSet.slice(0, 5);
+        timerEl.style.display='block';
+        totalSeconds = 35*60;
+        updateTimer(timerEl);
+        if(countdownInterval) clearInterval(countdownInterval);
+        countdownInterval=setInterval(()=>{
+            totalSeconds--;
+            updateTimer(timerEl);
+            if(totalSeconds<=0){ clearInterval(countdownInterval); endQuiz(); }
+        },1000);
+    }else{
+        currentSet = isPaid ? [...src] : src.slice(0, 5);
+        timerEl.style.display='none';
+    }
+    showScreen('quiz');
+    renderQ();
+};
 
-        function getAvatarUrl(fName, lName) {
-            return `https://ui-avatars.com/api/?name=${encodeURIComponent(fName + " " + lName)}&background=random&color=fff&size=256&bold=true`;
-        }
+function updateTimer(el){
+    let mins=Math.floor(totalSeconds/60);
+    let secs=totalSeconds%60;
+    el.innerText=`${mins}:${secs<10?'0'+secs:secs}`;
+}
 
-        window.onload = () => {
-            tg.ready();
-            tg.expand();
-            applySavedTheme();
-            if(currentUser) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                showMenu('subjects');
-                checkBirthday();
-                listenForAdminMessages();
-                checkUpdateNotification();
-            }
+function renderQ(){
+    if(idx>=currentSet.length){
+        if(!isSubjectPaid(activeSub)) showScreen('payment');
+        else mode==='exam'?endQuiz():showScreen('home');
+        return;
+    }
+    const q=currentSet[idx];
+    document.getElementById('question-box').innerHTML=`${idx+1}. ${q.question}`;
+    const box=document.getElementById('options-box');
+    box.innerHTML="";
+    const opts=[{t:q.options.A,c:true},{t:q.options.B,c:false},{t:q.options.C,c:false},{t:q.options.D,c:false}].sort(()=>Math.random()-0.5);
+    opts.forEach(o=>{
+        const d=document.createElement('div');
+        d.className='option'; d.innerHTML=o.t;
+        d.onclick=()=>{
+            const btns=box.querySelectorAll('.option');
+            btns.forEach(b=>b.style.pointerEvents='none');
+            if(mode==='practice'){
+                if(o.c) d.classList.add('correct');
+                else { d.classList.add('wrong'); btns.forEach(b=>{ if(opts.find(opt=>opt.t===b.innerHTML && opt.c)) b.classList.add('correct'); }); saveX(q,activeSub); }
+            } else { if(o.c){ corrects++; points+=2; } else saveX(q,activeSub); d.style.borderColor="var(--text)"; d.style.backgroundColor="rgba(255,255,255,0.1)"; }
+            setTimeout(()=>{ idx++; renderQ(); },600);
         };
+        box.appendChild(d);
+    });
+}
 
-        window.previewImage = (input) => {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempBase64Photo = e.target.result;
-                    document.getElementById('editPreviewImg').src = tempBase64Photo;
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
+window.sendReceipt = () => {
+    const text = `ID: Foydalanuvchi\nFan: ${activeSub.toUpperCase()}\nTo'lov: 10 000 so'm\nChek ilova qilinmoqda...`;
+    window.open(`https://t.me/Maruf_Raxmonov?text=${encodeURIComponent(text)}`);
+};
 
-        window.openEditModal = () => {
-            document.getElementById('editFirstName').value = currentUser.fName;
-            document.getElementById('editLastName').value = currentUser.lName;
-            document.getElementById('editBirth').value = currentUser.birth;
-            document.getElementById('editPreviewImg').src = currentUser.photo;
-            tempBase64Photo = currentUser.photo;
-            document.getElementById('edit-profile-modal').classList.remove('hidden');
-        };
+window.checkPromoCode = () => {
+    const code = document.getElementById('promoCodeInput').value.trim();
+    // Namuna kodlar: '9999' yoki 'MARUF77'
+    if(code === '9999' || code === 'MARUF77') {
+        let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
+        if(!paid.includes(activeSub)) paid.push(activeSub);
+        localStorage.setItem('paid_subjects', JSON.stringify(paid));
+        alert("Fan muvaffaqiyatli ochildi! ✅");
+        renderList();
+        showScreen('home');
+    } else {
+        alert("Kod noto'g'ri! ❌");
+    }
+};
 
-        window.closeEditModal = () => {
-            document.getElementById('edit-profile-modal').classList.add('hidden');
-        };
+function endQuiz(){
+    if(countdownInterval) clearInterval(countdownInterval);
+    const st=document.getElementById('res-status');
+    const sc=document.getElementById('res-score');
+    sc.innerText=`${points}/70`;
+    document.getElementById('res-info').innerText=`To'g'ri javoblar: ${corrects}/35`;
+    if(points>=42){ st.innerText="MUVAFFAQIYATLI!"; st.style.color="#22c55e"; }
+    else{ st.innerText="YIQILDINGIZ!"; st.style.color="#ef4444"; }
+    showScreen('result');
+}
 
-        window.saveProfileChanges = async () => {
-            const f = document.getElementById('editFirstName').value.trim();
-            const l = document.getElementById('editLastName').value.trim();
-            const b = document.getElementById('editBirth').value;
-            
-            if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
+function saveX(q,s){
+    let x=JSON.parse(localStorage.getItem('xatolar'))||[];
+    if(!x.find(i=>i.question===q.question)){ x.push({...q,sub:s}); localStorage.setItem('xatolar',JSON.stringify(x)); }
+}
 
-            const userRef = ref(db, 'users/' + currentUser.userId);
-            
-            const updatedData = {
-                ...currentUser,
-                fName: f,
-                lName: l,
-                birth: b,
-                photo: tempBase64Photo || currentUser.photo
-            };
+function renderErrors(){
+    const list=document.getElementById('errors-list');
+    const x=JSON.parse(localStorage.getItem('xatolar'))||[];
+    list.innerHTML=x.length?"":"<p style='text-align:center'>Xatolar yo'q.</p>";
+    x.forEach(e=>{
+        list.innerHTML+=`<div class="card" style="text-align:left; font-weight:normal;">
+            <span style="font-size:10px; background:var(--accent); color:var(--bg); padding:2px 5px; border-radius:3px; text-transform:uppercase;">${e.sub}</span><br>
+            <p>${e.question}</p><p style="color:#22c55e"><b>To'g'ri javob:</b> ${e.options.A}</p>
+        </div>`;
+    });
+}
 
-            await update(userRef, updatedData);
-            localStorage.setItem('quizUser', JSON.stringify(updatedData));
-            currentUser = updatedData;
-            
-            closeEditModal();
-            loadProfile();
-            tg.HapticFeedback.notificationOccurred('success');
-            alert("Profil yangilandi!");
-        };
-
-        // INTRO FUNCTIONS
-        async function runIntroAnimation() {
-            const subjects = [
-                "Matematika", "Fizika", "Kimyo", "Ona_tili", "Adabiyot", 
-                "Geografiya", "Uzbekiston_tarixi", "Jahon_tarixi", 
-                "Ingliz_tili", "Rus_tili", "Biologiya", "IQ_testlar"
-            ];
-            let subIdx = 0;
-            const subNameEl = document.getElementById('intro-subject-name');
-            const qTextEl = document.getElementById('intro-question-text');
-            const optionsEl = document.getElementById('intro-mock-options');
-
-            const updateMock = async () => {
-                const sub = subjects[subIdx];
-                subNameEl.innerText = sub.replace(/_/g, ' ');
-                
-                const snap = await get(ref(db, `fanlar/${sub}`));
-                if (snap.exists()) {
-                    const q = snap.val()[0];
-                    qTextEl.innerText = q.q;
-                    optionsEl.innerHTML = q.a.map((ans, i) => `
-                        <div class="mock-option ${i === q.c ? 'mock-correct' : ''}">${ans}</div>
-                    `).join('');
-                }
-                subIdx = (subIdx + 1) % subjects.length;
-            };
-
-            updateMock();
-            introInterval = setInterval(updateMock, 2000);
-        }
-
-        window.finishIntro = () => {
-            clearInterval(introInterval);
-            showMenu('subjects');
-        };
-
-        window.nextIntro = (step) => {
-            if (step === 1) runIntroAnimation();
-            [1, 2, 3, 4].forEach(i => document.getElementById('intro-step-' + i).classList.add('hidden'));
-            const next = document.getElementById('intro-step-' + step);
-            if(next) {
-                next.classList.remove('hidden');
-                tg.HapticFeedback.impactOccurred('light');
-            }
-        };
-
-        window.showDuelCreate = () => showMenu('duel-create');
-        window.showDuelJoin = () => showMenu('duel-join');
-
-        window.copyDuelCode = () => {
-            const code = document.getElementById('generated-code').innerText;
-            navigator.clipboard.writeText(code);
-            tg.HapticFeedback.notificationOccurred('success');
-            alert("O'yin kodi nusxalandi!");
-        };
-
-        function checkUpdateNotification() {
-            const lastVersionSeen = localStorage.getItem('last_update_v1');
-            if (!lastVersionSeen) {
-                document.getElementById('updates-overlay').classList.remove('hidden');
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            }
-        }
-
-        window.closeUpdates = () => {
-            localStorage.setItem('last_update_v1', 'seen');
-            document.getElementById('updates-overlay').classList.add('hidden');
-        };
-
-        async function generateDuelRoom() {
-            const subj = document.getElementById('duelSubject').value;
-            const amount = parseInt(document.getElementById('duelQAmount').value);
-            const time = parseInt(document.getElementById('duelQTime').value);
-            const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
-            
-            document.getElementById('generated-code').innerText = roomCode;
-            document.getElementById('room-code-area').classList.remove('hidden');
-
-            const questions = await getRandomQuestions(subj, amount);
-            const roomData = {
-                code: roomCode,
-                subj: subj,
-                amount: amount,
-                time: time,
-                p1: currentUser,
-                status: 'waiting',
-                questions: questions,
-                p1Score: -1,
-                p2Score: -1
-            };
-
-            await set(ref(db, `duel_rooms/${roomCode}`), roomData);
-            onDisconnect(ref(db, `duel_rooms/${roomCode}`)).remove();
-
-            onValue(ref(db, `duel_rooms/${roomCode}`), (snap) => {
-                const data = snap.val();
-                if (data && data.status === 'starting' && !currentDuelRoom) {
-                    currentDuelRoom = roomCode;
-                    startDuelUI(data);
-                }
-                if (data && data.p1Score !== -1 && data.p2Score !== -1) {
-                    finalizeDuel(data);
-                }
-            });
-        }
-
-        async function joinDuelRoom() {
-            const code = document.getElementById('join-code-input').value.trim();
-            if (code.length !== 6) return alert("6 xonali kodni kiriting!");
-            const roomRef = ref(db, `duel_rooms/${code}`);
-            const snap = await get(roomRef);
-            if (snap.exists()) {
-                const data = snap.val();
-                if (data.status !== 'waiting') return alert("Xona band yoki o'yin boshlangan!");
-                await update(roomRef, { p2: currentUser, status: 'starting' });
-                currentDuelRoom = code;
-                onValue(roomRef, (s) => {
-                    const d = s.val();
-                    if (d && d.p1Score !== -1 && d.p2Score !== -1) {
-                        finalizeDuel(d);
-                    }
-                });
-                startDuelUI(data);
-            } else { alert("O'yin kodi topilmadi!"); }
-        }
-
-        function startDuelUI(room) {
-            showMenu('duel-vs');
-            const isP1 = room.p1.userId === currentUser.userId;
-            const opp = isP1 ? room.p2 : room.p1;
-            document.getElementById('duel-my-img').src = currentUser.photo;
-            document.getElementById('duel-opp-img').src = opp ? opp.photo : "https://ui-avatars.com/api/?name=Raqib&background=333&color=fff";
-            document.getElementById('duel-opp-name').innerText = opp ? opp.fName.toUpperCase() : "RAQIB";
-            let count = 3;
-            const cdInterval = setInterval(() => {
-                count--;
-                document.getElementById('duel-countdown').innerText = `O'yin boshlanadi: ${count}...`;
-                if (count <= 0) {
-                    clearInterval(cdInterval);
-                    testQuestions = room.questions;
-                    window.currentMeta = { subj: room.subj + " (Duel)", amount: room.amount, time: room.time };
-                    isDuelMode = true;
-                    showMenu('quiz');
-                    startTimer(room.time * 60);
-                    loadQuestion();
-                }
-            }, 1000);
-        }
-
-        async function finalizeDuel(room) {
-            showMenu('duel-result');
-            const isP1 = room.p1.userId === currentUser.userId;
-            const myFinal = isP1 ? room.p1Score : room.p2Score;
-            const oppFinal = isP1 ? room.p2Score : room.p1Score;
-            document.getElementById('duel-my-final-score').innerText = myFinal;
-            document.getElementById('duel-opp-final-score').innerText = oppFinal;
-            const statusText = document.getElementById('duel-final-status');
-            if (myFinal > oppFinal) {
-                statusText.innerText = "G'ALABA!";
-                statusText.style.color = "#FFD700";
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            } else if (myFinal < oppFinal) {
-                statusText.innerText = "MAG'LUBIYAT";
-                statusText.style.color = "#ef4444";
-            } else {
-                statusText.innerText = "DURANG";
-                statusText.style.color = "gray";
-            }
-        }
-
-        async function getRandomQuestions(subj, amount) {
-            const snap = await get(ref(db, 'fanlar/' + subj));
-            if (!snap.exists()) return [];
-            return snap.val().sort(() => 0.5 - Math.random()).slice(0, amount);
-        }
-
-        function listenForAdminMessages() {
-            const notifyRef = ref(db, 'global_notification');
-            onValue(notifyRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const lastSeen = localStorage.getItem('last_notify_time');
-                    if (!lastSeen || parseInt(lastSeen) < data.timestamp) {
-                        showAdminModal(data.title, data.message, data.timestamp);
-                    }
-                }
-            });
-        }
-
-        function showAdminModal(title, message, time) {
-            const modalHtml = `
-                <div id="admin-notify-overlay" class="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center p-6 backdrop-blur-sm">
-                    <div class="premium-card p-8 text-center border-2 border-gold shadow-[0_0_50px_rgba(255,215,0,0.2)] animate-slide max-w-sm">
-                        <div class="text-5xl mb-4">📢</div>
-                        <h2 class="text-xl font-black text-gold uppercase mb-3 tracking-tighter">${title}</h2>
-                        <p class="text-sm opacity-90 mb-8 leading-relaxed italic">"${message}"</p>
-                        <button onclick="closeAdminNotify(${time})" class="gold-button w-full p-4 rounded-xl text-black font-black uppercase">Tushunarli</button>
-                    </div>
-                </div>`;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-
-        window.closeAdminNotify = (time) => {
-            localStorage.setItem('last_notify_time', time);
-            const modal = document.getElementById('admin-notify-overlay');
-            if(modal) modal.remove();
-        };
-
-        function checkBirthday() {
-            if(!currentUser) return;
-            const bDate = new Date(currentUser.birth);
-            const today = new Date();
-            if (today.getMonth() === bDate.getMonth() && today.getDate() === bDate.getDate()) {
-                document.getElementById('bday-user-name').innerText = currentUser.fName;
-                document.getElementById('bday-overlay').classList.remove('hidden');
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            }
-        }
-
-        window.closeBday = () => { document.getElementById('bday-overlay').classList.add('hidden'); };
-
-        function register() {
-            const f = document.getElementById('firstName').value.trim();
-            const l = document.getElementById('lastName').value.trim();
-            const b = document.getElementById('birthDay').value;
-            if(!f || !l || !b) return alert("Iltimos, barcha qatorlarni to'ldiring!");
-            const userId = tgUser?.id ? "tg_" + tgUser.id : "user_" + Date.now();
-            const photoUrl = getAvatarUrl(f, l);
-            const userData = { userId, fName: f, lName: l, username: tgUser?.username || "", birth: b, photo: photoUrl };
-            
-            // Mark updates as seen for NEW users
-            localStorage.setItem('last_update_v1', 'seen');
-            
-            set(ref(db, 'users/' + userId), userData).then(() => {
-                localStorage.setItem('quizUser', JSON.stringify(userData));
-                currentUser = userData;
-                document.getElementById('auth-screen').classList.add('hidden');
-                showMenu('intro');
-                checkBirthday();
-                listenForAdminMessages();
-                // We skip checkUpdateNotification() here because we just set it to 'seen'
-            });
-        }
-
-        function showMenu(screen) {
-            clearInterval(timerInterval);
-            const screens = ['auth', 'intro', 'subjects', 'rating', 'profile', 'settings', 'quiz', 'analysis', 'result', 'duel-menu', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'];
-            screens.forEach(s => {
-                const el = document.getElementById(s + '-screen');
-                if(el) el.classList.add('hidden');
-                const nav = document.getElementById('nav-' + s);
-                if(nav) nav.classList.remove('active-nav');
-                const navAlt = document.getElementById('nav-duel-menu');
-                if(navAlt) navAlt.classList.remove('active-nav');
-            });
-            const target = document.getElementById(screen + '-screen');
-            if(target) target.classList.remove('hidden');
-
-            if (['quiz', 'auth', 'intro', 'analysis', 'result', 'duel-create', 'duel-join', 'duel-vs', 'duel-result'].includes(screen)) {
-                document.getElementById('main-nav').classList.add('hidden');
-            } else {
-                document.getElementById('main-nav').classList.remove('hidden');
-                if(screen === 'duel-menu') document.getElementById('nav-duel-menu').classList.add('active-nav');
-                else {
-                    const activeNav = document.getElementById('nav-' + screen);
-                    if(activeNav) activeNav.classList.add('active-nav');
-                }
-            }
-            if(screen === 'intro') runIntroAnimation();
-            if(screen === 'rating') loadRating();
-            if(screen === 'profile') loadProfile();
-        }
-
-        async function startTest() {
-            isDuelMode = false;
-            const subj = document.getElementById('selectedSubject').value;
-            const amount = parseInt(document.getElementById('qAmount').value);
-            const time = parseInt(document.getElementById('qTime').value);
-            const snapshot = await get(ref(db, 'fanlar/' + subj));
-            if(snapshot.exists()) {
-                testQuestions = snapshot.val().sort(() => 0.5 - Math.random()).slice(0, amount);
-                currentQIndex = 0; score = 0; userTestLogs = [];
-                window.currentMeta = { subj, amount, time };
-                showMenu('quiz');
-                startTimer(time * 60);
-                loadQuestion();
-            } else alert("Bu fanda savollar topilmadi!");
-        }
-
-        function loadQuestion() {
-            if(currentQIndex >= testQuestions.length) return finishTest(true);
-            document.getElementById('progress-fill').style.width = (currentQIndex / testQuestions.length) * 100 + "%";
-            const q = testQuestions[currentQIndex];
-            document.getElementById('qProgress').innerText = `${currentQIndex + 1}/${testQuestions.length}`;
-            document.getElementById('questionText').innerText = q.q;
-            const optList = document.getElementById('optionsList');
-            optList.innerHTML = "";
-            const opts = q.a.map((text, idx) => ({ text, isC: idx === q.c })).sort(() => 0.5 - Math.random());
-            opts.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn font-medium bg-white/5 italic";
-                btn.innerText = opt.text;
-                btn.onclick = () => {
-                    const buttons = optList.querySelectorAll('button');
-                    buttons.forEach(b => b.onclick = null);
-                    userTestLogs.push({ question: q.q, selected: opt.text, correct: q.a[q.c], isRight: opt.isC });
-                    if(opt.isC) { btn.style.backgroundColor = "#10b981"; btn.style.color = "#fff"; score++; }
-                    else { 
-                        btn.style.backgroundColor = "#ef4444"; btn.style.color = "#fff"; 
-                        buttons.forEach(b => { if(b.innerText === q.a[q.c]) b.style.border = "2px solid #10b981"; });
-                    }
-                    setTimeout(() => { currentQIndex++; loadQuestion(); }, 1000);
-                };
-                optList.appendChild(btn);
-            });
-        }
-
-        async function finishTest(isCompleted) {
-            clearInterval(timerInterval);
-            if(isCompleted) {
-                if (!isDuelMode) {
-                    const userKey = currentUser.userId.replace(/\./g, '_');
-                    const ratingPath = `ratings/${window.currentMeta.subj}/${userKey}`;
-                    const existingSnap = await get(ref(db, ratingPath));
-                    const currentBest = existingSnap.exists() ? existingSnap.val().score : -1;
-                    if(score >= currentBest) {
-                        const res = { userId: currentUser.userId, name: `${currentUser.fName} ${currentUser.lName}`, photo: currentUser.photo || "", score, subject: window.currentMeta.subj, qCount: window.currentMeta.amount, timeSet: window.currentMeta.time, date: Date.now() };
-                        await set(ref(db, ratingPath), res);
-                    }
-                    const percent = Math.round((score / window.currentMeta.amount) * 100);
-                    document.getElementById('resPercent').innerText = percent + "%";
-                    document.getElementById('resCorrect').innerText = score;
-                    document.getElementById('resWrong').innerText = window.currentMeta.amount - score;
-                    if(percent >= 60) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                    showMenu('result');
-                } else {
-                    const roomRef = ref(db, `duel_rooms/${currentDuelRoom}`);
-                    const field = (await get(roomRef)).val().p1.userId === currentUser.userId ? 'p1Score' : 'p2Score';
-                    await update(roomRef, { [field]: score });
-                    document.getElementById('quiz-screen').innerHTML = `
-                        <div class="flex flex-col items-center justify-center min-h-screen text-center p-10">
-                            <div class="searching-loader"></div>
-                            <h2 class="text-xl font-bold italic text-gold animate-pulse uppercase">Match tugadi!</h2>
-                            <p class="opacity-60 text-sm mt-4 italic">Raqib testni tugatishini kuting...</p>
-                        </div>`;
-                }
-            } else { showMenu('subjects'); }
-        }
-
-        window.showAnalysis = () => {
-            showMenu('analysis');
-            const list = document.getElementById('analysisList');
-            list.innerHTML = "";
-            userTestLogs.forEach((log, i) => {
-                const div = document.createElement('div');
-                div.className = "premium-card p-4 mb-2 border-l-4 " + (log.isRight ? "border-green-500" : "border-red-500");
-                div.innerHTML = `<p class="text-xs opacity-50 mb-1">Savol ${i+1}:</p><p class="font-bold text-sm mb-2">${log.question}</p><p class="text-xs ${log.isRight ? 'text-green-500' : 'text-red-500'} italic">Sizning javobingiz: ${log.selected}</p>${!log.isRight ? `<p class="text-xs text-green-500 font-bold">To'g'ri javob: ${log.correct}</p>` : ''}`;
-                list.appendChild(div);
-            });
-        }
-
-        async function loadRating() {
-            const rList = document.getElementById('ratingList');
-            rList.innerHTML = "<div class='text-center p-10 opacity-50'><div class='searching-loader'></div><p class='animate-pulse italic'>Reyting yangilanmoqda...</p></div>";
-            
-            try {
-                const [usersSnap, ratingsSnap] = await Promise.all([
-                    get(ref(db, 'users')),
-                    get(ref(db, 'ratings'))
-                ]);
-
-                if (usersSnap.exists()) {
-                    rList.innerHTML = "";
-                    const users = usersSnap.val();
-                    const ratings = ratingsSnap.exists() ? ratingsSnap.val() : {};
-                    let rankingData = [];
-
-                    Object.keys(users).forEach(uid => {
-                        const user = users[uid];
-                        let totalScore = 0;
-                        let userSubjects = {};
-
-                        Object.keys(ratings).forEach(subject => {
-                            const subRatings = ratings[subject];
-                            const userKey = uid.replace(/\./g, '_');
-                            if (subRatings[userKey]) {
-                                const scoreValue = parseInt(subRatings[userKey].score || 0);
-                                totalScore += scoreValue;
-                                userSubjects[subject] = scoreValue;
-                            }
-                        });
-
-                        rankingData.push({
-                            name: `${user.fName} ${user.lName}`,
-                            photo: user.photo,
-                            totalScore: totalScore,
-                            subjects: userSubjects
-                        });
-                    });
-
-                    rankingData.sort((a, b) => b.totalScore - a.totalScore);
-
-                    rankingData.forEach((user, i) => {
-                        const div = document.createElement('div');
-                        div.className = `premium-card p-5 animate-slide mb-5 border-l-4 ${i === 0 ? 'rank-1 border-gold' : 'border-gold/20'}`;
-                        
-                        let subjectsHtml = Object.entries(user.subjects).map(([subName, bestScore]) => 
-                            `<div class='flex justify-between items-center text-[10px] opacity-80 mt-1 italic pl-2 border-l border-gold/30'>
-                                <span>${subName.replace(/_/g, ' ')}</span>
-                                <span class='text-gold font-bold'>${bestScore} ball</span>
-                            </div>`
-                        ).join('');
-
-                        if (subjectsHtml === "") subjectsHtml = "<p class='text-[10px] opacity-40 italic'>Hali test topshirilmagan</p>";
-
-                        div.innerHTML = `
-                            <div class='flex items-start gap-4'>
-                                ${i === 0 ? '<span class="crown">👑</span>' : ''}
-                                <div class="rank-badge mt-1">${i + 1}</div>
-                                <img src="${user.photo}" 
-                                     class="rank-img" 
-                                     onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff';">
-                                <div class="flex-1">
-                                    <p class='font-bold text-sm mb-1'>${user.name}</p>
-                                    <p class='text-[10px] text-gold uppercase font-black mb-3 italic tracking-wider'>Jami: ${user.totalScore} ball</p>
-                                    <div class="space-y-1 bg-black/20 p-2 rounded-lg">
-                                        ${subjectsHtml}
-                                    </div>
-                                </div>
-                            </div>`;
-                        rList.appendChild(div);
-                    });
-                } else {
-                    rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Foydalanuvchilar topilmadi</p></div>";
-                }
-            } catch (error) {
-                console.error("Rating load error:", error);
-                rList.innerHTML = "<div class='text-center p-10 opacity-50'><p>Yuklashda xatolik yuz berdi</p></div>";
-            }
-        }
-
-        async function loadProfile() {
-            document.getElementById('profName').innerText = `${currentUser.fName} ${currentUser.lName}`;
-            document.getElementById('profUsername').innerText = currentUser.username ? "@" + currentUser.username : "";
-            
-            const profileImg = document.getElementById('userProfileImg');
-            if(profileImg) {
-                profileImg.src = currentUser.photo;
-                profileImg.onerror = function() {
-                    this.src = getAvatarUrl(currentUser.fName, currentUser.lName);
-                };
-            }
-            
-            const bDate = new Date(currentUser.birth);
-            const today = new Date();
-            let age = today.getFullYear() - bDate.getFullYear();
-            if (today < new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate())) age--;
-            const nextBday = new Date(today.getFullYear(), bDate.getMonth(), bDate.getDate());
-            if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
-            const diff = Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
-            document.getElementById('profBirthdayText').innerText = `Sana: ${bDate.toLocaleDateString('uz-UZ')}`;
-            document.getElementById('profAgeText').innerText = `Yosh: ${age} yosh`;
-            document.getElementById('profDaysLeft').innerText = (diff === 0 || diff === 365) ? "Bugun tug'ilgan kuningiz! 🥳" : `Tug'ilgan kuningizga ${diff} kun qoldi`;
-            const stats = document.getElementById('myStatsList');
-            stats.innerHTML = "";
-            const snap = await get(ref(db, `ratings`));
-            if(snap.exists()) {
-                const userKey = currentUser.userId.replace(/\./g, '_');
-                Object.keys(snap.val()).forEach(sub => {
-                    if (snap.val()[sub][userKey]) {
-                        const myBest = snap.val()[sub][userKey];
-                        const div = document.createElement('div');
-                        div.className = "flex justify-between items-center bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10 mb-2";
-                        div.innerHTML = `<span class="text-xs font-bold">${sub.replace(/_/g, ' ')}</span><span class="text-xs text-yellow-500 font-black">${myBest.score} ball</span>`;
-                        stats.appendChild(div);
-                    }
-                });
-            }
-        }
-
-        function startTimer(s) {
-            let t = s;
-            timerInterval = setInterval(() => {
-                let m = Math.floor(t / 60); let sc = t % 60;
-                document.getElementById('timer').innerText = `${m}:${sc<10?'0'+sc:sc}`;
-                if(t <= 0) { clearInterval(timerInterval); finishTest(true); }
-                t--;
-            }, 1000);
-        }
-
-        function toggleTheme() {
-            const isD = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isD ? 'dark' : 'light');
-            document.getElementById('theme-icon').innerText = isD ? "☀️" : "🌙";
-            document.getElementById('theme-icon-auth').innerText = isD ? "☀️" : "🌙";
-        }
-
-        function applySavedTheme() {
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-mode');
-                document.getElementById('theme-icon').innerText = "☀️";
-                document.getElementById('theme-icon-auth').innerText = "☀️";
-            }
-        }
-
-        async function logout() {
-            if(confirm("Barcha ma'lumotlaringiz o'chiriladi. Rozimisiz?")) {
-                const userId = currentUser.userId;
-                const userKey = userId.replace(/\./g, '_');
-
-                // 1. O'chirish: Profil
-                await remove(ref(db, 'users/' + userId));
-
-                // 2. O'chirish: Barcha reytinglardagi ballar
-                const ratingsSnap = await get(ref(db, 'ratings'));
-                if (ratingsSnap.exists()) {
-                    const ratings = ratingsSnap.val();
-                    for (const subject in ratings) {
-                        if (ratings[subject][userKey]) {
-                            await remove(ref(db, `ratings/${subject}/${userKey}`));
-                        }
-                    }
-                }
-
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        function confirmFinishTest() { if(confirm("Testni yakunlamoqchimisiz?")) finishTest(false); };
-
-        window.showMenu = showMenu;
-        window.register = register;
-        window.startTest = startTest;
-        window.toggleTheme = toggleTheme;
-        window.logout = logout;
-        window.confirmFinishTest = confirmFinishTest;
-        window.loadRating = loadRating;
-        window.nextIntro = nextIntro;
-        window.finishIntro = finishIntro;
-        window.showAnalysis = showAnalysis;
-        window.generateDuelRoom = generateDuelRoom;
-        window.joinDuelRoom = joinDuelRoom;
-        window.closeUpdates = closeUpdates;
-        window.previewImage = previewImage;
-        window.openEditModal = openEditModal;
-        window.closeEditModal = closeEditModal;
-        window.saveProfileChanges = saveProfileChanges;
-    </script>
+window.clearErrors=()=>{ localStorage.removeItem('xatolar'); renderErrors(); };
+window.setTheme=(t)=>{ document.body.setAttribute('data-theme',t); localStorage.setItem('theme',t); };
+setTheme(localStorage.getItem('theme')||'dark');
+</script>
 </body>
 </html>
-
