@@ -26,7 +26,6 @@
         .result-container, .payment-container { background: var(--card); border: 4px solid var(--accent); padding: 40px 20px; border-radius: 25px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .big-score { font-size: 60px; font-weight: 900; margin: 20px 0; }
         .promo-input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); border-radius: 10px; text-align: center; font-weight: 800; font-size: 18px; box-sizing: border-box; }
-        .logout-btn { background: #ef4444 !important; color: white !important; border: none !important; margin-top: 40px !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -51,7 +50,7 @@
         <div class="header">Sozlamalar</div>
         <button class="theme-btn" onclick="setTheme('light')">KUNDUZGI (OQ/QIZIL)</button>
         <button class="theme-btn" onclick="setTheme('dark')">TUNGI (QORA/TILLA)</button>
-        <button class="mode-btn logout-btn" onclick="logoutSystem()">🚪 TIZIMDAN CHIQISH</button>
+        <button class="mode-btn" style="background: #ef4444; color: white; border: none; margin-top: 40px;" onclick="logoutSystem()">🚪 TIZIMDAN CHIQISH</button>
     </div>
 </div>
 
@@ -160,7 +159,6 @@ window.checkPromoCode = () => {
 window.logoutSystem = () => {
     if(confirm("Tizimdan chiqilsa barcha ochilgan fanlar va xatolar butunlay o'chib ketadi. Rozimisiz?")) {
         localStorage.clear();
-        alert("Barcha ma'lumotlar tozalandi.");
         location.reload();
     }
 };
