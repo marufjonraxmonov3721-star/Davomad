@@ -242,21 +242,21 @@ function renderQ(){
                 if(o.c) d.classList.add('correct');
                 else { d.classList.add('wrong'); btns.forEach(b=>{ if(opts.find(opt=>opt.t===b.innerHTML && opt.c)) b.classList.add('correct'); }); saveX(q,activeSub); }
             } else { if(o.c){ corrects++; points+=2; } else saveX(q,activeSub); d.style.borderColor="var(--text)"; d.style.backgroundColor="rgba(255,255,255,0.1)"; }
-            setTimeout(()=>{ idx++; renderQ(); },600);
+            setTimeout(()=>{ idx++; renderQ(); }, 600);
         };
         box.appendChild(d);
     });
 }
 
 window.sendReceipt = () => {
-    const text = `ID: Foydalanuvchi\nFan: ${activeSub.toUpperCase()}\nTo'lov: 10 000 so'm\nChek ilova qilinmoqda...`;
-    window.open(`https://t.me/Maruf_Raxmonov?text=${encodeURIComponent(text)}`);
+    const text = `Salom Maruf aka, men "${activeSub.toUpperCase()}" fani uchun to'lov qildim. Mana chek ilova qilinmoqda. Menga promo-kod bering.`;
+    window.open(`https://t.me/Raxmonov_Maruf?text=${encodeURIComponent(text)}`);
 };
 
 window.checkPromoCode = () => {
     const code = document.getElementById('promoCodeInput').value.trim();
-    // Namuna kodlar: '9999' yoki 'MARUF77'
-    if(code === '9999' || code === 'MARUF77') {
+    // Siz beradigan kodlar ro'yxati
+    if(code === '9999' || code === 'MARUF77' || code === 'TEST2026') {
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
         if(!paid.includes(activeSub)) paid.push(activeSub);
         localStorage.setItem('paid_subjects', JSON.stringify(paid));
