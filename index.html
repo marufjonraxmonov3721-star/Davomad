@@ -130,7 +130,8 @@ function renderQ(){
 }
 
 window.sendReceipt = () => {
-    const text = `Men "${activeSub.toUpperCase()}" fani uchun to'lov qildim. Mana chek ilova qilinmoqda.`;
+    // MUHIM: Fan nomini qo'shtirnoq ichida yuborish formatini to'g'irladim
+    const text = `Men "${activeSub}" fani uchun to'lov qildim. Mana chek ilova qilinmoqda.`;
     window.open(`https://t.me/Yakuniyga_tayyorlovchi_bot?text=${encodeURIComponent(text)}`);
 };
 
@@ -143,12 +144,11 @@ window.checkPromoCode = () => {
     if (sub.includes("dinshunoslik")) subPrefix = "DIN";
     else if (sub.includes("fizika")) subPrefix = "FIZ";
     else if (sub.includes("oliy matematika")) subPrefix = "MAT";
-    else if (sub.includes("texnik_tizimlarda_akt")) subPrefix = "AKT";
+    else if (sub.includes("texnik_tizimlarda_akt") || sub.includes("texnik tizimlarda akt")) subPrefix = "AKT";
     else if (sub.includes("yo'nalishga kirish")) subPrefix = "YON";
 
     let usedCodes = JSON.parse(localStorage.getItem('used_promos')) || [];
 
-    // Tekshirish: Kod aynan shu fan prefixi bilan boshlanadimi va ishlatilmaganmi
     if(code.startsWith(subPrefix + '_YK') && code.length === 10 && !usedCodes.includes(code)) {
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
         if(!paid.includes(activeSub)) {
