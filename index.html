@@ -255,8 +255,9 @@ window.sendReceipt = () => {
 
 window.checkPromoCode = () => {
     const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
-    // Dinamik va statik kodlarni tekshirish
-    if(code.startsWith('YK') && code.length === 6 || code === '9999' || code === 'MARUF77' || code === 'TEST2026') {
+    
+    // ENDI FAQAT "YK" BILAN BOSHLANADIGAN KODLARNI QABUL QILADI
+    if(code.startsWith('YK') && code.length === 6) {
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
         if(!paid.includes(activeSub)) paid.push(activeSub);
         localStorage.setItem('paid_subjects', JSON.stringify(paid));
