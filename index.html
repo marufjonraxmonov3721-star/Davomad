@@ -92,7 +92,7 @@
                 <p style="color: var(--accent); font-size: 20px; font-weight: 900; margin: 5px 0;">4073 4200 6816 5541</p>
                 <p style="margin: 0; font-weight: 700;">Maruf Raxmonov</p>
             </div>
-            <button class="mode-btn" style="background: #0088cc; color: white; border: none; padding: 12px;" onclick="sendReceipt()">Chekni Telegramga yuborish</button>
+            <button class="mode-btn" style="background: #0088cc; color: white; border: none; padding: 12px;" onclick="sendReceipt()">Chekni Botga yuborish</button>
             <hr style="border: 1px solid var(--accent); opacity: 0.3; margin: 15px 0;">
             <p>Kodingiz bormi? Bu yerga kiriting:</p>
             <input type="text" id="promoCodeInput" class="promo-input" placeholder="PROMO KOD">
@@ -249,14 +249,14 @@ function renderQ(){
 }
 
 window.sendReceipt = () => {
-    const text = `Salom Maruf aka, men "${activeSub.toUpperCase()}" fani uchun to'lov qildim. Mana chek ilova qilinmoqda. Menga promo-kod bering.`;
-    window.open(`https://t.me/Raxmonov_Maruf?text=${encodeURIComponent(text)}`);
+    const text = `Men "${activeSub.toUpperCase()}" fani uchun to'lov qildim. Mana chek ilova qilinmoqda.`;
+    window.open(`https://t.me/Yakuniyga_tayyorlovchi_bot?text=${encodeURIComponent(text)}`);
 };
 
 window.checkPromoCode = () => {
-    const code = document.getElementById('promoCodeInput').value.trim();
-    // Siz beradigan kodlar ro'yxati
-    if(code === '9999' || code === 'MARUF77' || code === 'TEST2026') {
+    const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+    // Dinamik va statik kodlarni tekshirish
+    if(code.startsWith('YK') && code.length === 6 || code === '9999' || code === 'MARUF77' || code === 'TEST2026') {
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
         if(!paid.includes(activeSub)) paid.push(activeSub);
         localStorage.setItem('paid_subjects', JSON.stringify(paid));
