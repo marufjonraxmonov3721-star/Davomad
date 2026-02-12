@@ -256,14 +256,29 @@ window.sendReceipt = () => {
 window.checkPromoCode = () => {
     const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
     
-    // ENDI FAQAT "YK" BILAN BOSHLANADIGAN KODLARNI QABUL QILADI
-    if(code.startsWith('YK') && code.length === 6) {
+    // Ishlatilgan kodlar ro'yxatini olish
+    let usedCodes = JSON.parse(localStorage.getItem('used_promos')) || [];
+
+    // Kod formatini va ishlatilmaganligini tekshirish
+    if(code.startsWith('YK') && code.length === 6 && !usedCodes.includes(code)) {
+        // Fanni ochilganlar ro'yxatiga qo'shish
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
-        if(!paid.includes(activeSub)) paid.push(activeSub);
-        localStorage.setItem('paid_subjects', JSON.stringify(paid));
-        alert("Fan muvaffaqiyatli ochildi! ✅");
-        renderList();
-        showScreen('home');
+        if(!paid.includes(activeSub)) {
+            paid.push(activeSub);
+            localStorage.setItem('paid_subjects', JSON.stringify(paid));
+            
+            // Kodni "ishlatilgan" deb belgilash
+            usedCodes.push(code);
+            localStorage.setItem('used_promos', JSON.stringify(usedCodes));
+            
+            alert("Fan muvaffaqiyatli ochildi! ✅");
+            renderList();
+            showScreen('home');
+        } else {
+            alert("Bu fan allaqachon ochilgan.");
+        }
+    } else if (usedCodes.includes(code)) {
+        alert("Bu promo-kod allaqachon ishlatilgan! ❌");
     } else {
         alert("Kod noto'g'ri! ❌");
     }
