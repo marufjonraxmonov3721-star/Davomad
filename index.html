@@ -343,19 +343,25 @@ onValue(paymentsRef, (snapshot) => {
     const payments = snapshot.val();
     let paidSubjects = JSON.parse(localStorage.getItem('paid_subjects')) || [];
     let updated = false;
+    
+    const userId = localStorage.getItem('user_id');
+
     Object.keys(payments).forEach(payId => {
         const p = payments[payId];
-        if(p.status === 'approved') {
-            if(!paidSubjects.includes(p.subject)) {
-                localStorage.setItem('isLoggedIn', 'true');
-                paidSubjects.push(p.subject);
-                if(allData[p.subject]) saveSubjectLocally(p.subject, allData[p.subject]);
+        // Faqat shu foydalanuvchining to'lovini tekshiramiz
+        if(payId === userId) {
+            if(p.status === 'approved') {
+                if(!paidSubjects.includes(p.subject)) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    paidSubjects.push(p.subject);
+                    if(allData[p.subject]) saveSubjectLocally(p.subject, allData[p.subject]);
+                    updated = true;
+                }
+            } else if (p.status === 'rejected' && paidSubjects.includes(p.subject)) {
+                paidSubjects = paidSubjects.filter(s => s !== p.subject);
+                removeSubjectLocally(p.subject);
                 updated = true;
             }
-        } else if (p.status === 'rejected' && paidSubjects.includes(p.subject)) {
-            paidSubjects = paidSubjects.filter(s => s !== p.subject);
-            removeSubjectLocally(p.subject);
-            updated = true;
         }
     });
     if(updated) { localStorage.setItem('paid_subjects', JSON.stringify(paidSubjects)); renderList(); }
@@ -471,23 +477,27 @@ function renderQ(){
 
 window.handleFileUpload = (input) => {
     if (input.files && input.files[0]) {
-        const userId = localStorage.getItem('user_id'); // User ID olamiz
+        const userId = localStorage.getItem('user_id'); 
         if(activePaymentListener) off(activePaymentListener);
         const reader = new FileReader(); 
-        // Payment ID endi foydalanuvchi IDsi bilan bir xil bo'ladi
         const paymentId = userId; 
         reader.onload = function(e) {
             const base64Image = e.target.result; 
             const paymentsRef = ref(db, 'payments'); 
             const paymentRef = ref(db, 'payments/' + paymentId);
-            showScreen('checking'); resetCheckingScreen(); activePaymentListener = paymentsRef;
-            onChildChanged(paymentsRef, (snapshot) => { 
-                if(snapshot.key === paymentId) { 
-                    const data = snapshot.val(); 
+            
+            showScreen('checking'); 
+            resetCheckingScreen(); 
+            
+            // Listenerni o'rnatamiz
+            onValue(paymentRef, (snapshot) => {
+                if(snapshot.exists()) {
+                    const data = snapshot.val();
                     if(data.status === 'approved') { displayStatus('success', data.subject); } 
-                    else if (data.status === 'rejected') { displayStatus('error'); } 
-                } 
+                    else if (data.status === 'rejected') { displayStatus('error'); }
+                }
             });
+
             set(paymentRef, { 
                 id: paymentId, 
                 subject: activeSub, 
@@ -511,7 +521,7 @@ function displayStatus(type, subName = "") {
     const title = document.getElementById('check-title'), anim = document.getElementById('check-animation'), text = document.getElementById('check-text'), subtext = document.getElementById('check-subtext'), footer = document.getElementById('check-footer');
     subtext.style.display = "none";
     if(type === 'success') { title.innerText = "MUVAFFAQIYATLI!"; title.style.color = "#22c55e"; anim.innerHTML = '<span class="status-icon">✔️</span>'; text.innerHTML = `To'lovingiz tasdiqlandi! <br> <span class="subject-badge">${subName}</span>`; footer.innerHTML = '<button class="mode-btn" onclick="showScreen(\'home\')">DAVOM ETISH</button>'; } 
-    else { title.innerText = "RAD ETILDI!"; title.style.color = "#ef4444"; anim.innerHTML = '<span class="status-icon">❌</span>'; text.innerText = "To'lovingiz bekor qilindi. Iltimos, qaytadan chekni tekshirib yuklang."; footer.innerHTML = '<button class="mode-btn" style="background:#ef4444; border:none;" onclick="location.reload()">QAYTADAN BOSHLASH</button>'; setTimeout(() => { location.reload(); }, 1000); }
+    else { title.innerText = "RAD ETILDI!"; title.style.color = "#ef4444"; anim.innerHTML = '<span class="status-icon">❌</span>'; text.innerText = "To'lovingiz bekor qilindi. Iltimos, qaytadan chekni tekshirib yuklang."; footer.innerHTML = '<button class="mode-btn" style="background:#ef4444; border:none;" onclick="location.reload()">QAYTADAN BOSHLASH</button>'; }
 }
 
 window.logoutSystem = async () => { 
@@ -519,13 +529,9 @@ window.logoutSystem = async () => {
         const userId = localStorage.getItem('user_id');
         if(userId) {
             try {
-                // Foydalanuvchi ma'lumotlarini o'chirish
-                const userRef = ref(db, 'users/' + userId);
-                await remove(userRef);
-                
-                // To'lov ma'lumotlarini o'chirish (chunki IDlar bir xil)
-                const payRef = ref(db, 'payments/' + userId);
-                await remove(payRef);
+                // remove() endi to'g'ri ishlaydi
+                await remove(ref(db, 'users/' + userId));
+                await remove(ref(db, 'payments/' + userId));
             } catch (e) {
                 console.log("Bazadan o'chirishda xatolik:", e);
             }
