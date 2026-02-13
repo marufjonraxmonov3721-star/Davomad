@@ -54,7 +54,7 @@
 <body data-theme="dark">
 
 <div class="container">
-    <div id="welcome-screen">
+    <div id="welcome-screen" style="display: none;">
         <div class="welcome-container">
             <div class="welcome-step active" id="step1">
                 <h1 style="font-size: 45px;">🚀</h1>
@@ -187,7 +187,10 @@ window.nextStep = (s) => {
     document.querySelectorAll('.welcome-step').forEach(el => el.classList.remove('active'));
     document.getElementById('step' + s).classList.add('active');
 };
-window.finishWelcome = () => { localStorage.setItem('welcomeSeen', 'true'); showScreen('home'); };
+window.finishWelcome = () => { 
+    localStorage.setItem('welcomeSeen', 'true'); 
+    showScreen('home'); 
+};
 
 function isUserLoggedIn() { return localStorage.getItem('isLoggedIn') === 'true'; }
 
@@ -210,18 +213,25 @@ function getLocalQuestions(subName) {
 
 window.showScreen = (name) => {
     if(name !== 'quiz' && countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
+    
+    // Barcha ekranlarni yopish
     ['home','mode','quiz','errors','settings','result','payment','checking','welcome'].forEach(s=>{ 
-        const e=document.getElementById(s+'-screen'); if(e) e.style.display='none'; 
+        const e = document.getElementById(s+'-screen'); 
+        if(e) e.style.display='none'; 
     });
 
-    if(name === 'home' && !localStorage.getItem('welcomeSeen')) {
+    // Agar tour ko'rilmagan bo'lsa, faqat welcome chiqsin
+    if(!localStorage.getItem('welcomeSeen')) {
         document.getElementById('welcome-screen').style.display = 'block';
         document.querySelector('.bottom-nav').style.display = 'none';
         return;
     }
 
-    document.getElementById(name+'-screen').style.display='block';
+    // Navigatsiyani ko'rsatish/yashirish
     document.querySelector('.bottom-nav').style.display = (name === 'quiz' || name === 'checking' || name === 'welcome') ? 'none' : 'flex';
+
+    const targetScreen = document.getElementById(name+'-screen');
+    if(targetScreen) targetScreen.style.display='block';
     
     if(name === 'mode') {
         const questions = allData[activeSub] || [];
@@ -266,8 +276,17 @@ onValue(paymentsRef, (snapshot) => {
 
 function initData() {
     if(localStorage.getItem('isLoggedIn') === null) localStorage.setItem('isLoggedIn', 'true');
+    
+    // Tour tekshiruvi: Agar tour ko'rilmagan bo'lsa, boshqa sahifani yuklamaymiz
+    if(!localStorage.getItem('welcomeSeen')) {
+        showScreen('welcome');
+    } else {
+        showScreen('home');
+    }
+
     const cachedData = localStorage.getItem('cached_questions');
     if(cachedData) { allData = JSON.parse(cachedData); document.getElementById('loader').style.display='none'; renderList(); }
+    
     onValue(ref(db,'questions'), (snap)=>{ 
         if(snap.exists()){ 
             allData = snap.val(); 
@@ -282,6 +301,7 @@ function initData() {
     }, { onlyOnce: true });
 }
 
+// Ilovani ishga tushirish
 initData();
 
 function isSubjectPaid(subName) { return (JSON.parse(localStorage.getItem('paid_subjects')) || []).includes(subName); }
