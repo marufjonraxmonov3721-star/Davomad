@@ -496,8 +496,17 @@ function displayStatus(type, subName = "") {
     else { title.innerText = "RAD ETILDI!"; title.style.color = "#ef4444"; anim.innerHTML = '<span class="status-icon">❌</span>'; text.innerText = "To'lovingiz bekor qilindi. Iltimos, qaytadan chekni tekshirib yuklang."; footer.innerHTML = '<button class="mode-btn" style="background:#ef4444; border:none;" onclick="location.reload()">QAYTADAN BOSHLASH</button>'; setTimeout(() => { location.reload(); }, 1000); }
 }
 
-window.logoutSystem = () => { 
-    if(confirm("Tizimdan chiqilsa barcha ma'lumotlaringiz (shu jumladan ism-familiya, to'lovlar va natijalar) telefondan butunlay o'chirib tashlanadi. Rozimisiz?")) { 
+window.logoutSystem = async () => { 
+    if(confirm("Tizimdan chiqilsa barcha ma'lumotlaringiz (shu jumladan ism-familiya, to'lovlar va natijalar) bazadan va telefondan butunlay o'chirib tashlanadi. Rozimisiz?")) { 
+        const userId = localStorage.getItem('user_id');
+        if(userId) {
+            try {
+                const userRef = ref(db, 'users/' + userId);
+                await remove(userRef);
+            } catch (e) {
+                console.log("Bazadan o'chirishda xatolik:", e);
+            }
+        }
         localStorage.clear(); 
         sessionStorage.clear();
         window.location.href = window.location.pathname + "?v=" + Date.now();
