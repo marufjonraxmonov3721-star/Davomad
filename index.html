@@ -16,7 +16,7 @@
         .nav-item { text-align: center; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; color: var(--accent); }
         .header { text-align: center; font-weight: 800; font-size: 22px; padding: 35px 0 20px 0; text-transform: uppercase; }
         .card { background: var(--card); border: 2px solid var(--accent); padding: 20px; margin-bottom: 15px; border-radius: 12px; cursor: pointer; text-align: center; font-weight: 800; }
-        #quiz-screen, #errors-screen, #settings-screen, #mode-screen, #result-screen, #payment-screen, #checking-screen, #welcome-screen { display: none; position: relative; }
+        #quiz-screen, #errors-screen, #settings-screen, #mode-screen, #result-screen, #payment-screen, #checking-screen, #welcome-screen, #registration-screen, #profile-screen { display: none; position: relative; }
         .timer-display { text-align: center; font-size: 42px; font-weight: 900; margin-bottom: 15px; color: var(--accent); display: block; text-shadow: 0 0 10px rgba(128, 128, 128, 0.3); }
         .mode-title { text-align: center; font-size: 20px; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; opacity: 0.8; }
         .question-text { font-size: 19px; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
@@ -41,6 +41,10 @@
         .close-btn { position: absolute; top: 0; right: 0; font-size: 24px; font-weight: 900; color: var(--accent); cursor: pointer; z-index: 1001; padding: 15px; line-height: 1; }
         .finish-exam-btn { background: #ef4444 !important; color: white !important; border: none !important; margin-top: 20px; }
 
+        /* REGISTRATION STYLES */
+        .reg-input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 600; box-sizing: border-box; }
+        .reg-input::placeholder { color: var(--accent); opacity: 0.5; }
+
         /* TOUR & PROMO STYLES */
         .welcome-step { display: none; animation: fadeIn 0.5s ease; }
         .welcome-step.active { display: block; }
@@ -49,6 +53,12 @@
         .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
         .stat-card { border: 2px solid var(--accent); padding: 10px; border-radius: 10px; text-align: center; }
         .stat-num { font-size: 22px; font-weight: 900; display: block; color: var(--accent); }
+
+        /* PROFILE STYLES */
+        .profile-card { background: var(--card); border: 2px solid var(--accent); border-radius: 20px; padding: 25px; margin-bottom: 20px; text-align: center; }
+        .profile-avatar { width: 80px; height: 80px; background: var(--accent); color: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; font-weight: 900; margin: 0 auto 15px auto; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(128,128,128,0.3); font-size: 14px; }
+        .info-row b { text-transform: uppercase; }
     </style>
 </head>
 <body data-theme="dark">
@@ -72,8 +82,19 @@
                 <h1 style="font-size: 45px;">📸</h1>
                 <h2>MUHIM ESLATMA!</h2>
                 <p>Ilovada rasmli savollar bor. Agar rasmlar yaxshi ko'rinmasa, Sozlamalardan <b>"KUNDUZGI REJIM"</b>ni tanlashni maslahat beramiz.</p>
-                <button class="mode-btn" onclick="finishWelcome()">BOSHLADIK! ✨</button>
+                <button class="mode-btn" onclick="showRegistration()">DAVOM ETISH ✨</button>
             </div>
+        </div>
+    </div>
+
+    <div id="registration-screen">
+        <div class="welcome-container">
+            <h1 style="font-size: 45px;">👤</h1>
+            <h2>RO'YXATDAN O'TISH</h2>
+            <p>Ma'lumotlaringizni kiriting:</p>
+            <input type="text" id="reg-firstname" class="reg-input" placeholder="Ismingiz">
+            <input type="text" id="reg-lastname" class="reg-input" placeholder="Familiyangiz">
+            <button class="mode-btn" id="reg-save-btn" onclick="finishRegistration()">SAQLASH VA BOSHLASH 🚀</button>
         </div>
     </div>
 
@@ -82,6 +103,27 @@
         <div id="loader" style="text-align:center;">Yuklanmoqda...</div>
         <div id="subjects-list"></div>
     </div>
+
+    <div id="profile-screen">
+        <div class="close-btn" onclick="showScreen('home')">✕</div>
+        <div class="header">Mening Profilim</div>
+        <div class="profile-card">
+            <div class="profile-avatar" id="prof-initials">M</div>
+            <h2 id="prof-fullname" style="margin: 5px 0; text-transform: uppercase;">ISM FAMILIYA</h2>
+            <p id="prof-id" style="font-size: 11px; opacity: 0.6; margin-bottom: 20px;">ID: USER_000000</p>
+            
+            <div class="stat-box">
+                <div class="stat-card"><span class="stat-num" id="prof-total-tests">0</span><span>Testlar</span></div>
+                <div class="stat-card"><span class="stat-num" id="prof-avg-score">0</span><span>O'rtacha %</span></div>
+            </div>
+
+            <div class="info-row"><b>Ism:</b> <span id="info-fn">-</span></div>
+            <div class="info-row"><b>Familiya:</b> <span id="info-ln">-</span></div>
+            <div class="info-row"><b>Sana:</b> <span id="info-date">-</span></div>
+        </div>
+        <button class="mode-btn" style="background: #22c55e; color: white; border: none;" onclick="showScreen('home')">YANGI TEST BOSHLASH</button>
+    </div>
+
     <div id="mode-screen">
         <div class="close-btn" onclick="showScreen('home')">✕</div>
         <div class="header" id="mode-subject-name">FAN NOMI</div>
@@ -157,6 +199,7 @@
 <div class="bottom-nav">
     <div class="nav-item" onclick="showScreen('home')">🏠<br>Fanlar</div>
     <div class="nav-item" onclick="showScreen('errors')">❌<br>Xatolar</div>
+    <div class="nav-item" onclick="showScreen('profile')">👤<br>Profil</div>
     <div class="nav-item" onclick="showScreen('settings')">⚙️<br>Sozlamalar</div>
 </div>
 
@@ -182,14 +225,54 @@ let userAnswers = {};
 let activePaymentListener = null;
 let currentShuffledOptions = [];
 
-/* TOUR FUNCTIONS */
+/* TOUR & REGISTRATION FUNCTIONS */
 window.nextStep = (s) => {
     document.querySelectorAll('.welcome-step').forEach(el => el.classList.remove('active'));
     document.getElementById('step' + s).classList.add('active');
 };
-window.finishWelcome = () => { 
-    localStorage.setItem('welcomeSeen', 'true'); 
-    showScreen('home'); 
+
+window.showRegistration = () => {
+    localStorage.setItem('welcomeSeen', 'true');
+    showScreen('registration');
+};
+
+window.finishRegistration = async () => {
+    const fn = document.getElementById('reg-firstname').value.trim();
+    const ln = document.getElementById('reg-lastname').value.trim();
+    const btn = document.getElementById('reg-save-btn');
+    
+    if(!fn || !ln) {
+        alert("Iltimos, ism va familiyangizni to'liq kiriting!");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "YUKLANMOQDA...";
+
+    const userId = "USER_" + Date.now();
+    const userRef = ref(db, 'users/' + userId);
+    const regTime = new Date().toLocaleString();
+
+    try {
+        await set(userRef, {
+            id: userId,
+            firstname: fn,
+            lastname: ln,
+            regTime: regTime,
+            device: navigator.userAgent
+        });
+
+        localStorage.setItem('user_firstname', fn);
+        localStorage.setItem('user_lastname', ln);
+        localStorage.setItem('user_id', userId);
+        localStorage.setItem('reg_date', regTime);
+        localStorage.setItem('isRegistered', 'true');
+        showScreen('home');
+    } catch (error) {
+        alert("Xatolik yuz berdi: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "SAQLASH VA BOSHLASH 🚀";
+    }
 };
 
 function isUserLoggedIn() { return localStorage.getItem('isLoggedIn') === 'true'; }
@@ -214,21 +297,24 @@ function getLocalQuestions(subName) {
 window.showScreen = (name) => {
     if(name !== 'quiz' && countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
     
-    // Barcha ekranlarni yopish
-    ['home','mode','quiz','errors','settings','result','payment','checking','welcome'].forEach(s=>{ 
+    ['home','mode','quiz','errors','settings','result','payment','checking','welcome','registration', 'profile'].forEach(s=>{ 
         const e = document.getElementById(s+'-screen'); 
         if(e) e.style.display='none'; 
     });
 
-    // Agar tour ko'rilmagan bo'lsa, faqat welcome chiqsin
     if(!localStorage.getItem('welcomeSeen')) {
         document.getElementById('welcome-screen').style.display = 'block';
         document.querySelector('.bottom-nav').style.display = 'none';
         return;
     }
 
-    // Navigatsiyani ko'rsatish/yashirish
-    document.querySelector('.bottom-nav').style.display = (name === 'quiz' || name === 'checking' || name === 'welcome') ? 'none' : 'flex';
+    if(!localStorage.getItem('isRegistered') && name !== 'registration') {
+        document.getElementById('registration-screen').style.display = 'block';
+        document.querySelector('.bottom-nav').style.display = 'none';
+        return;
+    }
+
+    document.querySelector('.bottom-nav').style.display = (name === 'quiz' || name === 'checking' || name === 'welcome' || name === 'registration') ? 'none' : 'flex';
 
     const targetScreen = document.getElementById(name+'-screen');
     if(targetScreen) targetScreen.style.display='block';
@@ -248,6 +334,7 @@ window.showScreen = (name) => {
         }
     }
     if(name === 'errors') renderErrors();
+    if(name === 'profile') renderProfile();
 };
 
 const paymentsRef = ref(db, 'payments');
@@ -277,9 +364,10 @@ onValue(paymentsRef, (snapshot) => {
 function initData() {
     if(localStorage.getItem('isLoggedIn') === null) localStorage.setItem('isLoggedIn', 'true');
     
-    // Tour tekshiruvi: Agar tour ko'rilmagan bo'lsa, boshqa sahifani yuklamaymiz
     if(!localStorage.getItem('welcomeSeen')) {
         showScreen('welcome');
+    } else if (!localStorage.getItem('isRegistered')) {
+        showScreen('registration');
     } else {
         showScreen('home');
     }
@@ -301,7 +389,6 @@ function initData() {
     }, { onlyOnce: true });
 }
 
-// Ilovani ishga tushirish
 initData();
 
 function isSubjectPaid(subName) { return (JSON.parse(localStorage.getItem('paid_subjects')) || []).includes(subName); }
@@ -315,6 +402,26 @@ function renderList(){
         c.onclick=()=>{ activeSub=s; document.getElementById('mode-subject-name').innerText=s.toUpperCase(); if(!paid && trialUsed) showScreen('payment'); else showScreen('mode'); };
         list.appendChild(c);
     });
+}
+
+function renderProfile() {
+    const fn = localStorage.getItem('user_firstname') || 'ISM';
+    const ln = localStorage.getItem('user_lastname') || 'FAMILIYA';
+    const id = localStorage.getItem('user_id') || 'USER_000000';
+    const date = localStorage.getItem('reg_date') || '-';
+    
+    const results = JSON.parse(localStorage.getItem('test_results')) || [];
+    const totalTests = results.length;
+    const avgScore = totalTests > 0 ? Math.round(results.reduce((a, b) => a + b, 0) / totalTests) : 0;
+
+    document.getElementById('prof-fullname').innerText = `${fn} ${ln}`;
+    document.getElementById('prof-initials').innerText = fn[0];
+    document.getElementById('prof-id').innerText = `ID: ${id}`;
+    document.getElementById('prof-total-tests').innerText = totalTests;
+    document.getElementById('prof-avg-score').innerText = avgScore;
+    document.getElementById('info-fn').innerText = fn;
+    document.getElementById('info-ln').innerText = ln;
+    document.getElementById('info-date').innerText = date;
 }
 
 window.startQuizProcess=(m)=>{
@@ -370,7 +477,7 @@ window.handleFileUpload = (input) => {
             const base64Image = e.target.result; const paymentsRef = ref(db, 'payments'); const paymentRef = ref(db, 'payments/' + paymentId);
             showScreen('checking'); resetCheckingScreen(); activePaymentListener = paymentsRef;
             onChildChanged(paymentsRef, (snapshot) => { if(snapshot.key === paymentId) { const data = snapshot.val(); if(data.status === 'approved') { displayStatus('success', data.subject); } else if (data.status === 'rejected') { displayStatus('error'); } } });
-            set(paymentRef, { id: paymentId, subject: activeSub, image: base64Image, time: new Date().toLocaleString(), status: 'pending' });
+            set(paymentRef, { id: paymentId, subject: activeSub, image: base64Image, time: new Date().toLocaleString(), status: 'pending', userName: localStorage.getItem('user_firstname') + ' ' + localStorage.getItem('user_lastname') });
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -389,9 +496,31 @@ function displayStatus(type, subName = "") {
     else { title.innerText = "RAD ETILDI!"; title.style.color = "#ef4444"; anim.innerHTML = '<span class="status-icon">❌</span>'; text.innerText = "To'lovingiz bekor qilindi. Iltimos, qaytadan chekni tekshirib yuklang."; footer.innerHTML = '<button class="mode-btn" style="background:#ef4444; border:none;" onclick="location.reload()">QAYTADAN BOSHLASH</button>'; setTimeout(() => { location.reload(); }, 1000); }
 }
 
-window.logoutSystem = () => { if(confirm("Tizimdan chiqilsa hamma narsa o'chadi. Rozimisiz?")) { localStorage.clear(); location.reload(); } };
+window.logoutSystem = () => { 
+    if(confirm("Tizimdan chiqilsa barcha ma'lumotlaringiz (shu jumladan ism-familiya, to'lovlar va natijalar) telefondan butunlay o'chirib tashlanadi. Rozimisiz?")) { 
+        localStorage.clear(); 
+        sessionStorage.clear();
+        window.location.href = window.location.pathname + "?v=" + Date.now();
+    } 
+};
 
-function endQuiz(){ if(countdownInterval) clearInterval(countdownInterval); const st=document.getElementById('res-status'), sc=document.getElementById('res-score'); sc.innerText=`${points}/70`; document.getElementById('res-info').innerText=`To'g'ri: ${corrects}/35`; if(points>=42){ st.innerText="MUVAFFAQIYATLI!"; st.style.color="#22c55e"; } else { st.innerText="YIQILDINGIZ!"; st.style.color="#ef4444"; } showScreen('result'); }
+function endQuiz(){ 
+    if(countdownInterval) clearInterval(countdownInterval); 
+    const st=document.getElementById('res-status'), sc=document.getElementById('res-score'); 
+    sc.innerText=`${points}/70`; 
+    document.getElementById('res-info').innerText=`To'g'ri: ${corrects}/35`; 
+    
+    if(mode === 'exam') {
+        const results = JSON.parse(localStorage.getItem('test_results')) || [];
+        const percent = Math.round((points / 70) * 100);
+        results.push(percent);
+        localStorage.setItem('test_results', JSON.stringify(results));
+    }
+
+    if(points>=42){ st.innerText="MUVAFFAQIYATLI!"; st.style.color="#22c55e"; } 
+    else { st.innerText="YIQILDINGIZ!"; st.style.color="#ef4444"; } 
+    showScreen('result'); 
+}
 
 function calculateFinalScore() { corrects = 0; points = 0; currentSet.forEach((q, i) => { if(userAnswers[i] === q.options.A) { corrects++; points += 2; } else if(userAnswers[i]) { saveX(q, activeSub, mode); } }); endQuiz(); }
 
