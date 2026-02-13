@@ -56,7 +56,7 @@
         <div class="close-btn" onclick="showScreen('home')">✕</div>
         <div class="header" id="mode-subject-name">FAN NOMI</div>
         <button class="mode-btn" onclick="startQuizProcess('practice')">📖 MASHQ QILISH</button>
-        <button class="mode-btn" onclick="startQuizProcess('exam')">⏱ IMTIHON (35 SAVOL)</button>
+        <button class="mode-btn" onclick="startQuizProcess('exam')">⏱ IMTIHON (35 SAVOL 35 DAQIQA MIN BALL 42 MAX BALL 70)</button>
     </div>
     <div id="quiz-screen">
         <div class="close-btn" id="quiz-close" onclick="exitQuiz()">✕</div>
@@ -68,7 +68,7 @@
             <button class="nav-btn" onclick="prevQ()">⬅️ ORTGA</button>
             <button class="nav-btn" onclick="nextQ()">KEYINGISI ➡️</button>
         </div>
-        <button id="finish-exam-btn" class="finish-exam-btn mode-btn" style="display:none;" onclick="confirmFinishExam()">🏁 IMTIHONNI YAKUNLASH</button>
+        <button id="finish-exam-btn" class="finish-exam-btn mode-btn" style="display:none;" onclick="confirmFinishExam()">IMTIHONNI YAKUNLASH</button>
     </div>
     <div id="result-screen">
         <div class="close-btn" onclick="showScreen('home')">✕</div>
@@ -241,7 +241,7 @@ function renderList(){
     Object.keys(allData).forEach(s=>{
         const c=document.createElement('div'); c.className='card';
         const paid = isSubjectPaid(s); const trialUsed = (JSON.parse(localStorage.getItem('used_trials')) || []).includes(s);
-        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${paid ? "✅ OCHILGAN" : (trialUsed ? "🔒 SINOV TUGADI" : "🔓 SINOV (5 TA SAVOL)")}</small>`;
+        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${paid ? "🔓 OCHILGAN" : (trialUsed ? "🔒 SINOV TUGADI" : "🔓 SINOV (5 TA SAVOL)")}</small>`;
         c.onclick=()=>{ activeSub=s; document.getElementById('mode-subject-name').innerText=s.toUpperCase(); if(!paid && trialUsed) showScreen('payment'); else showScreen('mode'); };
         list.appendChild(c);
     });
