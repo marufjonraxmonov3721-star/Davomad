@@ -26,48 +26,26 @@
         .result-container, .payment-container { background: var(--card); border: 4px solid var(--accent); padding: 40px 20px; border-radius: 25px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .big-score { font-size: 60px; font-weight: 900; margin: 20px 0; }
         .promo-input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); border-radius: 10px; text-align: center; font-weight: 800; font-size: 18px; box-sizing: border-box; }
-        .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
     </style>
 </head>
 <body data-theme="dark">
 
 <div class="container">
     <div id="home-screen"><div class="header">Yakuniyga tayyorlovchi</div><div id="loader" style="text-align:center;">Yuklanmoqda...</div><div id="subjects-list"></div></div>
-    
     <div id="mode-screen"><div class="header" id="mode-subject-name">FAN NOMI</div><button class="mode-btn" onclick="startQuizProcess('practice')">📖 MASHQ QILISH</button><button class="mode-btn" onclick="startQuizProcess('exam')">⏱ IMTIHON (35 SAVOL)</button><button class="theme-btn" onclick="showScreen('home')">ORQAGA</button></div>
-    
     <div id="quiz-screen"><div id="timer-box" class="timer-display">35:00</div><div id="quiz-label" class="mode-title">MASHQ</div><div id="question-box" class="question-text"></div><div id="options-box"></div></div>
-    
     <div id="result-screen"><div class="result-container"><h1 id="res-status">NATIJA</h1><div id="res-score" class="big-score">0/70</div><p id="res-info" style="font-size: 18px; font-weight: bold;"></p><button class="mode-btn" onclick="showScreen('home')">YANA BOSHLASH</button></div></div>
-    
     <div id="payment-screen">
         <div class="payment-container">
-            <h1>FANNI OCHISH</h1>
-            <p>Barcha savollar uchun <b>10 000 so'm</b> to'lov qiling.</p>
-            
-            <div style="border: 2px dashed var(--accent); padding: 15px; border-radius: 12px; margin: 15px 0; cursor: pointer;" onclick="copyCard()">
-                <p id="cardNumDisplay" style="color: var(--accent); font-size: 22px; font-weight: 900; margin: 5px 0;">4073 4200 6816 5541</p>
-                <p style="margin: 0; font-weight: 700;">Maruf Raxmonov</p>
-                <small>(Nusxalash uchun ustiga bosing 📋)</small>
-            </div>
-
-            <div class="pay-grid">
-                <button class="mode-btn" style="background: #00c853; color: white; border: none; font-size: 14px;" onclick="openPayme()">🟢 PAYME</button>
-                <button class="mode-btn" style="background: #0055ff; color: white; border: none; font-size: 14px;" onclick="openClick()">🔵 CLICK</button>
-            </div>
-
-            <button class="mode-btn" style="background: #0088cc; color: white; border: none; padding: 12px;" onclick="sendReceipt()">📤 CHEKNI BOTGA YUBORISH</button>
-            
-            <hr style="border: 1px solid var(--accent); opacity: 0.3; margin: 20px 0;">
-            <p>Bot bergan promo-kodni kiriting:</p>
+            <h1>FANNI OCHISH</h1><p>Barcha savollar uchun <b>10 000 so'm</b> to'lov qiling.</p>
+            <div style="border: 2px dashed var(--accent); padding: 10px; border-radius: 10px; margin: 10px 0;"><p style="color: var(--accent); font-size: 20px; font-weight: 900; margin: 5px 0;">4073 4200 6816 5541</p><p style="margin: 0; font-weight: 700;">Maruf Raxmonov</p></div>
+            <button class="mode-btn" style="background: #0088cc; color: white; border: none; padding: 12px;" onclick="sendReceipt()">Chekni Botga yuborish</button>
+            <hr style="border: 1px solid var(--accent); opacity: 0.3; margin: 15px 0;"><p>Faqat ushbu fan uchun kodingizni kiriting:</p>
             <input type="text" id="promoCodeInput" class="promo-input" placeholder="PROMO KOD">
-            <button class="mode-btn" onclick="checkPromoCode()">TASDIQLASH</button>
-            <button class="theme-btn" onclick="showScreen('home')">ORQAGA</button>
+            <button class="mode-btn" onclick="checkPromoCode()">TASDIQLASH</button><button class="theme-btn" onclick="showScreen('home')">ORQAGA</button>
         </div>
     </div>
-
     <div id="errors-screen"><div class="header">Xatolar Ustida Ishlash</div><div id="errors-list"></div><button class="theme-btn" onclick="clearErrors()" style="margin-top: 20px;">TOZALASH</button></div>
-    
     <div id="settings-screen">
         <div class="header">Sozlamalar</div>
         <button class="theme-btn" onclick="setTheme('light')">KUNDUZGI (OQ/QIZIL)</button>
@@ -76,11 +54,7 @@
     </div>
 </div>
 
-<div class="bottom-nav">
-    <div class="nav-item" onclick="showScreen('home')">🏠<br>Fanlar</div>
-    <div class="nav-item" onclick="showScreen('errors')">❌<br>Xatolar</div>
-    <div class="nav-item" onclick="showScreen('settings')">⚙️<br>Sozlamalar</div>
-</div>
+<div class="bottom-nav"><div class="nav-item" onclick="showScreen('home')">🏠<br>Fanlar</div><div class="nav-item" onclick="showScreen('errors')">❌<br>Xatolar</div><div class="nav-item" onclick="showScreen('settings')">⚙️<br>Sozlamalar</div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -155,43 +129,45 @@ function renderQ(){
     });
 }
 
-// TO'LOV VA NUSXALASH FUNKSIYALARI
-window.copyCard = () => {
-    navigator.clipboard.writeText("4073420068165541");
-    alert("Karta raqami nusxalandi! 📋");
-};
-
-window.openPayme = () => {
-    window.open("https://checkout.paycom.uz/p2p/4073420068165541/10000");
-};
-
-window.openClick = () => {
-    window.open("https://my.click.uz/services/p2p/4073420068165541?amount=10000");
-};
-
 window.sendReceipt = () => {
-    const text = `Salom! Men "${activeSub.toUpperCase()}" fani uchun to'lov qildim. Mana chek:`;
+    // MUHIM: Fan nomini qo'shtirnoq ichida yuborish formatini to'g'irladim
+    const text = `Men "${activeSub}" fani uchun to'lov qildim. Mana chek ilova qilinmoqda.`;
     window.open(`https://t.me/Yakuniyga_tayyorlovchi_bot?text=${encodeURIComponent(text)}`);
 };
 
 window.checkPromoCode = () => {
     const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
-    // Botda beriladigan kodlar formatini tekshirish
-    if(code.length > 3) {
+    const sub = activeSub.toLowerCase();
+    let subPrefix = "FAN";
+
+    // Bazadagi 5 ta fan uchun prefixlar
+    if (sub.includes("dinshunoslik")) subPrefix = "DIN";
+    else if (sub.includes("fizika")) subPrefix = "FIZ";
+    else if (sub.includes("oliy matematika")) subPrefix = "MAT";
+    else if (sub.includes("texnik_tizimlarda_akt") || sub.includes("texnik tizimlarda akt")) subPrefix = "AKT";
+    else if (sub.includes("yo'nalishga kirish")) subPrefix = "YON";
+
+    let usedCodes = JSON.parse(localStorage.getItem('used_promos')) || [];
+
+    if(code.startsWith(subPrefix + '_YK') && code.length === 10 && !usedCodes.includes(code)) {
         let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
         if(!paid.includes(activeSub)) {
             paid.push(activeSub);
             localStorage.setItem('paid_subjects', JSON.stringify(paid));
+            usedCodes.push(code);
+            localStorage.setItem('used_promos', JSON.stringify(usedCodes));
             alert("Fan muvaffaqiyatli ochildi! ✅");
             renderList(); showScreen('home');
         } else { alert("Bu fan allaqachon ochilgan."); }
+    } else if (usedCodes.includes(code)) {
+        alert("Bu promo-kod allaqachon ishlatilgan! ❌");
     } else {
-        alert("Xato promo-kod! ❌");
+        alert("Xato! Bu kod boshqa fan uchun yoki noto'g'ri. ❌");
     }
 };
 
 window.logoutSystem = () => {
-    if(confirm("Barcha ma'lumotlar o'chib ketadi. Rozimisiz?")) {
+    if(confirm("Tizimdan chiqilsa barcha ochilgan fanlar va xatolar butunlay o'chib ketadi. Rozimisiz?")) {
         localStorage.clear();
         location.reload();
     }
@@ -225,3 +201,4 @@ setTheme(localStorage.getItem('theme')||'dark');
 </script>
 </body>
 </html>
+
