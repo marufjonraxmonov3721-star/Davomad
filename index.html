@@ -471,13 +471,31 @@ function renderQ(){
 
 window.handleFileUpload = (input) => {
     if (input.files && input.files[0]) {
+        const userId = localStorage.getItem('user_id'); // User ID olamiz
         if(activePaymentListener) off(activePaymentListener);
-        const reader = new FileReader(); const paymentId = "PAY_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+        const reader = new FileReader(); 
+        // Payment ID endi foydalanuvchi IDsi bilan bir xil bo'ladi
+        const paymentId = userId; 
         reader.onload = function(e) {
-            const base64Image = e.target.result; const paymentsRef = ref(db, 'payments'); const paymentRef = ref(db, 'payments/' + paymentId);
+            const base64Image = e.target.result; 
+            const paymentsRef = ref(db, 'payments'); 
+            const paymentRef = ref(db, 'payments/' + paymentId);
             showScreen('checking'); resetCheckingScreen(); activePaymentListener = paymentsRef;
-            onChildChanged(paymentsRef, (snapshot) => { if(snapshot.key === paymentId) { const data = snapshot.val(); if(data.status === 'approved') { displayStatus('success', data.subject); } else if (data.status === 'rejected') { displayStatus('error'); } } });
-            set(paymentRef, { id: paymentId, subject: activeSub, image: base64Image, time: new Date().toLocaleString(), status: 'pending', userName: localStorage.getItem('user_firstname') + ' ' + localStorage.getItem('user_lastname') });
+            onChildChanged(paymentsRef, (snapshot) => { 
+                if(snapshot.key === paymentId) { 
+                    const data = snapshot.val(); 
+                    if(data.status === 'approved') { displayStatus('success', data.subject); } 
+                    else if (data.status === 'rejected') { displayStatus('error'); } 
+                } 
+            });
+            set(paymentRef, { 
+                id: paymentId, 
+                subject: activeSub, 
+                image: base64Image, 
+                time: new Date().toLocaleString(), 
+                status: 'pending', 
+                userName: localStorage.getItem('user_firstname') + ' ' + localStorage.getItem('user_lastname') 
+            });
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -501,8 +519,13 @@ window.logoutSystem = async () => {
         const userId = localStorage.getItem('user_id');
         if(userId) {
             try {
+                // Foydalanuvchi ma'lumotlarini o'chirish
                 const userRef = ref(db, 'users/' + userId);
                 await remove(userRef);
+                
+                // To'lov ma'lumotlarini o'chirish (chunki IDlar bir xil)
+                const payRef = ref(db, 'payments/' + userId);
+                await remove(payRef);
             } catch (e) {
                 console.log("Bazadan o'chirishda xatolik:", e);
             }
