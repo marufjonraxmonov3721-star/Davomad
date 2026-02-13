@@ -6,36 +6,81 @@
     <title>Yakuniyga tayyorlovchi</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #ffffff; --text: #ff0000; --card: #ffffff; --nav-bg: #ffffff; --accent: #ff0000; }
-        [data-theme="dark"] { --bg: #000000; --text: #ffd700; --card: #000000; --nav-bg: #000000; --accent: #ffd700; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; transition: 0.3s; }
-        .container { padding: 20px; max-width: 600px; margin: auto; }
+        /* RANG REJIMLARI: FAQAT SHU QISMI O'ZGARTIRILDI */
+        :root { --bg: #ffffff; --text: #000000; --card: #ffffff; --nav-bg: #ffffff; --accent: #000000; }
+        [data-theme="dark"] { --bg: #000000; --text: #ffffff; --card: #000000; --nav-bg: #000000; --accent: #ffffff; }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; transition: 0.3s; overflow-x: hidden; }
+        .container { padding: 20px; max-width: 600px; margin: auto; position: relative; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--nav-bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--accent); z-index: 1000; }
         .nav-item { text-align: center; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; color: var(--accent); }
-        .header { text-align: center; font-weight: 800; font-size: 22px; padding: 25px 0; text-transform: uppercase; }
+        .header { text-align: center; font-weight: 800; font-size: 22px; padding: 35px 0 20px 0; text-transform: uppercase; }
         .card { background: var(--card); border: 2px solid var(--accent); padding: 20px; margin-bottom: 15px; border-radius: 12px; cursor: pointer; text-align: center; font-weight: 800; }
-        #quiz-screen, #errors-screen, #settings-screen, #mode-screen, #result-screen, #payment-screen { display: none; }
-        .timer-display { text-align: center; font-size: 42px; font-weight: 900; margin-bottom: 15px; color: var(--accent); display: block; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        #quiz-screen, #errors-screen, #settings-screen, #mode-screen, #result-screen, #payment-screen, #checking-screen { display: none; position: relative; }
+        .timer-display { text-align: center; font-size: 42px; font-weight: 900; margin-bottom: 15px; color: var(--accent); display: block; text-shadow: 0 0 10px rgba(128, 128, 128, 0.3); }
         .mode-title { text-align: center; font-size: 20px; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; opacity: 0.8; }
         .question-text { font-size: 19px; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
         .option { border: 2px solid var(--accent); padding: 16px; margin: 12px 0; border-radius: 14px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .correct { background: #22c55e !important; color: white !important; border-color: #22c55e; }
         .wrong { background: #ef4444 !important; color: white !important; border-color: #ef4444; }
+        .selected-exam { background: var(--accent) !important; color: var(--bg) !important; border-color: var(--accent); }
         .mode-btn { width: 100%; padding: 20px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); font-weight: 800; border-radius: 12px; cursor: pointer; font-size: 16px; text-transform: uppercase; }
         .theme-btn { width: 100%; padding: 18px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); font-weight: 800; border-radius: 10px; cursor: pointer; }
-        .result-container, .payment-container { background: var(--card); border: 4px solid var(--accent); padding: 40px 20px; border-radius: 25px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .result-container, .payment-container, .checking-container { background: var(--card); border: 4px solid var(--accent); padding: 40px 20px; border-radius: 25px; text-align: center; box-shadow: 0 0 30px rgba(128,128,128,0.2); }
         .big-score { font-size: 60px; font-weight: 900; margin: 20px 0; }
-        .promo-input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--accent); background: transparent; color: var(--text); border-radius: 10px; text-align: center; font-weight: 800; font-size: 18px; box-sizing: border-box; }
+        .loader-spin { border: 4px solid rgba(128, 128, 128, 0.1); border-left-color: var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 30px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #receipt-upload { display: none; }
+        .status-icon { font-size: 80px; display: block; margin-bottom: 10px; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        .subject-badge { background: var(--accent); color: var(--bg); padding: 8px 15px; border-radius: 8px; font-size: 18px; font-weight: 800; margin-top: 15px; display: inline-block; text-transform: uppercase; }
+        .error-card { background: var(--card); border: 2px solid var(--accent); padding: 15px; margin-bottom: 10px; border-radius: 10px; text-align: left; position: relative; }
+        .mode-badge { font-size: 9px; position: absolute; top: 15px; right: 15px; border: 1px solid var(--accent); padding: 2px 5px; border-radius: 4px; font-weight: 900; text-transform: uppercase; }
+
+        .nav-controls { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+        .nav-btn { flex: 1; padding: 15px; border: 2px solid var(--accent); background: transparent; color: var(--text); font-weight: 800; border-radius: 12px; cursor: pointer; text-transform: uppercase; }
+
+        .close-btn { position: absolute; top: 0; right: 0; font-size: 24px; font-weight: 900; color: var(--accent); cursor: pointer; z-index: 1001; padding: 15px; line-height: 1; }
+        .finish-exam-btn { background: #ef4444 !important; color: white !important; border: none !important; margin-top: 20px; }
     </style>
 </head>
 <body data-theme="dark">
 
 <div class="container">
-    <div id="home-screen"><div class="header">Yakuniyga tayyorlovchi</div><div id="loader" style="text-align:center;">Yuklanmoqda...</div><div id="subjects-list"></div></div>
-    <div id="mode-screen"><div class="header" id="mode-subject-name">FAN NOMI</div><button class="mode-btn" onclick="startQuizProcess('practice')">📖 MASHQ QILISH</button><button class="mode-btn" onclick="startQuizProcess('exam')">⏱ IMTIHON (35 SAVOL)</button><button class="theme-btn" onclick="showScreen('home')">ORQAGA</button></div>
-    <div id="quiz-screen"><div id="timer-box" class="timer-display">35:00</div><div id="quiz-label" class="mode-title">MASHQ</div><div id="question-box" class="question-text"></div><div id="options-box"></div></div>
-    <div id="result-screen"><div class="result-container"><h1 id="res-status">NATIJA</h1><div id="res-score" class="big-score">0/70</div><p id="res-info" style="font-size: 18px; font-weight: bold;"></p><button class="mode-btn" onclick="showScreen('home')">YANA BOSHLASH</button></div></div>
+    <div id="home-screen">
+        <div class="header">Yakuniyga tayyorlovchi</div>
+        <div id="loader" style="text-align:center;">Yuklanmoqda...</div>
+        <div id="subjects-list"></div>
+    </div>
+    <div id="mode-screen">
+        <div class="close-btn" onclick="showScreen('home')">✕</div>
+        <div class="header" id="mode-subject-name">FAN NOMI</div>
+        <button class="mode-btn" onclick="startQuizProcess('practice')">📖 MASHQ QILISH</button>
+        <button class="mode-btn" onclick="startQuizProcess('exam')">⏱ IMTIHON (35 SAVOL)</button>
+    </div>
+    <div id="quiz-screen">
+        <div class="close-btn" id="quiz-close" onclick="exitQuiz()">✕</div>
+        <div id="timer-box" class="timer-display">35:00</div>
+        <div id="quiz-label" class="mode-title">MASHQ</div>
+        <div id="question-box" class="question-text"></div>
+        <div id="options-box"></div>
+        <div id="nav-controls" class="nav-controls">
+            <button class="nav-btn" onclick="prevQ()">⬅️ ORTGA</button>
+            <button class="nav-btn" onclick="nextQ()">KEYINGISI ➡️</button>
+        </div>
+        <button id="finish-exam-btn" class="finish-exam-btn mode-btn" style="display:none;" onclick="confirmFinishExam()">🏁 IMTIHONNI YAKUNLASH</button>
+    </div>
+    <div id="result-screen">
+        <div class="close-btn" onclick="showScreen('home')">✕</div>
+        <div class="result-container">
+            <h1 id="res-status">NATIJA</h1>
+            <div id="res-score" class="big-score">0/70</div>
+            <p id="res-info" style="font-size: 18px; font-weight: bold;"></p>
+            <button class="mode-btn" onclick="showScreen('home')">YANA BOSHLASH</button>
+        </div>
+    </div>
     <div id="payment-screen">
+        <div class="close-btn" onclick="showScreen('home')">✕</div>
         <div class="payment-container">
             <h1>FANNI OCHISH</h1><p>Barcha savollar uchun <b>10 000 so'm</b> to'lov qiling.</p>
             <div style="border: 2px dashed var(--accent); padding: 10px; border-radius: 10px; margin: 10px 0; cursor: pointer;" onclick="navigator.clipboard.writeText('4073420068165541'); alert('Karta nusxalandi! 📋');">
@@ -43,26 +88,44 @@
                 <p style="margin: 0; font-weight: 700;">Maruf Raxmonov</p>
                 <small style="opacity: 0.6;">(Nusxalash uchun ustiga bosing)</small>
             </div>
-            <button class="mode-btn" style="background: #0088cc; color: white; border: none; padding: 12px;" onclick="sendReceipt()">Chekni Botga yuborish</button>
-            <hr style="border: 1px solid var(--accent); opacity: 0.3; margin: 15px 0;"><p>Faqat ushbu fan uchun kodingizni kiriting:</p>
-            <input type="text" id="promoCodeInput" class="promo-input" placeholder="PROMO KOD">
-            <button class="mode-btn" onclick="checkPromoCode()">TASDIQLASH</button><button class="theme-btn" onclick="showScreen('home')">ORQAGA</button>
+            <input type="file" id="receipt-upload" accept="image/*" onchange="handleFileUpload(this)">
+            <button class="mode-btn" style="background: #22c55e; color: white; border: none; padding: 12px;" onclick="document.getElementById('receipt-upload').click()">TO'LADIM</button>
         </div>
     </div>
-    <div id="errors-screen"><div class="header">Xatolar Ustida Ishlash</div><div id="errors-list"></div><button class="theme-btn" onclick="clearErrors()" style="margin-top: 20px;">TOZALASH</button></div>
+    <div id="checking-screen">
+        <div class="checking-container" id="checking-content">
+            <h1 id="check-title" style="font-size: 26px; font-weight: 900; color: var(--accent); margin-bottom: 20px;">TO'LOV TEKSHIRILMOQDA</h1>
+            <div id="check-animation"><div class="loader-spin"></div></div>
+            <p id="check-text" style="font-size: 18px; font-weight: 600; line-height: 1.5;">Sizning to'lovingiz tekshirilmoqda. To'lov tasdiqlangach fan avtomatik ochiladi.</p>
+            <p id="check-subtext" style="font-size: 16px; margin-top: 20px; color: var(--accent); font-weight: 800;">Bu 5-15 daqiqa vaqt olishi mumkin.</p>
+            <div id="check-footer"></div>
+        </div>
+    </div>
+    <div id="errors-screen">
+        <div class="close-btn" onclick="showScreen('home')">✕</div>
+        <div class="header">Xatolar Banki</div>
+        <button class="mode-btn" id="error-test-btn" style="background: #22c55e; color: white; border:none; margin-bottom: 20px;" onclick="startErrorQuiz()">🔥 XATOLARIMDAN TEST YECHISH</button>
+        <div id="errors-list"></div>
+        <button class="theme-btn" onclick="clearErrors()" style="margin-top: 20px; width: 100%;">TOZALASH</button>
+    </div>
     <div id="settings-screen">
+        <div class="close-btn" onclick="showScreen('home')">✕</div>
         <div class="header">Sozlamalar</div>
-        <button class="theme-btn" onclick="setTheme('light')">KUNDUZGI (OQ/QIZIL)</button>
-        <button class="theme-btn" onclick="setTheme('dark')">TUNGI (QORA/TILLA)</button>
+        <button class="theme-btn" onclick="setTheme('light')">KUNDUZGI</button>
+        <button class="theme-btn" onclick="setTheme('dark')">TUNGI</button>
         <button class="mode-btn" style="background: #ef4444; color: white; border: none; margin-top: 40px;" onclick="logoutSystem()">🚪 TIZIMDAN CHIQISH</button>
     </div>
 </div>
 
-<div class="bottom-nav"><div class="nav-item" onclick="showScreen('home')">🏠<br>Fanlar</div><div class="nav-item" onclick="showScreen('errors')">❌<br>Xatolar</div><div class="nav-item" onclick="showScreen('settings')">⚙️<br>Sozlamalar</div></div>
+<div class="bottom-nav">
+    <div class="nav-item" onclick="showScreen('home')">🏠<br>Fanlar</div>
+    <div class="nav-item" onclick="showScreen('errors')">❌<br>Xatolar</div>
+    <div class="nav-item" onclick="showScreen('settings')">⚙️<br>Sozlamalar</div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, off, remove, onChildChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -78,14 +141,98 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let allData = {}, currentSet = [], activeSub = "", idx = 0, mode = "", countdownInterval = null, points = 0, corrects = 0, totalSeconds = 0;
+let userAnswers = {};
+let activePaymentListener = null;
+let currentShuffledOptions = [];
+
+function isUserLoggedIn() {
+    return localStorage.getItem('isLoggedIn') === 'true';
+}
+
+function saveSubjectLocally(subName, questions) {
+    let localStore = JSON.parse(localStorage.getItem('offline_subjects')) || {};
+    localStore[subName] = questions;
+    localStorage.setItem('offline_subjects', JSON.stringify(localStore));
+}
+
+function removeSubjectLocally(subName) {
+    let localStore = JSON.parse(localStorage.getItem('offline_subjects')) || {};
+    delete localStore[subName];
+    localStorage.setItem('offline_subjects', JSON.stringify(localStore));
+}
+
+function getLocalQuestions(subName) {
+    let localStore = JSON.parse(localStorage.getItem('offline_subjects')) || {};
+    return localStore[subName];
+}
 
 window.showScreen = (name) => {
     if(name !== 'quiz' && countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
-    ['home','mode','quiz','errors','settings','result','payment'].forEach(s=>{ const e=document.getElementById(s+'-screen'); if(e) e.style.display='none'; });
+    ['home','mode','quiz','errors','settings','result','payment','checking'].forEach(s=>{ 
+        const e=document.getElementById(s+'-screen'); if(e) e.style.display='none'; 
+    });
     document.getElementById(name+'-screen').style.display='block';
+    document.querySelector('.bottom-nav').style.display = (name === 'quiz' || name === 'checking') ? 'none' : 'flex';
+    if(name === 'errors') renderErrors();
 };
 
-onValue(ref(db,'questions'), (snap)=>{ if(snap.exists()){ allData=snap.val(); document.getElementById('loader').style.display='none'; renderList(); } });
+const paymentsRef = ref(db, 'payments');
+onValue(paymentsRef, (snapshot) => {
+    if(!snapshot.exists()) return;
+    
+    const payments = snapshot.val();
+    let paidSubjects = JSON.parse(localStorage.getItem('paid_subjects')) || [];
+    let updated = false;
+
+    Object.keys(payments).forEach(payId => {
+        const p = payments[payId];
+        if(p.status === 'approved') {
+            if(!paidSubjects.includes(p.subject)) {
+                localStorage.setItem('isLoggedIn', 'true');
+                paidSubjects.push(p.subject);
+                if(allData[p.subject]) saveSubjectLocally(p.subject, allData[p.subject]);
+                updated = true;
+            }
+        } else if (p.status === 'rejected' && paidSubjects.includes(p.subject)) {
+            paidSubjects = paidSubjects.filter(s => s !== p.subject);
+            removeSubjectLocally(p.subject);
+            updated = true;
+        }
+    });
+
+    if(updated) {
+        localStorage.setItem('paid_subjects', JSON.stringify(paidSubjects));
+        renderList();
+    }
+});
+
+function initData() {
+    if(localStorage.getItem('isLoggedIn') === null) {
+        localStorage.setItem('isLoggedIn', 'true');
+    }
+
+    const cachedData = localStorage.getItem('cached_questions');
+    if(cachedData) {
+        allData = JSON.parse(cachedData);
+        document.getElementById('loader').style.display='none';
+        renderList();
+    }
+    
+    onValue(ref(db,'questions'), (snap)=>{ 
+        if(snap.exists()){ 
+            allData = snap.val(); 
+            localStorage.setItem('cached_questions', JSON.stringify(allData));
+            document.getElementById('loader').style.display='none'; 
+            renderList(); 
+            if(isUserLoggedIn()) {
+                const paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
+                paid.forEach(sub => { if(allData[sub]) saveSubjectLocally(sub, allData[sub]); });
+            }
+        } 
+    }, { onlyOnce: true });
+}
+
+initData();
 
 function isSubjectPaid(subName) { return (JSON.parse(localStorage.getItem('paid_subjects')) || []).includes(subName); }
 
@@ -93,118 +240,202 @@ function renderList(){
     const list=document.getElementById('subjects-list'); list.innerHTML="";
     Object.keys(allData).forEach(s=>{
         const c=document.createElement('div'); c.className='card';
-        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${isSubjectPaid(s) ? "✅ OCHILGAN" : "🔓 SINOV (5 TA SAVOL)"}</small>`;
-        c.onclick=()=>{ activeSub=s; document.getElementById('mode-subject-name').innerText=s.toUpperCase(); showScreen('mode'); };
+        const paid = isSubjectPaid(s); const trialUsed = (JSON.parse(localStorage.getItem('used_trials')) || []).includes(s);
+        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${paid ? "✅ OCHILGAN" : (trialUsed ? "🔒 SINOV TUGADI" : "🔓 SINOV (5 TA SAVOL)")}</small>`;
+        c.onclick=()=>{ activeSub=s; document.getElementById('mode-subject-name').innerText=s.toUpperCase(); if(!paid && trialUsed) showScreen('payment'); else showScreen('mode'); };
         list.appendChild(c);
     });
 }
 
 window.startQuizProcess=(m)=>{
-    mode=m; idx=0; points=0; corrects=0;
-    const src=allData[activeSub], isPaid = isSubjectPaid(activeSub), timerEl=document.getElementById('timer-box');
+    mode=m; idx=0; points=0; corrects=0; userAnswers = {}; currentShuffledOptions = [];
+    let src = getLocalQuestions(activeSub) || allData[activeSub];
+    const isPaid = isSubjectPaid(activeSub);
+    const trialUsed = (JSON.parse(localStorage.getItem('used_trials')) || []).includes(activeSub);
+    if(!isPaid && trialUsed) { showScreen('payment'); return; }
+    
+    const timerEl=document.getElementById('timer-box'); const finishBtn = document.getElementById('finish-exam-btn');
+    document.getElementById('quiz-label').innerText = m === 'exam' ? '⏱ IMTIHON' : '📖 MASHQ';
+    
     if(m==='exam'){
-        const tempSet = [...src].sort(()=>Math.random()-0.5);
-        currentSet = isPaid ? tempSet.slice(0,35) : tempSet.slice(0, 5);
+        currentSet = [...src].sort(() => Math.random() - 0.5).slice(0, 35);
         timerEl.style.display='block'; totalSeconds = 35*60; updateTimer(timerEl);
+        finishBtn.style.display = 'block';
         if(countdownInterval) clearInterval(countdownInterval);
-        countdownInterval=setInterval(()=>{ totalSeconds--; updateTimer(timerEl); if(totalSeconds<=0){ clearInterval(countdownInterval); endQuiz(); } },1000);
-    }else{ currentSet = isPaid ? [...src] : src.slice(0, 5); timerEl.style.display='none'; }
+        countdownInterval=setInterval(()=>{ totalSeconds--; updateTimer(timerEl); if(totalSeconds<=0){ clearInterval(countdownInterval); calculateFinalScore(); } },1000);
+    } else { 
+        currentSet = isPaid ? src : src.slice(0, 5);
+        timerEl.style.display='none'; finishBtn.style.display = 'none';
+    }
     showScreen('quiz'); renderQ();
 };
 
-function updateTimer(el){ let mins=Math.floor(totalSeconds/60), secs=totalSeconds%60; el.innerText=`${mins}:${secs<10?'0'+secs:secs}`; }
-
 function renderQ(){
-    if(idx>=currentSet.length){ if(!isSubjectPaid(activeSub)) showScreen('payment'); else mode==='exam'?endQuiz():showScreen('home'); return; }
     const q=currentSet[idx]; document.getElementById('question-box').innerHTML=`${idx+1}. ${q.question}`;
     const box=document.getElementById('options-box'); box.innerHTML="";
-    const opts=[{t:q.options.A,c:true},{t:q.options.B,c:false},{t:q.options.C,c:false},{t:q.options.D,c:false}].sort(()=>Math.random()-0.5);
-    opts.forEach(o=>{
+    
+    if(!currentShuffledOptions[idx]) {
+        currentShuffledOptions[idx] = [
+            {t:q.options.A, c:true}, {t:q.options.B, c:false}, 
+            {t:q.options.C, c:false}, {t:q.options.D, c:false}
+        ].sort(() => Math.random() - 0.5);
+    }
+
+    currentShuffledOptions[idx].forEach(o=>{
         const d=document.createElement('div'); d.className='option'; d.innerHTML=o.t;
+        if(userAnswers[idx] === o.t) {
+            if(mode === 'exam') d.classList.add('selected-exam');
+            else { if(o.c) d.classList.add('correct'); else d.classList.add('wrong'); }
+        }
+        if(userAnswers[idx] && mode !== 'exam' && o.c) d.classList.add('correct');
         d.onclick=()=>{
-            const btns=box.querySelectorAll('.option'); btns.forEach(b=>b.style.pointerEvents='none');
-            if(mode==='practice'){
-                if(o.c) d.classList.add('correct');
-                else { d.classList.add('wrong'); btns.forEach(b=>{ if(opts.find(opt=>opt.t===b.innerHTML && opt.c)) b.classList.add('correct'); }); saveX(q,activeSub); }
-            } else { if(o.c){ corrects++; points+=2; } else saveX(q,activeSub); d.style.borderColor="var(--text)"; d.style.backgroundColor="rgba(255,255,255,0.1)"; }
-            setTimeout(()=>{ idx++; renderQ(); }, 600);
+            if(mode !== 'exam' && userAnswers[idx]) return; 
+            userAnswers[idx] = o.t;
+            if(mode === 'exam') {
+                box.querySelectorAll('.option').forEach(el => el.classList.remove('selected-exam'));
+                d.classList.add('selected-exam');
+            } else {
+                if(o.c) { d.classList.add('correct'); } 
+                else { 
+                    d.classList.add('wrong'); 
+                    box.querySelectorAll('.option').forEach(b => { 
+                        const isCorrectOption = currentShuffledOptions[idx].find(opt => opt.t === b.innerHTML && opt.c);
+                        if(isCorrectOption) b.classList.add('correct'); 
+                    });
+                    if(activeSub !== "Xatolar Banki") saveX(q, activeSub, mode); 
+                }
+                box.querySelectorAll('.option').forEach(el => el.style.pointerEvents = 'none');
+            }
         };
         box.appendChild(d);
     });
 }
 
-// BOT BILAN BOG'LANISH QISMI (BOT TOKENINI SHU YERDA ISHLATAMIZ)
-window.sendReceipt = () => {
-    const fanNomi = activeSub.toUpperCase();
-    const botUser = "Yakuniyga_tayyorlovchi_bot"; // Bot userini yozing
-    const msg = `Assalomu alaykum! Men "${fanNomi}" fani uchun to'lov qildim. Mana chek:`;
-    
-    // Foydalanuvchini botga yuborish va tanlangan fanni botga aytish
-    window.open(`https://t.me/${botUser}?text=${encodeURIComponent(msg)}`);
+window.handleFileUpload = (input) => {
+    if (input.files && input.files[0]) {
+        if(activePaymentListener) off(activePaymentListener);
+        const file = input.files[0]; const reader = new FileReader(); 
+        const paymentId = "PAY_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+        reader.onload = function(e) {
+            const base64Image = e.target.result; 
+            const paymentsRef = ref(db, 'payments');
+            const paymentRef = ref(db, 'payments/' + paymentId);
+            showScreen('checking');
+            resetCheckingScreen();
+            activePaymentListener = paymentsRef;
+            onChildChanged(paymentsRef, (snapshot) => {
+                if(snapshot.key === paymentId) {
+                    const data = snapshot.val();
+                    if(data.status === 'approved') { displayStatus('success', data.subject); } 
+                    else if (data.status === 'rejected') { displayStatus('error'); }
+                }
+            });
+            set(paymentRef, { id: paymentId, subject: activeSub, image: base64Image, time: new Date().toLocaleString(), status: 'pending' });
+        };
+        reader.readAsDataURL(file);
+    }
 };
 
-window.checkPromoCode = () => {
-    const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
-    const sub = activeSub.toLowerCase();
-    let subPrefix = "FAN";
+function resetCheckingScreen() {
+    document.getElementById('check-title').innerText = "TO'LOV TEKSHIRILMOQDA"; 
+    document.getElementById('check-title').style.color = "var(--accent)";
+    document.getElementById('check-animation').innerHTML = '<div class="loader-spin"></div>';
+    document.getElementById('check-text').innerText = "Sizning to'lovingiz tekshirilmoqda. To'lov tasdiqlangach fan avtomatik ochiladi.";
+    document.getElementById('check-subtext').style.display = "block"; 
+    document.getElementById('check-footer').innerHTML = "";
+}
 
-    if (sub.includes("dinshunoslik")) subPrefix = "DIN";
-    else if (sub.includes("fizika")) subPrefix = "FIZ";
-    else if (sub.includes("oliy matematika")) subPrefix = "MAT";
-    else if (sub.includes("texnik_tizimlarda_akt")) subPrefix = "AKT";
-    else if (sub.includes("yo'nalishga kirish")) subPrefix = "YON";
-
-    let usedCodes = JSON.parse(localStorage.getItem('used_promos')) || [];
-
-    if(code.startsWith(subPrefix + '_YK') && code.length === 10 && !usedCodes.includes(code)) {
-        let paid = JSON.parse(localStorage.getItem('paid_subjects')) || [];
-        if(!paid.includes(activeSub)) {
-            paid.push(activeSub);
-            localStorage.setItem('paid_subjects', JSON.stringify(paid));
-            usedCodes.push(code);
-            localStorage.setItem('used_promos', JSON.stringify(usedCodes));
-            alert("Fan muvaffaqiyatli ochildi! ✅");
-            renderList(); showScreen('home');
-        } else { alert("Bu fan allaqachon ochilgan."); }
-    } else if (usedCodes.includes(code)) {
-        alert("Bu promo-kod allaqachon ishlatilgan! ❌");
+function displayStatus(type, subName = "") {
+    const title = document.getElementById('check-title'), anim = document.getElementById('check-animation'), text = document.getElementById('check-text'), subtext = document.getElementById('check-subtext'), footer = document.getElementById('check-footer');
+    subtext.style.display = "none";
+    if(type === 'success') {
+        title.innerText = "MUVAFFAQIYATLI!"; title.style.color = "#22c55e"; anim.innerHTML = '<span class="status-icon">✔️</span>';
+        text.innerHTML = `To'lovingiz tasdiqlandi! <br> <span class="subject-badge">${subName}</span>`;
+        footer.innerHTML = '<button class="mode-btn" onclick="showScreen(\'home\')">DAVOM ETISH</button>';
     } else {
-        alert("Xato! Bu kod boshqa fan uchun yoki noto'g'ri. ❌");
+        title.innerText = "RAD ETILDI!"; title.style.color = "#ef4444"; anim.innerHTML = '<span class="status-icon">❌</span>';
+        text.innerText = "To'lovingiz bekor qilindi. Iltimos, qaytadan chekni tekshirib yuklang.";
+        footer.innerHTML = '<button class="mode-btn" style="background:#ef4444; border:none;" onclick="location.reload()">QAYTADAN BOSHLASH</button>';
+        setTimeout(() => { location.reload(); }, 1000);
     }
-};
+}
 
-window.logoutSystem = () => {
-    if(confirm("Tizimdan chiqilsa hamma narsa o'chadi. Rozimisiz?")) {
-        localStorage.clear();
-        location.reload();
-    }
+window.goToHomeAfterPayment = () => { showScreen('home'); };
+
+window.logoutSystem = () => { 
+    if(confirm("Tizimdan chiqilsa hamma narsa BUTUNLAY o'chadi (To'lovlariz,Natijalarz). Rozimisiz?")) { 
+        remove(ref(db, 'payments')).then(() => {
+            localStorage.clear();
+            location.reload(); 
+        }).catch((err) => {
+            localStorage.clear();
+            location.reload();
+        });
+    } 
 };
 
 function endQuiz(){
     if(countdownInterval) clearInterval(countdownInterval);
     const st=document.getElementById('res-status'), sc=document.getElementById('res-score');
-    sc.innerText=`${points}/70`; document.getElementById('res-info').innerText=`To'g'ri javoblar: ${corrects}/35`;
-    if(points>=42){ st.innerText="MUVAFFAQIYATLI!"; st.style.color="#22c55e"; }
-    else{ st.innerText="YIQILDINGIZ!"; st.style.color="#ef4444"; }
+    sc.innerText=`${points}/70`; document.getElementById('res-info').innerText=`To'g'ri: ${corrects}/35`;
+    if(points>=42){ st.innerText="MUVAFFAQIYATLI!"; st.style.color="#22c55e"; } else { st.innerText="YIQILDINGIZ!"; st.style.color="#ef4444"; }
     showScreen('result');
 }
 
-function saveX(q,s){
-    let x=JSON.parse(localStorage.getItem('xatolar'))||[];
-    if(!x.find(i=>i.question===q.question)){ x.push({...q,sub:s}); localStorage.setItem('xatolar',JSON.stringify(x)); }
+function calculateFinalScore() {
+    corrects = 0; points = 0;
+    currentSet.forEach((q, i) => { if(userAnswers[i] === q.options.A) { corrects++; points += 2; } else if(userAnswers[i]) { saveX(q, activeSub, mode); } });
+    endQuiz();
+}
+
+function saveX(q, s, m){
+    let x = JSON.parse(localStorage.getItem('xatolar')) || [];
+    if(!x.find(i => i.question === q.question)){ x.push({ ...q, sub: s, mode: m }); localStorage.setItem('xatolar', JSON.stringify(x)); }
 }
 
 function renderErrors(){
-    const list=document.getElementById('errors-list'), x=JSON.parse(localStorage.getItem('xatolar'))||[];
-    list.innerHTML=x.length?"":"<p style='text-align:center'>Xatolar yo'q.</p>";
-    x.forEach(e=>{
-        list.innerHTML+=`<div class="card" style="text-align:left; font-weight:normal;"><span style="font-size:10px; background:var(--accent); color:var(--bg); padding:2px 5px; border-radius:3px; text-transform:uppercase;">${e.sub}</span><br><p>${e.question}</p><p style="color:#22c55e"><b>To'g'ri javob:</b> ${e.options.A}</p></div>`;
+    const list = document.getElementById('errors-list'), x = JSON.parse(localStorage.getItem('xatolar')) || [];
+    const paidSubjects = JSON.parse(localStorage.getItem('paid_subjects')) || [];
+    const filteredErrors = x.filter(e => paidSubjects.includes(e.sub));
+    const btn = document.getElementById('error-test-btn');
+    if(filteredErrors.length >= 5) btn.style.display = 'block'; else btn.style.display = 'none';
+    list.innerHTML = filteredErrors.length ? "" : "<p style='text-align:center; padding:20px;'>Hali xatolar yo'q yoki ochilgan fanlar bo'yicha xato qilmagansiz.</p>";
+    filteredErrors.forEach(e => {
+        const div = document.createElement('div'); div.className = 'error-card'; const mLabel = e.mode === 'exam' ? 'Imtihon' : 'Mashq';
+        div.innerHTML = `<span style="font-size:10px; background:var(--accent); color:var(--bg); padding:2px 6px; border-radius:4px; font-weight:900; text-transform:uppercase;">${e.sub}</span><span class="mode-badge">${mLabel}</span><p style="margin:10px 0; font-weight:600;">${e.question}</p><p style="color:#22c55e; margin:0; font-weight:800;">To'g'ri javob: ${e.options.A}</p>`;
+        list.appendChild(div);
     });
 }
 
-window.clearErrors=()=>{ localStorage.removeItem('xatolar'); renderErrors(); };
-window.setTheme=(t)=>{ document.body.setAttribute('data-theme',t); localStorage.setItem('theme',t); };
-setTheme(localStorage.getItem('theme')||'dark');
+window.startErrorQuiz = () => {
+    const x = JSON.parse(localStorage.getItem('xatolar')) || [];
+    const paidSubjects = JSON.parse(localStorage.getItem('paid_subjects')) || [];
+    const filtered = x.filter(e => paidSubjects.includes(e.sub));
+    mode = "practice"; idx = 0; points = 0; corrects = 0; userAnswers = {}; currentShuffledOptions = [];
+    currentSet = [...filtered].sort(() => Math.random() - 0.5); activeSub = "Xatolar Banki";
+    showScreen('quiz'); renderQ();
+};
+
+window.nextQ = () => { 
+    if(idx < currentSet.length - 1) { idx++; renderQ(); } 
+    else { 
+        if(activeSub === "Xatolar Banki") { alert("Xatolar testi tugadi! 🎯"); showScreen('home'); }
+        else if(!isSubjectPaid(activeSub)) { alert("SINOV REJIMI TUGADI! To'lov qiling!"); 
+            let used = JSON.parse(localStorage.getItem('used_trials')) || [];
+            if(!used.includes(activeSub)) { used.push(activeSub); localStorage.setItem('used_trials', JSON.stringify(used)); }
+            showScreen('payment'); 
+        }
+        else if(isSubjectPaid(activeSub)) { if(mode === 'exam') calculateFinalScore(); else showScreen('home'); }
+    }
+};
+window.prevQ = () => { if(idx > 0) { idx--; renderQ(); } };
+window.exitQuiz = () => { if(confirm(mode === 'exam' ? "Imtihonni bekor qilib chiqasizmi? Natija saqlanmaydi." : "Mashqni yakunlaysizmi?")) showScreen('home'); };
+window.confirmFinishExam = () => { if(confirm("Testni muddatidan oldin yakunlab, natijani ko'rmoqchimisiz?")) calculateFinalScore(); };
+
+function updateTimer(el){ let mins=Math.floor(totalSeconds/60), secs=totalSeconds%60; el.innerText=`${mins}:${secs<10?'0'+secs:secs}`; }
+window.clearErrors = () => { if(confirm("Barcha xatolarni o'chirib tashlamoqchimisiz?")) { localStorage.removeItem('xatolar'); renderErrors(); } };
+window.setTheme = (t) => { document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); };
+setTheme(localStorage.getItem('theme') || 'dark');
 </script>
 </body>
 </html>
