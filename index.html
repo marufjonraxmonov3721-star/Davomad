@@ -75,7 +75,7 @@
             <div class="welcome-step" id="step2">
                 <h1 style="font-size: 45px;">📊</h1>
                 <h2>KENG BAZA</h2>
-                <p>Ilovada barcha fanlardan minglab savollar mavjud. Har bir fan bo'yicha 20 ta bepul savol bilan bilimingizni sinab ko'rishingiz mumkin.</p>
+                <p>Ilovada barcha fanlardan minglab savollar mavjud. Bilimingizni sinash uchun hoziroq fanni tanlang.</p>
                 <button class="mode-btn" onclick="nextStep(3)">KEYINGISI ➡️</button>
             </div>
             <div class="welcome-step" id="step3">
@@ -329,7 +329,7 @@ window.showScreen = (name) => {
             document.getElementById('promo-stats').innerHTML = `
                 <div class="stat-box">
                     <div class="stat-card"><span class="stat-num">${questions.length}</span><span>Savollar</span></div>
-                    <div class="stat-card"><span class="stat-num">20</span><span>Bepul</span></div>
+                    <div class="stat-card"><span class="stat-num">0</span><span>Bepul</span></div>
                 </div>`;
         }
     }
@@ -348,7 +348,6 @@ onValue(paymentsRef, (snapshot) => {
 
     Object.keys(payments).forEach(payId => {
         const p = payments[payId];
-        // Faqat shu foydalanuvchining to'lovini tekshiramiz
         if(payId === userId) {
             if(p.status === 'approved') {
                 if(!paidSubjects.includes(p.subject)) {
@@ -403,9 +402,9 @@ function renderList(){
     const list=document.getElementById('subjects-list'); list.innerHTML="";
     Object.keys(allData).forEach(s=>{
         const c=document.createElement('div'); c.className='card';
-        const paid = isSubjectPaid(s); const trialUsed = (JSON.parse(localStorage.getItem('used_trials')) || []).includes(s);
-        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${paid ? "✔️ OCHILGAN" : (trialUsed ? "🔒 SINOV TUGADI" : "🔓 SINOV (20 TA SAVOL)")}</small>`;
-        c.onclick=()=>{ activeSub=s; document.getElementById('mode-subject-name').innerText=s.toUpperCase(); if(!paid && trialUsed) showScreen('payment'); else showScreen('mode'); };
+        const paid = isSubjectPaid(s);
+        c.innerHTML=`<strong>${s.toUpperCase()}</strong><br><small>${paid ? "✔️ OCHILGAN" : "🔒 QULFLANGAN"}</small>`;
+        c.onclick=()=>{ activeSub=s; document.getElementById('mode-subject-name').innerText=s.toUpperCase(); if(!paid) showScreen('payment'); else showScreen('mode'); };
         list.appendChild(c);
     });
 }
@@ -434,8 +433,7 @@ window.startQuizProcess=(m)=>{
     mode=m; idx=0; points=0; corrects=0; userAnswers = {}; currentShuffledOptions = [];
     let src = getLocalQuestions(activeSub) || allData[activeSub];
     const isPaid = isSubjectPaid(activeSub);
-    const trialUsed = (JSON.parse(localStorage.getItem('used_trials')) || []).includes(activeSub);
-    if(!isPaid && trialUsed) { showScreen('payment'); return; }
+    if(!isPaid) { showScreen('payment'); return; }
     const timerEl=document.getElementById('timer-box'); const finishBtn = document.getElementById('finish-exam-btn');
     document.getElementById('quiz-label').innerText = m === 'exam' ? '⏱ IMTIHON' : '📖 MASHQ';
     if(m==='exam'){
@@ -445,7 +443,7 @@ window.startQuizProcess=(m)=>{
         if(countdownInterval) clearInterval(countdownInterval);
         countdownInterval=setInterval(()=>{ totalSeconds--; updateTimer(timerEl); if(totalSeconds<=0){ clearInterval(countdownInterval); calculateFinalScore(); } },1000);
     } else { 
-        currentSet = isPaid ? src : src.slice(0, 20);
+        currentSet = src;
         timerEl.style.display='none'; finishBtn.style.display = 'none';
     }
     showScreen('quiz'); renderQ();
@@ -489,7 +487,6 @@ window.handleFileUpload = (input) => {
             showScreen('checking'); 
             resetCheckingScreen(); 
             
-            // Listenerni o'rnatamiz
             onValue(paymentRef, (snapshot) => {
                 if(snapshot.exists()) {
                     const data = snapshot.val();
@@ -529,7 +526,6 @@ window.logoutSystem = async () => {
         const userId = localStorage.getItem('user_id');
         if(userId) {
             try {
-                // remove() endi to'g'ri ishlaydi
                 await remove(ref(db, 'users/' + userId));
                 await remove(ref(db, 'payments/' + userId));
             } catch (e) {
@@ -583,11 +579,6 @@ window.nextQ = () => {
     if(idx < currentSet.length - 1) { idx++; renderQ(); } 
     else { 
         if(activeSub === "Xatolar Banki") { showScreen('home'); }
-        else if(!isSubjectPaid(activeSub)) { 
-            alert("SINOV REJIMI TUGADI! 🚀\nBarcha savollarni ochish uchun to'lov qiling va imtihonga 100% tayyor bo'ling!"); 
-            let used = JSON.parse(localStorage.getItem('used_trials')) || []; if(!used.includes(activeSub)) { used.push(activeSub); localStorage.setItem('used_trials', JSON.stringify(used)); }
-            showScreen('payment'); 
-        }
         else if(isSubjectPaid(activeSub)) { if(mode === 'exam') calculateFinalScore(); else showScreen('home'); }
     }
 };
