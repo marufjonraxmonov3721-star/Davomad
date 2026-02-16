@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gold Test Platform - Mobile Ready</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --card: #0d0d0d;
+            --gold: #d4af37;
+            --gold-glow: #f9e29c;
+            --text: #ffffff;
+            --wrong: #ff4d4d;
+            --right: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--gold);
+            margin: 0;
+            padding: 15px; /* Mobil chekkalari uchun */
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent; /* Mobil bosish effektini o'chirish */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        /* Orqaga tugmasi */
+        .back-btn {
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        /* Quiz Header */
+        .quiz-top-bar {
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+        }
+        .mode-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
+        .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+        .progress-indicator { color: var(--gold-glow); font-size: 14px; font-weight: bold; }
+        .timer-box { color: var(--wrong); font-size: 18px; font-weight: bold; }
+
+        /* Savol Matni - Avtomatik moslashuvchi (Viewport units) */
+        .question-text {
+            font-size: clamp(20px, 5.5vw, 28px); /* Telefonlarda 20px dan kichraymaydi, kattada 28px */
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.3;
+            margin-bottom: 30px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+
+        /* Variantlar */
+        .options-list { display: grid; gap: 12px; }
+        .opt-btn {
+            background: var(--card);
+            border: 1px solid #2a2a2a;
+            color: var(--text);
+            padding: 16px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: clamp(14px, 4vw, 16px);
+            text-align: left;
+            transition: 0.2s;
+            line-height: 1.4;
+        }
+        .opt-btn:active { transform: scale(0.98); } /* Mobil bosish effekti */
+        .opt-btn.correct { background: var(--right) !important; border-color: var(--right); color: white; }
+        .opt-btn.wrong { background: var(--wrong) !important; border-color: var(--wrong); color: white; }
+
+        /* Menyu elementlari */
+        .gold-btn {
+            background: transparent;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            padding: 14px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        .subject-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 20px; }
+        @media (min-width: 480px) { .subject-grid { grid-template-columns: 1fr 1fr; } } /* Planshetlar uchun 2 ustun */
+
+        .subject-card { padding: 20px; border: 1px solid #333; border-radius: 15px; text-align: center; cursor: pointer; background: var(--card); }
+        .subject-card:active { background: rgba(212, 175, 55, 0.1); }
+
+        .hidden { display: none !important; }
+        #final-score { font-size: 50px; margin: 15px 0; text-align: center; color: var(--gold-glow); }
+
+        /* Natija oynasi */
+        #scr-res h2 { font-size: 22px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="scr-menu">
+        <h2 style="text-align: center; letter-spacing: 3px; color: var(--gold-glow); font-size: 22px;">TEST PORTAL</h2>
+        <div id="list-subs" class="subject-grid">Yuklanmoqda...</div>
+        
+        <div id="mode-box" class="hidden" style="margin-top: 25px;">
+            <button class="back-btn" onclick="goBackToMenu()">✕ Bekor qilish</button>
+            <h3 id="sub-name" style="text-align: center; color: var(--gold-glow); margin-bottom: 20px;"></h3>
+            <button class="gold-btn" onclick="startTest('practice')">Mashq Rejimi</button>
+            <button class="gold-btn" onclick="startTest('exam')">Imtihon Rejimi</button>
+        </div>
+    </div>
+
+    <div id="scr-quiz" class="hidden">
+        <button class="back-btn" onclick="confirmExit()">✕ Chiqish</button>
+        <div class="quiz-top-bar">
+            <span id="label-mode" class="mode-label">MASHQ REJIMIDAGI</span>
+            <div class="info-row">
+                <div id="quiz-progress" class="progress-indicator">SAVOL: 1 / 10</div>
+                <div id="timer-val" class="timer-box hidden">35:00</div>
+            </div>
+        </div>
+
+        <div id="text-q" class="question-text">Savol yuklanmoqda...</div>
+        <div id="list-opts" class="options-list"></div>
+    </div>
+
+    <div id="scr-res" class="hidden" style="text-align: center;">
+        <h2 id="res-title">TEST YAKUNLANDI</h2>
+        <div id="final-score">0</div>
+        <p id="res-detail" style="margin-bottom: 25px; color: var(--text); font-size: 15px;"></p>
+        <button class="gold-btn" onclick="location.reload()">BOSH SAHIFA</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDHrDiJYCjjlTwUnZGvoSevawlO55yNCLs",
+        authDomain: "raxmonov-22df0.firebaseapp.com",
+        projectId: "raxmonov-22df0",
+        databaseURL: "https://raxmonov-22df0-default-rtdb.firebaseio.com",
+        storageBucket: "raxmonov-22df0.firebasestorage.app",
+        messagingSenderId: "624672987926",
+        appId: "1:624672987926:web:729132d8edb03c6f134e37"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let rawQuestions = [];
+    let currentSet = [];
+    let idx = 0;
+    let corrects = 0;
+    let mode = '';
+    let timer;
+    let sec = 35 * 60;
+
+    async function loadSubjects() {
+        const snap = await get(ref(db, 'savollar'));
+        const box = document.getElementById('list-subs');
+        box.innerHTML = "";
+        if (snap.exists()) {
+            Object.keys(snap.val()).forEach(s => {
+                const d = document.createElement('div');
+                d.className = 'subject-card';
+                d.innerText = s;
+                d.onclick = () => {
+                    rawQuestions = Object.values(snap.val()[s]);
+                    document.getElementById('sub-name').innerText = s;
+                    document.getElementById('mode-box').classList.remove('hidden');
+                    document.getElementById('list-subs').classList.add('hidden');
+                };
+                box.appendChild(d);
+            });
+        }
+    }
+    loadSubjects();
+
+    window.goBackToMenu = () => {
+        document.getElementById('mode-box').classList.add('hidden');
+        document.getElementById('list-subs').classList.remove('hidden');
+    };
+
+    window.confirmExit = () => {
+        if(confirm("Testni to'xtatib chiqasizmi?")) location.reload();
+    };
+
+    window.startTest = (m) => {
+        mode = m; idx = 0; corrects = 0;
+        if (mode === 'exam') {
+            currentSet = rawQuestions.sort(() => Math.random() - 0.5).slice(0, 35);
+            document.getElementById('timer-val').classList.remove('hidden');
+            document.getElementById('label-mode').innerText = "IMTIHON REJIMIDAGI";
+            sec = 35 * 60;
+            runClock();
+        } else {
+            currentSet = [...rawQuestions];
+            document.getElementById('timer-val').classList.add('hidden');
+            document.getElementById('label-mode').innerText = "MASHQ REJIMIDAGI";
+        }
+        document.getElementById('scr-menu').classList.add('hidden');
+        document.getElementById('scr-quiz').classList.remove('hidden');
+        renderQuestion();
+    };
+
+    function renderQuestion() {
+        const q = currentSet[idx];
+        document.getElementById('quiz-progress').innerText = `SAVOL: ${idx + 1} / ${currentSet.length}`;
+        document.getElementById('text-q').innerText = q.savol;
+        const box = document.getElementById('list-opts');
+        box.innerHTML = "";
+
+        const variants = [
+            { t: q.v1, ok: true }, { t: q.v2, ok: false },
+            { t: q.v3, ok: false }, { t: q.v4, ok: false }
+        ].sort(() => Math.random() - 0.5);
+
+        variants.forEach(v => {
+            const b = document.createElement('button');
+            b.className = 'opt-btn';
+            b.innerText = v.t;
+            b.onclick = () => handleAnswer(b, v.ok);
+            box.appendChild(b);
+        });
+        window.scrollTo(0,0); // Savol almashganda tepaga qaytish
+    }
+
+    function handleAnswer(btn, isOk) {
+        const btns = document.querySelectorAll('.opt-btn');
+        btns.forEach(b => b.disabled = true);
+        if (isOk) { btn.classList.add('correct'); corrects++; } 
+        else { 
+            btn.classList.add('wrong'); 
+            if(mode === 'practice') {
+                btns.forEach(b => { if(b.innerText === currentSet[idx].v1) b.classList.add('correct'); });
+            }
+        }
+        setTimeout(() => {
+            idx++;
+            if (idx < currentSet.length) renderQuestion();
+            else finishTest();
+        }, mode === 'practice' ? 1200 : 500);
+    }
+
+    function runClock() {
+        timer = setInterval(() => {
+            sec--;
+            let m = Math.floor(sec / 60);
+            let s = sec % 60;
+            document.getElementById('timer-val').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+            if (sec <= 0) finishTest();
+        }, 1000);
+    }
+
+    function finishTest() {
+        clearInterval(timer);
+        document.getElementById('scr-quiz').classList.add('hidden');
+        document.getElementById('scr-res').classList.remove('hidden');
+        const score = Math.round((corrects / currentSet.length) * 70);
+        document.getElementById('final-score').innerText = `${score} BALL`;
+        document.getElementById('res-detail').innerText = `Jami ${currentSet.length} savoldan ${corrects} tasiga to'g'ri javob berdingiz.`;
+        const title = document.getElementById('res-title');
+        if(score >= 42) { title.innerText = "TABRIKLAYMIZ! O'TDINGIZ"; title.style.color = "#2ecc71"; } 
+        else { title.innerText = "YIQILDINGIZ"; title.style.color = "#ff4d4d"; }
+    }
+</script>
+</body>
+</html>
