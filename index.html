@@ -3,169 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gold Test Platform - Offline Ready</title>
+    <title>Gold Test Pro - Premium Edition</title>
     <style>
         :root {
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --gold: #b8860b;
-            --gold-glow: #8b6b0d;
-            --text: #2d3436;
-            --wrong: #d63031;
-            --right: #27ae60;
-            --border: #dfe6e9;
+            --bg: #0a0a0a;
+            --card: #141414;
+            --gold: #d4af37;
+            --gold-dark: #aa8c2e;
+            --gold-glow: rgba(212, 175, 55, 0.2);
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --wrong: #ff4d4d;
+            --right: #00c853;
+            --border: #222;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             background-color: var(--bg);
-            color: var(--text);
+            color: var(--text-main);
             margin: 0;
-            padding: 10px;
+            padding: 0;
             display: flex;
             justify-content: center;
             min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
+            line-height: 1.5;
         }
 
         .container {
             width: 100%;
-            max-width: 600px;
-            position: relative;
+            max-width: 500px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
+        /* Premium Buttons */
         .back-btn {
-            background: transparent;
+            background: #1a1a1a;
             color: var(--gold);
             border: 1px solid var(--gold);
-            cursor: pointer;
-            font-size: 13px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            transition: 0.3s;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        .quiz-top-bar {
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 8px;
-        }
-        .mode-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); font-weight: bold; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
-        .progress-indicator { color: var(--text); font-size: 13px; font-weight: bold; }
-        .timer-box { color: var(--wrong); font-size: 16px; font-weight: bold; }
-
-        /* Matn hajmi optimallashtirildi */
-        .question-text {
-            font-size: clamp(16px, 4.5vw, 20px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
-            color: var(--text);
-            line-height: 1.4;
+            cursor: pointer;
             margin-bottom: 20px;
-            text-align: left;
+            transition: 0.3s;
         }
-        
-        /* Rasmlar hajmi optimallashtirildi */
-        .question-text img, .opt-btn img {
+
+        .gold-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 8px 0;
+            box-shadow: 0 4px 15px var(--gold-glow);
+            transition: 0.2s;
+        }
+
+        /* Subject Cards */
+        .subject-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .subject-card { 
+            padding: 18px; 
+            background: var(--card);
+            border: 1px solid var(--border); 
+            border-radius: 16px; 
+            text-align: center; 
+            cursor: pointer; 
+            font-weight: 600;
+            color: var(--gold);
+            transition: 0.3s;
+        }
+        .subject-card:hover { border-color: var(--gold); background: #1a1a1a; }
+
+        /* Quiz UI */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .progress-text { color: var(--gold); font-size: 14px; font-weight: 700; }
+        .timer-box { background: rgba(255, 77, 77, 0.1); color: var(--wrong); padding: 4px 12px; border-radius: 8px; font-weight: 700; }
+
+        .question-text {
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--card);
+            border-radius: 12px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .question-text img {
             max-width: 100%;
-            max-height: 250px; /* Haddan tashqari katta rasmlarni cheklash */
-            object-fit: contain;
-            display: block;
-            margin: 10px auto;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px;
-            background: #fff;
+            max-height: 180px;
+            border-radius: 8px;
+            margin: 10px 0;
         }
 
         .options-list { display: grid; gap: 10px; }
         .opt-btn {
             background: var(--card);
-            border: 1.5px solid var(--border);
-            color: var(--text);
-            padding: 14px 18px;
-            border-radius: 10px;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px 15px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: clamp(13px, 3.8vw, 15px);
+            font-size: 14px;
             text-align: left;
             transition: 0.2s;
-            line-height: 1.3;
-        }
-        .opt-btn:active { transform: scale(0.98); }
-        .opt-btn.correct { background: var(--right) !important; border-color: var(--right); color: white; }
-        .opt-btn.wrong { background: var(--wrong) !important; border-color: var(--wrong); color: white; }
-
-        .gold-btn {
-            background: var(--gold);
-            color: #fff;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            width: 100%;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin: 6px 0;
-            font-size: 14px;
         }
 
-        .subject-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
-        @media (min-width: 480px) { .subject-grid { grid-template-columns: 1fr 1fr; } }
+        .opt-btn.correct { background: var(--right) !important; color: white; border-color: var(--right); }
+        .opt-btn.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); }
 
-        .subject-card { 
-            padding: 20px; 
-            border: 2px solid var(--border); 
-            border-radius: 12px; 
-            text-align: center; 
-            cursor: pointer; 
-            background: var(--card);
-            font-weight: bold;
+        /* Navigation Bar */
+        .nav-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            background: #1a1a1a;
             color: var(--gold);
+            border: 1px solid var(--gold);
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
         }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+        #final-score { font-size: 48px; color: var(--gold); font-weight: 800; margin: 20px 0; }
         .hidden { display: none !important; }
-        #final-score { font-size: 50px; margin: 10px 0; text-align: center; color: var(--gold); font-weight: 800; }
         
-        #scr-res { background: var(--card); padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        #cache-status { color: var(--text-muted); font-size: 11px; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="scr-menu">
-        <h2 style="text-align: center; color: var(--gold); font-size: 22px; font-weight: 800; margin-bottom: 5px;">TEST PORTAL</h2>
-        <p id="cache-status" style="text-align: center; font-size: 10px; color: #999; margin-bottom: 15px;">Xotira tekshirilmoqda...</p>
-        <div id="list-subs" class="subject-grid">Yuklanmoqda...</div>
+        <h1 style="text-align: center; color: var(--gold); font-weight: 800; margin-bottom: 2px;">GOLD TEST</h1>
+        <p id="cache-status">Sinxronizatsiya...</p>
+        <div id="list-subs" class="subject-grid"></div>
         
-        <div id="mode-box" class="hidden" style="margin-top: 20px;">
-            <button class="back-btn" onclick="goBackToMenu()">✕ Bekor qilish</button>
-            <h3 id="sub-name" style="text-align: center; color: var(--text); margin-bottom: 15px; font-size: 18px;"></h3>
+        <div id="mode-box" class="hidden">
+            <button class="back-btn" onclick="goBackToMenu()">← ORQAGA</button>
+            <h2 id="sub-name" style="color: #fff; margin-bottom: 20px; font-size: 20px; text-align: center;"></h2>
             <button class="gold-btn" onclick="startTest('practice')">Mashq Rejimi</button>
-            <button class="gold-btn" style="background: #2d3436; margin-top: 8px;" onclick="startTest('exam')">Imtihon Rejimi</button>
+            <button class="gold-btn" style="background: #1a1a1a; color: var(--gold); border: 1px solid var(--gold);" onclick="startTest('exam')">Imtihon Rejimi</button>
         </div>
     </div>
 
     <div id="scr-quiz" class="hidden">
-        <button class="back-btn" onclick="confirmExit()">✕ Chiqish</button>
-        <div class="quiz-top-bar">
-            <span id="label-mode" class="mode-label">MASHQ REJIMIDAGI</span>
-            <div class="info-row">
-                <div id="quiz-progress" class="progress-indicator">SAVOL: 1 / 10</div>
-                <div id="timer-val" class="timer-box hidden">35:00</div>
-            </div>
+        <div class="quiz-header">
+            <span id="quiz-progress" class="progress-text">SAVOL: 1 / 10</span>
+            <div id="timer-val" class="timer-box hidden">35:00</div>
         </div>
 
-        <div id="text-q" class="question-text">Savol yuklanmoqda...</div>
+        <div id="text-q" class="question-text"></div>
         <div id="list-opts" class="options-list"></div>
+
+        <div id="practice-nav" class="nav-bar hidden">
+            <button id="prev-btn" class="nav-btn" onclick="changeQuestion(-1)">OLDINGI</button>
+            <button id="next-btn" class="nav-btn" onclick="changeQuestion(1)">KEYINGI</button>
+        </div>
+        
+        <button class="back-btn" style="margin-top: 30px; width: 100%;" onclick="confirmExit()">TESTNI YAKUNLASH</button>
     </div>
 
     <div id="scr-res" class="hidden" style="text-align: center;">
-        <h2 id="res-title" style="margin-top: 0;">TEST YAKUNLANDI</h2>
-        <div id="final-score">0</div>
-        <p id="res-detail" style="margin-bottom: 20px; color: #636e72; font-size: 15px;"></p>
+        <h2 id="res-title">NATIJA</h2>
+        <div id="final-score">0%</div>
+        <p id="res-detail" style="color: var(--text-muted);"></p>
         <button class="gold-btn" onclick="location.reload()">BOSH SAHIFA</button>
     </div>
 </div>
@@ -178,59 +201,38 @@
         apiKey: "AIzaSyDHrDiJYCjjlTwUnZGvoSevawlO55yNCLs",
         authDomain: "raxmonov-22df0.firebaseapp.com",
         projectId: "raxmonov-22df0",
-        databaseURL: "https://raxmonov-22df0-default-rtdb.firebaseio.com",
-        storageBucket: "raxmonov-22df0.firebasestorage.app",
-        messagingSenderId: "624672987926",
-        appId: "1:624672987926:web:729132d8edb03c6f134e37"
+        databaseURL: "https://raxmonov-22df0-default-rtdb.firebaseio.com"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let allData = {};
-    let rawQuestions = [];
-    let currentSet = [];
-    let idx = 0;
-    let corrects = 0;
-    let mode = '';
-    let timer;
-    let sec = 35 * 60;
+    let allData = {}, rawQuestions = [], currentSet = [], idx = 0, corrects = 0, mode = '', timer, sec = 2100;
+    let answeredQuestions = {}; // Mashq rejimida javoblarni saqlash
 
     async function loadSubjects() {
-        const cacheStatus = document.getElementById('cache-status');
-        const localData = localStorage.getItem('quiz_data_cache');
-        
-        // 1. Oflayn rejim: Avval xotirani tekshiramiz
-        if (localData) {
-            allData = JSON.parse(localData);
+        const cache = localStorage.getItem('quiz_data_cache');
+        if (cache) {
+            allData = JSON.parse(cache);
             displaySubjects(allData);
-            cacheStatus.innerText = "Xotiradan yuklandi (Oflayn rejim)";
-            
-            // Orqafonda yangilanish borligini tekshiramiz (ixtiyoriy)
+            document.getElementById('cache-status').innerText = "Premium Oflayn Rejim";
             checkUpdate();
         } else {
-            // 2. Agar xotirada bo'lmasa, onlayn yuklaymiz
-            fetchFromFirebase();
+            fetchFirebase();
         }
     }
 
-    async function fetchFromFirebase() {
-        const cacheStatus = document.getElementById('cache-status');
-        cacheStatus.innerText = "Onlayn yangilanmoqda...";
+    async function fetchFirebase() {
         try {
             const snap = await get(ref(db, 'savollar'));
             if (snap.exists()) {
                 allData = snap.val();
                 localStorage.setItem('quiz_data_cache', JSON.stringify(allData));
                 displaySubjects(allData);
-                cacheStatus.innerText = "Ma'lumotlar yangilandi";
             }
-        } catch (e) {
-            cacheStatus.innerText = "Internet yo'q!";
-        }
+        } catch (e) { document.getElementById('cache-status').innerText = "Internet yo'q"; }
     }
 
-    // Yangi fan qo'shilganini tekshirish uchun kichik funksiya
     async function checkUpdate() {
         try {
             const snap = await get(ref(db, 'savollar'));
@@ -238,12 +240,10 @@
                 const newData = JSON.stringify(snap.val());
                 if (localStorage.getItem('quiz_data_cache') !== newData) {
                     localStorage.setItem('quiz_data_cache', newData);
-                    allData = snap.val();
-                    displaySubjects(allData);
-                    document.getElementById('cache-status').innerText = "Yangi fanlar qo'shildi!";
+                    location.reload();
                 }
             }
-        } catch (e) { console.log("Offline mode: update skip"); }
+        } catch (e) {}
     }
 
     function displaySubjects(data) {
@@ -263,29 +263,22 @@
         });
     }
 
-    loadSubjects();
-
     window.goBackToMenu = () => {
         document.getElementById('mode-box').classList.add('hidden');
         document.getElementById('list-subs').classList.remove('hidden');
     };
 
-    window.confirmExit = () => {
-        if(confirm("Testni to'xtatib chiqasizmi?")) location.reload();
-    };
-
     window.startTest = (m) => {
-        mode = m; idx = 0; corrects = 0;
+        mode = m; idx = 0; corrects = 0; answeredQuestions = {};
         if (mode === 'exam') {
             currentSet = rawQuestions.sort(() => Math.random() - 0.5).slice(0, 35);
             document.getElementById('timer-val').classList.remove('hidden');
-            document.getElementById('label-mode').innerText = "IMTIHON REJIMIDAGI";
-            sec = 35 * 60;
-            runClock();
+            document.getElementById('practice-nav').classList.add('hidden');
+            sec = 2100; runClock();
         } else {
             currentSet = [...rawQuestions];
             document.getElementById('timer-val').classList.add('hidden');
-            document.getElementById('label-mode').innerText = "MASHQ REJIMIDAGI";
+            document.getElementById('practice-nav').classList.remove('hidden');
         }
         document.getElementById('scr-menu').classList.add('hidden');
         document.getElementById('scr-quiz').classList.remove('hidden');
@@ -295,63 +288,104 @@
     function renderQuestion() {
         const q = currentSet[idx];
         document.getElementById('quiz-progress').innerText = `SAVOL: ${idx + 1} / ${currentSet.length}`;
-        document.getElementById('text-q').innerHTML = q.question; 
+        document.getElementById('text-q').innerHTML = q.savol || "";
         const box = document.getElementById('list-opts');
         box.innerHTML = "";
 
+        // Nav tugmalari holati
+        if(mode === 'practice') {
+            document.getElementById('prev-btn').disabled = idx === 0;
+            document.getElementById('next-btn').disabled = idx === currentSet.length - 1;
+        }
+
         const variants = [
-            { t: q.options[0], ok: true },
-            ...q.options.slice(1).map(opt => ({ t: opt, ok: false }))
-        ].sort(() => Math.random() - 0.5);
+            { t: q.v1, id: 'v1' }, { t: q.v2, id: 'v2' },
+            { t: q.v3, id: 'v3' }, { t: q.v4, id: 'v4' }
+        ].filter(v => v.t).sort((a, b) => {
+            // Agar savol oldin javoblangan bo'lsa, tartibni buzmaslik kerak
+            return answeredQuestions[idx] ? 0 : Math.random() - 0.5;
+        });
 
         variants.forEach(v => {
             const b = document.createElement('button');
             b.className = 'opt-btn';
             b.innerHTML = v.t;
-            b.onclick = () => handleAnswer(b, v.ok, q.options[0]);
+            
+            // Agar oldin javoblangan bo'lsa
+            if (answeredQuestions[idx]) {
+                if (v.id === 'v1') b.classList.add('correct');
+                if (answeredQuestions[idx].selected === v.id && v.id !== 'v1') b.classList.add('wrong');
+                b.disabled = true;
+            }
+
+            b.onclick = () => handleAnswer(b, v.id === 'v1', v.id);
             box.appendChild(b);
         });
-        window.scrollTo(0,0);
+        window.scrollTo(0, 0);
     }
 
-    function handleAnswer(btn, isOk, correctText) {
+    function handleAnswer(btn, isOk, variantId) {
+        if (answeredQuestions[idx]) return;
+
         const btns = document.querySelectorAll('.opt-btn');
-        btns.forEach(b => b.disabled = true);
-        if (isOk) { btn.classList.add('correct'); corrects++; } 
-        else { 
-            btn.classList.add('wrong'); 
-            if(mode === 'practice') {
-                btns.forEach(b => { if(b.innerHTML === correctText) b.classList.add('correct'); });
+        answeredQuestions[idx] = { selected: variantId, correct: isOk };
+
+        if (isOk) {
+            btn.classList.add('correct');
+            corrects++;
+        } else {
+            btn.classList.add('wrong');
+            if (mode === 'practice') {
+                // To'g'ri javobni ko'rsatish
+                btns.forEach(b => {
+                    const q = currentSet[idx];
+                    if (b.innerHTML === q.v1) b.classList.add('correct');
+                });
             }
         }
-        setTimeout(() => {
-            idx++;
-            if (idx < currentSet.length) renderQuestion();
-            else finishTest();
-        }, mode === 'practice' ? 1200 : 500);
+
+        btns.forEach(b => b.disabled = true);
+
+        if (mode === 'exam') {
+            setTimeout(() => {
+                idx++;
+                if (idx < currentSet.length) renderQuestion();
+                else finishTest();
+            }, 600);
+        }
     }
+
+    window.changeQuestion = (step) => {
+        idx += step;
+        renderQuestion();
+    };
 
     function runClock() {
         timer = setInterval(() => {
             sec--;
-            let m = Math.floor(sec / 60);
-            let s = sec % 60;
+            let m = Math.floor(sec / 60), s = sec % 60;
             document.getElementById('timer-val').innerText = `${m}:${s < 10 ? '0'+s : s}`;
             if (sec <= 0) finishTest();
         }, 1000);
     }
 
+    window.confirmExit = () => {
+        if(confirm("Testni tugatasizmi?")) finishTest();
+    };
+
     function finishTest() {
         clearInterval(timer);
         document.getElementById('scr-quiz').classList.add('hidden');
         document.getElementById('scr-res').classList.remove('hidden');
-        const score = Math.round((corrects / currentSet.length) * 70);
-        document.getElementById('final-score').innerText = `${score} BALL`;
-        document.getElementById('res-detail').innerText = `Jami ${currentSet.length} savoldan ${corrects} tasiga to'g'ri javob berdingiz.`;
+        const score = Math.round((corrects / currentSet.length) * 100);
+        document.getElementById('final-score').innerText = `${score}%`;
+        document.getElementById('res-detail').innerText = `${currentSet.length} savoldan ${corrects} ta to'g'ri javob.`;
         const title = document.getElementById('res-title');
-        if(score >= 42) { title.innerText = "TABRIKLAYMIZ! O'TDINGIZ"; title.style.color = "#27ae60"; } 
-        else { title.innerText = "YIQILDINGIZ"; title.style.color = "#d63031"; }
+        title.style.color = score >= 60 ? '#00c853' : '#ff4d4d';
+        title.innerText = score >= 60 ? "MUVAFFAQIYAT!" : "YETARLI EMAS";
     }
+
+    loadSubjects();
 </script>
 </body>
 </html>
