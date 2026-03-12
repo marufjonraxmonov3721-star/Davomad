@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Video & Style Experience</title>
+    <title>SongLyrics | Only Lyrics Experience</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #1DB954; --bg: #000; }
@@ -23,10 +23,11 @@
             background: #000; z-index: 9999;
         }
 
-        /* Video qatlami */
-        #video-layer {
+        /* Chiroyli Fon (Video o'rniga) */
+        #bg-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; opacity: 0.6; pointer-events: auto;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
+            z-index: 1;
         }
 
         /* Matn qatlami */
@@ -38,6 +39,7 @@
         }
 
         #current-lyric {
+            font-size: 2.2rem;
             font-weight: 800; line-height: 1.3; text-shadow: 0 5px 15px rgba(0,0,0,0.8);
             transition: 0.3s;
         }
@@ -62,6 +64,9 @@
             width: 40px; height: 40px; border-radius: 50%; font-size: 18px;
         }
 
+        /* YouTube (Yashirin - faqat ovoz uchun) */
+        #yt-hidden { position: absolute; top: -1000px; left: -1000px; opacity: 0; pointer-events: none; }
+
         /* Animatsiya Styllari */
         .anim-fade { animation: fadeIn 0.5s ease; }
         .anim-slide { animation: slideIn 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
@@ -75,19 +80,19 @@
 <body>
 
     <div class="list-screen" id="list-ui">
-        <h2 style="color: var(--accent); text-align:center;">SongLyrics Video</h2>
+        <h2 style="color: var(--accent); text-align:center;">SongLyrics</h2>
         <div id="songs-list">Yuklanmoqda...</div>
     </div>
 
     <div id="player-screen">
         <button class="close-btn" onclick="closePlayer()">✕</button>
         
-        <div id="video-layer">
-            <div id="player"></div>
+        <div id="bg-layer"></div> <div id="lyric-container">
+            <div id="current-lyric">Musiqani tanlang...</div>
         </div>
-        
-        <div id="lyric-container">
-            <div id="current-lyric">Klipni yoqing...</div>
+
+        <div id="yt-hidden">
+            <div id="player"></div>
         </div>
 
         <div id="style-panel">
@@ -121,8 +126,8 @@
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
-            height: '100%', width: '100%',
-            playerVars: { 'playsinline': 1, 'controls': 1, 'modestbranding': 1, 'rel': 0 },
+            height: '10', width: '10',
+            playerVars: { 'playsinline': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0 },
             events: { 'onStateChange': onStateChange }
         });
     }
@@ -145,8 +150,8 @@
                 const el = document.getElementById('current-lyric');
                 if (el.innerText !== hit.text) {
                     el.innerText = hit.text;
-                    el.className = ''; // Tozalash
-                    void el.offsetWidth; // Reflow
+                    el.className = ''; 
+                    void el.offsetWidth; 
                     el.classList.add(activeAnim);
                 }
             }
@@ -156,13 +161,15 @@
     function stopSync() { clearInterval(syncInterval); }
 
     function openPlayer(data) {
-        document.getElementById('current-lyric').innerText = "Klipni yoqing...";
+        document.getElementById('current-lyric').innerText = "Yuklanmoqda...";
         currentLyrics = parseLRC(data.lyrics || "");
         
         document.getElementById('list-ui').style.display = 'none';
         document.getElementById('player-screen').style.display = 'block';
         
+        // Videoni yuklaymiz va avtomatik ijro etamiz
         ytPlayer.loadVideoById(data.youtubeId);
+        ytPlayer.playVideo();
     }
 
     function closePlayer() {
@@ -172,7 +179,6 @@
         document.getElementById('player-screen').style.display = 'none';
     }
 
-    // Sozlamalar funksiyalari
     function changeFont(font, btn) {
         document.getElementById('current-lyric').style.fontFamily = font;
         updateActiveBtn(btn, 'font-settings');
