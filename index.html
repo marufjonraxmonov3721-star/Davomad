@@ -3,389 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gold Test Pro - Premium Edition</title>
+    <title>SongLyrics | Instagram Export</title>
     <style>
-        :root {
-            --bg: #0a0a0a;
-            --card: #141414;
-            --gold: #d4af37;
-            --gold-dark: #aa8c2e;
-            --gold-glow: rgba(212, 175, 55, 0.2);
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --wrong: #ff4d4d;
-            --right: #00c853;
-            --border: #222;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            line-height: 1.5;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* Premium Buttons */
-        .back-btn {
-            background: #1a1a1a;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: 0.3s;
-        }
-
-        .gold-btn {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: #000;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            width: 100%;
-            font-weight: 700;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin: 8px 0;
-            box-shadow: 0 4px 15px var(--gold-glow);
-            transition: 0.2s;
-        }
-
-        /* Subject Cards */
-        .subject-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        .subject-card { 
-            padding: 18px; 
-            background: var(--card);
-            border: 1px solid var(--border); 
-            border-radius: 16px; 
-            text-align: center; 
-            cursor: pointer; 
-            font-weight: 600;
-            color: var(--gold);
-            transition: 0.3s;
-        }
-        .subject-card:hover { border-color: var(--gold); background: #1a1a1a; }
-
-        /* Quiz UI */
-        .quiz-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .progress-text { color: var(--gold); font-size: 14px; font-weight: 700; }
-        .timer-box { background: rgba(255, 77, 77, 0.1); color: var(--wrong); padding: 4px 12px; border-radius: 8px; font-weight: 700; }
-
-        .question-text {
-            font-size: 17px;
-            font-weight: 500;
-            color: var(--text-main);
-            margin-bottom: 20px;
-            padding: 15px;
-            background: var(--card);
-            border-radius: 12px;
-            border-left: 4px solid var(--gold);
-        }
-
-        .question-text img {
-            max-width: 100%;
-            max-height: 180px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        .options-list { display: grid; gap: 10px; }
-        .opt-btn {
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 12px 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-            text-align: left;
-            transition: 0.2s;
-        }
-
-        .opt-btn.correct { background: var(--right) !important; color: white; border-color: var(--right); }
-        .opt-btn.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); }
-
-        /* Navigation Bar */
-        .nav-bar {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        .nav-btn {
-            flex: 1;
-            padding: 12px;
-            background: #1a1a1a;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        #final-score { font-size: 48px; color: var(--gold); font-weight: 800; margin: 20px 0; }
-        .hidden { display: none !important; }
+        :root { --primary: #E1306C; --bg: #000; } /* Instagram rangi */
+        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; }
+        .container { padding: 20px; }
         
-        #cache-status { color: var(--text-muted); font-size: 11px; text-align: center; margin-bottom: 10px; }
+        /* Video maydoni (Stories formati 9:16) */
+        #video-canvas {
+            display: none; width: 100%; max-width: 350px; aspect-ratio: 9/16;
+            background: #000; border-radius: 20px; margin: 20px auto;
+            position: relative; border: 2px solid #333; overflow: hidden;
+        }
+
+        #lyric-overlay {
+            position: absolute; width: 100%; top: 50%; transform: translateY(-50%);
+            text-align: center; font-size: 2.2rem; font-weight: 900; padding: 20px;
+            box-sizing: border-box; text-shadow: 0 0 20px rgba(225, 48, 108, 0.8);
+        }
+
+        .btn-insta {
+            background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+            color: #fff; border: none; padding: 15px 30px; border-radius: 30px;
+            font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+
+        .slider-box { background: #111; padding: 20px; border-radius: 20px; margin-top: 20px; }
+        input[type=range] { width: 100%; accent-color: #dc2743; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="scr-menu">
-        <h1 style="text-align: center; color: var(--gold); font-weight: 800; margin-bottom: 2px;">GOLD TEST</h1>
-        <p id="cache-status">Sinxronizatsiya...</p>
-        <div id="list-subs" class="subject-grid"></div>
+    <div class="container" id="main-ui">
+        <h2 style="text-align:center">Instagram Story Maker</h2>
+        <div id="list"></div>
+
+        <div id="editor" style="display:none;">
+            <div id="video-canvas">
+                <div id="lyric-overlay">Matn bu yerda chiqadi...</div>
+            </div>
+
+            <div class="slider-box">
+                <p style="text-align:center; margin:0 0 10px;">Vaqtni tanlang: <b id="time-label">0:00 - 0:15</b></p>
+                <input type="range" id="start-range" min="0" value="0">
+                <button class="btn-insta" id="share-btn">📲 Instagram Story-ga yuborish</button>
+                <button onclick="location.reload()" style="background:none; border:none; color:#888; width:100%; margin-top:15px;">⬅️ Orqaga</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="player"></div>
+
+<script>
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+
+    var player, currentLyrics = [], startTime = 0, endTime = 15;
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', { height: '0', width: '0', events: { 'onStateChange': onPlayerStateChange } });
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            setInterval(() => {
+                let now = player.getCurrentTime();
+                if (now >= startTime + 15) player.seekTo(startTime); // 15 sekundlik qirqish
+
+                let hit = currentLyrics.findLast(l => now >= l.time);
+                if (hit) document.getElementById('lyric-overlay').innerText = hit.text;
+            }, 100);
+        }
+    }
+
+    // INSTAGRAMGA YUBORISH
+    document.getElementById('share-btn').onclick = async () => {
+        const text = document.getElementById('lyric-overlay').innerText;
         
-        <div id="mode-box" class="hidden">
-            <button class="back-btn" onclick="goBackToMenu()">← ORQAGA</button>
-            <h2 id="sub-name" style="color: #fff; margin-bottom: 20px; font-size: 20px; text-align: center;"></h2>
-            <button class="gold-btn" onclick="startTest('practice')">Mashq Rejimi</button>
-            <button class="gold-btn" style="background: #1a1a1a; color: var(--gold); border: 1px solid var(--gold);" onclick="startTest('exam')">Imtihon Rejimi</button>
-        </div>
-    </div>
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'SongLyrics Story',
+                    text: `Musiqa: ${document.getElementById('lyric-overlay').innerText}`,
+                    url: window.location.href // Instagram Stories-ga havola sifatida boradi
+                });
+            } catch (err) {
+                console.log("Share bekor qilindi");
+            }
+        } else {
+            alert("Brauzeringiz ulashish funksiyasini qo'llab-quvvatlamaydi.");
+        }
+    };
 
-    <div id="scr-quiz" class="hidden">
-        <div class="quiz-header">
-            <span id="quiz-progress" class="progress-text">SAVOL: 1 / 10</span>
-            <div id="timer-val" class="timer-box hidden">35:00</div>
-        </div>
-
-        <div id="text-q" class="question-text"></div>
-        <div id="list-opts" class="options-list"></div>
-
-        <div id="practice-nav" class="nav-bar hidden">
-            <button id="prev-btn" class="nav-btn" onclick="changeQuestion(-1)">OLDINGI</button>
-            <button id="next-btn" class="nav-btn" onclick="changeQuestion(1)">KEYINGI</button>
-        </div>
+    function openEditor(data) {
+        document.getElementById('list').style.display = 'none';
+        document.getElementById('editor').style.display = 'block';
+        document.getElementById('video-canvas').style.display = 'block';
+        currentLyrics = parseLyrics(data.lyrics || "");
         
-        <button class="back-btn" style="margin-top: 30px; width: 100%;" onclick="confirmExit()">TESTNI YAKUNLASH</button>
-    </div>
+        document.getElementById('start-range').oninput = function() {
+            startTime = parseInt(this.value);
+            document.getElementById('time-label').innerText = `${startTime}s - ${startTime+15}s`;
+            player.loadVideoById(data.youtubeId, startTime);
+        };
+        
+        player.loadVideoById(data.youtubeId, startTime);
+    }
 
-    <div id="scr-res" class="hidden" style="text-align: center;">
-        <h2 id="res-title">NATIJA</h2>
-        <div id="final-score">0%</div>
-        <p id="res-detail" style="color: var(--text-muted);"></p>
-        <button class="gold-btn" onclick="location.reload()">BOSH SAHIFA</button>
-    </div>
-</div>
+    function parseLyrics(lrc) {
+        return lrc.split('\n').map(line => {
+            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3] } : null;
+        }).filter(x => x);
+    }
+</script>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // Firebase configingiz (o'zingizniki bilan almashtiring)
     const firebaseConfig = {
-        apiKey: "AIzaSyDHrDiJYCjjlTwUnZGvoSevawlO55yNCLs",
-        authDomain: "raxmonov-22df0.firebaseapp.com",
-        projectId: "raxmonov-22df0",
-        databaseURL: "https://raxmonov-22df0-default-rtdb.firebaseio.com"
+        apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
+        authDomain: "songlyrics-a5df9.firebaseapp.com",
+        projectId: "songlyrics-a5df9",
+        storageBucket: "songlyrics-a5df9.firebasestorage.app",
+        messagingSenderId: "322622967401",
+        appId: "1:322622967401:web:24569afce697e18edc9cf8"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const db = getFirestore(app);
 
-    let allData = {}, rawQuestions = [], currentSet = [], idx = 0, corrects = 0, mode = '', timer, sec = 2100;
-    let answeredQuestions = {}; // Mashq rejimida javoblarni saqlash
-
-    async function loadSubjects() {
-        const cache = localStorage.getItem('quiz_data_cache');
-        if (cache) {
-            allData = JSON.parse(cache);
-            displaySubjects(allData);
-            document.getElementById('cache-status').innerText = "Premium Oflayn Rejim";
-            checkUpdate();
-        } else {
-            fetchFirebase();
-        }
-    }
-
-    async function fetchFirebase() {
-        try {
-            const snap = await get(ref(db, 'savollar'));
-            if (snap.exists()) {
-                allData = snap.val();
-                localStorage.setItem('quiz_data_cache', JSON.stringify(allData));
-                displaySubjects(allData);
-            }
-        } catch (e) { document.getElementById('cache-status').innerText = "Internet yo'q"; }
-    }
-
-    async function checkUpdate() {
-        try {
-            const snap = await get(ref(db, 'savollar'));
-            if (snap.exists()) {
-                const newData = JSON.stringify(snap.val());
-                if (localStorage.getItem('quiz_data_cache') !== newData) {
-                    localStorage.setItem('quiz_data_cache', newData);
-                    location.reload();
-                }
-            }
-        } catch (e) {}
-    }
-
-    function displaySubjects(data) {
-        const box = document.getElementById('list-subs');
-        box.innerHTML = "";
-        Object.keys(data).forEach(s => {
-            const d = document.createElement('div');
-            d.className = 'subject-card';
-            d.innerText = s;
-            d.onclick = () => {
-                rawQuestions = Object.values(data[s]);
-                document.getElementById('sub-name').innerText = s;
-                document.getElementById('mode-box').classList.remove('hidden');
-                document.getElementById('list-subs').classList.add('hidden');
-            };
-            box.appendChild(d);
+    onSnapshot(collection(db, "tracklist"), (snap) => {
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement('div');
+            div.style = "background:#111; padding:15px; margin-bottom:10px; border-radius:12px; cursor:pointer;";
+            div.innerHTML = `<b>${data.track}</b><br><small>${data.artist}</small>`;
+            div.onclick = () => openEditor(data);
+            list.appendChild(div);
         });
-    }
-
-    window.goBackToMenu = () => {
-        document.getElementById('mode-box').classList.add('hidden');
-        document.getElementById('list-subs').classList.remove('hidden');
-    };
-
-    window.startTest = (m) => {
-        mode = m; idx = 0; corrects = 0; answeredQuestions = {};
-        if (mode === 'exam') {
-            currentSet = rawQuestions.sort(() => Math.random() - 0.5).slice(0, 35);
-            document.getElementById('timer-val').classList.remove('hidden');
-            document.getElementById('practice-nav').classList.add('hidden');
-            sec = 2100; runClock();
-        } else {
-            currentSet = [...rawQuestions];
-            document.getElementById('timer-val').classList.add('hidden');
-            document.getElementById('practice-nav').classList.remove('hidden');
-        }
-        document.getElementById('scr-menu').classList.add('hidden');
-        document.getElementById('scr-quiz').classList.remove('hidden');
-        renderQuestion();
-    };
-
-    function renderQuestion() {
-        const q = currentSet[idx];
-        document.getElementById('quiz-progress').innerText = `SAVOL: ${idx + 1} / ${currentSet.length}`;
-        document.getElementById('text-q').innerHTML = q.savol || "";
-        const box = document.getElementById('list-opts');
-        box.innerHTML = "";
-
-        // Nav tugmalari holati
-        if(mode === 'practice') {
-            document.getElementById('prev-btn').disabled = idx === 0;
-            document.getElementById('next-btn').disabled = idx === currentSet.length - 1;
-        }
-
-        const variants = [
-            { t: q.v1, id: 'v1' }, { t: q.v2, id: 'v2' },
-            { t: q.v3, id: 'v3' }, { t: q.v4, id: 'v4' }
-        ].filter(v => v.t).sort((a, b) => {
-            // Agar savol oldin javoblangan bo'lsa, tartibni buzmaslik kerak
-            return answeredQuestions[idx] ? 0 : Math.random() - 0.5;
-        });
-
-        variants.forEach(v => {
-            const b = document.createElement('button');
-            b.className = 'opt-btn';
-            b.innerHTML = v.t;
-            
-            // Agar oldin javoblangan bo'lsa
-            if (answeredQuestions[idx]) {
-                if (v.id === 'v1') b.classList.add('correct');
-                if (answeredQuestions[idx].selected === v.id && v.id !== 'v1') b.classList.add('wrong');
-                b.disabled = true;
-            }
-
-            b.onclick = () => handleAnswer(b, v.id === 'v1', v.id);
-            box.appendChild(b);
-        });
-        window.scrollTo(0, 0);
-    }
-
-    function handleAnswer(btn, isOk, variantId) {
-        if (answeredQuestions[idx]) return;
-
-        const btns = document.querySelectorAll('.opt-btn');
-        answeredQuestions[idx] = { selected: variantId, correct: isOk };
-
-        if (isOk) {
-            btn.classList.add('correct');
-            corrects++;
-        } else {
-            btn.classList.add('wrong');
-            if (mode === 'practice') {
-                // To'g'ri javobni ko'rsatish
-                btns.forEach(b => {
-                    const q = currentSet[idx];
-                    if (b.innerHTML === q.v1) b.classList.add('correct');
-                });
-            }
-        }
-
-        btns.forEach(b => b.disabled = true);
-
-        if (mode === 'exam') {
-            setTimeout(() => {
-                idx++;
-                if (idx < currentSet.length) renderQuestion();
-                else finishTest();
-            }, 600);
-        }
-    }
-
-    window.changeQuestion = (step) => {
-        idx += step;
-        renderQuestion();
-    };
-
-    function runClock() {
-        timer = setInterval(() => {
-            sec--;
-            let m = Math.floor(sec / 60), s = sec % 60;
-            document.getElementById('timer-val').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-            if (sec <= 0) finishTest();
-        }, 1000);
-    }
-
-    window.confirmExit = () => {
-        if(confirm("Testni tugatasizmi?")) finishTest();
-    };
-
-    function finishTest() {
-        clearInterval(timer);
-        document.getElementById('scr-quiz').classList.add('hidden');
-        document.getElementById('scr-res').classList.remove('hidden');
-        const score = Math.round((corrects / currentSet.length) * 100);
-        document.getElementById('final-score').innerText = `${score}%`;
-        document.getElementById('res-detail').innerText = `${currentSet.length} savoldan ${corrects} ta to'g'ri javob.`;
-        const title = document.getElementById('res-title');
-        title.style.color = score >= 60 ? '#00c853' : '#ff4d4d';
-        title.innerText = score >= 60 ? "MUVAFFAQIYAT!" : "YETARLI EMAS";
-    }
-
-    loadSubjects();
+    });
 </script>
 </body>
 </html>
