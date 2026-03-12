@@ -3,118 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Instagram Export</title>
+    <title>SongLyrics Pro | Instagram Story</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #E1306C; --bg: #000; } /* Instagram rangi */
-        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; }
+        :root { --primary: #E1306C; --bg: #000; --green: #1DB954; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow-x: hidden; }
+
         .container { padding: 20px; }
         
-        /* Video maydoni (Stories formati 9:16) */
-        #video-canvas {
-            display: none; width: 100%; max-width: 350px; aspect-ratio: 9/16;
-            background: #000; border-radius: 20px; margin: 20px auto;
-            position: relative; border: 2px solid #333; overflow: hidden;
+        /* Story Mode Displeyi */
+        #story-display {
+            display: none; width: 100%; max-width: 360px; aspect-ratio: 9/16;
+            background: #000; border-radius: 20px; margin: 10px auto;
+            position: relative; border: 1px solid #333; overflow: hidden;
+            box-shadow: 0 0 50px rgba(225, 48, 108, 0.2);
         }
 
-        #lyric-overlay {
+        #lyric-text {
             position: absolute; width: 100%; top: 50%; transform: translateY(-50%);
-            text-align: center; font-size: 2.2rem; font-weight: 900; padding: 20px;
-            box-sizing: border-box; text-shadow: 0 0 20px rgba(225, 48, 108, 0.8);
+            text-align: center; font-size: 2.2rem; font-weight: 900; padding: 25px;
+            box-sizing: border-box; text-shadow: 0 0 25px var(--primary);
+            line-height: 1.2; transition: 0.2s;
         }
 
-        .btn-insta {
-            background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
-            color: #fff; border: none; padding: 15px 30px; border-radius: 30px;
-            font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;
+        /* Tugmalar */
+        .btn {
+            width: 100%; padding: 16px; border: none; border-radius: 15px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-play { background: var(--green); color: #000; }
+        .btn-insta { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+        .btn-back { background: #222; color: #888; margin-top: 20px; }
+
+        /* Ro'yxat */
+        .song-item {
+            background: #111; padding: 18px; border-radius: 15px; margin-bottom: 12px;
+            border: 1px solid #222; display: flex; justify-content: space-between; align-items: center;
         }
 
-        .slider-box { background: #111; padding: 20px; border-radius: 20px; margin-top: 20px; }
-        input[type=range] { width: 100%; accent-color: #dc2743; }
+        .slider-container { background: #111; padding: 20px; border-radius: 20px; margin-top: 15px; }
+        input[type=range] { width: 100%; accent-color: var(--primary); margin: 15px 0; }
+
+        #player-hide { position: absolute; left: -9999px; top: -9999px; }
     </style>
 </head>
 <body>
 
-    <div class="container" id="main-ui">
-        <h2 style="text-align:center">Instagram Story Maker</h2>
-        <div id="list"></div>
+    <div class="container" id="list-screen">
+        <h2 style="color: var(--green)">Musiqalar</h2>
+        <div id="songs-list">Yuklanmoqda...</div>
+    </div>
 
-        <div id="editor" style="display:none;">
-            <div id="video-canvas">
-                <div id="lyric-overlay">Matn bu yerda chiqadi...</div>
-            </div>
+    <div class="container" id="editor-screen" style="display:none;">
+        <div id="story-display">
+            <div id="lyric-text">Musiqani yoqing...</div>
+        </div>
 
-            <div class="slider-box">
-                <p style="text-align:center; margin:0 0 10px;">Vaqtni tanlang: <b id="time-label">0:00 - 0:15</b></p>
-                <input type="range" id="start-range" min="0" value="0">
-                <button class="btn-insta" id="share-btn">📲 Instagram Story-ga yuborish</button>
-                <button onclick="location.reload()" style="background:none; border:none; color:#888; width:100%; margin-top:15px;">⬅️ Orqaga</button>
-            </div>
+        <div class="slider-container">
+            <div style="text-align:center;">Vaqt: <b id="time-info">0s - 15s</b></div>
+            <input type="range" id="start-point" min="0" value="0">
+            
+            <button class="btn btn-play" id="action-btn">▶️ Musiqani yoqish</button>
+            <button class="btn btn-insta" id="share-btn" style="display:none;">📲 Instagram Story</button>
+            <button class="btn btn-back" onclick="location.reload()">⬅️ Orqaga</button>
         </div>
     </div>
 
-    <div id="player"></div>
+    <div id="player-hide"><div id="yt-player"></div></div>
 
 <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var player, currentLyrics = [], startTime = 0, endTime = 15;
+    var player, currentLyrics = [], startPos = 0, isPlaying = false;
 
     function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', { height: '0', width: '0', events: { 'onStateChange': onPlayerStateChange } });
+        player = new YT.Player('yt-player', {
+            height: '0', width: '0',
+            playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+            events: { 'onStateChange': onStateUpdate }
+        });
     }
 
-    function onPlayerStateChange(event) {
+    function onStateUpdate(event) {
         if (event.data == YT.PlayerState.PLAYING) {
             setInterval(() => {
                 let now = player.getCurrentTime();
-                if (now >= startTime + 15) player.seekTo(startTime); // 15 sekundlik qirqish
-
-                let hit = currentLyrics.findLast(l => now >= l.time);
-                if (hit) document.getElementById('lyric-overlay').innerText = hit.text;
+                // 15 sekundlik loop (qirqim)
+                if (now >= startPos + 15) {
+                    player.seekTo(startPos);
+                }
+                updateLyrics(now);
             }, 100);
         }
     }
 
-    // INSTAGRAMGA YUBORISH
-    document.getElementById('share-btn').onclick = async () => {
-        const text = document.getElementById('lyric-overlay').innerText;
-        
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'SongLyrics Story',
-                    text: `Musiqa: ${document.getElementById('lyric-overlay').innerText}`,
-                    url: window.location.href // Instagram Stories-ga havola sifatida boradi
-                });
-            } catch (err) {
-                console.log("Share bekor qilindi");
+    function updateLyrics(time) {
+        let hit = currentLyrics.findLast(l => time >= l.time);
+        if (hit) {
+            const txt = document.getElementById('lyric-text');
+            if (txt.innerText !== hit.text) {
+                txt.innerText = hit.text;
+                txt.style.transform = "translateY(-50%) scale(1.1)";
+                setTimeout(() => txt.style.transform = "translateY(-50%) scale(1)", 100);
             }
-        } else {
-            alert("Brauzeringiz ulashish funksiyasini qo'llab-quvvatlamaydi.");
         }
-    };
-
-    function openEditor(data) {
-        document.getElementById('list').style.display = 'none';
-        document.getElementById('editor').style.display = 'block';
-        document.getElementById('video-canvas').style.display = 'block';
-        currentLyrics = parseLyrics(data.lyrics || "");
-        
-        document.getElementById('start-range').oninput = function() {
-            startTime = parseInt(this.value);
-            document.getElementById('time-label').innerText = `${startTime}s - ${startTime+15}s`;
-            player.loadVideoById(data.youtubeId, startTime);
-        };
-        
-        player.loadVideoById(data.youtubeId, startTime);
     }
 
-    function parseLyrics(lrc) {
+    function openEditor(data) {
+        document.getElementById('list-screen').style.display = 'none';
+        document.getElementById('editor-screen').style.display = 'block';
+        document.getElementById('story-display').style.display = 'block';
+        
+        currentLyrics = parseLRC(data.lyrics || "");
+        
+        const slider = document.getElementById('start-point');
+        const actionBtn = document.getElementById('action-btn');
+        const shareBtn = document.getElementById('share-btn');
+
+        slider.oninput = function() {
+            startPos = parseInt(this.value);
+            document.getElementById('time-info').innerText = `${startPos}s - ${startPos + 15}s`;
+            if(isPlaying) player.seekTo(startPos);
+        };
+
+        actionBtn.onclick = () => {
+            player.loadVideoById(data.youtubeId, startPos);
+            player.playVideo();
+            isPlaying = true;
+            actionBtn.style.display = 'none';
+            shareBtn.style.display = 'flex';
+        };
+
+        shareBtn.onclick = async () => {
+            if (navigator.share) {
+                await navigator.share({
+                    title: 'SongLyrics',
+                    text: `Musiqa matni: ${document.getElementById('lyric-text').innerText}`,
+                    url: window.location.href
+                });
+            } else {
+                tg.showAlert("Ulashish imkoniyati mavjud emas.");
+            }
+        };
+    }
+
+    function parseLRC(lrc) {
         return lrc.split('\n').map(line => {
             const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3] } : null;
+            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
         }).filter(x => x);
     }
 </script>
@@ -123,7 +165,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase configingiz (o'zingizniki bilan almashtiring)
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
         authDomain: "songlyrics-a5df9.firebaseapp.com",
@@ -137,15 +178,15 @@
     const db = getFirestore(app);
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
-        const list = document.getElementById('list');
-        list.innerHTML = '';
+        const listDiv = document.getElementById('songs-list');
+        listDiv.innerHTML = '';
         snap.forEach(doc => {
             const data = doc.data();
             const div = document.createElement('div');
-            div.style = "background:#111; padding:15px; margin-bottom:10px; border-radius:12px; cursor:pointer;";
-            div.innerHTML = `<b>${data.track}</b><br><small>${data.artist}</small>`;
+            div.className = 'song-item';
+            div.innerHTML = `<div><b>${data.track}</b><br><small style="color:#666">${data.artist}</small></div><span>▶️</span>`;
             div.onclick = () => openEditor(data);
-            list.appendChild(div);
+            listDiv.appendChild(div);
         });
     });
 </script>
