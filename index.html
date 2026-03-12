@@ -3,116 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Audio & Editor</title>
+    <title>SongLyrics | Classic</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #E1306C; --accent: #1DB954; --bg: #000; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
+        :root { --accent: #1DB954; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
 
-        /* UI Screens */
-        .screen { height: 100vh; display: none; flex-direction: column; }
-        .active-screen { display: flex; }
+        /* Pleylist */
+        .header { padding: 25px 20px; text-align: center; background: linear-gradient(to bottom, #111, #000); }
+        .header h1 { margin: 0; font-size: 22px; color: var(--accent); letter-spacing: 1px; }
 
-        /* Header & Tabs */
-        .header { padding: 20px; text-align: center; background: #111; border-bottom: 1px solid #222; }
-        .tabs { display: flex; background: #111; border-bottom: 1px solid #222; }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #888; transition: 0.3s; }
-        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
-
-        /* Song List */
-        .content { flex: 1; padding: 15px; overflow-y: auto; }
+        .song-list { padding: 10px 15px; }
         .song-card {
-            background: #121212; padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid #222;
+            background: #121212; padding: 15px; border-radius: 12px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #222; cursor: pointer; transition: 0.3s;
         }
-        .song-card:active { transform: scale(0.98); }
+        .song-card:active { transform: scale(0.97); background: #1a1a1a; }
+        .song-info b { font-size: 17px; display: block; margin-bottom: 3px; }
+        .song-info span { color: #888; font-size: 14px; }
 
-        /* Editor & Preview */
-        .preview-area {
-            flex: 1; background: #000; position: relative;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        #lyric-display {
-            padding: 30px; text-align: center; font-size: 2.2rem; font-weight: 900;
-            text-shadow: 0 10px 20px rgba(0,0,0,0.8); transition: 0.3s;
-        }
-
-        /* Settings Panel */
-        .editor-footer { background: #111; padding: 20px; border-radius: 25px 25px 0 0; }
-        .control-group { margin-bottom: 15px; }
-        .label { font-size: 0.75rem; color: #666; text-transform: uppercase; margin-bottom: 8px; }
-        .scroll-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
-        
-        .btn-s {
-            background: #222; border: 1px solid #333; color: #fff; padding: 8px 15px;
-            border-radius: 20px; font-size: 0.8rem; white-space: nowrap;
-        }
-        .btn-s.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-        input[type=range] { width: 100%; accent-color: var(--primary); margin: 10px 0; }
-        .main-btn {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-weight: bold; cursor: pointer; margin-top: 10px;
+        /* Pleyer Ekrani */
+        #player-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 1000; flex-direction: column;
         }
 
-        /* Animations */
-        .anim-fade { animation: fA 0.4s ease; }
-        .anim-slide { animation: sL 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        @keyframes fA { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes sL { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #video-container {
+            width: 100%; aspect-ratio: 16/9; background: #111;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #lyric-area {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 30px; text-align: center; box-sizing: border-box;
+        }
+
+        #current-lyric {
+            font-size: 2.2rem; font-weight: 800; line-height: 1.3;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .lyric-anim { animation: lyricIn 0.5s ease; }
+        @keyframes lyricIn {
+            from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        .close-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 1100;
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            width: 40px; height: 40px; border-radius: 50%; font-size: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .artist-tag {
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: var(--accent); font-weight: bold; letter-spacing: 2px;
+            text-transform: uppercase; font-size: 12px; opacity: 0.7;
+        }
     </style>
 </head>
 <body>
 
-    <div id="list-screen" class="screen active-screen">
-        <div class="header"><h3>SongLyrics Pro</h3></div>
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('all', this)">Barchasi</div>
-            <div class="tab" onclick="switchTab('saved', this)">Saqlanganlar</div>
-        </div>
-        <div class="content" id="songs-render">Yuklanmoqda...</div>
+    <div id="home-screen">
+        <div class="header"><h1>SongLyrics</h1></div>
+        <div class="song-list" id="main-list">Yuklanmoqda...</div>
     </div>
 
-    <div id="editor-screen" class="screen">
-        <div class="preview-area">
-            <button onclick="closeEditor()" style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.5); border:none; color:#fff; padding:10px; border-radius:50%; z-index:100;">✕</button>
-            <div id="lyric-display">Musiqani yoqing...</div>
+    <div id="player-screen">
+        <button class="close-btn" onclick="closePlayer()">✕</button>
+        
+        <div id="video-container">
+            <div id="player"></div>
+        </div>
+        
+        <div id="lyric-area">
+            <div id="current-lyric">Musiqani yoqing...</div>
         </div>
 
-        <div class="editor-footer">
-            <div class="control-group">
-                <div class="label">Vaqtni qirqish (15s): <b id="time-label" style="color:#fff">0s</b></div>
-                <input type="range" id="crop-slider" min="0" value="0">
-            </div>
-
-            <div class="control-group">
-                <div class="label">Shrift va Effekt</div>
-                <div class="scroll-row">
-                    <button class="btn-s active" onclick="setFF('sans-serif', this)">Sans</button>
-                    <button class="btn-s" onclick="setFF('serif', this)">Serif</button>
-                    <button class="btn-s" onclick="setFF('cursive', this)">Style</button>
-                    <div style="width:1px; background:#333; margin:0 5px;"></div>
-                    <button class="btn-s active" onclick="setAnim('anim-fade', this)">Fade</button>
-                    <button class="btn-s" onclick="setAnim('anim-slide', this)">Slide</button>
-                </div>
-            </div>
-
-            <button class="main-btn" style="background:var(--accent); color:#000" id="play-btn">▶️ ESHITIB KO'RISH</button>
-            <button class="main-btn" style="background:linear-gradient(45deg, #f09433, #e6683c, #dc2743, #bc1888); color:#fff" onclick="shareInsta()">📲 INSTAGRAM STORY</button>
-        </div>
+        <div class="artist-tag" id="artist-name"></div>
     </div>
-
-    <audio id="audio-player"></audio>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const audio = document.getElementById('audio-player');
-    const lyricEl = document.getElementById('lyric-display');
-    
-    let allSongs = [], currentLyrics = [], activeAnim = 'anim-fade', startPos = 0;
-    let currentSong = null;
+    tg.expand();
 
-    // Firebase (Xuddi avvalgidek, lekin audioLink maydoni bilan)
+    // YouTube API yuklash
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+
+    var ytPlayer, currentLyrics = [], syncTimer;
+
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('player', {
+            height: '100%',
+            width: '100%',
+            playerVars: { 
+                'playsinline': 1, 
+                'controls': 1, 
+                'modestbranding': 1,
+                'rel': 0
+            },
+            events: { 'onStateChange': onPlayerStateChange }
+        });
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            startSync();
+        } else {
+            stopSync();
+        }
+    }
+
+    function startSync() {
+        stopSync();
+        syncTimer = setInterval(() => {
+            const now = ytPlayer.getCurrentTime();
+            const hit = currentLyrics.findLast(l => now >= l.time);
+            
+            if (hit) {
+                const el = document.getElementById('current-lyric');
+                if (el.innerText !== hit.text) {
+                    el.innerText = hit.text;
+                    el.classList.remove('lyric-anim');
+                    void el.offsetWidth; // Animatsiyani qayta ishga tushirish
+                    el.classList.add('lyric-anim');
+                }
+            }
+        }, 100);
+    }
+
+    function stopSync() { clearInterval(syncTimer); }
+
+    function openPlayer(data) {
+        // Avvalgi holatni tozalash
+        document.getElementById('current-lyric').innerText = "Musiqani yoqing...";
+        document.getElementById('current-lyric').classList.remove('lyric-anim');
+        document.getElementById('artist-name').innerText = data.artist;
+        
+        currentLyrics = parseLRC(data.lyrics || "");
+        
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('player-screen').style.display = 'flex';
+        
+        ytPlayer.loadVideoById(data.youtubeId);
+    }
+
+    function closePlayer() {
+        stopSync();
+        ytPlayer.stopVideo();
+        document.getElementById('home-screen').style.display = 'block';
+        document.getElementById('player-screen').style.display = 'none';
+    }
+
+    function parseLRC(lrc) {
+        return lrc.split('\n').map(line => {
+            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
+        }).filter(x => x);
+    }
+</script>
+
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -129,103 +185,23 @@
     const db = getFirestore(app);
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
-        allSongs = [];
-        snap.forEach(doc => allSongs.push(doc.data()));
-        renderSongs('all');
-    });
-
-    function renderSongs(mode) {
-        const container = document.getElementById('songs-render');
-        container.innerHTML = '';
-        let list = (mode === 'all') ? allSongs : JSON.parse(localStorage.getItem('my_saved_songs') || '[]');
-
-        list.forEach(song => {
+        const listDiv = document.getElementById('main-list');
+        listDiv.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
             const div = document.createElement('div');
             div.className = 'song-card';
-            div.innerHTML = `<div><b>${song.track}</b><span>${song.artist}</span></div> <b style="color:var(--accent)">✂️</b>`;
-            div.onclick = () => initEditor(song);
-            container.appendChild(div);
+            div.innerHTML = `
+                <div class="song-info">
+                    <b>${data.track}</b>
+                    <span>${data.artist}</span>
+                </div>
+                <div style="color:var(--accent); font-size:18px;">▶</div>
+            `;
+            div.onclick = () => openPlayer(data);
+            listDiv.appendChild(div);
         });
-    }
-
-    function initEditor(song) {
-        currentSong = song;
-        // LocalStorage-ga saqlash
-        let saved = JSON.parse(localStorage.getItem('my_saved_songs') || '[]');
-        if(!saved.find(s => s.track === song.track)) {
-            saved.push(song);
-            localStorage.setItem('my_saved_songs', JSON.stringify(saved));
-        }
-
-        currentLyrics = parseLRC(song.lyrics || "");
-        audio.src = song.audioLink; // Telegram linki yoki MP3 havola
-        
-        document.getElementById('list-screen').classList.remove('active-screen');
-        document.getElementById('editor-screen').classList.add('active-screen');
-
-        const slider = document.getElementById('crop-slider');
-        slider.oninput = function() {
-            startPos = parseInt(this.value);
-            document.getElementById('time-label').innerText = startPos + 's';
-            audio.currentTime = startPos;
-        };
-
-        document.getElementById('play-btn').onclick = () => {
-            audio.currentTime = startPos;
-            audio.play();
-        };
-    }
-
-    audio.ontimeupdate = () => {
-        if(audio.currentTime >= startPos + 15) {
-            audio.currentTime = startPos; // 15s loop
-        }
-        let hit = currentLyrics.findLast(l => audio.currentTime >= l.time);
-        if(hit && lyricEl.innerText !== hit.text) {
-            lyricEl.innerText = hit.text;
-            lyricEl.classList.remove(activeAnim);
-            void lyricEl.offsetWidth;
-            lyricEl.classList.add(activeAnim);
-        }
-    };
-
-    function setFF(f, btn) {
-        lyricEl.style.fontFamily = f;
-        toggleBtn(btn);
-    }
-
-    function setAnim(a, btn) {
-        activeAnim = a;
-        toggleBtn(btn);
-    }
-
-    function toggleBtn(btn) {
-        btn.parentElement.querySelectorAll('.btn-s').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-
-    function closeEditor() {
-        audio.pause();
-        document.getElementById('editor-screen').classList.remove('active-screen');
-        document.getElementById('list-screen').classList.add('active-screen');
-    }
-
-    function switchTab(mode, btn) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        renderSongs(mode);
-    }
-
-    function parseLRC(lrc) {
-        return lrc.split('\n').map(line => {
-            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
-        }).filter(x => x);
-    }
-
-    function shareInsta() {
-        tg.showAlert("Matn nusxalandi! Instagramga o'ting.");
-    }
+    });
 </script>
 </body>
 </html>
