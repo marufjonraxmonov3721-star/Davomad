@@ -3,126 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Telegram Fix</title>
+    <title>SongLyrics | Music Experience</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #E1306C; --bg: #000; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; overflow: hidden; }
+        :root { --accent: #1DB954; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
 
-        /* Asosiy konteyner */
-        #main-container { padding: 20px; }
-        
-        /* Story oynasi (9:16 formatda) */
-        #story-window {
+        /* Asosiy Pleylist Dizayni */
+        .app-header { padding: 25px 20px; background: linear-gradient(to bottom, #111, #000); text-align: center; }
+        .app-header h1 { margin: 0; font-size: 24px; color: var(--accent); letter-spacing: 1px; }
+
+        .song-list { padding: 10px 15px; }
+        .song-item {
+            background: #121212; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            display: flex; align-items: center; border: 1px solid #222; transition: 0.3s;
+        }
+        .song-item:active { background: #1c1c1c; transform: scale(0.98); }
+        .song-info { flex-grow: 1; }
+        .song-info b { font-size: 17px; display: block; margin-bottom: 4px; }
+        .song-info span { color: #888; font-size: 14px; }
+        .play-icon { color: var(--accent); font-size: 20px; }
+
+        /* Pleyer Ekrani */
+        #player-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 999; flex-direction: column;
+            background: #000; z-index: 1000;
         }
 
-        /* YouTube Pleyer (Butun ekranda, lekin orqa fonda) */
-        #yt-player-container {
+        #video-background {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; opacity: 0.3; /* Video xira ko'rinib turadi, matn yaxshi chiqishi uchun */
-            pointer-events: auto; /* Video bosilishi kerak */
+            opacity: 0.4; filter: blur(8px); transform: scale(1.2); /* Video xira fon sifatida */
+            pointer-events: none;
         }
 
-        /* Matn qatlami (Video ustida) */
-        #lyric-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 80%;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 2; pointer-events: none; /* Matnni bossa ham video bosilaveradi */
-            text-align: center; font-size: 2.5rem; font-weight: 900;
-            padding: 30px; box-sizing: border-box; text-shadow: 0 0 20px #000;
+        #lyric-container {
+            position: relative; z-index: 10; height: 100%; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px 25px; text-align: center; box-sizing: border-box;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
         }
 
-        /* Pastki boshqaruv paneli */
-        #controls {
-            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8);
-            padding: 20px; box-sizing: border-box; z-index: 3; border-top: 1px solid #222;
+        #current-lyric {
+            font-size: 2.4rem; font-weight: 800; line-height: 1.3;
+            text-shadow: 0 10px 30px rgba(0,0,0,1); transition: all 0.4s ease;
+            color: #fff; transform: translateY(0);
         }
 
-        .btn-insta {
-            background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
-            color: #fff; border: none; padding: 15px; border-radius: 12px;
-            width: 100%; font-weight: bold; margin-top: 10px;
+        .lyric-animate { animation: lyricIn 0.5s ease-out; }
+        @keyframes lyricIn {
+            from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
         }
 
-        .song-card {
-            background: #111; padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            border: 1px solid #222; cursor: pointer;
+        /* Navigatsiya va Boshqaruv */
+        .close-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 100;
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            width: 40px; height: 40px; border-radius: 50%; font-size: 20px;
         }
-        
-        input[type=range] { width: 100%; accent-color: var(--primary); }
+
+        /* YouTube Pleyer (yashirin boshqaruv uchun) */
+        #yt-api-player { position: absolute; top: -100px; left: -100px; width: 10px; height: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="main-container">
-        <h2 style="color: #1DB954">Musiqalar</h2>
-        <div id="list">Yuklanmoqda...</div>
+    <div id="home-screen">
+        <div class="app-header"><h1>SongLyrics</h1></div>
+        <div class="song-list" id="main-list">Yuklanmoqda...</div>
     </div>
 
-    <div id="story-window">
-        <div id="yt-player-container">
-            <div id="player"></div>
+    <div id="player-screen">
+        <button class="close-btn" onclick="closePlayer()">✕</button>
+        <div id="video-background"></div>
+        
+        <div id="lyric-container">
+            <div id="current-lyric">Musiqani yoqing...</div>
+            <p id="artist-label" style="position:absolute; bottom:40px; color: var(--accent); font-weight:bold; letter-spacing:2px;"></p>
         </div>
         
-        <div id="lyric-layer">
-            <div id="lyric-text">Videoni o'rtasidan bosing...</div>
-        </div>
-
-        <div id="controls">
-            <p style="text-align:center; margin:0 0 10px;">Vaqt: <b id="time-val">0s - 15s</b></p>
-            <input type="range" id="time-slider" min="0" value="0">
-            <button class="btn-insta" id="share-btn">📲 Instagram Story</button>
-            <button onclick="location.reload()" style="background:none; border:none; color:#777; width:100%; margin-top:10px;">⬅️ Orqaga</button>
+        <div id="interactive-player" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:15; display:flex; align-items:center; justify-content:center;">
+            <div id="player"></div>
         </div>
     </div>
 
 <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var ytPlayer, currentLyrics = [], startAt = 0;
+    var player, currentLyrics = [], lyricsTimer;
 
     function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('player', {
-            height: '100%', width: '100%',
+        player = new YT.Player('player', {
+            height: '250', width: '250',
             playerVars: { 'playsinline': 1, 'controls': 1, 'modestbranding': 1 },
-            events: { 'onStateChange': onStateChange }
+            events: { 'onStateChange': onPlayerStateChange }
         });
     }
 
-    function onStateChange(event) {
+    function onPlayerStateChange(event) {
         if (event.data == YT.PlayerState.PLAYING) {
-            setInterval(() => {
-                let now = ytPlayer.getCurrentTime();
-                if (now >= startAt + 15) ytPlayer.seekTo(startAt); // 15s Loop
-
-                let line = currentLyrics.findLast(l => now >= l.time);
-                if (line) document.getElementById('lyric-text').innerText = line.text;
-            }, 100);
+            // Video boshlangach, pleyerni shaffof qilish va fonni ko'rsatish
+            document.getElementById('interactive-player').style.opacity = "0.01";
+            startLyricSync();
+        } else {
+            stopLyricSync();
         }
     }
 
-    function openStory(data) {
-        document.getElementById('main-container').style.display = 'none';
-        document.getElementById('story-window').style.display = 'flex';
-        currentLyrics = parseLRC(data.lyrics || "");
-        
-        ytPlayer.cueVideoById(data.youtubeId, startAt);
-
-        document.getElementById('time-slider').oninput = function() {
-            startAt = parseInt(this.value);
-            document.getElementById('time-val').innerText = `${startAt}s - ${startAt + 15}s`;
-            ytPlayer.seekTo(startAt);
-        };
-
-        document.getElementById('share-btn').onclick = async () => {
-            if (navigator.share) {
-                await navigator.share({ title: 'SongLyrics', url: window.location.href });
+    function startLyricSync() {
+        lyricsTimer = setInterval(() => {
+            const now = player.getCurrentTime();
+            const hit = currentLyrics.findLast(l => now >= l.time);
+            
+            if (hit) {
+                const el = document.getElementById('current-lyric');
+                if (el.innerText !== hit.text) {
+                    el.innerText = hit.text;
+                    el.classList.remove('lyric-animate');
+                    void el.offsetWidth; // Reset animation
+                    el.classList.add('lyric-animate');
+                }
             }
-        };
+        }, 100);
+    }
+
+    function stopLyricSync() { clearInterval(lyricsTimer); }
+
+    function openPlayer(data) {
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('player-screen').style.display = 'block';
+        document.getElementById('artist-label').innerText = data.artist.toUpperCase();
+        document.getElementById('interactive-player').style.opacity = "1";
+        
+        currentLyrics = parseLRC(data.lyrics || "");
+        player.cueVideoById(data.youtubeId);
+    }
+
+    function closePlayer() {
+        player.stopVideo();
+        document.getElementById('home-screen').style.display = 'block';
+        document.getElementById('player-screen').style.display = 'none';
     }
 
     function parseLRC(lrc) {
@@ -150,15 +175,21 @@
     const db = getFirestore(app);
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
-        const list = document.getElementById('list');
-        list.innerHTML = '';
+        const listDiv = document.getElementById('main-list');
+        listDiv.innerHTML = '';
         snap.forEach(doc => {
             const data = doc.data();
             const div = document.createElement('div');
-            div.className = 'song-card';
-            div.innerHTML = `<b>${data.track}</b><br><small>${data.artist}</small>`;
-            div.onclick = () => openStory(data);
-            list.appendChild(div);
+            div.className = 'song-item';
+            div.innerHTML = `
+                <div class="song-info">
+                    <b>${data.track}</b>
+                    <span>${data.artist}</span>
+                </div>
+                <div class="play-icon">▶</div>
+            `;
+            div.onclick = () => openPlayer(data);
+            listDiv.appendChild(div);
         });
     });
 </script>
