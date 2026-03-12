@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | 100% Fixed</title>
+    <title>SongLyrics | Telegram Fixed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #1DB954; --bg: #000; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* Ro'yxat */
+        /* Pleylist */
         .list-screen { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
         .song-card {
             background: #111; padding: 15px; border-radius: 12px; margin-bottom: 12px;
@@ -23,29 +23,29 @@
             background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: 9999;
         }
 
-        /* Matn maydoni */
+        /* Matn qatlami */
         #lyric-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 70%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 75%;
             z-index: 2; display: flex; align-items: center; justify-content: center;
             padding: 30px; box-sizing: border-box; text-align: center;
         }
-        #current-lyric { font-size: 2.2rem; font-weight: 800; line-height: 1.3; }
+        #current-lyric { font-size: 2.2rem; font-weight: 800; line-height: 1.3; transition: 0.3s; }
 
-        /* MUHIM: Markaziy Play Tugmasi */
+        /* KATTA PLAY TUGMASI (Telegram uchun yechim) */
         #central-play-btn {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; background: var(--accent); color: #000; border: none;
-            width: 85px; height: 85px; border-radius: 50%; font-size: 32px;
+            width: 90px; height: 90px; border-radius: 50%; font-size: 35px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 40px rgba(29, 185, 84, 0.5);
+            box-shadow: 0 0 30px rgba(29, 185, 84, 0.4);
         }
 
-        /* Pastki sozlamalar */
+        /* Sozlamalar paneli */
         #style-panel {
             position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.9);
             padding: 20px; box-sizing: border-box; z-index: 3; border-top: 1px solid #333;
         }
-        .setting-row { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .setting-row { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; }
         .style-btn {
             background: #222; border: 1px solid #444; color: #fff; padding: 8px 15px;
             border-radius: 20px; font-size: 0.8rem; white-space: nowrap;
@@ -54,19 +54,19 @@
 
         .close-btn {
             position: absolute; top: 20px; left: 20px; z-index: 10001;
-            background: rgba(255,255,255,0.1); border: 1px solid #444; color: #fff;
+            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #fff;
             width: 40px; height: 40px; border-radius: 50%;
         }
 
-        #yt-hidden { position: absolute; top: -1000px; left: -1000px; visibility: hidden; }
+        #yt-hidden { position: absolute; top: -1000px; opacity: 0; }
 
         /* Animatsiyalar */
-        .anim-fade { animation: fadeIn 0.4s ease; }
-        .anim-slide { animation: slideIn 0.4s ease; }
+        .anim-fade { animation: fadeIn 0.5s ease; }
+        .anim-slide { animation: slideIn 0.5s ease; }
         .anim-zoom { animation: zoomIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -79,10 +79,10 @@
     <div id="player-screen">
         <button class="close-btn" onclick="closePlayer()">✕</button>
         
-        <button id="central-play-btn" onclick="forceStart()">▶</button>
+        <button id="central-play-btn" onclick="startPlayback()">▶</button>
         
         <div id="lyric-container">
-            <div id="current-lyric">Tayyor</div>
+            <div id="current-lyric">Musiqani yoqing</div>
         </div>
 
         <div id="yt-hidden"><div id="player"></div></div>
@@ -111,29 +111,29 @@
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var ytPlayer, currentLyrics = [], syncTimer, isReady = false, pendingVideoId = "";
+    var ytPlayer, currentLyrics = [], syncTask, isAPIReady = false, activeId = "";
     var activeAnim = 'anim-fade';
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
             height: '10', width: '10',
-            playerVars: { 'playsinline': 1, 'controls': 0, 'enablejsapi': 1 },
+            playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
             events: { 
-                'onReady': () => { isReady = true; },
-                'onStateChange': (e) => { if(e.data == YT.PlayerState.PLAYING) startLyrics(); else stopLyrics(); }
+                'onReady': () => { isAPIReady = true; },
+                'onStateChange': (e) => { if(e.data == YT.PlayerState.PLAYING) startSync(); else stopSync(); }
             }
         });
     }
 
-    function startLyrics() {
-        stopLyrics();
-        syncTimer = setInterval(() => {
-            const time = ytPlayer.getCurrentTime();
-            const line = currentLyrics.findLast(l => time >= l.time);
-            if (line) {
+    function startSync() {
+        stopSync();
+        syncTask = setInterval(() => {
+            const now = ytPlayer.getCurrentTime();
+            const hit = currentLyrics.findLast(l => now >= l.time);
+            if (hit) {
                 const el = document.getElementById('current-lyric');
-                if (el.innerText !== line.text) {
-                    el.innerText = line.text;
+                if (el.innerText !== hit.text) {
+                    el.innerText = hit.text;
                     el.className = ''; void el.offsetWidth;
                     el.classList.add(activeAnim);
                 }
@@ -141,27 +141,28 @@
         }, 100);
     }
 
-    function stopLyrics() { clearInterval(syncTimer); }
+    function stopSync() { clearInterval(syncTask); }
 
     function openPlayer(data) {
-        pendingVideoId = data.youtubeId;
+        activeId = data.youtubeId;
         currentLyrics = parseLRC(data.lyrics || "");
-        document.getElementById('current-lyric').innerText = "Musiqani yoqing";
+        document.getElementById('current-lyric').innerText = "Tayyor";
         document.getElementById('central-play-btn').style.display = 'flex';
         document.getElementById('list-ui').style.display = 'none';
         document.getElementById('player-screen').style.display = 'block';
     }
 
-    function forceStart() {
-        if(!isReady) return;
+    // TELEGRAMDA ISHLASHINI TA'MINLAYDIGAN ASOSIY FUNKSIYA
+    function startPlayback() {
+        if (!isAPIReady) return;
         document.getElementById('central-play-btn').style.display = 'none';
         document.getElementById('current-lyric').innerText = "...";
-        ytPlayer.loadVideoById(pendingVideoId);
+        ytPlayer.loadVideoById(activeId);
         ytPlayer.playVideo();
     }
 
     function closePlayer() {
-        stopLyrics(); ytPlayer.stopVideo();
+        stopSync(); ytPlayer.stopVideo();
         document.getElementById('list-ui').style.display = 'block';
         document.getElementById('player-screen').style.display = 'none';
     }
@@ -169,8 +170,8 @@
     function changeFont(f, b) { document.getElementById('current-lyric').style.fontFamily = f; updateUI(b, 'font-settings'); }
     function changeAnim(a, b) { activeAnim = a; updateUI(b, 'anim-settings'); }
     function updateUI(btn, id) { 
-        const items = document.getElementById(id).getElementsByClassName('style-btn');
-        for(let i of items) i.classList.remove('active'); btn.classList.add('active');
+        const bs = document.getElementById(id).getElementsByClassName('style-btn');
+        for(let b of bs) b.classList.remove('active'); btn.classList.add('active');
     }
 
     function parseLRC(lrc) {
