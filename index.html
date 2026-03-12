@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | AutoPlay Cinematic</title>
+    <title>SongLyrics | Fixed AutoPlay</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #1DB954; --bg: #000; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; overflow: hidden; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
 
-        /* Pleylist Ekrani */
+        /* Ro'yxat */
         .list-screen { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
         .song-card {
             background: #111; padding: 18px; border-radius: 15px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #222; cursor: pointer; transition: 0.2s;
+            border: 1px solid #222; cursor: pointer;
         }
-        .song-card:active { transform: scale(0.97); background: #1a1a1a; }
         .song-info b { font-size: 1.1rem; display: block; margin-bottom: 4px; }
         .song-info span { color: #888; font-size: 0.9rem; }
 
@@ -26,70 +25,45 @@
             background: #000; z-index: 1000;
         }
 
-        /* Fon Animatsiyasi */
         .animated-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, #121212 0%, #000 100%);
             z-index: 1;
         }
-        .glow {
-            position: absolute; width: 400px; height: 400px;
-            background: var(--accent); border-radius: 50%;
-            filter: blur(150px); opacity: 0.12; animation: moveGlow 20s infinite alternate;
-        }
-        @keyframes moveGlow { from { transform: translate(-30%, -30%); } to { transform: translate(60%, 60%); } }
 
-        /* Matn Qatlami */
         #lyric-container {
             position: relative; z-index: 5; height: 100%;
             display: flex; align-items: center; justify-content: center;
             padding: 40px; box-sizing: border-box; text-align: center;
         }
-        #current-lyric {
-            font-size: 2.3rem; font-weight: 800; line-height: 1.25;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            transition: 0.4s ease;
-        }
-        .lyric-in { animation: lyricIn 0.5s ease; }
-        @keyframes lyricIn {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); filter: blur(5px); }
-            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-        }
 
-        /* Yopish tugmasi */
+        #current-lyric { font-size: 2.2rem; font-weight: 800; line-height: 1.3; transition: 0.3s; }
+
         .close-btn {
             position: absolute; top: 25px; left: 25px; z-index: 10;
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
-            color: #fff; width: 45px; height: 45px; border-radius: 50%; font-size: 20px;
-            cursor: pointer;
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            width: 45px; height: 45px; border-radius: 50%; font-size: 20px;
         }
 
-        /* YouTube Yashirin */
-        #yt-hidden { position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-        
+        #yt-placeholder { position: absolute; top: -1000px; opacity: 0; }
         .artist-tag {
             position: absolute; bottom: 40px; width: 100%; text-align: center;
-            color: var(--accent); font-weight: bold; letter-spacing: 3px;
-            font-size: 11px; z-index: 5; opacity: 0.6;
+            color: var(--accent); font-weight: bold; font-size: 12px; z-index: 5;
         }
     </style>
 </head>
 <body>
 
     <div class="list-screen" id="list-ui">
-        <h2 style="color: var(--accent); margin: 10px 0 25px 5px;">Musiqalar</h2>
+        <h2 style="color: var(--accent);">Musiqalar</h2>
         <div id="songs-list">Yuklanmoqda...</div>
     </div>
 
     <div id="player-screen">
         <button class="close-btn" onclick="closePlayer()">✕</button>
-        <div class="animated-bg"><div class="glow"></div></div>
-        
-        <div id="lyric-container">
-            <div id="current-lyric">Yuklanmoqda...</div>
-        </div>
-
-        <div id="yt-hidden"><div id="player"></div></div>
+        <div class="animated-bg"></div>
+        <div id="lyric-container"><div id="current-lyric">Yuklanmoqda...</div></div>
+        <div id="yt-placeholder"><div id="player"></div></div>
         <div class="artist-tag" id="artist-tag"></div>
     </div>
 
@@ -101,30 +75,20 @@
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var ytPlayer, currentLyrics = [], syncTask, playerReady = false;
+    var ytPlayer, currentLyrics = [], syncTask, isReady = false;
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
             height: '100', width: '100',
-            playerVars: { 
-                'playsinline': 1, 
-                'controls': 0, 
-                'disablekb': 1,
-                'rel': 0
-            },
-            events: { 
-                'onReady': () => { playerReady = true; },
-                'onStateChange': onPlayerStateChange 
+            playerVars: { 'autoplay': 1, 'playsinline': 1, 'controls': 0 },
+            events: {
+                'onReady': () => { isReady = true; },
+                'onStateChange': (e) => {
+                    if (e.data == YT.PlayerState.PLAYING) startSync();
+                    else stopSync();
+                }
             }
         });
-    }
-
-    function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            startSync();
-        } else {
-            stopSync();
-        }
     }
 
     function startSync() {
@@ -132,15 +96,8 @@
         syncTask = setInterval(() => {
             const now = ytPlayer.getCurrentTime();
             const line = currentLyrics.findLast(l => now >= l.time);
-            
-            if (line) {
-                const el = document.getElementById('current-lyric');
-                if (el.innerText !== line.text) {
-                    el.innerText = line.text;
-                    el.classList.remove('lyric-in');
-                    void el.offsetWidth;
-                    el.classList.add('lyric-in');
-                }
+            if (line && document.getElementById('current-lyric').innerText !== line.text) {
+                document.getElementById('current-lyric').innerText = line.text;
             }
         }, 100);
     }
@@ -148,9 +105,11 @@
     function stopSync() { clearInterval(syncTask); }
 
     function openPlayer(data) {
-        if (!playerReady) return; // Pleyer hali tayyor bo'lmasa ishlamaydi
-
-        // UI tayyorlash
+        if (!isReady) {
+            alert("Pleyer hali tayyor emas, biroz kuting...");
+            return;
+        }
+        
         document.getElementById('current-lyric').innerText = "Tayyorlanmoqda...";
         document.getElementById('artist-tag').innerText = data.artist.toUpperCase();
         currentLyrics = parseLRC(data.lyrics || "");
@@ -158,13 +117,9 @@
         document.getElementById('list-ui').style.display = 'none';
         document.getElementById('player-screen').style.display = 'block';
         
-        // Videoni yuklash va avtomatik boshlash
-        ytPlayer.loadVideoById({
-            videoId: data.youtubeId,
-            suggestedQuality: 'small'
-        });
-        // Ba'zi qurilmalarda yuklanishi bilan autoplay bo'lmasa, majburiy play beramiz
-        ytPlayer.playVideo();
+        // Videoni yuklash va darhol ijro etish
+        ytPlayer.loadVideoById(data.youtubeId);
+        ytPlayer.playVideo(); 
     }
 
     function closePlayer() {
@@ -175,7 +130,6 @@
     }
 
     function parseLRC(lrc) {
-        if (!lrc) return [];
         return lrc.split('\n').map(line => {
             const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
             return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
@@ -200,22 +154,15 @@
     const db = getFirestore(app);
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
-        const listContainer = document.getElementById('songs-list');
-        listContainer.innerHTML = '';
+        const list = document.getElementById('songs-list');
+        list.innerHTML = '';
         snap.forEach(doc => {
             const data = doc.data();
-            const card = document.createElement('div');
-            card.className = 'song-card';
-            card.innerHTML = `
-                <div class="song-info">
-                    <b>${data.track}</b>
-                    <span>${data.artist}</span>
-                </div>
-                <div style="color:var(--accent); font-size:22px;">▶</div>
-            `;
-            // KARTANI BOSGANDA PLAY BO'LISHI
-            card.onclick = () => openPlayer(data);
-            listContainer.appendChild(card);
+            const div = document.createElement('div');
+            div.className = 'song-card';
+            div.innerHTML = `<div><b>${data.track}</b><span>${data.artist}</span></div> <div style="color:var(--accent)">▶</div>`;
+            div.onclick = () => openPlayer(data);
+            list.appendChild(div);
         });
     });
 </script>
