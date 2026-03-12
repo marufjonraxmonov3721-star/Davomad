@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Telegram Fixed</title>
+    <title>SongLyrics | 100% Fixed Audio</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #1DB954; --bg: #000; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* Pleylist */
         .list-screen { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
         .song-card {
             background: #111; padding: 15px; border-radius: 12px; margin-bottom: 12px;
@@ -17,56 +16,52 @@
             border: 1px solid #222; cursor: pointer;
         }
 
-        /* Pleyer Ekrani */
         #player-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: 9999;
+            background: #000; z-index: 9999;
         }
 
-        /* Matn qatlami */
+        /* Matn maydoni */
         #lyric-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 75%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 60%;
             z-index: 2; display: flex; align-items: center; justify-content: center;
             padding: 30px; box-sizing: border-box; text-align: center;
         }
-        #current-lyric { font-size: 2.2rem; font-weight: 800; line-height: 1.3; transition: 0.3s; }
+        #current-lyric { font-size: 2rem; font-weight: 800; line-height: 1.3; text-shadow: 0 0 10px rgba(0,0,0,1); }
 
-        /* KATTA PLAY TUGMASI (Telegram uchun yechim) */
+        /* Telegram uchun majburiy Play tugmasi */
         #central-play-btn {
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; background: var(--accent); color: #000; border: none;
-            width: 90px; height: 90px; border-radius: 50%; font-size: 35px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 30px rgba(29, 185, 84, 0.4);
+            width: 80px; height: 80px; border-radius: 50%; font-size: 30px;
+            cursor: pointer; box-shadow: 0 0 20px var(--accent);
         }
 
-        /* Sozlamalar paneli */
-        #style-panel {
-            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.9);
-            padding: 20px; box-sizing: border-box; z-index: 3; border-top: 1px solid #333;
+        /* YouTube pleyerini butunlay yashirmaymiz (bloklamasligi uchun) */
+        #yt-wrapper {
+            position: absolute; bottom: 120px; left: 10px; 
+            width: 80px; height: 45px; z-index: 1; border-radius: 8px; overflow: hidden;
+            opacity: 0.3; /* Bir oz ko'rinib turishi xavfsizroq */
         }
-        .setting-row { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; }
+
+        #style-panel {
+            position: absolute; bottom: 0; width: 100%; background: #111;
+            padding: 15px; box-sizing: border-box; z-index: 3; border-top: 1px solid #333;
+        }
+        .setting-row { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }
         .style-btn {
-            background: #222; border: 1px solid #444; color: #fff; padding: 8px 15px;
-            border-radius: 20px; font-size: 0.8rem; white-space: nowrap;
+            background: #222; border: 1px solid #444; color: #fff; padding: 6px 12px;
+            border-radius: 15px; font-size: 0.75rem; white-space: nowrap;
         }
         .style-btn.active { background: var(--accent); color: #000; }
 
         .close-btn {
-            position: absolute; top: 20px; left: 20px; z-index: 10001;
-            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #fff;
-            width: 40px; height: 40px; border-radius: 50%;
+            position: absolute; top: 15px; right: 15px; z-index: 10001;
+            background: #333; border: none; color: #fff; width: 35px; height: 35px; border-radius: 50%;
         }
 
-        #yt-hidden { position: absolute; top: -1000px; opacity: 0; }
-
-        /* Animatsiyalar */
-        .anim-fade { animation: fadeIn 0.5s ease; }
-        .anim-slide { animation: slideIn 0.5s ease; }
-        .anim-zoom { animation: zoomIn 0.4s ease; }
+        .anim-fade { animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -78,14 +73,15 @@
 
     <div id="player-screen">
         <button class="close-btn" onclick="closePlayer()">✕</button>
-        
-        <button id="central-play-btn" onclick="startPlayback()">▶</button>
+        <button id="central-play-btn" onclick="startAudio()">▶</button>
         
         <div id="lyric-container">
-            <div id="current-lyric">Musiqani yoqing</div>
+            <div id="current-lyric">Musiqani tanlang</div>
         </div>
 
-        <div id="yt-hidden"><div id="player"></div></div>
+        <div id="yt-wrapper">
+            <div id="player"></div>
+        </div>
 
         <div id="style-panel">
             <div style="font-size: 0.7rem; color: #888;">SHRIFT</div>
@@ -93,12 +89,6 @@
                 <button class="style-btn active" onclick="changeFont('sans-serif', this)">Oddiy</button>
                 <button class="style-btn" onclick="changeFont('serif', this)">Klassik</button>
                 <button class="style-btn" onclick="changeFont('cursive', this)">Qo'lyozma</button>
-            </div>
-            <div style="font-size: 0.7rem; color: #888; margin-top: 10px;">EFFEKT</div>
-            <div class="setting-row" id="anim-settings">
-                <button class="style-btn active" onclick="changeAnim('anim-fade', this)">Fade</button>
-                <button class="style-btn" onclick="changeAnim('anim-slide', this)">Slide</button>
-                <button class="style-btn" onclick="changeAnim('anim-zoom', this)">Zoom</button>
             </div>
         </div>
     </div>
@@ -111,67 +101,64 @@
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var ytPlayer, currentLyrics = [], syncTask, isAPIReady = false, activeId = "";
-    var activeAnim = 'anim-fade';
+    var ytPlayer, currentLyrics = [], syncInt, isReady = false, activeVid = "";
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
-            height: '10', width: '10',
-            playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+            height: '100%', width: '100%',
+            playerVars: { 'playsinline': 1, 'controls': 0, 'modestbranding': 1 },
             events: { 
-                'onReady': () => { isAPIReady = true; },
-                'onStateChange': (e) => { if(e.data == YT.PlayerState.PLAYING) startSync(); else stopSync(); }
+                'onReady': () => { isReady = true; },
+                'onStateChange': (e) => { if(e.data == 1) startLyrics(); else clearInterval(syncInt); }
             }
         });
     }
 
-    function startSync() {
-        stopSync();
-        syncTask = setInterval(() => {
-            const now = ytPlayer.getCurrentTime();
-            const hit = currentLyrics.findLast(l => now >= l.time);
-            if (hit) {
+    function startLyrics() {
+        clearInterval(syncInt);
+        syncInt = setInterval(() => {
+            const time = ytPlayer.getCurrentTime();
+            const line = currentLyrics.findLast(l => time >= l.time);
+            if (line) {
                 const el = document.getElementById('current-lyric');
-                if (el.innerText !== hit.text) {
-                    el.innerText = hit.text;
-                    el.className = ''; void el.offsetWidth;
-                    el.classList.add(activeAnim);
+                if (el.innerText !== line.text) {
+                    el.innerText = line.text;
+                    el.classList.remove('anim-fade');
+                    void el.offsetWidth;
+                    el.classList.add('anim-fade');
                 }
             }
         }, 100);
     }
 
-    function stopSync() { clearInterval(syncTask); }
-
     function openPlayer(data) {
-        activeId = data.youtubeId;
+        activeVid = data.youtubeId;
         currentLyrics = parseLRC(data.lyrics || "");
-        document.getElementById('current-lyric').innerText = "Tayyor";
-        document.getElementById('central-play-btn').style.display = 'flex';
         document.getElementById('list-ui').style.display = 'none';
         document.getElementById('player-screen').style.display = 'block';
+        document.getElementById('central-play-btn').style.display = 'block';
+        document.getElementById('current-lyric').innerText = "Tayyor";
     }
 
-    // TELEGRAMDA ISHLASHINI TA'MINLAYDIGAN ASOSIY FUNKSIYA
-    function startPlayback() {
-        if (!isAPIReady) return;
+    function startAudio() {
+        if(!isReady) return;
         document.getElementById('central-play-btn').style.display = 'none';
-        document.getElementById('current-lyric').innerText = "...";
-        ytPlayer.loadVideoById(activeId);
+        ytPlayer.loadVideoById(activeVid);
         ytPlayer.playVideo();
     }
 
     function closePlayer() {
-        stopSync(); ytPlayer.stopVideo();
+        clearInterval(syncInt);
+        ytPlayer.stopVideo();
         document.getElementById('list-ui').style.display = 'block';
         document.getElementById('player-screen').style.display = 'none';
     }
 
-    function changeFont(f, b) { document.getElementById('current-lyric').style.fontFamily = f; updateUI(b, 'font-settings'); }
-    function changeAnim(a, b) { activeAnim = a; updateUI(b, 'anim-settings'); }
-    function updateUI(btn, id) { 
-        const bs = document.getElementById(id).getElementsByClassName('style-btn');
-        for(let b of bs) b.classList.remove('active'); btn.classList.add('active');
+    function changeFont(f, b) {
+        document.getElementById('current-lyric').style.fontFamily = f;
+        const btns = document.querySelectorAll('#font-settings .style-btn');
+        btns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
     }
 
     function parseLRC(lrc) {
@@ -205,7 +192,7 @@
             const data = doc.data();
             const card = document.createElement('div');
             card.className = 'song-card';
-            card.innerHTML = `<div><b>${data.track}</b><span>${data.artist}</span></div> <div style="color:var(--accent);">▶</div>`;
+            card.innerHTML = `<div><b>${data.track}</b><br><small>${data.artist}</small></div><div style="color:var(--accent)">▶</div>`;
             card.onclick = () => openPlayer(data);
             list.appendChild(card);
         });
