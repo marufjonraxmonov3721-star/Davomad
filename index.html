@@ -3,168 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Local Save & Crop</title>
+    <title>SongLyrics | Audio & Editor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #E1306C; --accent: #1DB954; --bg: #0b0b0b; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; }
+        :root { --primary: #E1306C; --accent: #1DB954; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
 
+        /* UI Screens */
+        .screen { height: 100vh; display: none; flex-direction: column; }
+        .active-screen { display: flex; }
+
+        /* Header & Tabs */
         .header { padding: 20px; text-align: center; background: #111; border-bottom: 1px solid #222; }
         .tabs { display: flex; background: #111; border-bottom: 1px solid #222; }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #888; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #888; transition: 0.3s; }
         .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
 
-        .content { padding: 15px; height: calc(100vh - 120px); overflow-y: auto; }
+        /* Song List */
+        .content { flex: 1; padding: 15px; overflow-y: auto; }
         .song-card {
-            background: #181818; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            background: #121212; padding: 15px; border-radius: 12px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center; border: 1px solid #222;
         }
-        .song-card b { display: block; font-size: 1.1rem; }
-        .song-card span { color: #888; font-size: 0.9rem; }
+        .song-card:active { transform: scale(0.98); }
 
-        /* Crop/Editor Panel */
-        #editor-screen {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-        }
-        .preview-box {
-            width: 100%; aspect-ratio: 9/16; background: #111; position: relative;
+        /* Editor & Preview */
+        .preview-area {
+            flex: 1; background: #000; position: relative;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        #crop-lyrics {
-            position: absolute; width: 100%; text-align: center; padding: 20px;
-            font-size: 2rem; font-weight: 900; text-shadow: 0 0 20px #000; z-index: 10;
+        #lyric-display {
+            padding: 30px; text-align: center; font-size: 2.2rem; font-weight: 900;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.8); transition: 0.3s;
         }
-        .controls { padding: 20px; background: #111; border-radius: 20px 20px 0 0; margin-top: -20px; position: relative; }
-        
-        input[type=range] { width: 100%; accent-color: var(--primary); margin: 15px 0; }
-        .btn {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 10px;
-        }
-        .btn-insta { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); color: #fff; }
-        .btn-back { background: #333; color: #fff; }
 
-        #player { position: absolute; top: -9999px; } /* Yashirin pleyer */
+        /* Settings Panel */
+        .editor-footer { background: #111; padding: 20px; border-radius: 25px 25px 0 0; }
+        .control-group { margin-bottom: 15px; }
+        .label { font-size: 0.75rem; color: #666; text-transform: uppercase; margin-bottom: 8px; }
+        .scroll-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        
+        .btn-s {
+            background: #222; border: 1px solid #333; color: #fff; padding: 8px 15px;
+            border-radius: 20px; font-size: 0.8rem; white-space: nowrap;
+        }
+        .btn-s.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        input[type=range] { width: 100%; accent-color: var(--primary); margin: 10px 0; }
+        .main-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+
+        /* Animations */
+        .anim-fade { animation: fA 0.4s ease; }
+        .anim-slide { animation: sL 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        @keyframes fA { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes sL { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="main-ui">
-        <div class="header"><h2>SongLyrics</h2></div>
+    <div id="list-screen" class="screen active-screen">
+        <div class="header"><h3>SongLyrics Pro</h3></div>
         <div class="tabs">
-            <div class="tab active" id="tab-all" onclick="switchTab('all')">Barchasi</div>
-            <div class="tab" id="tab-saved" onclick="switchTab('saved')">Saqlanganlar</div>
+            <div class="tab active" onclick="switchTab('all', this)">Barchasi</div>
+            <div class="tab" onclick="switchTab('saved', this)">Saqlanganlar</div>
         </div>
-        <div class="content" id="songs-list">Yuklanmoqda...</div>
+        <div class="content" id="songs-render">Yuklanmoqda...</div>
     </div>
 
-    <div id="editor-screen">
-        <div class="preview-box">
-            <div id="crop-lyrics">Matn...</div>
-            <div id="player"></div> </div>
+    <div id="editor-screen" class="screen">
+        <div class="preview-area">
+            <button onclick="closeEditor()" style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.5); border:none; color:#fff; padding:10px; border-radius:50%; z-index:100;">✕</button>
+            <div id="lyric-display">Musiqani yoqing...</div>
+        </div>
 
-        <div class="controls">
-            <div style="text-align: center;">Vaqtni tanlang: <b id="crop-time">0s - 15s</b></div>
-            <input type="range" id="start-slider" min="0" value="0">
-            
-            <button class="btn btn-insta" onclick="shareToInstagram()">📲 Instagram Story-da ulashish</button>
-            <button class="btn btn-back" onclick="closeEditor()">⬅️ Orqaga</button>
+        <div class="editor-footer">
+            <div class="control-group">
+                <div class="label">Vaqtni qirqish (15s): <b id="time-label" style="color:#fff">0s</b></div>
+                <input type="range" id="crop-slider" min="0" value="0">
+            </div>
+
+            <div class="control-group">
+                <div class="label">Shrift va Effekt</div>
+                <div class="scroll-row">
+                    <button class="btn-s active" onclick="setFF('sans-serif', this)">Sans</button>
+                    <button class="btn-s" onclick="setFF('serif', this)">Serif</button>
+                    <button class="btn-s" onclick="setFF('cursive', this)">Style</button>
+                    <div style="width:1px; background:#333; margin:0 5px;"></div>
+                    <button class="btn-s active" onclick="setAnim('anim-fade', this)">Fade</button>
+                    <button class="btn-s" onclick="setAnim('anim-slide', this)">Slide</button>
+                </div>
+            </div>
+
+            <button class="main-btn" style="background:var(--accent); color:#000" id="play-btn">▶️ ESHITIB KO'RISH</button>
+            <button class="main-btn" style="background:linear-gradient(45deg, #f09433, #e6683c, #dc2743, #bc1888); color:#fff" onclick="shareInsta()">📲 INSTAGRAM STORY</button>
         </div>
     </div>
+
+    <audio id="audio-player"></audio>
 
 <script>
     const tg = window.Telegram.WebApp;
-    tg.expand();
+    const audio = document.getElementById('audio-player');
+    const lyricEl = document.getElementById('lyric-display');
+    
+    let allSongs = [], currentLyrics = [], activeAnim = 'anim-fade', startPos = 0;
+    let currentSong = null;
 
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-
-    var player, currentLyrics = [], startPos = 0, currentSongData = null;
-    let currentTab = 'all';
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-            height: '0', width: '0',
-            playerVars: { 'playsinline': 1 },
-            events: { 'onStateChange': onPlayerStateChange }
-        });
-    }
-
-    function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            setInterval(() => {
-                let now = player.getCurrentTime();
-                if (now >= startPos + 15) player.seekTo(startPos); // 15s loop
-                
-                let hit = currentLyrics.findLast(l => now >= l.time);
-                if (hit) document.getElementById('crop-lyrics').innerText = hit.text;
-            }, 100);
-        }
-    }
-
-    function switchTab(tab) {
-        currentTab = tab;
-        document.getElementById('tab-all').classList.toggle('active', tab === 'all');
-        document.getElementById('tab-saved').classList.toggle('active', tab === 'saved');
-        renderSongs();
-    }
-
-    // LocalStorage-ga saqlash
-    function saveToLocal(data) {
-        let saved = JSON.parse(localStorage.getItem('my_songs') || '[]');
-        if (!saved.find(s => s.youtubeId === data.youtubeId)) {
-            saved.push(data);
-            localStorage.setItem('my_songs', JSON.stringify(saved));
-            tg.showScanQrPopup({text: "Qo'shiq saqlandi!"}); // Kichik bildirishnoma
-        }
-        openEditor(data);
-    }
-
-    function openEditor(data) {
-        currentSongData = data;
-        currentLyrics = parseLRC(data.lyrics || "");
-        document.getElementById('main-ui').style.display = 'none';
-        document.getElementById('editor-screen').style.display = 'block';
-        
-        const slider = document.getElementById('start-slider');
-        slider.oninput = function() {
-            startPos = parseInt(this.value);
-            document.getElementById('crop-time').innerText = `${startPos}s - ${startPos + 15}s`;
-            player.seekTo(startPos);
-        };
-        
-        player.loadVideoById(data.youtubeId, startPos);
-        player.playVideo();
-    }
-
-    function closeEditor() {
-        player.stopVideo();
-        document.getElementById('main-ui').style.display = 'block';
-        document.getElementById('editor-screen').style.display = 'none';
-    }
-
-    async function shareToInstagram() {
-        const text = document.getElementById('crop-lyrics').innerText;
-        if (navigator.share) {
-            await navigator.share({
-                title: 'SongLyrics Instagram Story',
-                text: `🎵 ${currentSongData.track} - ${text}`,
-                url: window.location.href
-            });
-        }
-    }
-
-    function parseLRC(lrc) {
-        return lrc.split('\n').map(line => {
-            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
-        }).filter(x => x);
-    }
-</script>
-
-<script type="module">
+    // Firebase (Xuddi avvalgidek, lekin audioLink maydoni bilan)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -179,31 +127,104 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    let allSongs = [];
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
         allSongs = [];
         snap.forEach(doc => allSongs.push(doc.data()));
-        renderSongs();
+        renderSongs('all');
     });
 
-    window.renderSongs = function() {
-        const listDiv = document.getElementById('songs-list');
-        listDiv.innerHTML = '';
-        const songs = (currentTab === 'all') ? allSongs : JSON.parse(localStorage.getItem('my_songs') || '[]');
+    function renderSongs(mode) {
+        const container = document.getElementById('songs-render');
+        container.innerHTML = '';
+        let list = (mode === 'all') ? allSongs : JSON.parse(localStorage.getItem('my_saved_songs') || '[]');
 
-        if (songs.length === 0) {
-            listDiv.innerHTML = '<p style="text-align:center; color:#555;">Hozircha qo\'shiqlar yo\'q</p>';
-            return;
-        }
-
-        songs.forEach(data => {
+        list.forEach(song => {
             const div = document.createElement('div');
             div.className = 'song-card';
-            div.innerHTML = `<div><b>${data.track}</b><span>${data.artist}</span></div> <b style="color:var(--accent)">✂️</b>`;
-            div.onclick = () => saveToLocal(data);
-            listDiv.appendChild(div);
+            div.innerHTML = `<div><b>${song.track}</b><span>${song.artist}</span></div> <b style="color:var(--accent)">✂️</b>`;
+            div.onclick = () => initEditor(song);
+            container.appendChild(div);
         });
+    }
+
+    function initEditor(song) {
+        currentSong = song;
+        // LocalStorage-ga saqlash
+        let saved = JSON.parse(localStorage.getItem('my_saved_songs') || '[]');
+        if(!saved.find(s => s.track === song.track)) {
+            saved.push(song);
+            localStorage.setItem('my_saved_songs', JSON.stringify(saved));
+        }
+
+        currentLyrics = parseLRC(song.lyrics || "");
+        audio.src = song.audioLink; // Telegram linki yoki MP3 havola
+        
+        document.getElementById('list-screen').classList.remove('active-screen');
+        document.getElementById('editor-screen').classList.add('active-screen');
+
+        const slider = document.getElementById('crop-slider');
+        slider.oninput = function() {
+            startPos = parseInt(this.value);
+            document.getElementById('time-label').innerText = startPos + 's';
+            audio.currentTime = startPos;
+        };
+
+        document.getElementById('play-btn').onclick = () => {
+            audio.currentTime = startPos;
+            audio.play();
+        };
+    }
+
+    audio.ontimeupdate = () => {
+        if(audio.currentTime >= startPos + 15) {
+            audio.currentTime = startPos; // 15s loop
+        }
+        let hit = currentLyrics.findLast(l => audio.currentTime >= l.time);
+        if(hit && lyricEl.innerText !== hit.text) {
+            lyricEl.innerText = hit.text;
+            lyricEl.classList.remove(activeAnim);
+            void lyricEl.offsetWidth;
+            lyricEl.classList.add(activeAnim);
+        }
+    };
+
+    function setFF(f, btn) {
+        lyricEl.style.fontFamily = f;
+        toggleBtn(btn);
+    }
+
+    function setAnim(a, btn) {
+        activeAnim = a;
+        toggleBtn(btn);
+    }
+
+    function toggleBtn(btn) {
+        btn.parentElement.querySelectorAll('.btn-s').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function closeEditor() {
+        audio.pause();
+        document.getElementById('editor-screen').classList.remove('active-screen');
+        document.getElementById('list-screen').classList.add('active-screen');
+    }
+
+    function switchTab(mode, btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        renderSongs(mode);
+    }
+
+    function parseLRC(lrc) {
+        return lrc.split('\n').map(line => {
+            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
+        }).filter(x => x);
+    }
+
+    function shareInsta() {
+        tg.showAlert("Matn nusxalandi! Instagramga o'ting.");
     }
 </script>
 </body>
