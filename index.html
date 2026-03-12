@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics | Cinematic</title>
+    <title>SongLyrics | AutoPlay Cinematic</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #1DB954; --bg: #000; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; overflow: hidden; }
 
-        /* Pleylist */
+        /* Pleylist Ekrani */
         .list-screen { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
         .song-card {
             background: #111; padding: 18px; border-radius: 15px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #222; cursor: pointer;
+            border: 1px solid #222; cursor: pointer; transition: 0.2s;
         }
         .song-card:active { transform: scale(0.97); background: #1a1a1a; }
         .song-info b { font-size: 1.1rem; display: block; margin-bottom: 4px; }
@@ -23,25 +23,21 @@
         /* Pleyer Ekrani */
         #player-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 1000; overflow: hidden;
+            background: #000; z-index: 1000;
         }
 
-        /* Chiroyli Dinamik Fon */
+        /* Fon Animatsiyasi */
         .animated-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
+            background: radial-gradient(circle at 50% 50%, #121212 0%, #000 100%);
             z-index: 1;
         }
         .glow {
-            position: absolute; width: 300px; height: 300px;
+            position: absolute; width: 400px; height: 400px;
             background: var(--accent); border-radius: 50%;
-            filter: blur(120px); opacity: 0.15; animation: move 15s infinite alternate;
+            filter: blur(150px); opacity: 0.12; animation: moveGlow 20s infinite alternate;
         }
-
-        @keyframes move {
-            from { transform: translate(-20%, -20%); }
-            to { transform: translate(50%, 50%); }
-        }
+        @keyframes moveGlow { from { transform: translate(-30%, -30%); } to { transform: translate(60%, 60%); } }
 
         /* Matn Qatlami */
         #lyric-container {
@@ -49,49 +45,52 @@
             display: flex; align-items: center; justify-content: center;
             padding: 40px; box-sizing: border-box; text-align: center;
         }
-
         #current-lyric {
-            font-size: 2.5rem; font-weight: 800; line-height: 1.2;
+            font-size: 2.3rem; font-weight: 800; line-height: 1.25;
             text-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            transition: 0.5s cubic-bezier(0.1, 0.7, 0.1, 1);
+            transition: 0.4s ease;
         }
-
-        .lyric-in { animation: lyricFadeIn 0.6s ease; }
-        @keyframes lyricFadeIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
+        .lyric-in { animation: lyricIn 0.5s ease; }
+        @keyframes lyricIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); filter: blur(5px); }
             to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
         /* Yopish tugmasi */
         .close-btn {
             position: absolute; top: 25px; left: 25px; z-index: 10;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
             color: #fff; width: 45px; height: 45px; border-radius: 50%; font-size: 20px;
+            cursor: pointer;
         }
 
-        /* YouTube Pleyer (Yashirin) */
-        #yt-hidden { position: absolute; top: -100px; opacity: 0; pointer-events: none; }
+        /* YouTube Yashirin */
+        #yt-hidden { position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        
+        .artist-tag {
+            position: absolute; bottom: 40px; width: 100%; text-align: center;
+            color: var(--accent); font-weight: bold; letter-spacing: 3px;
+            font-size: 11px; z-index: 5; opacity: 0.6;
+        }
     </style>
 </head>
 <body>
 
     <div class="list-screen" id="list-ui">
-        <h2 style="color: var(--accent); margin-bottom: 25px;">Musiqalar</h2>
+        <h2 style="color: var(--accent); margin: 10px 0 25px 5px;">Musiqalar</h2>
         <div id="songs-list">Yuklanmoqda...</div>
     </div>
 
     <div id="player-screen">
         <button class="close-btn" onclick="closePlayer()">✕</button>
-        
         <div class="animated-bg"><div class="glow"></div></div>
         
         <div id="lyric-container">
-            <div id="current-lyric">Tayyorlanmoqda...</div>
+            <div id="current-lyric">Yuklanmoqda...</div>
         </div>
 
         <div id="yt-hidden"><div id="player"></div></div>
-        
-        <div style="position:absolute; bottom:40px; width:100%; text-align:center; color:var(--accent); font-weight:bold; letter-spacing:3px; font-size:12px; z-index:5;" id="artist-tag"></div>
+        <div class="artist-tag" id="artist-tag"></div>
     </div>
 
 <script>
@@ -102,13 +101,21 @@
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var ytPlayer, currentLyrics = [], syncTask;
+    var ytPlayer, currentLyrics = [], syncTask, playerReady = false;
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
-            height: '10', width: '10',
-            playerVars: { 'playsinline': 1, 'controls': 0, 'modestbranding': 1 },
-            events: { 'onStateChange': onPlayerStateChange }
+            height: '100', width: '100',
+            playerVars: { 
+                'playsinline': 1, 
+                'controls': 0, 
+                'disablekb': 1,
+                'rel': 0
+            },
+            events: { 
+                'onReady': () => { playerReady = true; },
+                'onStateChange': onPlayerStateChange 
+            }
         });
     }
 
@@ -141,14 +148,23 @@
     function stopSync() { clearInterval(syncTask); }
 
     function openPlayer(data) {
-        document.getElementById('current-lyric').innerText = "...";
+        if (!playerReady) return; // Pleyer hali tayyor bo'lmasa ishlamaydi
+
+        // UI tayyorlash
+        document.getElementById('current-lyric').innerText = "Tayyorlanmoqda...";
         document.getElementById('artist-tag').innerText = data.artist.toUpperCase();
         currentLyrics = parseLRC(data.lyrics || "");
         
         document.getElementById('list-ui').style.display = 'none';
         document.getElementById('player-screen').style.display = 'block';
         
-        ytPlayer.loadVideoById(data.youtubeId);
+        // Videoni yuklash va avtomatik boshlash
+        ytPlayer.loadVideoById({
+            videoId: data.youtubeId,
+            suggestedQuality: 'small'
+        });
+        // Ba'zi qurilmalarda yuklanishi bilan autoplay bo'lmasa, majburiy play beramiz
+        ytPlayer.playVideo();
     }
 
     function closePlayer() {
@@ -159,6 +175,7 @@
     }
 
     function parseLRC(lrc) {
+        if (!lrc) return [];
         return lrc.split('\n').map(line => {
             const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
             return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
@@ -183,18 +200,22 @@
     const db = getFirestore(app);
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
-        const list = document.getElementById('songs-list');
-        list.innerHTML = '';
+        const listContainer = document.getElementById('songs-list');
+        listContainer.innerHTML = '';
         snap.forEach(doc => {
             const data = doc.data();
-            const div = document.createElement('div');
-            div.className = 'song-card';
-            div.innerHTML = `
-                <div class="song-info"><b>${data.track}</b><span>${data.artist}</span></div>
-                <div style="color:var(--accent); font-size:20px;">▶</div>
+            const card = document.createElement('div');
+            card.className = 'song-card';
+            card.innerHTML = `
+                <div class="song-info">
+                    <b>${data.track}</b>
+                    <span>${data.artist}</span>
+                </div>
+                <div style="color:var(--accent); font-size:22px;">▶</div>
             `;
-            div.onclick = () => openPlayer(data);
-            list.appendChild(div);
+            // KARTANI BOSGANDA PLAY BO'LISHI
+            card.onclick = () => openPlayer(data);
+            listContainer.appendChild(card);
         });
     });
 </script>
