@@ -3,117 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Video Fix</title>
+    <title>Lyrics Master | Challenge</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --accent: #1DB954; --bg: #000; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-
-        .list-screen { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
-        .song-card {
-            background: #111; padding: 15px; border-radius: 12px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #222; cursor: pointer;
+        :root { --tg-theme-bg-color: #000; --accent: #00f2ff; }
+        body { 
+            margin: 0; background: #000; color: #fff; 
+            font-family: 'Outfit', sans-serif; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        #player-screen {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-        }
-
-        /* VIDEO QATLAMI - TO'LIQ EKRAN */
-        #video-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; overflow: hidden;
-        }
+        /* Glavnaya */
+        #home { padding: 20px; text-align: center; width: 100%; box-sizing: border-box; }
+        .hero-title { font-size: 2.5rem; background: linear-gradient(45deg, #00f2ff, #0072ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         
-        /* Videoni cho'zib butun ekranga yoyish */
-        #video-layer iframe, #player {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100vw; height: 100vh;
-            transform: translate(-50%, -50%);
-            object-fit: cover; /* Bu videoni qirqmasdan to'liq yoyadi */
+        .track-list { margin-top: 30px; display: grid; gap: 15px; }
+        .track-item {
+            background: #111; border: 1px solid #222; padding: 15px;
+            border-radius: 15px; display: flex; align-items: center; gap: 15px;
+            transition: 0.3s; cursor: pointer;
+        }
+        .track-item:active { transform: scale(0.95); border-color: var(--accent); }
+
+        /* Game Screen */
+        #game { display: none; position: fixed; inset: 0; background: #000; z-index: 100; }
+        #video-bg { position: absolute; inset: 0; opacity: 0.4; filter: blur(5px); z-index: 1; }
+        
+        .game-overlay {
+            position: relative; z-index: 2; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 30px 20px; box-sizing: border-box;
         }
 
-        /* MATN QATLAMI - VIDEONI USTIDA */
-        #lyric-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 80%;
-            z-index: 2; display: flex; align-items: center; justify-content: center;
-            padding: 30px; box-sizing: border-box; text-align: center;
-            pointer-events: none; /* Video bosilishiga xalaqit bermaydi */
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.8) 100%);
+        .score-box { font-size: 1.2rem; font-weight: bold; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+
+        .lyrics-display {
+            font-size: 2.2rem; font-weight: 800; text-align: center;
+            line-height: 1.2; transition: 0.4s;
+        }
+        .missing-word {
+            border-bottom: 3px dashed var(--accent);
+            color: var(--accent); padding: 0 10px;
         }
 
-        #current-lyric {
-            font-size: 2.2rem; font-weight: 800; line-height: 1.2;
-            text-shadow: 0 4px 20px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.8);
-            transition: 0.3s ease;
+        .input-area { margin-bottom: 40px; text-align: center; }
+        input {
+            background: rgba(255,255,255,0.1); border: 2px solid var(--accent);
+            padding: 15px; border-radius: 12px; color: #fff; font-size: 1.2rem;
+            width: 80%; outline: none; text-align: center;
         }
 
-        /* SOZLAMALAR */
-        #style-panel {
-            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7);
-            padding: 20px; box-sizing: border-box; z-index: 3;
-            border-top: 1px solid #333; backdrop-filter: blur(10px);
+        /* Modal Natija */
+        #result-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 200; align-items: center; justify-content: center; flex-direction: column;
         }
-
-        .setting-row { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; }
-        .style-btn {
-            background: #222; border: 1px solid #444; color: #fff; padding: 8px 15px;
-            border-radius: 20px; font-size: 0.75rem; white-space: nowrap;
+        .card {
+            background: linear-gradient(135deg, #111, #000); border: 2px solid var(--accent);
+            padding: 40px; border-radius: 25px; text-align: center; width: 80%;
         }
-        .style-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-        .close-btn {
-            position: absolute; top: 20px; left: 20px; z-index: 10001;
-            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #fff;
-            width: 40px; height: 40px; border-radius: 50%;
+        .share-btn {
+            background: var(--accent); color: #000; padding: 15px 30px;
+            border-radius: 30px; font-weight: bold; margin-top: 20px; border: none;
         }
-
-        /* Animatsiyalar */
-        .anim-fade { animation: fadeIn 0.5s ease; }
-        .anim-slide { animation: slideIn 0.5s ease; }
-        .anim-zoom { animation: zoomIn 0.4s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; filter: blur(5px); } to { opacity: 1; filter: blur(0); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div class="list-screen" id="list-ui">
-        <h2 style="color: var(--accent); text-align:center;">SongLyrics Video</h2>
-        <div id="songs-list">Yuklanmoqda...</div>
+    <div id="home">
+        <h1 class="hero-title">LYRICS MASTER</h1>
+        <p style="color: #666;">Matnni toping va reytingni yoring!</p>
+        <div class="track-list" id="list">Yuklanmoqda...</div>
     </div>
 
-    <div id="player-screen">
-        <button class="close-btn" onclick="closePlayer()">✕</button>
-        
-        <div id="video-layer">
-            <div id="player"></div>
-        </div>
-        
-        <div id="lyric-container">
-            <div id="current-lyric">Klipni yoqing...</div>
-        </div>
-
-        <div id="style-panel">
-            <div style="font-size: 0.7rem; color: #888;">SHRIFT</div>
-            <div class="setting-row" id="font-settings">
-                <button class="style-btn active" onclick="changeFont('sans-serif', this)">Oddiy</button>
-                <button class="style-btn" onclick="changeFont('serif', this)">Klassik</button>
-                <button class="style-btn" onclick="changeFont('cursive', this)">Qo'lyozma</button>
-                <button class="style-btn" onclick="changeFont('monospace', this)">Kod</button>
+    <div id="game">
+        <div id="video-bg"><div id="player"></div></div>
+        <div class="game-overlay">
+            <div class="score-box">BALL: <span id="score">0</span></div>
+            <div class="lyrics-display" id="lyrics-text">Tayyorlaning...</div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Yashiringan so'zni yozing..." autocomplete="off">
             </div>
+        </div>
+    </div>
 
-            <div style="font-size: 0.7rem; color: #888; margin-top: 15px;">EFFEKT</div>
-            <div class="setting-row" id="anim-settings">
-                <button class="style-btn active" onclick="changeAnim('anim-fade', this)">Fade</button>
-                <button class="style-btn" onclick="changeAnim('anim-slide', this)">Slide</button>
-                <button class="style-btn" onclick="changeAnim('anim-zoom', this)">Zoom</button>
-            </div>
+    <div id="result-modal">
+        <div class="card">
+            <h2 style="color: var(--accent);">NATIJA</h2>
+            <h1 id="final-score">0%</h1>
+            <p>Siz musiqani zo'r bilasiz!</p>
+            <button class="share-btn" onclick="shareToInsta()">INSTAGRAM STORY</button>
+            <p onclick="location.reload()" style="margin-top: 20px; font-size: 0.8rem; color: #555;">YANA O'YNASH</p>
         </div>
     </div>
 
@@ -125,65 +105,77 @@
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    var ytPlayer, currentLyrics = [], syncInterval, activeAnim = 'anim-fade';
+    let ytPlayer, lyrics = [], currentIdx = -1, score = 0, total = 0;
+    let isGameActive = false;
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
             height: '100%', width: '100%',
-            playerVars: { 'playsinline': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0 },
-            events: { 'onStateChange': onStateChange }
+            playerVars: { 'controls': 0, 'disablekb': 1, 'rel': 0, 'playsinline': 1 },
+            events: { 'onStateChange': (e) => { if(e.data == 1) gameLoop(); } }
         });
     }
 
-    function onStateChange(event) {
-        if (event.data == 1) startSync(); else stopSync();
-    }
-
-    function startSync() {
-        stopSync();
-        syncInterval = setInterval(() => {
+    function gameLoop() {
+        setInterval(() => {
+            if(!isGameActive) return;
             const now = ytPlayer.getCurrentTime();
-            const hit = currentLyrics.findLast(l => now >= l.time);
-            if (hit) {
-                const el = document.getElementById('current-lyric');
-                if (el.innerText !== hit.text) {
-                    el.innerText = hit.text;
-                    el.className = ''; void el.offsetWidth;
-                    el.classList.add(activeAnim);
-                }
+            const hit = lyrics.findLastIndex(l => now >= l.time);
+            
+            if (hit !== currentIdx && hit !== -1) {
+                currentIdx = hit;
+                displayLyric(lyrics[currentIdx]);
             }
         }, 100);
     }
 
-    function stopSync() { clearInterval(syncInterval); }
+    function displayLyric(line) {
+        const words = line.text.split(' ');
+        if(words.length > 3) {
+            const missingIdx = Math.floor(Math.random() * words.length);
+            const correctWord = words[missingIdx].replace(/[.,!]/g, "").toLowerCase();
+            const placeholder = words[missingIdx].replace(/./g, "*");
+            
+            words[missingIdx] = `<span class="missing-word">${placeholder}</span>`;
+            document.getElementById('lyrics-text').innerHTML = words.join(' ');
+            
+            // Tekshirish
+            const input = document.getElementById('user-input');
+            input.value = "";
+            input.oninput = () => {
+                if(input.value.trim().toLowerCase() === correctWord) {
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                    input.style.borderColor = "#00ff00";
+                    setTimeout(() => input.style.borderColor = "var(--accent)", 500);
+                    input.value = "TO'G'RI!";
+                }
+            };
+        } else {
+            document.getElementById('lyrics-text').innerText = line.text;
+        }
+    }
 
-    function openPlayer(data) {
-        currentLyrics = parseLRC(data.lyrics || "");
-        document.getElementById('list-ui').style.display = 'none';
-        document.getElementById('player-screen').style.display = 'block';
+    function startGame(data) {
+        lyrics = parseLRC(data.lyrics);
+        total = lyrics.length;
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('game').style.display = 'block';
+        isGameActive = true;
         ytPlayer.loadVideoById(data.youtubeId);
+        
+        // O'yin tugashi (masalan 30 soniyadan keyin)
+        setTimeout(() => {
+            isGameActive = false;
+            ytPlayer.stopVideo();
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').innerText = score + " ball";
+        }, 45000); 
     }
 
-    function closePlayer() {
-        stopSync(); ytPlayer.stopVideo();
-        document.getElementById('list-ui').style.display = 'block';
-        document.getElementById('player-screen').style.display = 'none';
-    }
-
-    function changeFont(f, b) {
-        document.getElementById('current-lyric').style.fontFamily = f;
-        updateActiveBtn(b, 'font-settings');
-    }
-
-    function changeAnim(a, b) {
-        activeAnim = a;
-        updateActiveBtn(b, 'anim-settings');
-    }
-
-    function updateActiveBtn(btn, pId) {
-        const btns = document.getElementById(pId).getElementsByClassName('style-btn');
-        for(let b of btns) b.classList.remove('active');
-        btn.classList.add('active');
+    function shareToInsta() {
+        // Bu qismda foydalanuvchi screenshot olib share qiladi
+        tg.showAlert("Screenshot oling va bizni belgilab Instagram-ga qo'ying!");
     }
 
     function parseLRC(lrc) {
@@ -200,10 +192,7 @@
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
-        authDomain: "songlyrics-a5df9.firebaseapp.com",
         projectId: "songlyrics-a5df9",
-        storageBucket: "songlyrics-a5df9.firebasestorage.app",
-        messagingSenderId: "322622967401",
         appId: "1:322622967401:web:24569afce697e18edc9cf8"
     };
 
@@ -211,15 +200,15 @@
     const db = getFirestore(app);
 
     onSnapshot(collection(db, "tracklist"), (snap) => {
-        const listDiv = document.getElementById('songs-list');
+        const listDiv = document.getElementById('list');
         listDiv.innerHTML = '';
         snap.forEach(doc => {
-            const data = doc.data();
-            const card = document.createElement('div');
-            card.className = 'song-card';
-            card.innerHTML = `<div><b>${data.track}</b><br><small>${data.artist}</small></div><div>▶</div>`;
-            card.onclick = () => openPlayer(data);
-            listDiv.appendChild(card);
+            const d = doc.data();
+            const item = document.createElement('div');
+            item.className = 'track-item';
+            item.innerHTML = `<div><b>${d.track}</b><br><small>${d.artist}</small></div>`;
+            item.onclick = () => startGame(d);
+            listDiv.appendChild(item);
         });
     });
 </script>
