@@ -3,88 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Game</title>
+    <title>SongLyrics | Game & Player</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            background: #000; 
-            color: #fff; 
-            font-family: sans-serif; 
-            margin: 0; 
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        :root { --blue: #00f2ff; --bg: #000; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; }
         
-        #video-area {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #111;
-        }
+        /* Rejim tanlash */
+        #menu { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; background: #000; }
+        .mode-btn { width: 80%; padding: 20px; margin: 10px; border: 2px solid var(--blue); background: transparent; color: #fff; border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer; }
 
-        .game-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+        /* Video */
+        #player-container { width: 100%; aspect-ratio: 16/9; background: #111; z-index: 10; position: relative; }
 
-        #lyric-display {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 30px;
-            min-height: 60px;
-            color: #00f2ff;
-        }
+        /* O'yin maydoni (Piano tiles style) */
+        #game-area { position: relative; flex: 1; width: 100%; height: calc(100vh - 200px); overflow: hidden; background: linear-gradient(to bottom, #000, #111); }
+        .tile { position: absolute; width: 100%; text-align: center; color: var(--blue); font-size: 22px; font-weight: bold; transition: transform 0.1s linear; text-shadow: 0 0 10px rgba(0,242,255,0.5); }
 
-        .input-box {
-            width: 100%;
-            max-width: 400px;
-        }
+        /* Lirik rejim (Oddiy) */
+        #simple-lyrics { position: absolute; bottom: 50px; width: 100%; text-align: center; font-size: 24px; color: var(--blue); font-weight: bold; display: none; }
 
-        input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #333;
-            background: #111;
-            color: #fff;
-            font-size: 20px;
-            text-align: center;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        input:focus { border-color: #00f2ff; }
-
-        #score-view {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-weight: bold;
-            background: rgba(255,255,255,0.1);
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
+        /* Input qismi */
+        #input-container { position: fixed; bottom: 0; width: 100%; padding: 10px; background: #000; box-sizing: border-box; display: none; }
+        input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #333; background: #111; color: #fff; font-size: 18px; text-align: center; outline: none; }
     </style>
 </head>
 <body>
 
-    <div id="score-view">Ball: 0</div>
+    <div id="menu">
+        <h1 style="color: var(--blue);">SongLyrics</h1>
+        <button class="mode-btn" onclick="startGame('listen')">🎧 SHUNCHAKI ESHITISH</button>
+        <button class="mode-btn" onclick="startGame('game')">🎮 O'YIN REJIMI</button>
+    </div>
 
-    <div id="video-area">
+    <div id="player-container">
         <div id="player"></div>
     </div>
 
-    <div class="game-content">
-        <div id="lyric-display">Yuklanmoqda...</div>
-        <div class="input-box">
-            <input type="text" id="userInput" placeholder="..." autocomplete="off">
-        </div>
+    <div id="game-area">
+        <div id="simple-lyrics"></div>
+    </div>
+
+    <div id="input-container">
+        <input type="text" id="userInput" placeholder="So'zni yozing..." autocomplete="off">
     </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
@@ -100,55 +61,92 @@
 
     const db = getFirestore(initializeApp(firebaseConfig));
     const tg = window.Telegram.WebApp;
-    tg.expand();
+    let player, lyricsData = [], currentMode = '', activeTiles = [];
 
-    let player, lyricsData = [], currentLineIdx = 0, score = 0;
-    const input = document.getElementById('userInput');
+    window.startGame = async (mode) => {
+        currentMode = mode;
+        document.getElementById('menu').style.display = 'none';
+        if(mode === 'game') document.getElementById('input-container').style.display = 'block';
+        if(mode === 'listen') document.getElementById('simple-lyrics').style.display = 'block';
 
-    async function initGame() {
         const snap = await getDocs(collection(db, "tracklist"));
         const tracks = snap.docs.map(d => d.data());
-        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+        const track = tracks[Math.floor(Math.random() * tracks.length)];
 
-        lyricsData = randomTrack.lyrics.split('\n').map(line => {
-            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            return m ? { t: parseInt(m[1])*60 + parseFloat(m[2]), txt: m[3].trim() } : null;
+        lyricsData = track.lyrics.split('\n').map(l => {
+            const m = l.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+            return m ? { t: parseInt(m[1])*60 + parseFloat(m[2]), txt: m[3].trim(), used: false } : null;
         }).filter(x => x && x.txt);
 
-        window.onYouTubeIframeAPIReady = () => {
-            player = new YT.Player('player', {
-                height: '100%', width: '100%', 
-                videoId: randomTrack.youtubeId,
-                playerVars: { 'autoplay': 1, 'controls': 0, 'disablekb': 1 },
-                events: { 'onStateChange': (e) => {
-                    if(e.data == 1) setInterval(gameLoop, 100);
-                }}
-            });
-        };
+        initPlayer(track.youtubeId);
+    };
+
+    function initPlayer(id) {
+        player = new YT.Player('player', {
+            height: '100%', width: '100%', videoId: id,
+            playerVars: { 'autoplay': 1, 'controls': 0 },
+            events: { 'onStateChange': (e) => {
+                if(e.data == 1) setInterval(updateLoop, 100);
+            }}
+        });
     }
 
-    function gameLoop() {
+    function updateLoop() {
         const now = player.getCurrentTime();
-        const line = lyricsData.find((l, i) => l.t <= now && i >= currentLineIdx);
 
-        if(line) {
-            const words = line.txt.split(' ');
-            const hiddenWord = words.pop(); // Oxirgi so'zni yashiramiz
-            document.getElementById('lyric-display').innerText = words.join(' ') + " ...";
-
-            input.oninput = () => {
-                if(input.value.toLowerCase().trim() === hiddenWord.toLowerCase().trim()) {
-                    score += 10;
-                    document.getElementById('score-view').innerText = "Ball: " + score;
-                    input.value = "";
-                    currentLineIdx++;
-                    tg.HapticFeedback.impactOccurred('medium'); // Vibratsiya
+        if(currentMode === 'listen') {
+            const line = lyricsData.filter(l => l.t <= now).pop();
+            if(line) document.getElementById('simple-lyrics').innerText = line.txt;
+        } 
+        else if(currentMode === 'game') {
+            // Yangi tile qo'shish
+            lyricsData.forEach(l => {
+                if(l.t <= now + 2 && !l.used) { // 2 soniya oldin tusha boshlaydi
+                    l.used = true;
+                    createTile(l);
                 }
-            };
+            });
+            moveTiles();
         }
     }
 
-    initGame();
+    function createTile(data) {
+        const el = document.createElement('div');
+        el.className = 'tile';
+        el.innerText = data.txt;
+        el.style.top = '-50px';
+        document.getElementById('game-area').appendChild(el);
+        activeTiles.push({ el, data, top: -50 });
+    }
+
+    function moveTiles() {
+        activeTiles.forEach((tile, index) => {
+            tile.top += 5; // Tushish tezligi
+            tile.el.style.top = tile.top + 'px';
+
+            // Agar juda pastga tushib ketsa yoki to'g'ri yozilsa
+            if(tile.top > window.innerHeight - 250) {
+                tile.el.remove();
+                activeTiles.splice(index, 1);
+            }
+        });
+    }
+
+    // O'yin rejimi uchun input tekshiruvi
+    document.getElementById('userInput').oninput = (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        activeTiles.forEach((tile, index) => {
+            if(tile.data.txt.toLowerCase().includes(val) && val.length > 3) {
+                tile.el.style.color = '#00ff00';
+                setTimeout(() => {
+                    tile.el.remove();
+                    activeTiles.splice(index, 1);
+                    e.target.value = '';
+                    tg.HapticFeedback.impactOccurred('light');
+                }, 200);
+            }
+        });
+    };
 </script>
 </body>
 </html>
