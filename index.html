@@ -3,53 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Telegram Edition</title>
+    <title>SongLyrics Quiz</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        
-        #game-container { width: 90%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #252525; text-align: center; position: relative; }
-        
-        /* Start Ekran (Telegram uchun shart!) */
-        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); border-radius: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
-        .btn-start { background: var(--primary); color: #000; border: none; padding: 18px 45px; border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; }
-
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .stat { background: #222; padding: 6px 12px; border-radius: 10px; color: var(--primary); font-size: 13px; border: 1px solid #333; }
-
-        .vinyl { width: 160px; height: 160px; margin: 0 auto 20px; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 4px solid #222; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #game-container { width: 90%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #222; text-align: center; }
+        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 4px solid #222; display: flex; align-items: center; justify-content: center; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .options-grid { display: grid; gap: 10px; }
-        .option-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; transition: 0.2s; }
-        .option-btn:active { background: #333; }
+        .options-grid { display: grid; gap: 10px; margin-top: 20px; }
+        .option-btn { background: #222; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 12px; font-size: 15px; cursor: pointer; }
         .correct { background: var(--primary) !important; color: #000 !important; font-weight: bold; }
         .wrong { background: #ff3e3e !important; }
-
-        #yt-player { position: absolute; visibility: hidden; pointer-events: none; width: 1px; height: 1px; }
+        #start-screen { position: absolute; inset: 0; background: var(--card); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 25px; }
     </style>
 </head>
 <body>
-
 <div id="game-container">
     <div id="start-screen">
-        <h2 style="margin-bottom: 25px; color: var(--primary);">SongLyrics Quiz</h2>
-        <button class="btn-start" id="start-btn">BOSHLASH</button>
-        <p style="margin-top: 15px; color: #888; font-size: 12px;">Telegramda musiqa yuklanishi uchun bosing</p>
+        <h1 style="color:var(--primary); margin-bottom:20px;">SongLyrics</h1>
+        <button onclick="startGame()" style="background:var(--primary); border:none; padding:15px 40px; border-radius:12px; font-weight:bold; font-size:18px;">BOSHLASH</button>
     </div>
-
     <div id="quiz-screen">
-        <div class="header">
-            <div class="stat" id="score">Ball: 0</div>
-            <div class="stat" id="timer" style="color:#ff3e3e">15</div>
+        <div style="display:flex; justify-content:space-between; font-size:14px; color:var(--primary);">
+            <span id="score">Ball: 0</span> <span id="timer" style="color:#ff3e3e">15</span>
         </div>
-        <p id="status" style="margin-bottom: 15px; font-size: 14px; color: #aaa;">Yuklanmoqda...</p>
-        <div class="vinyl" id="disc"><div style="width:40px;height:40px;background:var(--primary);border-radius:50%;border:6px solid #000;"></div></div>
-        <div id="yt-player"></div>
+        <div class="vinyl" id="disc"><div style="width:35px;height:35px;background:var(--primary);border-radius:50%;border:5px solid #000;"></div></div>
+        <p id="status" style="color:#888; font-size:13px;">Tayyorlaning...</p>
+        <div id="yt-player" style="position:absolute; visibility:hidden;"></div>
         <div class="options-grid" id="options-box"></div>
     </div>
 </div>
@@ -66,92 +50,79 @@
         messagingSenderId: "322622967401",
         appId: "1:322622967401:web:24569afce697e18edc9cf8"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    tg.expand(); // Telegramni to'liq ekranga yoyish
+    tg.expand();
 
     let questions = [], currentIdx = 0, score = 0, timerInterval;
     let audio = new Audio();
     let ytPlayer, ytReady = false;
 
-    // YouTube API
     window.onYouTubeIframeAPIReady = () => {
         ytPlayer = new YT.Player('yt-player', {
-            events: {
-                'onReady': () => { ytReady = true; },
-                'onStateChange': (e) => {
-                    if(e.data == YT.PlayerState.PLAYING) {
-                        document.getElementById('disc').classList.add('spinning');
-                        startTimer();
-                    }
+            events: { 'onStateChange': (e) => {
+                if(e.data == YT.PlayerState.PLAYING) { 
+                    document.getElementById('disc').classList.add('spinning');
+                    startTimer();
                 }
-            }
+            }}
         });
     };
 
-    document.getElementById('start-btn').onclick = () => {
+    window.startGame = () => {
         document.getElementById('start-screen').style.display = 'none';
-        // Telegram ichida audio ruxsatini "uyg'otish"
-        audio.play().catch(() => {}); 
+        audio.play().catch(() => {});
         init();
     };
 
     async function init() {
-        const snap = await get(ref(db, 'questions'));
-        if (snap.exists()) {
-            questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
+        const s = await get(ref(db, 'questions'));
+        if(s.exists()) {
+            questions = Object.values(s.val()).sort(() => 0.5 - Math.random());
             loadRound();
         }
     }
 
     async function loadRound() {
-        if (currentIdx >= questions.length) { 
-            tg.showPopup({ message: `O'yin tugadi! Ballingiz: ${score}` });
-            location.reload(); 
-            return; 
-        }
-
+        if(currentIdx >= questions.length) return alert("Tamom! Ball: " + score) || location.reload();
         const q = questions[currentIdx];
         const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
 
-        status.innerText = "Musiqa qidirilmoqda...";
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
         if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
 
-        let success = false;
+        let loaded = false;
+        status.innerText = "Qidirilmoqda...";
 
-        // YouTube Birinchi
-        if (q.youtube_id && ytReady) {
-            ytPlayer.loadVideoById({ videoId: q.youtube_id, startSeconds: q.start_time || 40 });
-            status.innerText = "Musiqa yangramoqda (YT)...";
-            success = true;
-        } 
-        // iTunes
-        else if (q.song_name) {
+        // YouTube ustuvor
+        if(q.youtube_id) {
+            ytPlayer.loadVideoById({ videoId: q.youtube_id, startSeconds: 40 });
+            status.innerText = "YouTube yuklanmoqda...";
+            loaded = true;
+        } else {
             try {
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q.song_name)}&limit=1`);
+                // iTunes Search API - Eng mosini qidirish
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q.search_term)}&limit=1&entity=song`);
                 const data = await res.json();
-                if (data.results && data.results[0]) {
+                if(data.results[0]) {
                     audio.src = data.results[0].previewUrl;
-                    audio.load();
-                    audio.play().then(() => {
-                        disc.classList.add('spinning');
-                        startTimer();
-                        status.innerText = "Musiqa yangramoqda...";
-                    }).catch(e => reportError(q.song_name));
-                    success = true;
+                    await audio.play();
+                    disc.classList.add('spinning');
+                    startTimer();
+                    status.innerText = "Eshiting...";
+                    loaded = true;
                 }
-            } catch (e) { success = false; }
+            } catch(e) {}
         }
 
-        if (!success) {
-            reportError(q.song_name || "Xatolik");
+        if(!loaded) {
+            push(ref(db, 'errors'), { song: q.search_term, time: new Date().toLocaleTimeString() });
+            status.innerText = "Topilmadi, o'tkazildi...";
             setTimeout(() => { currentIdx++; loadRound(); }, 1500);
             return;
         }
@@ -160,27 +131,24 @@
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i, q.correct, btn);
+            btn.onclick = () => {
+                clearInterval(timerInterval);
+                const btns = document.querySelectorAll('.option-btn');
+                btns.forEach(b => b.disabled = true);
+                if(i === q.correct) {
+                    btn.classList.add('correct');
+                    score += 10;
+                    document.getElementById('score').innerText = "Ball: " + score;
+                    tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    btn.classList.add('wrong');
+                    btns[q.correct].classList.add('correct');
+                    tg.HapticFeedback.notificationOccurred('error');
+                }
+                setTimeout(() => { currentIdx++; loadRound(); }, 1500);
+            };
             optionsBox.appendChild(btn);
         });
-    }
-
-    function checkAnswer(selected, correct, btn) {
-        clearInterval(timerInterval);
-        audio.pause();
-        if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
-        document.getElementById('disc').classList.remove('spinning');
-
-        if (selected === correct) {
-            btn.classList.add('correct');
-            score += 10;
-            document.getElementById('score').innerText = `Ball: ${score}`;
-            tg.HapticFeedback.notificationOccurred('success'); // Vibratsiya
-        } else {
-            if(btn) btn.classList.add('wrong');
-            tg.HapticFeedback.notificationOccurred('error');
-        }
-        setTimeout(() => { currentIdx++; loadRound(); }, 1200);
     }
 
     function startTimer() {
@@ -190,12 +158,8 @@
         timerInterval = setInterval(() => {
             t--;
             document.getElementById('timer').innerText = t;
-            if(t <= 0) checkAnswer(-1, questions[currentIdx].correct, null);
+            if(t <= 0) { clearInterval(timerInterval); currentIdx++; loadRound(); }
         }, 1000);
-    }
-
-    function reportError(name) {
-        push(ref(db, 'errors'), { song: name, time: new Date().toLocaleTimeString() });
     }
 </script>
 </body>
