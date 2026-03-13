@@ -3,167 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lyrics Sniper PRO</title>
+    <title>SongLyrics Quiz</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --accent: #00f2ff; --fake: #ffffff; --red: #ff0055; }
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
-
-        /* Yuklanish ekrani */
-        #loader { 
-            position: fixed; inset: 0; background: #000; z-index: 1000; 
-            display: flex; align-items: center; justify-content: center; font-weight: bold;
-        }
-
-        #game-screen { display: none; position: fixed; inset: 0; z-index: 100; }
-        #video-bg { position: absolute; inset: 0; opacity: 0.2; pointer-events: none; }
-        #player { width: 100%; height: 100%; }
-
-        .hud { position: absolute; top: 40px; width: 100%; z-index: 105; display: flex; justify-content: space-around; font-size: 1.2rem; }
-        #game-board { position: absolute; inset: 0; display: flex; z-index: 10; }
-        .lane { position: relative; flex: 1; border-right: 1px solid rgba(255,255,255,0.05); }
-
-        .tile {
-            position: absolute; width: 90%; left: 5%; height: 60px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 10px; font-size: 0.8rem; font-weight: 900;
-            text-transform: uppercase; cursor: pointer; text-align: center;
-            background: var(--accent); color: #000;
-        }
-        .tile.fake { background: var(--fake); }
-
-        #fail-line { position: absolute; bottom: 80px; width: 100%; height: 3px; background: var(--red); z-index: 5; }
+        :root { --tg-theme-bg: #000; --accent: #ff0000; --blue: #00f2ff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--tg-theme-bg); color: #fff; margin: 0; overflow: hidden; }
         
-        /* Play tugmasi (Autoplay muammosini yechish uchun) */
-        #start-btn { 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 20px 40px; background: var(--accent); border: none; border-radius: 30px;
-            font-weight: bold; z-index: 500; cursor: pointer;
-        }
+        /* Arsenal Style Header */
+        .header { padding: 15px; text-align: center; border-bottom: 2px solid var(--accent); background: #111; }
+        .score-board { display: flex; justify-content: space-around; font-weight: bold; color: var(--blue); }
+
+        /* Video Area */
+        #player-container { width: 100%; aspect-ratio: 16/9; background: #000; pointer-events: none; }
+        
+        /* Lyrics Area */
+        .lyrics-box { height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .current-lyric { font-size: 24px; font-weight: bold; color: #fff; text-shadow: 0 0 10px var(--blue); }
+        .input-area { width: 90%; margin: auto; }
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #333; background: #111; color: #fff; font-size: 18px; text-align: center; outline: none; }
+        input:focus { border-color: var(--blue); }
+
+        /* Game Over Screen */
+        #game-over { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div id="loader">YUKLANMOQDA...</div>
-    <button id="start-btn" style="display:none;" onclick="startGame()">O'YINNI BOSHLASH</button>
-
-    <div id="game-screen">
-        <div id="video-bg"><div id="player"></div></div>
-        <div class="hud">
-            <div>BALL: <span id="score">0</span></div>
-            <div>COMBO: <span id="combo">0</span></div>
+<div id="game-container">
+    <div class="header">
+        <div class="score-board">
+            <span>BALL: <span id="score">0</span></span>
+            <span id="timer">00:00</span>
         </div>
-        <div id="game-board">
-            <div class="lane" id="lane-0"></div>
-            <div class="lane" id="lane-1"></div>
-            <div class="lane" id="lane-2"></div>
-            <div class="lane" id="lane-3"></div>
-        </div>
-        <div id="fail-line"></div>
     </div>
 
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+    <div id="player-container">
+        <div id="player"></div>
+    </div>
 
-    // YouTube API yuklash
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    <div class="lyrics-box">
+        <div class="current-lyric" id="display-lyric">Tayyormisiz?</div>
+    </div>
 
-    let ytPlayer, lyrics = [], currentIdx = -1, score = 0, combo = 0, isLive = false;
-    let activeTiles = [], lastTileY = -100;
-    const fakes = ["XATO", "BOMBA", "YO'Q", "ALDOV", "CHALGI"];
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="So'zni yozing..." autocomplete="off">
+    </div>
+</div>
 
-    function onYouTubeIframeAPIReady() {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('start-btn').style.display = 'block';
-        
-        ytPlayer = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            playerVars: { 'controls': 0, 'rel': 0, 'playsinline': 1, 'enablejsapi': 1 },
-            events: { 'onStateChange': onPlayerStateChange }
-        });
-    }
+<div id="game-over">
+    <h1 style="color: var(--accent);">O'YIN TUGADI!</h1>
+    <h2 id="final-score">Ball: 0</h2>
+    <button onclick="location.reload()" style="padding: 15px 30px; border-radius: 10px; border:none; background: var(--blue);">QAYTA BOSHLASH</button>
+</div>
 
-    function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            isLive = true;
-            requestAnimationFrame(gameLoop);
-        }
-    }
-
-    function startGame() {
-        document.getElementById('start-btn').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
-        // Bu yerda Firebase'dan kelgan birinchi qo'shiqni qo'ying
-        // startLevel(data); 
-    }
-
-    function gameLoop() {
-        if(!isLive) return;
-        const now = ytPlayer.getCurrentTime();
-        const hit = lyrics.findLastIndex(l => now >= l.time);
-        
-        if (hit !== currentIdx && hit !== -1) {
-            currentIdx = hit;
-            spawn(lyrics[currentIdx].text);
-        }
-        
-        // Tiles harakati
-        activeTiles.forEach((t, i) => {
-            t.y += t.speed;
-            t.el.style.top = t.y + 'px';
-            if(t.y > window.innerHeight - 140) {
-                if(!t.isFake) { endGame(); }
-                else { t.el.remove(); activeTiles.splice(i, 1); }
-            }
-        });
-        requestAnimationFrame(gameLoop);
-    }
-
-    function spawn(text) {
-        const words = text.split(' ').filter(w => w.length > 1);
-        lastTileY = activeTiles.length > 0 ? Math.min(...activeTiles.map(t => t.y)) - 180 : -100;
-
-        words.forEach((w, i) => {
-            setTimeout(() => {
-                const laneIdx = Math.floor(Math.random() * 4);
-                const el = document.createElement('div');
-                el.className = 'tile';
-                el.innerText = w;
-                lastTileY -= 150;
-                const obj = { el, y: lastTileY, isFake: false, speed: 5 };
-                el.onclick = () => {
-                    score += 10 + combo; combo++; el.remove();
-                    activeTiles = activeTiles.filter(t => t !== obj);
-                    updateHUD();
-                };
-                document.getElementById(`lane-${laneIdx}`).appendChild(el);
-                activeTiles.push(obj);
-            }, i * 250);
-        });
-    }
-
-    function updateHUD() {
-        document.getElementById('score').innerText = score;
-        document.getElementById('combo').innerText = combo;
-    }
-
-    function endGame() {
-        isLive = false;
-        ytPlayer.stopVideo();
-        alert("O'YIN TUGADI! BALL: " + score);
-        location.reload();
-    }
-</script>
-
+<script src="https://www.youtube.com/iframe_api"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -171,29 +67,80 @@
         appId: "1:322622967401:web:24569afce697e18edc9cf8"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getFirestore(initializeApp(firebaseConfig));
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Telegramda to'liq ekran ochish
 
-    onSnapshot(collection(db, "tracklist"), (snap) => {
-        snap.forEach(doc => {
-            const data = doc.data();
-            // Test uchun birinchi qo'shiqni yuklaymiz
-            window.startLevel = (d) => {
-                lyrics = parseLRC(d.lyrics);
-                ytPlayer.loadVideoById(d.youtubeId);
-            };
-            window.currentSongData = data; // Start tugmasi uchun
+    let player, lyrics = [], currentLineIdx = 0, score = 0;
+    const inputField = document.getElementById('userInput');
+
+    // 1. Bazadan tasodifiy qo'shiqni olish
+    async function loadTrack() {
+        const snap = await getDocs(collection(db, "tracklist"));
+        const tracks = snap.docs.map(d => d.data());
+        const track = tracks[Math.floor(Math.random() * tracks.length)];
+        
+        // LRC Parsing
+        lyrics = track.lyrics.split('\n').map(l => {
+            const m = l.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+            return m ? { t: parseInt(m[1])*60 + parseFloat(m[2]), txt: m[3].trim() } : null;
+        }).filter(x => x);
+
+        initPlayer(track.youtubeId);
+    }
+
+    function initPlayer(id) {
+        player = new YT.Player('player', {
+            height: '100%', width: '100%', videoId: id,
+            playerVars: { 'autoplay': 1, 'controls': 0, 'disablekb': 1 },
+            events: { 'onStateChange': (e) => {
+                if(e.data == 1) setInterval(updateGame, 100);
+            }}
         });
-    });
+    }
 
-    // Start bosilganda birinchi qo'shiqni yuklash
-    window.startGame = () => {
-        if(window.currentSongData) {
-            document.getElementById('start-btn').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-            window.startLevel(window.currentSongData);
+    function updateGame() {
+        const now = player.getCurrentTime();
+        const line = lyrics.find((l, i) => l.t <= now && i >= currentLineIdx);
+        
+        if(line && line.txt) {
+            // So'zni yashirish (oxirgi so'zni nuqtalar bilan ko'rsatish)
+            const words = line.txt.split(' ');
+            const targetWord = words.pop();
+            document.getElementById('display-lyric').innerText = words.join(' ') + " ...";
+            
+            // Tekshirish
+            inputField.oninput = () => {
+                if(inputField.value.toLowerCase().trim() === targetWord.toLowerCase().trim()) {
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                    inputField.value = "";
+                    currentLineIdx++;
+                    tg.HapticFeedback.notificationOccurred('success'); // Vibratsiya
+                }
+            };
         }
-    };
+
+        // Vaqt tugasa
+        if(player.getDuration() > 0 && now >= player.getDuration() - 1) {
+            endGame();
+        }
+    }
+
+    async function endGame() {
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('game-over').style.display = 'flex';
+        document.getElementById('final-score').innerText = "Ball: " + score;
+        
+        // Reytingga yozish
+        await addDoc(collection(db, "leaderboard"), {
+            name: tg.initDataUnsafe.user?.first_name || "Guest",
+            score: score,
+            date: new Date()
+        });
+    }
+
+    window.onload = loadTrack;
 </script>
 </body>
 </html>
