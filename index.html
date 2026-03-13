@@ -3,44 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Quiz</title>
+    <title>SongLyrics Smart</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #game-container { width: 90%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #222; text-align: center; }
-        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 4px solid #222; display: flex; align-items: center; justify-content: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #game-container { width: 90%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #222; text-align: center; }
+        .vinyl { width: 160px; height: 160px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 4px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .options-grid { display: grid; gap: 10px; margin-top: 20px; }
-        .option-btn { background: #222; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 12px; font-size: 15px; cursor: pointer; }
+        .option-btn { background: #222; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; }
         .correct { background: var(--primary) !important; color: #000 !important; font-weight: bold; }
         .wrong { background: #ff3e3e !important; }
         #start-screen { position: absolute; inset: 0; background: var(--card); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 25px; }
     </style>
 </head>
 <body>
+
 <div id="game-container">
     <div id="start-screen">
         <h1 style="color:var(--primary); margin-bottom:20px;">SongLyrics</h1>
-        <button onclick="startGame()" style="background:var(--primary); border:none; padding:15px 40px; border-radius:12px; font-weight:bold; font-size:18px;">BOSHLASH</button>
+        <button onclick="startGame()" style="background:var(--primary); border:none; padding:15px 40px; border-radius:12px; font-weight:bold;">BOSHLASH</button>
     </div>
+    
     <div id="quiz-screen">
         <div style="display:flex; justify-content:space-between; font-size:14px; color:var(--primary);">
-            <span id="score">Ball: 0</span> <span id="timer" style="color:#ff3e3e">15</span>
+            <span id="score">Ball: 0</span> <span id="timer">15</span>
         </div>
-        <div class="vinyl" id="disc"><div style="width:35px;height:35px;background:var(--primary);border-radius:50%;border:5px solid #000;"></div></div>
-        <p id="status" style="color:#888; font-size:13px;">Tayyorlaning...</p>
-        <div id="yt-player" style="position:absolute; visibility:hidden;"></div>
-        <div class="options-grid" id="options-box"></div>
+        <div class="vinyl" id="disc"></div>
+        <p id="status" style="color:#888; font-size:13px; height: 20px;"></p>
+        <div id="options-box"></div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -50,25 +49,12 @@
         messagingSenderId: "322622967401",
         appId: "1:322622967401:web:24569afce697e18edc9cf8"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    tg.expand();
 
-    let questions = [], currentIdx = 0, score = 0, timerInterval;
-    let audio = new Audio();
-    let ytPlayer, ytReady = false;
-
-    window.onYouTubeIframeAPIReady = () => {
-        ytPlayer = new YT.Player('yt-player', {
-            events: { 'onStateChange': (e) => {
-                if(e.data == YT.PlayerState.PLAYING) { 
-                    document.getElementById('disc').classList.add('spinning');
-                    startTimer();
-                }
-            }}
-        });
-    };
+    let questions = [], currentIdx = 0, score = 0, timerInterval, audio = new Audio();
 
     window.startGame = () => {
         document.getElementById('start-screen').style.display = 'none';
@@ -77,52 +63,59 @@
     };
 
     async function init() {
-        const s = await get(ref(db, 'questions'));
-        if(s.exists()) {
-            questions = Object.values(s.val()).sort(() => 0.5 - Math.random());
+        const snap = await get(ref(db, 'questions'));
+        if(snap.exists()) {
+            questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
             loadRound();
         }
     }
 
+    async function fetchMusic(term, isRetry = false) {
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=5&entity=song`);
+            const data = await res.json();
+            
+            if (data.results && data.results.length > 0) {
+                // Tasodifiy bittasini tanlash (har safar har xil bo'lishi uchun)
+                const randomTrack = data.results[Math.floor(Math.random() * data.results.length)];
+                return randomTrack.previewUrl;
+            }
+            
+            // AGAR TOPILMASA VA BU BIRINCHI URINISh BO'LSA
+            if (!isRetry && term.includes('-')) {
+                const artistOnly = term.split('-')[0].trim();
+                console.log("Qayta qidirilmoqda (faqat xonanda):", artistOnly);
+                return await fetchMusic(artistOnly, true);
+            }
+            
+            return null;
+        } catch (e) { return null; }
+    }
+
     async function loadRound() {
-        if(currentIdx >= questions.length) return alert("Tamom! Ball: " + score) || location.reload();
+        if(currentIdx >= questions.length) { alert("Tamom! Ball: " + score); location.reload(); return; }
+        
         const q = questions[currentIdx];
         const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
 
+        status.innerText = "Musiqa yuklanmoqda...";
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
-        if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
 
-        let loaded = false;
-        status.innerText = "Qidirilmoqda...";
+        const musicUrl = await fetchMusic(q.search_term);
 
-        // YouTube ustuvor
-        if(q.youtube_id) {
-            ytPlayer.loadVideoById({ videoId: q.youtube_id, startSeconds: 40 });
-            status.innerText = "YouTube yuklanmoqda...";
-            loaded = true;
+        if(musicUrl) {
+            audio.src = musicUrl;
+            audio.play().then(() => {
+                disc.classList.add('spinning');
+                startTimer();
+                status.innerText = "Eshiting, bu kim?";
+            });
         } else {
-            try {
-                // iTunes Search API - Eng mosini qidirish
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q.search_term)}&limit=1&entity=song`);
-                const data = await res.json();
-                if(data.results[0]) {
-                    audio.src = data.results[0].previewUrl;
-                    await audio.play();
-                    disc.classList.add('spinning');
-                    startTimer();
-                    status.innerText = "Eshiting...";
-                    loaded = true;
-                }
-            } catch(e) {}
-        }
-
-        if(!loaded) {
-            push(ref(db, 'errors'), { song: q.search_term, time: new Date().toLocaleTimeString() });
-            status.innerText = "Topilmadi, o'tkazildi...";
+            status.innerText = "Musiqa topilmadi, o'tkazilmoqda...";
             setTimeout(() => { currentIdx++; loadRound(); }, 1500);
             return;
         }
@@ -133,8 +126,6 @@
             btn.innerText = opt;
             btn.onclick = () => {
                 clearInterval(timerInterval);
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
                 if(i === q.correct) {
                     btn.classList.add('correct');
                     score += 10;
@@ -142,7 +133,6 @@
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong');
-                    btns[q.correct].classList.add('correct');
                     tg.HapticFeedback.notificationOccurred('error');
                 }
                 setTimeout(() => { currentIdx++; loadRound(); }, 1500);
