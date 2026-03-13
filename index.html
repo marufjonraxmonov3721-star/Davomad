@@ -3,134 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Battle - Flag Edition</title>
+    <title>SongLyrics Premium</title>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
+        :root { --primary: #00ff88; --bg: #050505; --card: #121212; --text: #ffffff; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: #000; /* AMOLED qora */
-            color: #fff;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        #game-container {
-            width: 95%;
-            max-width: 400px;
-            text-align: center;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 0 10px;
-        }
-        #score-box { color: #00ff88; font-size: 20px; font-weight: bold; }
-        #timer-box { 
-            color: #ff3e3e; 
-            font-size: 22px; 
-            font-weight: bold;
-            background: #111;
-            padding: 5px 15px;
-            border-radius: 20px;
-            border: 1px solid #333;
-        }
-
-        /* Bayroq rasmi uchun stil */
-        .image-container {
-            width: 100%;
-            height: 200px;
-            background: #111;
-            border-radius: 15px;
-            border: 1px solid #333;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        #flag-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            display: none; /* Rasm yuklanguncha ko'rinmaydi */
-        }
-
-        .question-text {
-            font-size: 18px;
-            margin-bottom: 20px;
-            min-height: 50px;
-            color: #eee;
-        }
-
-        .options-grid {
-            display: grid;
-            gap: 12px;
-        }
-        .option-btn {
-            background: #161616;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 17px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .option-btn:active { transform: scale(0.97); background: #222; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        /* To'g'ri va xato javob ranglari */
-        .correct { background: #00ff88 !important; color: #000 !important; font-weight: bold; border-color: #00ff88; }
-        .wrong { background: #ff3e3e !important; color: #fff !important; border-color: #ff3e3e; }
+        #game-container { width: 90%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; }
+        
+        /* Start Ekran */
+        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        .btn-start { background: var(--primary); color: #000; border: none; padding: 20px 40px; border-radius: 15px; font-weight: bold; font-size: 20px; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,136,0.3); }
 
+        .header { display: flex; justify-content: space-between; margin-bottom: 25px; visibility: hidden; }
+        .stat { background: #1a1a1a; padding: 8px 15px; border-radius: 12px; color: var(--primary); font-size: 14px; border: 1px solid #222; }
+
+        .vinyl { width: 180px; height: 180px; margin: 0 auto 25px; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 4px solid #222; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
+        .vinyl-center { width: 50px; height: 50px; background: var(--primary); border-radius: 50%; border: 8px solid #000; }
+        .spinning { animation: spin 4s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 16px; border-radius: 15px; font-size: 16px; cursor: pointer; }
+        .correct { background: var(--primary) !important; color: #000 !important; font-weight: bold; }
+        .wrong { background: #ff3e3e !important; }
+
+        #yt-player { position: absolute; top: -999px; left: -999px; }
         #result-screen { display: none; }
-        .btn-restart {
-            margin-top: 25px;
-            padding: 15px 40px;
-            background: #00ff88;
-            color: #000;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
 
 <div id="game-container">
+    <div id="start-screen">
+        <h1 style="margin-bottom: 20px; color: var(--primary);">SongLyrics</h1>
+        <button class="btn-start" id="start-btn">O'YINNI BOSHLASH</button>
+        <p style="margin-top: 15px; color: #666; font-size: 12px;">Musiqa yuklanishi uchun bosing</p>
+    </div>
+
     <div id="quiz-screen">
-        <div class="header">
-            <div id="score-box">Ball: 0</div>
-            <div id="timer-box">15</div>
+        <div class="header" id="game-header" style="visibility: visible;">
+            <div class="stat" id="score">Ball: 0</div>
+            <div class="stat" id="timer" style="color:#ff3e3e">15</div>
         </div>
-
-        <div class="image-container">
-            <div id="loader" style="color: #555;">Yuklanmoqda...</div>
-            <img id="flag-img" src="" alt="Flag">
-        </div>
-
-        <div class="question-text" id="q-text">Savol yuklanmoqda...</div>
-
-        <div class="options-grid" id="options-box">
-            </div>
+        <p id="status" style="margin-bottom: 20px; color: #888;">Tayyorlaning...</p>
+        <div class="vinyl" id="disc"><div class="vinyl-center"></div></div>
+        <div id="yt-player"></div>
+        <div class="options-grid" id="options-box"></div>
     </div>
 
     <div id="result-screen">
-        <h1 style="color: #00ff88; margin-bottom: 10px;">Tamom!</h1>
-        <p id="final-result" style="font-size: 24px;">Siz 0 ball to'pladingiz</p>
-        <button class="btn-restart" onclick="location.reload()">Qayta boshlash</button>
+        <h2 style="color:var(--primary); font-size: 28px;">Tamom!</h2>
+        <p id="final-score" style="font-size: 22px; margin: 20px 0;"></p>
+        <button onclick="location.reload()" style="background:var(--primary); padding:15px 30px; border-radius:12px; border:none; font-weight:bold;">Qayta boshlash</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -144,105 +76,141 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let questions = [];
-    let currentIdx = 0;
-    let score = 0;
-    let timer;
-    let timeLeft = 15;
+    let questions = [], currentIdx = 0, score = 0, timerInterval;
+    let audio = new Audio();
+    let ytPlayer, ytReady = false;
 
-    const imgEl = document.getElementById('flag-img');
-    const loader = document.getElementById('loader');
-    const textEl = document.getElementById('q-text');
-    const optionsEl = document.getElementById('options-box');
-    const scoreEl = document.getElementById('score-box');
-    const timerEl = document.getElementById('timer-box');
+    // YouTube pleyerni yaratish
+    window.onYouTubeIframeAPIReady = () => {
+        ytPlayer = new YT.Player('yt-player', {
+            height: '0', width: '0',
+            playerVars: { 'autoplay': 1, 'controls': 0, 'origin': window.location.origin },
+            events: {
+                'onReady': () => { ytReady = true; },
+                'onStateChange': (e) => {
+                    if(e.data == YT.PlayerState.PLAYING) {
+                        document.getElementById('disc').classList.add('spinning');
+                        startTimer();
+                    }
+                },
+                'onError': (e) => { reportError("YouTube Video Error ID: " + questions[currentIdx].youtube_id); nextQuestion(); }
+            }
+        });
+    };
 
-    async function initGame() {
-        const snapshot = await get(ref(db, 'questions'));
-        if (snapshot.exists()) {
-            questions = Object.values(snapshot.val()).sort(() => 0.5 - Math.random());
-            startRound();
-        } else {
-            textEl.innerText = "Bazada savollar topilmadi!";
+    document.getElementById('start-btn').onclick = () => {
+        document.getElementById('start-screen').style.display = 'none';
+        init();
+    };
+
+    async function init() {
+        const snap = await get(ref(db, 'questions'));
+        if (snap.exists()) {
+            questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
+            loadRound();
         }
     }
 
-    function startRound() {
-        if (currentIdx >= questions.length) {
-            showResult();
+    async function loadRound() {
+        if (currentIdx >= questions.length) { showResult(); return; }
+        const q = questions[currentIdx];
+        const status = document.getElementById('status');
+        const optionsBox = document.getElementById('options-box');
+        const disc = document.getElementById('disc');
+
+        // Reset
+        status.innerText = "Yuklanmoqda...";
+        optionsBox.innerHTML = "";
+        disc.classList.remove('spinning');
+        audio.pause();
+        if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+
+        let success = false;
+
+        // 1. Agar savolda YouTube ID bo'lsa (Siz qo'lda kiritganingiz)
+        if (q.youtube_id && ytReady) {
+            ytPlayer.loadVideoById({ videoId: q.youtube_id, startSeconds: q.start_time || 40 });
+            status.innerText = "Musiqa (YouTube)...";
+            success = true;
+        } 
+        // 2. Aks holda iTunes dan qidirish
+        else if (q.song_name) {
+            try {
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q.song_name)}&limit=1&entity=song`);
+                const data = await res.json();
+                if (data.results.length > 0) {
+                    audio.src = data.results[0].previewUrl;
+                    audio.play().then(() => {
+                        disc.classList.add('spinning');
+                        startTimer();
+                        status.innerText = "Musiqa (iTunes)...";
+                    }).catch(e => reportError(q.song_name));
+                    success = true;
+                }
+            } catch (e) { success = false; }
+        }
+
+        if (!success) {
+            reportError(q.song_name || "Nomalum");
+            nextQuestion();
             return;
         }
 
-        const q = questions[currentIdx];
-        
-        // Rasmni tayyorlash
-        imgEl.style.display = 'none';
-        loader.style.display = 'block';
-        if (q.image_url) {
-            imgEl.src = q.image_url;
-            imgEl.onload = () => {
-                loader.style.display = 'none';
-                imgEl.style.display = 'block';
-            };
-        }
-
-        textEl.innerText = q.text || "Ushbu bayroq qaysi davlatga tegishli?";
-        optionsEl.innerHTML = "";
-
-        q.options.forEach((opt, idx) => {
+        // Variantlar
+        q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(idx, q.correct, btn);
-            optionsEl.appendChild(btn);
+            btn.onclick = () => checkAnswer(i, q.correct, btn);
+            optionsBox.appendChild(btn);
         });
-
-        resetTimer();
     }
 
     function checkAnswer(selected, correct, btn) {
-        clearInterval(timer);
-        const allBtns = document.querySelectorAll('.option-btn');
-        allBtns.forEach(b => b.disabled = true);
+        clearInterval(timerInterval);
+        audio.pause();
+        if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+        document.getElementById('disc').classList.remove('spinning');
+        
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.disabled = true);
 
         if (selected === correct) {
             btn.classList.add('correct');
-            score += (questions[currentIdx].points || 10);
-            scoreEl.innerText = `Ball: ${score}`;
+            score += 10;
+            document.getElementById('score').innerText = `Ball: ${score}`;
         } else {
-            btn.classList.add('wrong');
-            allBtns[correct].classList.add('correct');
+            if(btn) btn.classList.add('wrong');
+            btns[correct].classList.add('correct');
         }
-
-        setTimeout(() => {
-            currentIdx++;
-            startRound();
-        }, 1500);
+        setTimeout(nextQuestion, 1500);
     }
 
-    function resetTimer() {
-        clearInterval(timer);
-        timeLeft = 15;
-        timerEl.innerText = timeLeft;
-        timer = setInterval(() => {
-            timeLeft--;
-            timerEl.innerText = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                currentIdx++;
-                startRound();
-            }
+    function startTimer() {
+        let t = 15;
+        document.getElementById('timer').innerText = t;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            t--;
+            document.getElementById('timer').innerText = t;
+            if(t <= 0) checkAnswer(-1, questions[currentIdx].correct, null);
         }, 1000);
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        loadRound();
+    }
+
+    function reportError(name) {
+        push(ref(db, 'errors'), { song: name, time: new Date().toLocaleTimeString() });
     }
 
     function showResult() {
         document.getElementById('quiz-screen').style.display = 'none';
         document.getElementById('result-screen').style.display = 'block';
-        document.getElementById('final-result').innerText = `Siz jami ${score} ball to'pladingiz!`;
+        document.getElementById('final-score').innerText = `Ball: ${score}`;
     }
-
-    initGame();
 </script>
-
 </body>
 </html>
