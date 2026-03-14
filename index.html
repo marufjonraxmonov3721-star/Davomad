@@ -117,6 +117,14 @@
         #offline-notice.show { top: 0; }
         .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* BOSS STYLES */
+        .boss-active .game-card { border-color: var(--boss); box-shadow: 0 0 20px rgba(255, 0, 85, 0.2); }
+        .boss-active .vinyl { border-color: var(--boss); }
+        .boss-active #disc-center { background: var(--boss) !important; }
+        .boss-active #round-counter { color: var(--boss) !important; }
+        .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -269,6 +277,8 @@
     let comboCount = 0;
     let currentCategory = 'uzbek';
     let currentLevel = 1;
+    let isBossRound = false;
+    let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
     let rankLimit = 10;
@@ -320,6 +330,8 @@
 
     function quitGame() {
         isPlaying = false;
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
@@ -329,14 +341,12 @@
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
         
-        // Reset game states
         score = 0;
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
         
-        // Update UI reset
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
@@ -366,12 +376,12 @@
         currentCategory = category || 'uzbek';
         isPlaying = true;
         
-        // Reset everything for a fresh start
         currentLevel = 1;
         currentIdx = 0;
         score = 0;
         lives = 3;
         comboCount = 0;
+        isBossRound = false;
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -405,62 +415,73 @@
     }
 
     function loadLevelQuestions() {
-        const levelQuestions = Object.values(allQuestions).filter(q => (q.level || 1) == currentLevel);
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
+        const levelData = Object.values(allQuestions).filter(q => (q.level || 1) == currentLevel);
         
-        if(levelQuestions.length > 0) {
-            questions = levelQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+        const normalQuestions = levelData.filter(q => !q.is_boss);
+        const bosses = levelData.filter(q => q.is_boss);
+        
+        if(normalQuestions.length > 0) {
+            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
             currentIdx = 0;
             loadRound();
         } else {
-            if (currentLevel > 1) {
-                endGame(false);
-            } else {
-                tg.showAlert("Savollar yetarli emas!");
-                quitGame();
-            }
+            if (currentLevel > 1) endGame(false);
+            else { tg.showAlert("Savollar yetarli emas!"); quitGame(); }
         }
     }
 
     async function loadRound() {
         if(!isPlaying) return;
-        
         if(lives <= 0) { endGame(true); return; }
         
-        if(currentIdx >= questions.length) { 
-            currentLevel++;
-            loadLevelQuestions();
-            return; 
-        }
-        
-        document.getElementById('round-counter').innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
-        
-        const q = questions[currentIdx];
+        let q;
         const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
+        const roundCounter = document.getElementById('round-counter');
 
+        if(currentIdx >= questions.length) { 
+            if(bossQuestion && !isBossRound) {
+                isBossRound = true;
+                q = bossQuestion;
+                document.body.classList.add('boss-active');
+                roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
+            } else {
+                currentLevel++;
+                loadLevelQuestions();
+                return;
+            }
+        } else {
+            q = questions[currentIdx];
+            roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
+        }
+        
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
-        
         status.innerText = "Musiqa qidirilmoqda...";
 
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
+            // Boss bosqichida musiqa tezroq yoki qiyinroq bo'lishi mumkin
+            audio.playbackRate = isBossRound ? 1.1 : 1.0;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                const levelTime = Math.max(8, 20 - (currentLevel * 2));
+                // Bossga kamroq vaqt beriladi (masalan, normal 15s bo'lsa, bossga 10s)
+                const baseTime = Math.max(8, 20 - (currentLevel * 2));
+                const levelTime = isBossRound ? Math.floor(baseTime * 0.7) : baseTime;
                 startTimer(levelTime); 
-                status.innerText = "Eshiting..."; 
+                status.innerText = isBossRound ? "BOSS: Diqqat bilan eshiting!" : "Eshiting..."; 
             })
-            .catch(() => { currentIdx++; loadRound(); });
+            .catch(() => { skipRound(); });
             
-            audio.onended = () => {
-                disc.classList.remove('spinning');
-            };
+            audio.onended = () => disc.classList.remove('spinning');
         } else {
-            currentIdx++; loadRound(); return;
+            skipRound(); return;
         }
 
         const correctText = q.options[q.correct];
@@ -478,10 +499,19 @@
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
                     comboCount++;
-                    const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                    const pointsToAdd = (10 * comboMultiplier * currentLevel);
+                    let pointsToAdd;
+                    
+                    if(isBossRound) {
+                        // Boss ballini qo'shish (agar bazada bo'lsa, aks holda standart 50)
+                        pointsToAdd = q.boss_score || 50;
+                        showFloatingText(`BOSS +${pointsToAdd}`, e.clientX, e.clientY);
+                    } else {
+                        const comboMultiplier = Math.floor(comboCount / 3) + 1;
+                        pointsToAdd = (10 * comboMultiplier * currentLevel);
+                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                    }
+                    
                     score += pointsToAdd;
-                    showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                     updateComboUI();
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
@@ -494,15 +524,36 @@
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
-                setTimeout(() => { if(isPlaying) { currentIdx++; loadRound(); } }, 1500);
+                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
             };
             optionsBox.appendChild(btn);
         });
     }
 
+    function skipRound() {
+        if(isBossRound) {
+            currentLevel++;
+            loadLevelQuestions();
+        } else {
+            currentIdx++;
+            loadRound();
+        }
+    }
+
+    function nextStep() {
+        if(isBossRound) {
+            currentLevel++;
+            loadLevelQuestions();
+        } else {
+            currentIdx++;
+            loadRound();
+        }
+    }
+
     function showFloatingText(text, x, y) {
         const el = document.createElement('div');
         el.className = 'floating-text';
+        if(isBossRound) el.style.color = 'var(--boss)';
         el.innerText = text;
         el.style.left = `${x}px`;
         el.style.top = `${y}px`;
@@ -531,6 +582,8 @@
 
     function endGame(isGameOver) {
         isPlaying = false;
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
@@ -580,12 +633,8 @@
                 updateComboUI();
                 lives--; 
                 updateLivesUI();
-                if(lives > 0) {
-                    currentIdx++; 
-                    loadRound(); 
-                } else {
-                    endGame(true);
-                }
+                if(lives > 0) nextStep();
+                else endGame(true);
             }
         }, 1000);
     }
@@ -617,7 +666,6 @@
         }
         listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
         try {
-            // Reytingni hamon eng yuqori ball bo'yicha chiqaramiz
             const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
             const snap = await get(rankQuery);
             if(snap.exists()) {
@@ -674,9 +722,9 @@
                 totalXpEl.innerText = "0";
             }
         } catch (e) { 
-            bestScoreEl.innerText = "Error";
-            bestLevelEl.innerText = "Error";
-            totalXpEl.innerText = "Error";
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
         }
     }
 </script>
