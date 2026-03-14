@@ -3,46 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Solo Edition</title>
+    <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #game-container { width: 92%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        .vinyl { width: 160px; height: 160px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
+        body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
+        
+        #app-container { height: 100vh; display: flex; flex-direction: column; }
+        .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .active-page { display: flex; }
+
+        /* Game UI */
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; }
+        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .option-btn { background: #222; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 15px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 16px; transition: 0.2s; outline: none; }
-        .correct { background: var(--primary) !important; color: #000 !important; font-weight: bold; border-color: var(--primary); }
-        .wrong { background: #ff3e3e !important; border-color: #ff3e3e; }
-        #start-screen { position: absolute; inset: 0; background: var(--card); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 30px; }
+        .option-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; }
+        .correct { background: var(--primary) !important; color: #000 !important; font-weight: bold; }
+        .wrong { background: #ff3e3e !important; }
+
+        /* Leaderboard UI */
+        .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
+        .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        .rank-num { width: 30px; font-weight: bold; color: var(--primary); }
+        .rank-name { flex: 1; font-size: 14px; }
+        .rank-score { font-weight: bold; color: var(--primary); }
+
+        /* Navigation */
+        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
+        .nav-item { color: #555; font-size: 12px; text-decoration: none; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        #start-screen { position: absolute; inset: 0; background: var(--card); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="start-screen">
-        <h1 style="color:var(--primary); font-size: 32px; margin-bottom:10px;">SongLyrics</h1>
-        <p style="color:#666; margin-bottom:30px;">Faqat yakkaxon qo'shiqlar</p>
-        <button onclick="startGame()" style="background:var(--primary); border:none; padding:18px 50px; border-radius:15px; font-weight:bold; font-size:18px; cursor:pointer;">BOSHLASH</button>
-    </div>
-    
-    <div id="quiz-screen">
-        <div style="display:flex; justify-content:space-between; font-size:14px; color:var(--primary); font-weight:bold;">
-            <span id="score">BALL: 0</span> <span id="timer">15</span>
+<div id="app-container">
+    <div id="page-game" class="page active-page">
+        <div id="start-screen">
+            <h1 style="color:var(--primary); font-size: 32px; margin-bottom:10px;">SongLyrics</h1>
+            <p id="user-greeting" style="color:#666; margin-bottom:30px;">Salom!</p>
+            <button onclick="startGame()" style="background:var(--primary); border:none; padding:18px 50px; border-radius:15px; font-weight:bold; font-size:18px;">BOSHLASH</button>
         </div>
-        <div class="vinyl" id="disc">
-            <div style="position:absolute; inset: 60px; background:var(--primary); border-radius:50%; border:6px solid #000;"></div>
+
+        <div class="game-card">
+            <div style="display:flex; justify-content:space-between; font-size:14px; color:var(--primary); font-weight:bold;">
+                <span id="score">BALL: 0</span> <span id="timer">15</span>
+            </div>
+            <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;"></div></div>
+            <p id="status" style="color:#888; font-size:12px; height: 18px;"></p>
+            <div id="options-box"></div>
         </div>
-        <p id="status" style="color:#888; font-size:13px; height: 20px;"></p>
-        <div id="options-box"></div>
     </div>
+
+    <div id="page-rank" class="page">
+        <div class="leaderboard-card">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:20px;">TOP O'YINCHILAR</h2>
+            <div id="rank-list">
+                <p style="text-align:center; color:#555;">Yuklanmoqda...</p>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="showPage('game', this)">
+            <span class="nav-icon">🎮</span>
+            <span>O'yin</span>
+        </div>
+        <div class="nav-item" onclick="showPage('rank', this)">
+            <span class="nav-icon">🏆</span>
+            <span>Reyting</span>
+        </div>
+    </nav>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, set, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -56,16 +96,30 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Telegram User Ma'lumotlari
+    const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
+    document.getElementById('user-greeting').innerText = `Salom, ${user.first_name}!`;
 
     let questions = [], currentIdx = 0, score = 0, timerInterval, audio = new Audio();
+
+    // Sahifalarni almashtirish
+    window.showPage = (pageId, el) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`page-${pageId}`).classList.add('active-page');
+        el.classList.add('active');
+        if(pageId === 'rank') loadLeaderboard();
+    };
 
     window.startGame = () => {
         document.getElementById('start-screen').style.display = 'none';
         audio.play().catch(() => {});
-        init();
+        initGame();
     };
 
-    async function init() {
+    async function initGame() {
         const snap = await get(ref(db, 'questions'));
         if(snap.exists()) {
             questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
@@ -73,41 +127,10 @@
         }
     }
 
-    // DUET FILTRLASH FUNKSIYASI
-    async function fetchMusic(term, isRetry = false) {
-        try {
-            // Ko'proq natija olamiz (5 ta), shunda duet bo'lsa keyingisiga o'ta olamiz
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=10&entity=song`);
-            const data = await res.json();
-            
-            if (data.results && data.results.length > 0) {
-                // Duet qo'shiqlarni chiqarib tashlaymiz
-                const soloTracks = data.results.filter(track => {
-                    const fullName = (track.artistName + " " + track.trackName).toLowerCase();
-                    const duetMarkers = ["&", "feat", "with", " x ", " va "];
-                    // Agar xonanda ismida & bo'lmasa-yu, qo'shiqchi ismida duet belgilari bo'lsa rad etiladi
-                    return !duetMarkers.some(marker => track.artistName.toLowerCase().includes(marker)) && 
-                           !duetMarkers.some(marker => track.trackCensoredName.toLowerCase().includes(marker));
-                });
-
-                if (soloTracks.length > 0) {
-                    return soloTracks[0].previewUrl; // Eng birinchi yakkaxon qo'shiq
-                }
-            }
-            
-            // Agar solo topilmasa va qidiruvda "-" bo'lsa, faqat xonanda ismini o'zi bilan qayta urinish
-            if (!isRetry && term.includes('-')) {
-                return await fetchMusic(term.split('-')[0].trim(), true);
-            }
-            
-            // Agar hech narsa topilmasa, borini qaytaramiz (lekin duet ehtimoli kamaydi)
-            return data.results && data.results[0] ? data.results[0].previewUrl : null;
-        } catch (e) { return null; }
-    }
-
     async function loadRound() {
         if(currentIdx >= questions.length) { 
-            tg.showPopup({ message: `O'yin tugadi! Jami ball: ${score}` });
+            await saveScore();
+            tg.showPopup({ message: `Tamom! Ballingiz: ${score}. Reytingda yangilandi!` });
             location.reload(); 
             return; 
         }
@@ -117,24 +140,17 @@
         const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
 
-        status.innerText = "Yakkaxon qo'shiq qidirilmoqda...";
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
+        status.innerText = "Qidirilmoqda...";
 
         const musicUrl = await fetchMusic(q.search_term);
-
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => {
-                disc.classList.add('spinning');
-                startTimer();
-                status.innerText = "Musiqa yangramoqda...";
-            });
+            audio.play().then(() => { disc.classList.add('spinning'); startTimer(); status.innerText = "Eshiting..."; });
         } else {
-            status.innerText = "Musiqa topilmadi, o'tkazildi...";
-            setTimeout(() => { currentIdx++; loadRound(); }, 1500);
-            return;
+            currentIdx++; loadRound(); return;
         }
 
         q.options.forEach((opt, i) => {
@@ -145,15 +161,12 @@
                 clearInterval(timerInterval);
                 const btns = document.querySelectorAll('.option-btn');
                 btns.forEach(b => b.disabled = true);
-                
                 if(i === q.correct) {
-                    btn.classList.add('correct');
-                    score += 10;
+                    btn.classList.add('correct'); score += 10;
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    btn.classList.add('wrong');
-                    btns[q.correct].classList.add('correct');
+                    btn.classList.add('wrong'); btns[q.correct].classList.add('correct');
                     tg.HapticFeedback.notificationOccurred('error');
                 }
                 setTimeout(() => { currentIdx++; loadRound(); }, 1500);
@@ -162,15 +175,68 @@
         });
     }
 
+    async function fetchMusic(term, isRetry = false) {
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=10&entity=song`);
+            const data = await res.json();
+            const soloTracks = data.results.filter(t => !["&", "feat", "with", " va "].some(m => t.artistName.toLowerCase().includes(m) || t.trackName.toLowerCase().includes(m)));
+            if (soloTracks.length > 0) return soloTracks[0].previewUrl;
+            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
+            return data.results[0]?.previewUrl;
+        } catch (e) { return null; }
+    }
+
     function startTimer() {
-        let t = 15;
-        document.getElementById('timer').innerText = t;
+        let t = 15; document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            t--;
-            document.getElementById('timer').innerText = t;
+            t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { clearInterval(timerInterval); currentIdx++; loadRound(); }
         }, 1000);
+    }
+
+    // REYTINGNI SAQLASH
+    async function saveScore() {
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        const snap = await get(userRef);
+        const oldScore = snap.exists() ? snap.val().score : 0;
+        
+        if (score > oldScore) {
+            await set(userRef, {
+                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+                score: score,
+                id: user.id,
+                username: user.username || ""
+            });
+        }
+    }
+
+    // REYTINGNI YUKLASH
+    async function loadLeaderboard() {
+        const listDiv = document.getElementById('rank-list');
+        listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
+        
+        const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
+        const snap = await get(rankQuery);
+        
+        if(snap.exists()) {
+            listDiv.innerHTML = "";
+            const rawData = [];
+            snap.forEach(child => { rawData.push(child.val()); });
+            rawData.reverse().forEach((u, index) => {
+                const item = document.createElement('div');
+                item.className = 'rank-item';
+                if(u.id == user.id) item.style.borderColor = "#ffcc00";
+                item.innerHTML = `
+                    <div class="rank-num">${index + 1}</div>
+                    <div class="rank-name">${u.name} ${u.id == user.id ? "(Siz)" : ""}</div>
+                    <div class="rank-score">${u.score}</div>
+                `;
+                listDiv.appendChild(item);
+            });
+        } else {
+            listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
+        }
     }
 </script>
 </body>
