@@ -41,13 +41,15 @@
 
         /* Custom Result Modal */
         #result-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
             display: none; align-items: center; justify-content: center; padding: 20px;
         }
         .result-card {
             background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px;
             border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
+            position: relative;
         }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Leaderboard UI */
@@ -64,9 +66,18 @@
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
         
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
+
+        /* Offline Toast */
+        #offline-notice {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--danger); color: white; padding: 10px 20px;
+            border-radius: 50px; font-weight: bold; z-index: 3000; display: none;
+        }
     </style>
 </head>
 <body>
+
+<div id="offline-notice">Internet aloqasi yo'q! ⚠️</div>
 
 <div id="loading-screen">
     <div class="loader">
@@ -77,6 +88,7 @@
 
 <div id="result-modal">
     <div class="result-card">
+        <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
@@ -153,9 +165,16 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
         }, 2500);
+        
+        // Internet aloqasini tekshirish
+        window.addEventListener('offline', () => {
+            document.getElementById('offline-notice').style.display = 'block';
+        });
+        window.addEventListener('online', () => {
+            document.getElementById('offline-notice').style.display = 'none';
+        });
     };
 
-    // Back tugmasi mantiqi
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
@@ -174,7 +193,12 @@
         document.getElementById('pre-game').style.display = 'block';
         score = 0;
         lives = 3;
+        document.getElementById('result-modal').style.display = 'none';
     }
+
+    window.closeResultModal = () => {
+        quitGame();
+    };
 
     window.showPage = (pageId, el) => {
         if(isPlaying) return;
@@ -186,6 +210,10 @@
     };
 
     window.startGame = () => {
+        if (!navigator.onLine) {
+            tg.showAlert("Internetga ulaning!");
+            return;
+        }
         isPlaying = true;
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
@@ -205,18 +233,26 @@
     };
 
     async function initGame() {
-        const snap = await get(ref(db, 'questions'));
-        if(snap.exists()) {
-            questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
-            loadRound();
+        try {
+            const snap = await get(ref(db, 'questions'));
+            if(snap.exists()) {
+                questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
+                loadRound();
+            }
+        } catch (e) {
+            tg.showAlert("Ma'lumot yuklashda xatolik!");
         }
     }
 
     async function loadRound() {
         if(!isPlaying) return;
-        if(lives <= 0 || currentIdx >= questions.length) { 
-            endGame();
+        if(lives <= 0) { 
+            endGame(true); // Faqat jon tugaganda modal
             return; 
+        }
+        if(currentIdx >= questions.length) {
+            endGame(false); // G'alaba qozonganda modal
+            return;
         }
         
         const q = questions[currentIdx];
@@ -232,7 +268,8 @@
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => { disc.classList.add('spinning'); startTimer(); status.innerText = "Eshiting..."; });
+            audio.play().then(() => { disc.classList.add('spinning'); startTimer(); status.innerText = "Eshiting..."; })
+                 .catch(() => { currentIdx++; loadRound(); });
         } else {
             currentIdx++; loadRound(); return;
         }
@@ -267,7 +304,7 @@
         livesEl.innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
     }
 
-    function endGame() {
+    function endGame(isGameOver) {
         isPlaying = false;
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
@@ -279,13 +316,17 @@
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
         const titleDisplay = document.getElementById('result-title');
+        const closeBtn = document.querySelector('.close-modal');
         
-        titleDisplay.innerText = lives <= 0 ? "O'yin tugadi!" : "G'alaba!";
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
         scoreDisplay.innerText = score;
+        
+        // Modal ko'rsatish
         modal.style.display = 'flex';
     }
 
     async function fetchMusic(term, isRetry = false) {
+        if (!navigator.onLine) return null;
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=10&entity=song`);
             const data = await res.json();
@@ -300,6 +341,12 @@
         let t = 15; document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
+            if (!navigator.onLine) {
+                clearInterval(timerInterval);
+                audio.pause();
+                tg.showAlert("Internet aloqasi uzildi!");
+                return;
+            }
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
@@ -312,37 +359,43 @@
     }
 
     async function saveScore() {
-        if (score <= 0) return;
+        if (score <= 0 || !navigator.onLine) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
-        const snap = await get(userRef);
-        const oldScore = snap.exists() ? snap.val().score : 0;
-        if (score > oldScore) {
-            await set(userRef, {
-                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                score: score,
-                id: user.id
-            });
-        }
+        try {
+            const snap = await get(userRef);
+            const oldScore = snap.exists() ? snap.val().score : 0;
+            if (score > oldScore) {
+                await set(userRef, {
+                    name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+                    score: score,
+                    id: user.id
+                });
+            }
+        } catch (e) {}
     }
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
         listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
-        const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
-        const snap = await get(rankQuery);
-        if(snap.exists()) {
-            listDiv.innerHTML = "";
-            const rawData = [];
-            snap.forEach(child => { rawData.push(child.val()); });
-            rawData.reverse().forEach((u, index) => {
-                const item = document.createElement('div');
-                item.className = 'rank-item';
-                if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
-                listDiv.appendChild(item);
-            });
-        } else {
-            listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
+        try {
+            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
+            const snap = await get(rankQuery);
+            if(snap.exists()) {
+                listDiv.innerHTML = "";
+                const rawData = [];
+                snap.forEach(child => { rawData.push(child.val()); });
+                rawData.reverse().forEach((u, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'rank-item';
+                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
+                    item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
+                    listDiv.appendChild(item);
+                });
+            } else {
+                listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
+            }
+        } catch (e) {
+            listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>";
         }
     }
 </script>
