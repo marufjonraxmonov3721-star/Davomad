@@ -10,6 +10,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
+        /* Loading Animation */
         #loading-screen { 
             position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -25,19 +26,21 @@
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
+        /* Game UI */
         .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; }
         .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .option-btn, .start-btn, .share-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
+        .option-btn, .start-btn, .invite-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; }
-        .share-btn { background: #0088cc; border: none; margin-top: 15px; }
+        .invite-btn { background: #0088cc; border: none; margin-top: 15px; }
         .correct { background: var(--primary) !important; color: #000 !important; }
         .wrong { background: var(--danger) !important; }
 
         .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
 
+        /* Custom Result Modal */
         #result-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
             display: none; align-items: center; justify-content: center; padding: 20px;
@@ -50,12 +53,14 @@
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+        /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
         .rank-num { width: 30px; font-weight: bold; color: var(--primary); }
         .rank-name { flex: 1; font-size: 14px; }
         .rank-score { font-weight: bold; color: var(--primary); }
 
+        /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -63,6 +68,7 @@
         
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
+        /* Modern Offline Toast */
         #offline-notice {
             position: fixed; top: -100px; left: 0; right: 0;
             background: rgba(255, 62, 62, 0.95); color: white; 
@@ -95,9 +101,9 @@
         <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
-        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 10px;">0</div>
-        <button class="start-btn" onclick="restartGame()">QAYTA O'YNASH</button>
-        <button class="share-btn" onclick="shareGame()">DO'STLARNI TAKLIF QILISH (+50 🏆)</button>
+        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
+        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+        <button class="invite-btn" onclick="inviteFriend()">DO'ST TAKLIF QILISH (+100 🏆)</button>
     </div>
 </div>
 
@@ -119,7 +125,7 @@
                 <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
                 <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
-                <button class="share-btn" onclick="shareGame()">DO'STLARNI TAKLIF QILISH</button>
+                <button class="invite-btn" onclick="inviteFriend()">DO'ST TAKLIF QILISH (+100 🏆)</button>
             </div>
         </div>
     </div>
@@ -166,55 +172,64 @@
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
 
-    window.onload = async () => {
+    window.onload = () => {
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
         }, 2500);
         
-        handleReferral(); // Do'st taklifini tekshirish
+        checkReferral(); // Taklif qilingan do'stni tekshirish
 
         const checkNetwork = () => {
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
                 notice.classList.add('show');
-                if(isPlaying) { clearInterval(timerInterval); audio.pause(); }
+                if(isPlaying) {
+                    clearInterval(timerInterval);
+                    audio.pause();
+                }
             } else {
                 notice.classList.remove('show');
-                if(isPlaying && audio.src) { audio.play().catch(e => {}); startTimer(parseInt(document.getElementById('timer').innerText)); }
+                if(isPlaying && audio.src) {
+                   audio.play().catch(e => {});
+                   startTimer(parseInt(document.getElementById('timer').innerText));
+                }
             }
         };
+
         window.addEventListener('offline', checkNetwork);
         window.addEventListener('online', checkNetwork);
         checkNetwork();
     };
 
-    // Referal tizimi
-    async function handleReferral() {
+    // Referal tizimi funksiyasi
+    async function checkReferral() {
         const startParam = tg.initDataUnsafe?.start_param;
         if (startParam && startParam !== user.id.toString()) {
-            const refBonusKey = `ref_bonus_${user.id}`;
-            const alreadyUsed = localStorage.getItem(refBonusKey);
+            // Agar foydalanuvchi birinchi marta kirgan bo'lsa
+            const userHistoryRef = ref(db, `users/${user.id}`);
+            const userSnap = await get(userHistoryRef);
             
-            if (!alreadyUsed) {
-                try {
-                    const referrerRef = ref(db, `leaderboard/${startParam}`);
-                    const snap = await get(referrerRef);
-                    if (snap.exists()) {
-                        const currentScore = snap.val().score || 0;
-                        await update(referrerRef, { score: currentScore + 50 });
-                        localStorage.setItem(refBonusKey, "true");
-                    }
-                } catch (e) { console.log("Referral error"); }
+            if (!userSnap.exists()) {
+                // Yangi foydalanuvchini ro'yxatga olish
+                await set(userHistoryRef, { joined: true, invitedBy: startParam });
+                
+                // Taklif qilgan kishining ballini yangilash
+                const inviterRef = ref(db, `leaderboard/${startParam}`);
+                const inviterSnap = await get(inviterRef);
+                
+                if (inviterSnap.exists()) {
+                    const currentInviterScore = inviterSnap.val().score || 0;
+                    await update(inviterRef, { score: currentInviterScore + 100 });
+                }
             }
         }
     }
 
-    window.shareGame = () => {
-        const botUsername = "SIZNING_BOT_USERNAMINGIZ"; // BU YERGA BOT USERNAME'INI YOZING
-        const shareUrl = `https://t.me/${botUsername}/app?startapp=${user.id}`;
-        const text = "Men SongLyrics o'yinida qatnashyapman! Sen ham sinab ko'r va ballar yig'!";
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`);
+    window.inviteFriend = () => {
+        const inviteLink = `https://t.me/Songlyrics_uzbot/app?startapp=${user.id}`;
+        const text = "Musiqa bilimingni sinab ko'r! Men bilan musobaqalash va reytingda yuqoriga ko'taril! 🎵🏆";
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`);
     };
 
     tg.BackButton.onClick(() => {
@@ -233,11 +248,14 @@
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
-        score = 0; lives = 3;
+        score = 0;
+        lives = 3;
         document.getElementById('result-modal').style.display = 'none';
     }
 
-    window.closeResultModal = () => { quitGame(); };
+    window.closeResultModal = () => {
+        quitGame();
+    };
 
     window.showPage = (pageId, el) => {
         if(isPlaying) return;
@@ -249,7 +267,10 @@
     };
 
     window.startGame = () => {
-        if (!navigator.onLine) { tg.showAlert("O'yinni boshlash uchun internet kerak!"); return; }
+        if (!navigator.onLine) {
+            tg.showAlert("O'yinni boshlash uchun internet kerak!");
+            return;
+        }
         isPlaying = true;
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
@@ -259,7 +280,9 @@
     };
 
     window.restartGame = () => {
-        currentIdx = 0; score = 0; lives = 3;
+        currentIdx = 0;
+        score = 0;
+        lives = 3;
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
@@ -273,7 +296,9 @@
                 questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
                 loadRound();
             }
-        } catch (e) { tg.showAlert("Ma'lumot yuklashda xatolik!"); }
+        } catch (e) {
+            tg.showAlert("Ma'lumot yuklashda xatolik!");
+        }
     }
 
     async function loadRound() {
@@ -296,7 +321,9 @@
             audio.src = musicUrl;
             audio.play().then(() => { disc.classList.add('spinning'); startTimer(15); status.innerText = "Eshiting..."; })
                  .catch(() => { currentIdx++; loadRound(); });
-        } else { currentIdx++; loadRound(); return; }
+        } else {
+            currentIdx++; loadRound(); return;
+        }
 
         q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
@@ -333,7 +360,8 @@
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         clearInterval(timerInterval);
-        audio.pause(); audio.src = "";
+        audio.pause();
+        audio.src = "";
         saveScore();
         
         const modal = document.getElementById('result-modal');
@@ -350,6 +378,7 @@
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
+            
             const filteredTracks = data.results.filter(t => {
                 const trackName = t.trackName.toLowerCase();
                 const artistName = t.artistName.toLowerCase();
@@ -357,6 +386,7 @@
                 const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
                 return !isDuet && !isCover;
             });
+
             if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
             if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
             return data.results[0]?.previewUrl;
@@ -369,7 +399,13 @@
         timerInterval = setInterval(() => {
             if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
-            if(t <= 0) { clearInterval(timerInterval); lives--; updateLivesUI(); currentIdx++; loadRound(); }
+            if(t <= 0) { 
+                clearInterval(timerInterval); 
+                lives--; 
+                updateLivesUI();
+                currentIdx++; 
+                loadRound(); 
+            }
         }, 1000);
     }
 
@@ -380,7 +416,7 @@
             const snap = await get(userRef);
             const oldScore = snap.exists() ? snap.val().score : 0;
             if (score > oldScore) {
-                await update(userRef, {
+                await set(userRef, {
                     name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                     score: score,
                     id: user.id
@@ -410,8 +446,12 @@
                     item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
                     listDiv.appendChild(item);
                 });
-            } else { listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>"; }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>"; }
+            } else {
+                listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
+            }
+        } catch (e) {
+            listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>";
+        }
     }
 </script>
 </body>
