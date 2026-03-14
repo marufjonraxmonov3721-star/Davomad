@@ -473,7 +473,8 @@
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
                 const baseTime = Math.max(8, 18 - (currentLevel));
-                const levelTime = isBossRound ? Math.floor(baseTime * 0.8) : baseTime;
+                // Boss vaqti 10 soniya etib belgilandi
+                const levelTime = isBossRound ? 10 : baseTime;
                 startTimer(levelTime); 
                 status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
             })
@@ -502,13 +503,12 @@
                     let pointsToAdd;
                     
                     if(isBossRound) {
-                        // Boss uchun Combo: ball * boss_combo (masalan 50 * 10 = 500)
                         const baseBossScore = q.boss_score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
+                        // Boss uchun aniq combo va ball ko'rsatiladi
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
                         
-                        // Boss sovg'asi (agar bo'lsa)
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
                             lives = Math.min(3, lives + 1);
                             updateLivesUI();
