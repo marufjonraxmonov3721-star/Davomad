@@ -148,7 +148,10 @@
             
             <div id="game-ui" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
-                    <span id="score">BALL: 0</span>
+                    <div id="game-stats-left">
+                        <span id="score">BALL: 0</span><br>
+                        <span id="round-counter" style="font-size: 10px; color: #666;">SAVOL: 1/15</span>
+                    </div>
                     <div id="lives" class="lives-container">🎵🎵🎵</div>
                     <span id="timer">15</span>
                 </div>
@@ -159,7 +162,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">Qaysi tildagi qo'shiqlarni yaxshi bilasiz?</p>
+                <p style="color:#666; margin-bottom:20px;">15 ta savoldan iborat raundda o'zingizni sinang!</p>
                 
                 <div class="cat-grid">
                     <button class="cat-btn" onclick="startGame('uzbek')">
@@ -207,8 +210,12 @@
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija</div>
+                    <div class="stat-label">Eng yuqori natija (Best)</div>
                     <div class="stat-value" id="best-score">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Umumiy Tajriba (Total XP)</div>
+                    <div class="stat-value" id="total-xp">0</div>
                 </div>
             </div>
         </div>
@@ -232,7 +239,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -254,6 +261,7 @@
     let isPlaying = false;
     let comboCount = 0;
     let currentCategory = 'uzbek';
+    const ROUND_LIMIT = 15; // Raunddagi savollar soni
     
     let rankLimit = 10;
 
@@ -354,6 +362,7 @@
         lives = 3;
         comboCount = 0;
         document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `SAVOL: 1/${ROUND_LIMIT}`;
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
@@ -366,7 +375,8 @@
             const snap = await get(ref(db, `questions/${currentCategory}`));
             if(snap.exists()) {
                 const data = snap.val();
-                questions = Object.values(data).sort(() => Math.random() - 0.5);
+                // Barcha savollarni aralashtirib, faqat 15 tasini kesib olamiz
+                questions = Object.values(data).sort(() => Math.random() - 0.5).slice(0, ROUND_LIMIT);
                 loadRound();
             } else {
                 tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
@@ -380,8 +390,12 @@
 
     async function loadRound() {
         if(!isPlaying) return;
+        
+        // Agar jon tugasa yoki barcha 15 ta savol tugasa o'yin tugaydi
         if(lives <= 0) { endGame(true); return; }
         if(currentIdx >= questions.length) { endGame(false); return; }
+        
+        document.getElementById('round-counter').innerText = `SAVOL: ${currentIdx + 1}/${ROUND_LIMIT}`;
         
         const q = questions[currentIdx];
         const status = document.getElementById('status');
@@ -408,6 +422,7 @@
                 disc.classList.remove('spinning');
             };
         } else {
+            // Agar musiqa topilmasa, o'sha savolni o'tkazib yuboramiz
             currentIdx++; loadRound(); return;
         }
 
@@ -534,11 +549,13 @@
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
-            const data = snap.exists() ? snap.val() : { score: 0 };
-            const newBestScore = Math.max(score, data.score);
+            const data = snap.exists() ? snap.val() : { score: 0, total_xp: 0 };
+            const newBestScore = Math.max(score, data.score || 0);
+            
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                 score: newBestScore,
+                total_xp: increment(score), // Har bir o'yin ballari qo'shilib boradi
                 id: user.id
             });
         } catch (e) {}
@@ -582,6 +599,7 @@
         const profileName = document.getElementById('profile-name');
         const profileId = document.getElementById('profile-id');
         const bestScoreEl = document.getElementById('best-score');
+        const totalXpEl = document.getElementById('total-xp');
         const profileAvatar = document.getElementById('profile-avatar');
 
         profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
@@ -595,10 +613,15 @@
             if (snap.exists()) {
                 const data = snap.val();
                 bestScoreEl.innerText = data.score || 0;
+                totalXpEl.innerText = data.total_xp || 0;
             } else {
                 bestScoreEl.innerText = "0";
+                totalXpEl.innerText = "0";
             }
-        } catch (e) { bestScoreEl.innerText = "Error"; }
+        } catch (e) { 
+            bestScoreEl.innerText = "Error";
+            totalXpEl.innerText = "Error";
+        }
     }
 </script>
 </body>
