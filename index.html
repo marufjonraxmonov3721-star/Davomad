@@ -458,12 +458,19 @@
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
+            // Musiqa eshitishni boshlaymiz
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
+                // Taymer endi faqat javob berish uchun 15 sekund
                 startTimer(15); 
                 status.innerText = "Eshiting..."; 
             })
             .catch(() => { currentIdx++; loadRound(); });
+            
+            // Muhim: Musiqa tugaganda (odatda 30s) disk to'xtashi uchun
+            audio.onended = () => {
+                disc.classList.remove('spinning');
+            };
         } else {
             currentIdx++; loadRound(); return;
         }
