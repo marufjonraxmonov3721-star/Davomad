@@ -10,7 +10,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
-        /* Loading Animation */
         #loading-screen { 
             position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -26,9 +25,8 @@
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
-        /* Game UI */
         .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; }
-        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
+        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; overflow: hidden; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
@@ -39,77 +37,51 @@
 
         .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
 
-        /* Custom Result Modal */
-        #result-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-        }
-        .result-card {
-            background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px;
-            border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
-            position: relative;
-        }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
+        #result-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .result-card { background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px; border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out; position: relative; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
         .rank-num { width: 30px; font-weight: bold; color: var(--primary); }
         .rank-name { flex: 1; font-size: 14px; }
         .rank-score { font-weight: bold; color: var(--primary); }
 
-        /* Profile UI */
+        /* Profile Styles */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
-        .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; }
+        .avatar-container { width: 100px; height: 100px; margin: 0 auto 20px; position: relative; }
+        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); display: none; }
+        .avatar-placeholder { width: 100%; height: 100%; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 3px solid #222; }
         .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 25px; }
         .stat-item { background: #222; padding: 15px; border-radius: 15px; border: 1px solid #333; }
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
 
-        /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
-        
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        /* Modern Offline Toast */
-        #offline-notice {
-            position: fixed; top: -100px; left: 0; right: 0;
-            background: rgba(255, 62, 62, 0.95); color: white; 
-            padding: 15px; text-align: center; font-weight: bold; 
-            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
-        }
+        #offline-notice { position: fixed; top: -100px; left: 0; right: 0; background: rgba(255, 62, 62, 0.95); color: white; padding: 15px; text-align: center; font-weight: bold; z-index: 5000; transition: 0.5s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         #offline-notice.show { top: 0; }
-        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="offline-notice">
-    <span class="offline-icon">⚠️</span>
-    <span>Internet aloqasi yo'q!</span>
-</div>
+<div id="offline-notice"><span>⚠️ Internet aloqasi yo'q!</span></div>
 
 <div id="loading-screen">
-    <div class="loader">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-    </div>
+    <div class="loader"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
     <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
 </div>
 
 <div id="result-modal">
     <div class="result-card">
-        <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
-        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
-        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+        <button class="start-btn" onclick="restartGame()">QAYTA O'YNASH</button>
+        <p onclick="closeResultModal()" style="margin-top:15px; color:#555; cursor:pointer;">Yopish</p>
     </div>
 </div>
 
@@ -117,19 +89,18 @@
     <div id="page-game" class="page active-page">
         <div class="game-card">
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
-                    <span id="score">BALL: 0</span>
+                <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 10px;">
+                    <span id="score" style="color:var(--primary)">BALL: 0</span>
                     <div id="lives" class="lives-container">❤️❤️❤️</div>
-                    <span id="timer">15</span>
+                    <span id="timer" style="color:var(--primary)">15</span>
                 </div>
                 <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;"></div></div>
-                <p id="status" style="color:#888; font-size:12px; height: 18px;"></p>
+                <p id="status" style="color:#888; font-size:12px; height: 18px; margin-bottom:10px;"></p>
                 <div id="options-box"></div>
             </div>
-            
             <div id="pre-game">
-                <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
-                <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
+                <h2>Tayyormisiz?</h2>
+                <p style="color:#666; margin: 15px 0;">Musiqa minusini eshitib toping!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
             </div>
         </div>
@@ -144,36 +115,29 @@
 
     <div id="page-profile" class="page">
         <div class="profile-card">
-            <div class="avatar-circle" id="profile-avatar">👤</div>
-            <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace;"></p>
-            
+            <div class="avatar-container">
+                <img id="user-photo" class="avatar-img" src="" alt="Avatar">
+                <div id="user-initial" class="avatar-placeholder">👤</div>
+            </div>
+            <h2 id="profile-name">Foydalanuvchi</h2>
+            <p id="profile-id" style="color:#666; font-size:12px;"></p>
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">Eng yuqori natija</div>
                     <div class="stat-value" id="best-score">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Holat</div>
-                    <div class="stat-value" style="font-size:16px;">O'yinchi</div>
+                    <div class="stat-label">Rejim</div>
+                    <div class="stat-value" style="font-size:16px;">Instrumental (Minus)</div>
                 </div>
             </div>
         </div>
     </div>
 
     <nav class="nav-bar" id="bottom-nav">
-        <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span>
-            <span>O'yin</span>
-        </div>
-        <div class="nav-item" onclick="showPage('rank', this)">
-            <span class="nav-icon">🏆</span>
-            <span>Reyting</span>
-        </div>
-        <div class="nav-item" onclick="showPage('profile', this)">
-            <span class="nav-icon">👤</span>
-            <span>Profil</span>
-        </div>
+        <div class="nav-item active" onclick="showPage('game', this)"><span class="nav-icon">🎮</span><span>O'yin</span></div>
+        <div class="nav-item" onclick="showPage('rank', this)"><span class="nav-icon">🏆</span><span>Reyting</span></div>
+        <div class="nav-item" onclick="showPage('profile', this)"><span class="nav-icon">👤</span><span>Profil</span></div>
     </nav>
 </div>
 
@@ -194,7 +158,6 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
@@ -206,52 +169,6 @@
             document.getElementById('app-container').style.display = 'flex';
             loadProfileData();
         }, 2500);
-        
-        const checkNetwork = () => {
-            const notice = document.getElementById('offline-notice');
-            if(!navigator.onLine) {
-                notice.classList.add('show');
-                if(isPlaying) {
-                    clearInterval(timerInterval);
-                    audio.pause();
-                }
-            } else {
-                notice.classList.remove('show');
-                if(isPlaying && audio.src) {
-                   audio.play().catch(e => {});
-                   startTimer(parseInt(document.getElementById('timer').innerText));
-                }
-            }
-        };
-
-        window.addEventListener('offline', checkNetwork);
-        window.addEventListener('online', checkNetwork);
-        checkNetwork();
-    };
-
-    tg.BackButton.onClick(() => {
-        if(isPlaying) {
-            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) quitGame();
-            });
-        }
-    });
-
-    function quitGame() {
-        isPlaying = false;
-        clearInterval(timerInterval);
-        audio.pause();
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('pre-game').style.display = 'block';
-        score = 0;
-        lives = 3;
-        document.getElementById('result-modal').style.display = 'none';
-    }
-
-    window.closeResultModal = () => {
-        quitGame();
     };
 
     window.showPage = (pageId, el) => {
@@ -265,12 +182,7 @@
     };
 
     window.startGame = () => {
-        if (!navigator.onLine) {
-            tg.showAlert("O'yinni boshlash uchun internet kerak!");
-            return;
-        }
         isPlaying = true;
-        tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
@@ -278,9 +190,7 @@
     };
 
     window.restartGame = () => {
-        currentIdx = 0;
-        score = 0;
-        lives = 3;
+        currentIdx = 0; score = 0; lives = 3;
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
@@ -288,37 +198,32 @@
     };
 
     async function initGame() {
-        try {
-            const snap = await get(ref(db, 'questions'));
-            if(snap.exists()) {
-                questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
-                loadRound();
-            }
-        } catch (e) {
-            tg.showAlert("Ma'lumot yuklashda xatolik!");
+        const snap = await get(ref(db, 'questions'));
+        if(snap.exists()) {
+            questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
+            loadRound();
         }
     }
 
     async function loadRound() {
-        if(!isPlaying) return;
         if(lives <= 0) { endGame(true); return; }
         if(currentIdx >= questions.length) { endGame(false); return; }
         
         const q = questions[currentIdx];
-        const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
-        const disc = document.getElementById('disc');
-
         optionsBox.innerHTML = "";
-        disc.classList.remove('spinning');
-        audio.pause();
-        status.innerText = "Musiqa qidirilmoqda...";
+        document.getElementById('disc').classList.remove('spinning');
+        document.getElementById('status').innerText = "Minus qidirilmoqda...";
 
-        const musicUrl = await fetchMusic(q.search_term);
+        // Qidiruvga "instrumental" qo'shildi o'yinni qiyinlashtirish uchun
+        const musicUrl = await fetchMusic(q.search_term + " instrumental");
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => { disc.classList.add('spinning'); startTimer(15); status.innerText = "Eshiting..."; })
-                 .catch(() => { currentIdx++; loadRound(); });
+            audio.play().then(() => { 
+                document.getElementById('disc').classList.add('spinning'); 
+                startTimer(15); 
+                document.getElementById('status').innerText = "Eshiting va toping..."; 
+            });
         } else {
             currentIdx++; loadRound(); return;
         }
@@ -329,149 +234,98 @@
             btn.innerText = opt;
             btn.onclick = () => {
                 clearInterval(timerInterval);
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
                 if(i === q.correct) {
                     btn.classList.add('correct'); score += 10;
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    btn.classList.add('wrong'); 
-                    btns[q.correct].classList.add('correct');
-                    lives--;
-                    updateLivesUI();
+                    btn.classList.add('wrong'); lives--; updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
-                setTimeout(() => { currentIdx++; loadRound(); }, 1500);
+                setTimeout(() => { currentIdx++; loadRound(); }, 1200);
             };
             optionsBox.appendChild(btn);
         });
     }
 
-    function updateLivesUI() {
-        const livesEl = document.getElementById('lives');
-        livesEl.innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
-    }
-
-    function endGame(isGameOver) {
-        isPlaying = false;
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        clearInterval(timerInterval);
-        audio.pause();
-        audio.src = "";
-        saveScore();
-        
-        const modal = document.getElementById('result-modal');
-        const scoreDisplay = document.getElementById('final-score');
-        const titleDisplay = document.getElementById('result-title');
-        
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        scoreDisplay.innerText = score;
-        modal.style.display = 'flex';
-    }
-
-    async function fetchMusic(term, isRetry = false) {
-        if (!navigator.onLine) return null;
+    async function fetchMusic(term) {
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
+            // "instrumental" yoki "karaoke" qidirish orqali qiyinchilik oshiriladi
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=5&entity=song`);
             const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
-                const artistName = t.artistName.toLowerCase();
-                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
-                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isDuet && !isCover;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
             return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
 
-    function startTimer(startTime) {
-        let t = startTime; document.getElementById('timer').innerText = t;
+    function startTimer(t) {
+        document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
-            if(t <= 0) { 
-                clearInterval(timerInterval); 
-                lives--; 
-                updateLivesUI();
-                currentIdx++; 
-                loadRound(); 
-            }
+            if(t <= 0) { clearInterval(timerInterval); lives--; updateLivesUI(); currentIdx++; loadRound(); }
         }, 1000);
     }
 
+    function updateLivesUI() {
+        document.getElementById('lives').innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3-lives));
+    }
+
+    function endGame(isGameOver) {
+        isPlaying = false;
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        clearInterval(timerInterval); audio.pause();
+        saveScore();
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('result-modal').style.display = 'flex';
+    }
+
     async function saveScore() {
-        if (score <= 0 || !navigator.onLine) return;
+        if (score <= 0) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
-        try {
-            const snap = await get(userRef);
-            const oldScore = snap.exists() ? snap.val().score : 0;
-            if (score > oldScore) {
-                await update(userRef, {
-                    name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                    score: score,
-                    id: user.id
-                });
-            }
-        } catch (e) {}
+        const snap = await get(userRef);
+        if (!snap.exists() || score > snap.val().score) {
+            await update(userRef, { name: user.first_name, score: score, id: user.id });
+        }
     }
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
-        if (!navigator.onLine) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
-            return;
-        }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
-        try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
-            const snap = await get(rankQuery);
-            if(snap.exists()) {
-                listDiv.innerHTML = "";
-                const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
-                rawData.reverse().forEach((u, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'rank-item';
-                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
-                    listDiv.appendChild(item);
-                });
-            } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
-            }
-        } catch (e) {
-            listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>";
+        listDiv.innerHTML = "Yuklanmoqda...";
+        const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10)));
+        if(snap.exists()) {
+            listDiv.innerHTML = "";
+            let data = [];
+            snap.forEach(c => data.push(c.val()));
+            data.reverse().forEach((u, i) => {
+                listDiv.innerHTML += `<div class="rank-item"><div class="rank-num">${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div></div>`;
+            });
         }
     }
 
-    // NEW PROFILE FUNCTION
     async function loadProfileData() {
-        const profileName = document.getElementById('profile-name');
-        const profileId = document.getElementById('profile-id');
-        const bestScoreEl = document.getElementById('best-score');
-        const profileAvatar = document.getElementById('profile-avatar');
-
-        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-        profileId.innerText = "ID: " + user.id;
-        profileAvatar.innerText = user.first_name.charAt(0);
-
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                bestScoreEl.innerText = snap.val().score;
-            } else {
-                bestScoreEl.innerText = "0";
-            }
-        } catch (e) {
-            bestScoreEl.innerText = "Error";
+        document.getElementById('profile-name').innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+        document.getElementById('profile-id').innerText = "ID: " + user.id;
+        
+        // Telegram rasm qismi
+        const photoImg = document.getElementById('user-photo');
+        const initialDiv = document.getElementById('user-initial');
+        if (user.photo_url) {
+            photoImg.src = user.photo_url;
+            photoImg.style.display = 'block';
+            initialDiv.style.display = 'none';
+        } else {
+            initialDiv.innerText = user.first_name.charAt(0);
         }
+
+        const snap = await get(ref(db, `leaderboard/${user.id}`));
+        document.getElementById('best-score').innerText = snap.exists() ? snap.val().score : "0";
     }
+
+    window.closeResultModal = () => {
+        document.getElementById('result-modal').style.display = 'none';
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('pre-game').style.display = 'block';
+    };
 </script>
 </body>
 </html>
