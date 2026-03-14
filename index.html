@@ -83,6 +83,10 @@
         .stat-item { background: #222; padding: 15px; border-radius: 15px; border: 1px solid #333; }
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
+        
+        /* Progress Bar */
+        .progress-container { width: 100%; background: #333; height: 10px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: 0.5s; }
 
         /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
@@ -164,16 +168,24 @@
         <div class="profile-card">
             <div class="avatar-circle" id="profile-avatar">👤</div>
             <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace;"></p>
+            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 15px;"></p>
             
+            <div class="stat-item" style="margin-bottom: 15px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-size:14px; font-weight:bold;">LEVEL <span id="level-value">1</span></span>
+                    <span style="font-size:12px; color:#888;"><span id="xp-current">0</span> / <span id="xp-next">100</span> XP</span>
+                </div>
+                <div class="progress-container"><div class="progress-bar" id="level-progress"></div></div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">Eng yuqori natija</div>
                     <div class="stat-value" id="best-score">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Holat</div>
-                    <div class="stat-value" style="font-size:16px;">O'yinchi</div>
+                    <div class="stat-label">Umumiy XP</div>
+                    <div class="stat-value" id="total-xp">0</div>
                 </div>
             </div>
         </div>
@@ -217,8 +229,6 @@
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
-    
-    // Combo Variables
     let comboCount = 0;
 
     window.onload = () => {
@@ -357,26 +367,19 @@
                 btns.forEach(b => b.disabled = true);
                 if(i === q.correct) {
                     btn.classList.add('correct'); 
-                    
-                    // Combo Logic
                     comboCount++;
                     const comboMultiplier = Math.floor(comboCount / 3) + 1;
                     const pointsToAdd = 10 * comboMultiplier;
                     score += pointsToAdd;
-                    
                     showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                     updateComboUI();
-                    
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns[q.correct].classList.add('correct');
-                    
-                    // Reset Combo
                     comboCount = 0;
                     updateComboUI();
-                    
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -403,7 +406,6 @@
             const multiplier = Math.floor(comboCount / 3) + 1;
             badge.innerText = `COMBO x${multiplier}`;
             badge.style.display = 'block';
-            // Visual pulse on increase
             badge.style.animation = 'none';
             badge.offsetHeight; 
             badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
@@ -426,11 +428,9 @@
         audio.pause();
         audio.src = "";
         saveScore();
-        
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
         const titleDisplay = document.getElementById('result-title');
-        
         titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
         scoreDisplay.innerText = score;
         modal.style.display = 'flex';
@@ -477,14 +477,15 @@
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
-            const oldScore = snap.exists() ? snap.val().score : 0;
-            if (score > oldScore) {
-                await update(userRef, {
-                    name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                    score: score,
-                    id: user.id
-                });
-            }
+            const data = snap.exists() ? snap.val() : { score: 0, totalXP: 0 };
+            const newBestScore = Math.max(score, data.score);
+            const newTotalXP = (data.totalXP || 0) + score;
+            await update(userRef, {
+                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+                score: newBestScore,
+                totalXP: newTotalXP,
+                id: user.id
+            });
         } catch (e) {}
     }
 
@@ -512,36 +513,58 @@
             } else {
                 listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
             }
-        } catch (e) {
-            listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>";
-        }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
         const profileName = document.getElementById('profile-name');
         const profileId = document.getElementById('profile-id');
         const bestScoreEl = document.getElementById('best-score');
+        const totalXpEl = document.getElementById('total-xp');
         const profileAvatar = document.getElementById('profile-avatar');
+        const levelVal = document.getElementById('level-value');
+        const xpCurr = document.getElementById('xp-current');
+        const xpNext = document.getElementById('xp-next');
+        const progress = document.getElementById('level-progress');
 
         profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
         profileId.innerText = "ID: " + user.id;
 
-        if (user.photo_url) {
-            profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`;
-        } else {
-            profileAvatar.innerText = user.first_name.charAt(0);
-        }
+        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
+        else { profileAvatar.innerText = user.first_name.charAt(0); }
 
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
-                bestScoreEl.innerText = snap.val().score;
+                const data = snap.val();
+                const xp = data.totalXP || 0;
+                bestScoreEl.innerText = data.score || 0;
+                totalXpEl.innerText = xp;
+                
+                // Level calculation: Each level needs Level * 200 XP
+                let level = 1;
+                let remainingXP = xp;
+                let requiredXP = level * 200;
+                
+                while (remainingXP >= requiredXP) {
+                    remainingXP -= requiredXP;
+                    level++;
+                    requiredXP = level * 200;
+                }
+                
+                levelVal.innerText = level;
+                xpCurr.innerText = remainingXP;
+                xpNext.innerText = requiredXP;
+                progress.style.width = (remainingXP / requiredXP * 100) + "%";
             } else {
                 bestScoreEl.innerText = "0";
+                totalXpEl.innerText = "0";
+                levelVal.innerText = "1";
+                xpCurr.innerText = "0";
+                xpNext.innerText = "200";
+                progress.style.width = "0%";
             }
-        } catch (e) {
-            bestScoreEl.innerText = "Error";
-        }
+        } catch (e) { bestScoreEl.innerText = "Error"; }
     }
 </script>
 </body>
