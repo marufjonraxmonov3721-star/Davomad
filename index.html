@@ -58,10 +58,12 @@
         .rank-score { font-weight: bold; color: var(--primary); }
 
         /* Navigation */
-        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
+        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        
+        .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -111,7 +113,7 @@
         </div>
     </div>
 
-    <nav class="nav-bar">
+    <nav class="nav-bar" id="bottom-nav">
         <div class="nav-item active" onclick="showPage('game', this)">
             <span class="nav-icon">🎮</span>
             <span>O'yin</span>
@@ -140,9 +142,11 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
+    tg.enableClosingConfirmation();
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
+    let isPlaying = false;
 
     window.onload = () => {
         setTimeout(() => {
@@ -151,7 +155,29 @@
         }, 2500);
     };
 
+    // Back tugmasi mantiqi
+    tg.BackButton.onClick(() => {
+        if(isPlaying) {
+            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
+                if(confirmed) quitGame();
+            });
+        }
+    });
+
+    function quitGame() {
+        isPlaying = false;
+        clearInterval(timerInterval);
+        audio.pause();
+        tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('pre-game').style.display = 'block';
+        score = 0;
+        lives = 3;
+    }
+
     window.showPage = (pageId, el) => {
+        if(isPlaying) return;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(`page-${pageId}`).classList.add('active-page');
@@ -160,22 +186,22 @@
     };
 
     window.startGame = () => {
+        isPlaying = true;
+        tg.BackButton.show();
+        document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
         initGame();
     };
 
     window.restartGame = () => {
-        // Parametrlarni tozalash
         currentIdx = 0;
         score = 0;
         lives = 3;
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
-        
-        // Modalni yopish va o'yinni boshlash
         document.getElementById('result-modal').style.display = 'none';
-        initGame();
+        startGame();
     };
 
     async function initGame() {
@@ -187,6 +213,7 @@
     }
 
     async function loadRound() {
+        if(!isPlaying) return;
         if(lives <= 0 || currentIdx >= questions.length) { 
             endGame();
             return; 
@@ -241,6 +268,9 @@
     }
 
     function endGame() {
+        isPlaying = false;
+        tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
