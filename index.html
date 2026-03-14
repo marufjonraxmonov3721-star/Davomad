@@ -32,9 +32,8 @@
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .option-btn, .start-btn, .invite-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
+        .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; }
-        .invite-btn { background: #0088cc; border: none; margin-top: 15px; }
         .correct { background: var(--primary) !important; color: #000 !important; }
         .wrong { background: var(--danger) !important; }
 
@@ -103,7 +102,6 @@
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
-        <button class="invite-btn" onclick="inviteFriend()">DO'ST TAKLIF QILISH (+100 🏆)</button>
     </div>
 </div>
 
@@ -125,7 +123,6 @@
                 <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
                 <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
-                <button class="invite-btn" onclick="inviteFriend()">DO'ST TAKLIF QILISH (+100 🏆)</button>
             </div>
         </div>
     </div>
@@ -151,7 +148,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -178,8 +175,6 @@
             document.getElementById('app-container').style.display = 'flex';
         }, 2500);
         
-        checkReferral(); 
-
         const checkNetwork = () => {
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
@@ -200,51 +195,6 @@
         window.addEventListener('offline', checkNetwork);
         window.addEventListener('online', checkNetwork);
         checkNetwork();
-    };
-
-    async function checkReferral() {
-        if (user.id === "guest") return;
-        
-        const startParam = tg.initDataUnsafe?.start_param;
-        const localJoinedKey = `joined_${user.id}`;
-        
-        // Agar bu yangi foydalanuvchi bo'lsa (brauzer xotirasida belgisi yo'q)
-        if (!localStorage.getItem(localJoinedKey)) {
-            const userRef = ref(db, `users/${user.id}`);
-            
-            // Firebase'da ham tekshirib ko'ramiz (xavfsizlik uchun)
-            const snap = await get(userRef);
-            if (!snap.exists()) {
-                await set(userRef, {
-                    id: user.id,
-                    name: user.first_name,
-                    joinedAt: Date.now()
-                });
-
-                // Agar taklif havolasi bilan kirgan bo'lsa
-                if (startParam && startParam !== user.id.toString()) {
-                    const inviterRef = ref(db, `leaderboard/${startParam}`);
-                    
-                    // runTransaction ballni xatosiz va tez qo'shish uchun eng yaxshi usul
-                    await runTransaction(inviterRef, (currentData) => {
-                        if (currentData === null) {
-                            return { id: startParam, name: "O'yinchi", score: 100 };
-                        } else {
-                            currentData.score = (currentData.score || 0) + 100;
-                            return currentData;
-                        }
-                    });
-                    tg.showAlert("Do'stingiz taklifi bilan kirdingiz! Unga 100 ball berildi.");
-                }
-            }
-            localStorage.setItem(localJoinedKey, "true");
-        }
-    }
-
-    window.inviteFriend = () => {
-        const inviteLink = `https://t.me/Songlyrics_uzbot/app?startapp=${user.id}`;
-        const text = "Musiqa bilimingni sinab ko'r! Men bilan musobaqalash va reytingda yuqoriga ko'taril! 🎵🏆";
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`);
     };
 
     tg.BackButton.onClick(() => {
