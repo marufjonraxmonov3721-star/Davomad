@@ -283,6 +283,9 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
+    // YUKLANGAN SAVOLLARNI TEKSHIRISH UCHUN SET
+    let usedQuestions = new Set();
+    
     let rankLimit = 10;
 
     window.onload = () => {
@@ -348,6 +351,7 @@
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
+        usedQuestions.clear(); // O'yindan chiqsa ro'yxatni tozalaymiz
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -384,6 +388,7 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
+        usedQuestions.clear(); // Yangi o'yinda tozalaymiz
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -419,7 +424,11 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        const levelData = Object.values(allQuestions).filter(q => (q.level || 1) == currentLevel);
+        
+        // Savollarni levelga qarab filtrlaymiz va avval tushganlarini olib tashlaymiz
+        const levelData = Object.values(allQuestions).filter(q => 
+            (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
+        );
         
         const normalQuestions = levelData.filter(q => !q.is_boss);
         const bosses = levelData.filter(q => q.is_boss);
@@ -430,6 +439,7 @@
             currentIdx = 0;
             loadRound();
         } else {
+            // Agar savollar qolmagan bo'lsa (hamma savol ko'rilgan bo'lsa) lekin o'yin hali tugamagan bo'lsa
             if (currentLevel > 1) endGame(false);
             else { tg.showAlert("Savollar yetarli emas!"); quitGame(); }
         }
@@ -449,7 +459,6 @@
             if(bossQuestion && !isBossRound) {
                 isBossRound = true;
                 q = bossQuestion;
-                // Boss boshlanganda vizaul combo yashiriladi
                 document.getElementById('combo-badge').style.display = 'none';
                 document.body.classList.add('boss-active');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
@@ -463,6 +472,9 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
+        // SAVOLNI ISHLATILGANLAR RO'YXATIGA QO'SHISH
+        usedQuestions.add(q.search_term);
+
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
@@ -503,12 +515,9 @@
                     let pointsToAdd;
                     
                     if(isBossRound) {
-                        // Boss uchun bazadan belgilangan combo va ball olinadi
                         const baseBossScore = q.boss_score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
-                        
-                        // Boss natijasini ko'rsatish
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
                         
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
@@ -574,7 +583,6 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        // Boss raundida combo badge ko'rsatilmaydi (u yashirin qoladi)
         if (isBossRound) {
             badge.style.display = 'none';
             return;
