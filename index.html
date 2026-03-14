@@ -83,7 +83,9 @@
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
         .rank-num { width: 35px; font-weight: bold; color: var(--primary); font-size: 14px; }
         .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .rank-score { font-weight: bold; color: var(--primary); font-size: 14px; }
+        .rank-score-box { text-align: right; }
+        .rank-score { font-weight: bold; color: var(--primary); font-size: 14px; display: block; }
+        .rank-lvl { font-size: 9px; color: #666; display: block; }
         .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
 
         /* Profile UI */
@@ -136,7 +138,8 @@
         <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
-        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
+        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
+        <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
     </div>
 </div>
@@ -210,7 +213,11 @@
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija (Best)</div>
+                    <div class="stat-label">Eng yuqori bosqich (Best Level)</div>
+                    <div class="stat-value" id="best-level">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Eng yuqori natija (Best Score)</div>
                     <div class="stat-value" id="best-score">0</div>
                 </div>
                 <div class="stat-item">
@@ -321,11 +328,18 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
+        
+        // Reset game states
         score = 0;
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
+        
+        // Update UI reset
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
     }
 
@@ -351,8 +365,18 @@
         }
         currentCategory = category || 'uzbek';
         isPlaying = true;
+        
+        // Reset everything for a fresh start
         currentLevel = 1;
         currentIdx = 0;
+        score = 0;
+        lives = 3;
+        comboCount = 0;
+        
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        updateLivesUI();
+        
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
@@ -361,18 +385,7 @@
     };
 
     window.restartGame = () => {
-        currentIdx = 0;
-        score = 0;
-        lives = 3;
-        comboCount = 0;
-        currentLevel = 1;
-        document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
-        updateLivesUI();
-        document.getElementById('result-modal').style.display = 'none';
-        document.getElementById('pre-game').style.display = 'block';
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        quitGame();
     };
 
     async function initGame() {
@@ -392,16 +405,13 @@
     }
 
     function loadLevelQuestions() {
-        // Hozirgi levelga tegishli savollarni ajratib olamiz
         const levelQuestions = Object.values(allQuestions).filter(q => (q.level || 1) == currentLevel);
         
         if(levelQuestions.length > 0) {
-            // Level ichidagi savollarni aralashtirib, 5 tasini olamiz
             questions = levelQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar bu levelda savol bo'lmasa, lekin oldingi levelni tugatgan bo'lsa - g'alaba
             if (currentLevel > 1) {
                 endGame(false);
             } else {
@@ -416,7 +426,6 @@
         
         if(lives <= 0) { endGame(true); return; }
         
-        // Agar leveldagi 5 ta savol tugasa, keyingi levelga o'tamiz
         if(currentIdx >= questions.length) { 
             currentLevel++;
             loadLevelQuestions();
@@ -441,7 +450,6 @@
             audio.src = musicUrl;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                // Bosqich oshgan sari vaqt kamayadi (20s -> 15s -> 10s...)
                 const levelTime = Math.max(8, 20 - (currentLevel * 2));
                 startTimer(levelTime); 
                 status.innerText = "Eshiting..."; 
@@ -471,7 +479,6 @@
                     btn.classList.add('correct'); 
                     comboCount++;
                     const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                    // Bosqich baland bo'lsa ko'proq ball beradi
                     const pointsToAdd = (10 * comboMultiplier * currentLevel);
                     score += pointsToAdd;
                     showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
@@ -487,7 +494,7 @@
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
-                setTimeout(() => { currentIdx++; loadRound(); }, 1500);
+                setTimeout(() => { if(isPlaying) { currentIdx++; loadRound(); } }, 1500);
             };
             optionsBox.appendChild(btn);
         });
@@ -530,12 +537,17 @@
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
+        
         saveScore();
+        
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
+        const levelDisplay = document.getElementById('final-level');
         const titleDisplay = document.getElementById('result-title');
+        
         titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "Barcha bosqichlar yakunlandi!";
         scoreDisplay.innerText = score;
+        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
         modal.style.display = 'flex';
     }
 
@@ -568,8 +580,12 @@
                 updateComboUI();
                 lives--; 
                 updateLivesUI();
-                currentIdx++; 
-                loadRound(); 
+                if(lives > 0) {
+                    currentIdx++; 
+                    loadRound(); 
+                } else {
+                    endGame(true);
+                }
             }
         }, 1000);
     }
@@ -579,12 +595,14 @@
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
-            const data = snap.exists() ? snap.val() : { score: 0, total_xp: 0 };
+            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
             const newBestScore = Math.max(score, data.score || 0);
+            const newBestLevel = Math.max(currentLevel, data.level || 1);
             
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                 score: newBestScore,
+                level: newBestLevel,
                 total_xp: increment(score),
                 id: user.id
             });
@@ -599,6 +617,7 @@
         }
         listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
         try {
+            // Reytingni hamon eng yuqori ball bo'yicha chiqaramiz
             const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
             const snap = await get(rankQuery);
             if(snap.exists()) {
@@ -615,7 +634,10 @@
                     item.innerHTML = `
                         <div class="rank-num">#${index + 1}</div>
                         <div class="rank-name">${u.name}</div>
-                        <div class="rank-score">${u.score}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">${u.score}</span>
+                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
+                        </div>
                     `;
                     listDiv.appendChild(item);
                 });
@@ -629,6 +651,7 @@
         const profileName = document.getElementById('profile-name');
         const profileId = document.getElementById('profile-id');
         const bestScoreEl = document.getElementById('best-score');
+        const bestLevelEl = document.getElementById('best-level');
         const totalXpEl = document.getElementById('total-xp');
         const profileAvatar = document.getElementById('profile-avatar');
 
@@ -643,13 +666,16 @@
             if (snap.exists()) {
                 const data = snap.val();
                 bestScoreEl.innerText = data.score || 0;
+                bestLevelEl.innerText = data.level || 1;
                 totalXpEl.innerText = data.total_xp || 0;
             } else {
                 bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
                 totalXpEl.innerText = "0";
             }
         } catch (e) { 
             bestScoreEl.innerText = "Error";
+            bestLevelEl.innerText = "Error";
             totalXpEl.innerText = "Error";
         }
     }
