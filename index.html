@@ -285,7 +285,7 @@
     
     // SAVOLLARNI MUZLATISH MEXANIZMI
     let usedQuestions = new Set();
-    let defeatCount = 0; // Necha marta yutqazilganini sanash
+    let defeatCount = 0; // Mag'lubiyatlar soni
     
     let rankLimit = 10;
 
@@ -353,8 +353,8 @@
         currentIdx = 0;
         currentLevel = 1;
         
-        // Agar 5 marta yutqazilgan bo'lsa, savollarni tozalash (qayta tushishi uchun)
-        if (defeatCount >= 5) {
+        // Agar 3 marta yutqazilgan bo'lsa, savollarni tozalash (qayta tushishi uchun)
+        if (defeatCount >= 3) {
             usedQuestions.clear();
             defeatCount = 0;
         }
@@ -430,7 +430,6 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
-        // Faqat ishlatilmagan (usedQuestions to'plamida yo'q) savollarni olish
         const levelData = Object.values(allQuestions).filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
         );
@@ -444,10 +443,9 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar savollar qolmagan bo'lsa va hali yutqazish limiti (5) to'lmagan bo'lsa
             if (currentLevel > 1) endGame(false);
             else { 
-                tg.showAlert("Yangi savollar qolmadi! Eski savollar ochilishi uchun yana " + (5 - defeatCount) + " marta o'yinni tugatishingiz kerak."); 
+                tg.showAlert("Yangi savollar qolmadi! Eskilari ochilishi uchun yana " + (3 - defeatCount) + " marta o'yinni tugatish kerak."); 
                 quitGame(); 
             }
         }
@@ -480,7 +478,6 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        // SAVOL KO'RSATILDIMI? UNI "ISHALITILDI" DEB BELGILASH
         usedQuestions.add(q.search_term);
 
         optionsBox.innerHTML = "";
@@ -624,7 +621,6 @@
         audio.pause();
         audio.src = "";
         
-        // AGAR O'YIN TUGASA (MAG'LUBIYAT), SANAGIChNI OSHIRISH
         if (isGameOver) {
             defeatCount++;
         }
