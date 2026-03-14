@@ -313,10 +313,10 @@
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
-        status.innerText = "Minus qidirilmoqda...";
+        status.innerText = "Musiqa qidirilmoqda...";
 
-        // Qiyinchilikni oshirish uchun "instrumental" kalit so'zi qo'shildi
-        const musicUrl = await fetchMusic(q.search_term + " instrumental");
+        // Minusni qidirish mantiqi yaxshilandi
+        const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
             audio.play().then(() => { disc.classList.add('spinning'); startTimer(15); status.innerText = "Eshiting..."; })
@@ -373,22 +373,24 @@
         modal.style.display = 'flex';
     }
 
-    async function fetchMusic(term, isRetry = false) {
+    async function fetchMusic(term) {
         if (!navigator.onLine) return null;
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
-            const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
-                const artistName = t.artistName.toLowerCase();
-                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
-                // Endi instrumental/karaoke versiyalarni qoldiramiz (o'yinni qiyin qilish uchun)
-                const isCover = ["tribute", "remix", "version", "piano", "live"].some(m => trackName.includes(m));
-                return !isDuet && !isCover;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
-            return data.results[0]?.previewUrl;
+            // 1-urinish: Instrumental qidirish
+            const resInst = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term + " instrumental")}&limit=5&entity=song`);
+            const dataInst = await resInst.json();
+            if (dataInst.results.length > 0) return dataInst.results[0].previewUrl;
+
+            // 2-urinish: Karaoke qidirish
+            const resKara = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term + " karaoke")}&limit=5&entity=song`);
+            const dataKara = await resKara.json();
+            if (dataKara.results.length > 0) return dataKara.results[0].previewUrl;
+
+            // 3-urinish: Agar minus topilmasa, originalini yuklash (o'yin to'xtab qolmasligi uchun)
+            const resOrig = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=5&entity=song`);
+            const dataOrig = await resOrig.json();
+            return dataOrig.results[0]?.previewUrl || null;
+
         } catch (e) { return null; }
     }
 
