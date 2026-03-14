@@ -94,10 +94,6 @@
         .stat-item { background: #222; padding: 15px; border-radius: 15px; border: 1px solid #333; }
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
-        
-        /* Progress Bar */
-        .progress-container { width: 100%; background: #333; height: 10px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
-        .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: 0.5s; }
 
         /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
@@ -130,7 +126,7 @@
 
 <div id="loading-screen">
     <div class="loader">
-        <div class="bar"></div><div class="bar) "></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
     <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
 </div>
@@ -191,11 +187,6 @@
         <div class="leaderboard-card">
             <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">REYTINGLAR</h2>
             
-            <div class="rank-tabs">
-                <div class="rank-tab active" id="tab-score" onclick="setRankType('score')">BALL</div>
-                <div class="rank-tab" id="tab-xp" onclick="setRankType('totalXP')">XP</div>
-            </div>
-            
             <div class="rank-tabs" style="margin-bottom: 15px;">
                 <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
                 <div class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</div>
@@ -212,24 +203,12 @@
         <div class="profile-card">
             <div class="avatar-circle" id="profile-avatar">👤</div>
             <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 15px;"></p>
+            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 25px;"></p>
             
-            <div class="stat-item" style="margin-bottom: 15px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span style="font-size:14px; font-weight:bold;">LEVEL <span id="level-value">1</span></span>
-                    <span style="font-size:12px; color:#888;"><span id="xp-current">0</span> / <span id="xp-next">100</span> XP</span>
-                </div>
-                <div class="progress-container"><div class="progress-bar" id="level-progress"></div></div>
-            </div>
-
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">Eng yuqori natija</div>
                     <div class="stat-value" id="best-score">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Umumiy XP</div>
-                    <div class="stat-value" id="total-xp">0</div>
                 </div>
             </div>
         </div>
@@ -253,7 +232,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -276,8 +255,6 @@
     let comboCount = 0;
     let currentCategory = 'uzbek';
     
-    // Leaderboard state
-    let rankType = 'score';
     let rankLimit = 10;
 
     window.onload = () => {
@@ -285,7 +262,6 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             loadProfileData();
-            checkWeeklyReset();
         }, 2500);
         
         const checkNetwork = () => {
@@ -317,23 +293,6 @@
             });
         }
     });
-
-    async function checkWeeklyReset() {
-        // Bu funksiya oddiy versiya: oxirgi tozalangan yakshanba vaqtini local-da saqlaydi. 
-        // Haqiqiy yakshanba tozalash uchun Firebase Cloud Functions tavsiya etiladi.
-        const now = new Date();
-        const lastReset = localStorage.getItem('last_weekly_reset');
-        
-        // Yakshanba kuni soat 00:00 ni tekshirish logic...
-        // Hozircha bu shunchaki interfeysni tayyorlash uchun
-    }
-
-    window.setRankType = (type) => {
-        rankType = type;
-        document.getElementById('tab-score').classList.toggle('active', type === 'score');
-        document.getElementById('tab-xp').classList.toggle('active', type === 'totalXP');
-        loadLeaderboard();
-    };
 
     window.setRankLimit = (limit) => {
         rankLimit = limit;
@@ -575,13 +534,11 @@
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
-            const data = snap.exists() ? snap.val() : { score: 0, totalXP: 0 };
+            const data = snap.exists() ? snap.val() : { score: 0 };
             const newBestScore = Math.max(score, data.score);
-            const newTotalXP = (data.totalXP || 0) + score;
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                 score: newBestScore,
-                totalXP: newTotalXP,
                 id: user.id
             });
         } catch (e) {}
@@ -595,31 +552,23 @@
         }
         listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
         try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild(rankType), limitToLast(rankLimit));
+            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
             const snap = await get(rankQuery);
             if(snap.exists()) {
                 listDiv.innerHTML = "";
                 const rawData = [];
-                snap.forEach(child => { 
-                    const val = child.val();
-                    // Firebase faqat kichikdan kattaga tartiblaydi, shuning uchun array-ga olib aylantiramiz
-                    rawData.push(val); 
-                });
-                
-                rawData.sort((a, b) => (b[rankType] || 0) - (a[rankType] || 0));
+                snap.forEach(child => { rawData.push(child.val()); });
+                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
 
                 rawData.forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
                     if(u.id == user.id) item.style.borderColor = "#ffcc00";
                     
-                    const displayValue = rankType === 'score' ? u.score : (u.totalXP || 0);
-                    const unit = rankType === 'score' ? "" : " XP";
-
                     item.innerHTML = `
                         <div class="rank-num">#${index + 1}</div>
                         <div class="rank-name">${u.name}</div>
-                        <div class="rank-score">${displayValue}${unit}</div>
+                        <div class="rank-score">${u.score}</div>
                     `;
                     listDiv.appendChild(item);
                 });
@@ -633,12 +582,7 @@
         const profileName = document.getElementById('profile-name');
         const profileId = document.getElementById('profile-id');
         const bestScoreEl = document.getElementById('best-score');
-        const totalXpEl = document.getElementById('total-xp');
         const profileAvatar = document.getElementById('profile-avatar');
-        const levelVal = document.getElementById('level-value');
-        const xpCurr = document.getElementById('xp-current');
-        const xpNext = document.getElementById('xp-next');
-        const progress = document.getElementById('level-progress');
 
         profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
         profileId.innerText = "ID: " + user.id;
@@ -650,31 +594,9 @@
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
                 const data = snap.val();
-                const xp = data.totalXP || 0;
                 bestScoreEl.innerText = data.score || 0;
-                totalXpEl.innerText = xp;
-                
-                let level = 1;
-                let remainingXP = xp;
-                let requiredXP = level * 200;
-                
-                while (remainingXP >= requiredXP) {
-                    remainingXP -= requiredXP;
-                    level++;
-                    requiredXP = level * 200;
-                }
-                
-                levelVal.innerText = level;
-                xpCurr.innerText = remainingXP;
-                xpNext.innerText = requiredXP;
-                progress.style.width = (remainingXP / requiredXP * 100) + "%";
             } else {
                 bestScoreEl.innerText = "0";
-                totalXpEl.innerText = "0";
-                levelVal.innerText = "1";
-                xpCurr.innerText = "0";
-                xpNext.innerText = "200";
-                progress.style.width = "0%";
             }
         } catch (e) { bestScoreEl.innerText = "Error"; }
     }
