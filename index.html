@@ -6,7 +6,7 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
@@ -35,7 +35,9 @@
         .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; }
         .correct { background: var(--primary) !important; color: #000 !important; }
-        .wrong { background: #ff3e3e !important; }
+        .wrong { background: var(--danger) !important; }
+
+        .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
 
         /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
@@ -64,8 +66,10 @@
     <div id="page-game" class="page active-page">
         <div class="game-card">
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; font-size:14px; color:var(--primary); font-weight:bold;">
-                    <span id="score">BALL: 0</span> <span id="timer">15</span>
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
+                    <span id="score">BALL: 0</span>
+                    <div id="lives" class="lives-container">❤️❤️❤️</div>
+                    <span id="timer">15</span>
                 </div>
                 <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;"></div></div>
                 <p id="status" style="color:#888; font-size:12px; height: 18px;"></p>
@@ -74,7 +78,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
-                <p style="color:#666; margin-bottom:20px;">Musiqani tinglang va ijrochini toping</p>
+                <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
             </div>
         </div>
@@ -118,14 +122,13 @@
     tg.expand();
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
-    let questions = [], currentIdx = 0, score = 0, timerInterval, audio = new Audio();
+    let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
 
-    // Avtomatik yuklash
     window.onload = () => {
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
-        }, 2500); // 2.5 soniya loading animatsiyasi
+        }, 2500);
     };
 
     window.showPage = (pageId, el) => {
@@ -151,9 +154,12 @@
     }
 
     async function loadRound() {
-        if(currentIdx >= questions.length) { 
+        if(lives <= 0 || currentIdx >= questions.length) { 
             await saveScore();
-            tg.showPopup({ message: `Tamom! Ballingiz: ${score}` }, () => { location.reload(); });
+            tg.showPopup({ 
+                title: lives <= 0 ? "O'yin tugadi!" : "G'alaba!",
+                message: `Sizning natijangiz: ${score} ball.` 
+            }, () => { location.reload(); });
             return; 
         }
         
@@ -188,13 +194,21 @@
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    btn.classList.add('wrong'); btns[q.correct].classList.add('correct');
+                    btn.classList.add('wrong'); 
+                    btns[q.correct].classList.add('correct');
+                    lives--;
+                    updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
                 setTimeout(() => { currentIdx++; loadRound(); }, 1500);
             };
             optionsBox.appendChild(btn);
         });
+    }
+
+    function updateLivesUI() {
+        const livesEl = document.getElementById('lives');
+        livesEl.innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
     }
 
     async function fetchMusic(term, isRetry = false) {
@@ -213,7 +227,13 @@
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             t--; document.getElementById('timer').innerText = t;
-            if(t <= 0) { clearInterval(timerInterval); currentIdx++; loadRound(); }
+            if(t <= 0) { 
+                clearInterval(timerInterval); 
+                lives--; 
+                updateLivesUI();
+                currentIdx++; 
+                loadRound(); 
+            }
         }, 1000);
     }
 
