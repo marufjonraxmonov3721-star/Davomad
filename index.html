@@ -335,8 +335,6 @@
         try {
             const snap = await get(ref(db, 'questions'));
             if(snap.exists()) {
-                // SAVOLLAR TARTIBI: Tasodifiy (sort) qismi olib tashlandi.
-                // Bazada qanday bo'lsa, shunday tartibda chiqadi.
                 questions = Object.values(snap.val());
                 loadRound();
             }
@@ -357,8 +355,6 @@
     async function loadRound() {
         if(!isPlaying) return;
         if(lives <= 0) { endGame(true); return; }
-        
-        // Agar savollar tugasa, o'yinni g'alaba bilan tugatish
         if(currentIdx >= questions.length) { endGame(false); return; }
         
         roundCounter++;
@@ -400,12 +396,14 @@
             currentIdx++; loadRound(); return;
         }
 
+        // BOSS ROUNDDA 6 TA VARIANT, ODDIYDA 4 TA
         const displayOptions = isBossRound ? q.options.slice(0, 6) : q.options.slice(0, 4);
         
-        // VARIANTLAR TARTIBINI SHUFFLE (ARALASHTIRISH)
-        // Bazada to'g'ri javob doim 1-bo'lsa ham, bu yerda aralashib chiqadi.
-        let correctText = q.options[q.correct];
-        let shuffledOptions = [...displayOptions].sort(() => Math.random() - 0.5);
+        // To'g'ri javob matni
+        const correctText = q.options[q.correct];
+        
+        // Variantlarni aralashtirish
+        const shuffledOptions = [...displayOptions].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((opt) => {
             const btn = document.createElement('button');
