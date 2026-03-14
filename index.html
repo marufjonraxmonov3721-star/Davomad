@@ -288,6 +288,7 @@
         lives = 3;
         comboCount = 0;
         roundCounter = 0;
+        currentIdx = 0;
         document.getElementById('result-modal').style.display = 'none';
     }
 
@@ -334,7 +335,9 @@
         try {
             const snap = await get(ref(db, 'questions'));
             if(snap.exists()) {
-                questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
+                // SAVOLLAR TARTIBI: Tasodifiy (sort) qismi olib tashlandi.
+                // Bazada qanday bo'lsa, shunday tartibda chiqadi.
+                questions = Object.values(snap.val());
                 loadRound();
             }
         } catch (e) {
@@ -354,6 +357,8 @@
     async function loadRound() {
         if(!isPlaying) return;
         if(lives <= 0) { endGame(true); return; }
+        
+        // Agar savollar tugasa, o'yinni g'alaba bilan tugatish
         if(currentIdx >= questions.length) { endGame(false); return; }
         
         roundCounter++;
@@ -395,10 +400,14 @@
             currentIdx++; loadRound(); return;
         }
 
-        // Boss roundda 6 ta variant ko'rsatish (agar savolda yetarli bo'lsa)
         const displayOptions = isBossRound ? q.options.slice(0, 6) : q.options.slice(0, 4);
+        
+        // VARIANTLAR TARTIBINI SHUFFLE (ARALASHTIRISH)
+        // Bazada to'g'ri javob doim 1-bo'lsa ham, bu yerda aralashib chiqadi.
+        let correctText = q.options[q.correct];
+        let shuffledOptions = [...displayOptions].sort(() => Math.random() - 0.5);
 
-        displayOptions.forEach((opt, i) => {
+        shuffledOptions.forEach((opt) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
@@ -406,7 +415,8 @@
                 clearInterval(timerInterval);
                 const btns = document.querySelectorAll('.option-btn');
                 btns.forEach(b => b.disabled = true);
-                if(i === q.correct) {
+                
+                if(opt === correctText) {
                     btn.classList.add('correct'); 
                     comboCount++;
                     const comboMultiplier = Math.floor(comboCount / 3) + 1;
@@ -418,7 +428,7 @@
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
-                    btns[q.correct].classList.add('correct');
+                    btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
                     updateComboUI();
                     lives--;
