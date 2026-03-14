@@ -449,6 +449,8 @@
             if(bossQuestion && !isBossRound) {
                 isBossRound = true;
                 q = bossQuestion;
+                // Boss boshlanganda vizaul combo yashiriladi
+                document.getElementById('combo-badge').style.display = 'none';
                 document.body.classList.add('boss-active');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
             } else {
@@ -498,13 +500,15 @@
                 
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    comboCount++;
                     let pointsToAdd;
                     
                     if(isBossRound) {
+                        // Boss uchun bazadan belgilangan combo va ball olinadi
                         const baseBossScore = q.boss_score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
+                        
+                        // Boss natijasini ko'rsatish
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
                         
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
@@ -512,20 +516,21 @@
                             updateLivesUI();
                         }
                     } else {
+                        comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
                         pointsToAdd = (10 * comboMultiplier * currentLevel);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                        updateComboUI();
                     }
                     
                     score += pointsToAdd;
-                    updateComboUI();
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
-                    updateComboUI();
+                    if(!isBossRound) updateComboUI();
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -569,7 +574,7 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        // BOSS raundida combo badge ko'rinmasin
+        // Boss raundida combo badge ko'rsatilmaydi (u yashirin qoladi)
         if (isBossRound) {
             badge.style.display = 'none';
             return;
@@ -642,7 +647,7 @@
             if(t <= 0) { 
                 clearInterval(timerInterval); 
                 comboCount = 0;
-                updateComboUI();
+                if(!isBossRound) updateComboUI();
                 lives--; 
                 updateLivesUI();
                 if(lives > 0) nextStep();
