@@ -27,7 +27,7 @@
         .active-page { display: flex; }
 
         /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; transition: 0.3s; }
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; }
         .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -335,7 +335,7 @@
         try {
             const snap = await get(ref(db, 'questions'));
             if(snap.exists()) {
-                questions = Object.values(snap.val()).sort(() => Math.random() - 0.5);
+                questions = Object.values(snap.val());
                 loadRound();
             }
         } catch (e) {
@@ -370,6 +370,7 @@
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
+        
         resetBossUI();
 
         if (isBossRound) {
@@ -387,39 +388,22 @@
             audio.src = musicUrl;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                startTimer(isBossRound ? 7 : 15); 
-                status.innerText = isBossRound ? "🔥 BOSS ROUND 🔥" : "Qaysi qo'shiq?"; 
+                startTimer(isBossRound ? 5 : 15); 
+                status.innerText = isBossRound ? "🔥 BOSS ROUND 🔥" : "Eshiting..."; 
             })
-            .catch(() => { 
-                status.innerText = "Xato! Keyingisiga o'tilmoqda...";
-                setTimeout(() => { currentIdx++; loadRound(); }, 1000);
-            });
+            .catch(() => { currentIdx++; loadRound(); });
         } else {
-            status.innerText = "Musiqa topilmadi!";
-            setTimeout(() => { currentIdx++; loadRound(); }, 1000);
-            return;
+            currentIdx++; loadRound(); return;
         }
 
-        // To'g'ri javobni olish
+        // BOSS ROUNDDA 6 TA VARIANT, ODDIYDA 4 TA
+        const displayOptions = isBossRound ? q.options.slice(0, 6) : q.options.slice(0, 4);
+        
+        // To'g'ri javob matni
         const correctText = q.options[q.correct];
         
-        // Variantlar sonini aniqlash (Boss: 6 ta, Oddiy: 4 ta)
-        let displayOptions = [];
-        let allOptions = [...q.options];
-        
-        if (isBossRound) {
-            displayOptions = allOptions.slice(0, 6);
-        } else {
-            displayOptions = allOptions.slice(0, 4);
-        }
-
-        // To'g'ri javob doim variantlar ichida bo'lishini ta'minlash
-        if (!displayOptions.includes(correctText)) {
-            displayOptions[0] = correctText;
-        }
-
         // Variantlarni aralashtirish
-        const shuffledOptions = displayOptions.sort(() => Math.random() - 0.5);
+        const shuffledOptions = [...displayOptions].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((opt) => {
             const btn = document.createElement('button');
@@ -502,12 +486,21 @@
         modal.style.display = 'flex';
     }
 
-    async function fetchMusic(term) {
+    async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            return data.results[0]?.previewUrl || null;
+            const filteredTracks = data.results.filter(t => {
+                const trackName = t.trackName.toLowerCase();
+                const artistName = t.artistName.toLowerCase();
+                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
+                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
+                return !isDuet && !isCover;
+            });
+            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
+            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
+            return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
 
@@ -560,7 +553,7 @@
                 listDiv.innerHTML = "";
                 const rawData = [];
                 snap.forEach(child => { rawData.push(child.val()); });
-                rawData.sort((a,b) => b.score - a.score).forEach((u, index) => {
+                rawData.reverse().forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
                     if(u.id == user.id) item.style.borderColor = "#ffcc00";
@@ -598,13 +591,20 @@
                 bestScoreEl.innerText = data.score || 0;
                 totalXpEl.innerText = xp;
                 
-                let level = Math.floor(xp / 200) + 1;
-                let currentXpInLevel = xp % 200;
+                let level = 1;
+                let remainingXP = xp;
+                let requiredXP = level * 200;
+                
+                while (remainingXP >= requiredXP) {
+                    remainingXP -= requiredXP;
+                    level++;
+                    requiredXP = level * 200;
+                }
                 
                 levelVal.innerText = level;
-                xpCurr.innerText = currentXpInLevel;
-                xpNext.innerText = "200";
-                progress.style.width = (currentXpInLevel / 2 * 1) + "%";
+                xpCurr.innerText = remainingXP;
+                xpNext.innerText = requiredXP;
+                progress.style.width = (remainingXP / requiredXP * 100) + "%";
             } else {
                 bestScoreEl.innerText = "0";
                 totalXpEl.innerText = "0";
@@ -613,7 +613,7 @@
                 xpNext.innerText = "200";
                 progress.style.width = "0%";
             }
-        } catch (e) { bestScoreEl.innerText = "0"; }
+        } catch (e) { bestScoreEl.innerText = "Error"; }
     }
 </script>
 </body>
