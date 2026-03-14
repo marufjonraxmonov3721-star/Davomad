@@ -304,14 +304,14 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
-    // Cooldown variables
+    // Persistent Cooldown
     let usedQuestions = new Set();
-    let cooldownActive = false;
     let cooldownInterval;
     
     let rankLimit = 10;
 
     window.onload = () => {
+        checkPersistentCooldown(); // Ilovaga kirganda tekshiramiz
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -339,6 +339,18 @@
         window.addEventListener('online', checkNetwork);
         checkNetwork();
     };
+
+    function checkPersistentCooldown() {
+        const cooldownEnd = localStorage.getItem(`cooldown_${user.id}`);
+        if (cooldownEnd) {
+            const now = Date.now();
+            if (now < cooldownEnd) {
+                startCooldownUI(Math.ceil((cooldownEnd - now) / 1000));
+            } else {
+                localStorage.removeItem(`cooldown_${user.id}`);
+            }
+        }
+    }
 
     tg.BackButton.onClick(() => {
         if(isPlaying) {
@@ -402,8 +414,9 @@
             return;
         }
 
-        if (cooldownActive) {
-            document.getElementById('cooldown-modal').style.display = 'flex';
+        const cooldownEnd = localStorage.getItem(`cooldown_${user.id}`);
+        if (cooldownEnd && Date.now() < cooldownEnd) {
+            checkPersistentCooldown();
             return;
         }
 
@@ -448,10 +461,16 @@
         }
     }
 
-    function startCooldown() {
-        cooldownActive = true;
+    function setPersistentCooldown() {
+        const cooldownTime = 300; // 5 daqiqa
+        const endTime = Date.now() + (cooldownTime * 1000);
+        localStorage.setItem(`cooldown_${user.id}`, endTime);
+        startCooldownUI(cooldownTime);
+    }
+
+    function startCooldownUI(timeLeft) {
         document.getElementById('cooldown-modal').style.display = 'flex';
-        let timeLeft = 300; // 5 minutes
+        clearInterval(cooldownInterval);
         
         const updateTimer = () => {
             const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
@@ -465,7 +484,7 @@
             updateTimer();
             if (timeLeft <= 0) {
                 clearInterval(cooldownInterval);
-                cooldownActive = false;
+                localStorage.removeItem(`cooldown_${user.id}`);
                 usedQuestions.clear();
                 document.getElementById('cooldown-modal').style.display = 'none';
             }
@@ -489,10 +508,9 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // No more new questions in this level/category
             endGame(false);
             quitGame();
-            startCooldown();
+            setPersistentCooldown();
         }
     }
 
