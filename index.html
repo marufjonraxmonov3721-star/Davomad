@@ -204,27 +204,35 @@
 
     async function checkReferral() {
         const startParam = tg.initDataUnsafe?.start_param;
-        if (startParam && startParam !== user.id.toString()) {
-            const userHistoryRef = ref(db, `users/${user.id}`);
-            const userSnap = await get(userHistoryRef);
-            
-            if (!userSnap.exists()) {
-                await set(userHistoryRef, { joined: true, invitedBy: startParam });
-                
+        const userRef = ref(db, `users/${user.id}`);
+        
+        // Foydalanuvchini har doim bazada ro'yxatdan o'tkazish (Statistika uchun)
+        const userSnap = await get(userRef);
+        if (!userSnap.exists()) {
+            await set(userRef, { 
+                id: user.id, 
+                name: user.first_name, 
+                joinedAt: Date.now(),
+                invitedBy: startParam || null 
+            });
+
+            // Agar referal havola orqali kirgan bo'lsa
+            if (startParam && startParam !== user.id.toString()) {
                 const inviterRef = ref(db, `leaderboard/${startParam}`);
                 const inviterSnap = await get(inviterRef);
                 
                 if (inviterSnap.exists()) {
-                    const currentScore = inviterSnap.val().score || 0;
-                    await update(inviterRef, { score: currentScore + 100 });
+                    const currentInviterScore = inviterSnap.val().score || 0;
+                    await update(inviterRef, { score: currentInviterScore + 100 });
                 } else {
-                    // Agar taklif qilgan kishi reytingda bo'lmasa (hali o'ynamagan bo'lsa), yangi record yaratish
+                    // Agar taklif qiluvchi reytingda bo'lmasa, yangi rekord yaratish
                     await set(inviterRef, {
                         id: startParam,
                         name: "O'yinchi",
                         score: 100
                     });
                 }
+                tg.showAlert("Tabriklaymiz! Do'stingiz taklifi uchun unga 100 ball berildi!");
             }
         }
     }
