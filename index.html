@@ -351,7 +351,7 @@
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
-        usedQuestions.clear(); // O'yindan chiqsa ro'yxatni tozalaymiz
+        usedQuestions.clear(); 
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -388,7 +388,7 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
-        usedQuestions.clear(); // Yangi o'yinda tozalaymiz
+        usedQuestions.clear(); 
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -425,7 +425,6 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
-        // Savollarni levelga qarab filtrlaymiz va avval tushganlarini olib tashlaymiz
         const levelData = Object.values(allQuestions).filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
         );
@@ -439,7 +438,6 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar savollar qolmagan bo'lsa (hamma savol ko'rilgan bo'lsa) lekin o'yin hali tugamagan bo'lsa
             if (currentLevel > 1) endGame(false);
             else { tg.showAlert("Savollar yetarli emas!"); quitGame(); }
         }
@@ -472,7 +470,6 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        // SAVOLNI ISHLATILGANLAR RO'YXATIGA QO'SHISH
         usedQuestions.add(q.search_term);
 
         optionsBox.innerHTML = "";
