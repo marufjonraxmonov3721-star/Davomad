@@ -6,7 +6,7 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
@@ -27,17 +27,33 @@
         .active-page { display: flex; }
 
         /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; }
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; }
         .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
         .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; }
-        .correct { background: var(--primary) !important; color: #000 !important; }
+        .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.02); }
         .wrong { background: var(--danger) !important; }
 
         .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
+
+        /* Combo Badge */
+        #combo-badge {
+            position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000;
+            padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px;
+            display: none; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
+        }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* Floating Score Text */
+        .floating-text {
+            position: absolute; color: var(--primary); font-weight: bold; font-size: 20px;
+            pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
+        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
         /* Custom Result Modal */
         #result-modal {
@@ -116,7 +132,8 @@
 
 <div id="app-container">
     <div id="page-game" class="page active-page">
-        <div class="game-card">
+        <div class="game-card" id="main-game-card">
+            <div id="combo-badge">COMBO x1</div>
             <div id="game-ui" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
                     <span id="score">BALL: 0</span>
@@ -200,6 +217,9 @@
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
+    
+    // Combo Variables
+    let comboCount = 0;
 
     window.onload = () => {
         setTimeout(() => {
@@ -246,8 +266,10 @@
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
+        document.getElementById('combo-badge').style.display = 'none';
         score = 0;
         lives = 3;
+        comboCount = 0;
         document.getElementById('result-modal').style.display = 'none';
     }
 
@@ -282,6 +304,7 @@
         currentIdx = 0;
         score = 0;
         lives = 3;
+        comboCount = 0;
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
@@ -328,17 +351,32 @@
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => {
+            btn.onclick = (e) => {
                 clearInterval(timerInterval);
                 const btns = document.querySelectorAll('.option-btn');
                 btns.forEach(b => b.disabled = true);
                 if(i === q.correct) {
-                    btn.classList.add('correct'); score += 10;
+                    btn.classList.add('correct'); 
+                    
+                    // Combo Logic
+                    comboCount++;
+                    const comboMultiplier = Math.floor(comboCount / 3) + 1;
+                    const pointsToAdd = 10 * comboMultiplier;
+                    score += pointsToAdd;
+                    
+                    showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                    updateComboUI();
+                    
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns[q.correct].classList.add('correct');
+                    
+                    // Reset Combo
+                    comboCount = 0;
+                    updateComboUI();
+                    
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -347,6 +385,31 @@
             };
             optionsBox.appendChild(btn);
         });
+    }
+
+    function showFloatingText(text, x, y) {
+        const el = document.createElement('div');
+        el.className = 'floating-text';
+        el.innerText = text;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+    }
+
+    function updateComboUI() {
+        const badge = document.getElementById('combo-badge');
+        if (comboCount >= 3) {
+            const multiplier = Math.floor(comboCount / 3) + 1;
+            badge.innerText = `COMBO x${multiplier}`;
+            badge.style.display = 'block';
+            // Visual pulse on increase
+            badge.style.animation = 'none';
+            badge.offsetHeight; 
+            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
     function updateLivesUI() {
@@ -358,6 +421,7 @@
         isPlaying = false;
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('combo-badge').style.display = 'none';
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
@@ -398,6 +462,8 @@
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
+                comboCount = 0;
+                updateComboUI();
                 lives--; 
                 updateLivesUI();
                 currentIdx++; 
@@ -460,7 +526,6 @@
         profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
         profileId.innerText = "ID: " + user.id;
 
-        // Rasm yuklash mantiqi
         if (user.photo_url) {
             profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`;
         } else {
