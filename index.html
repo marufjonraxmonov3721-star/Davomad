@@ -163,8 +163,6 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
-    
-    // MUHIM: Siz so'ragan o'sha standart oynani o'chirish
     tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
@@ -199,7 +197,6 @@
         checkNetwork();
     };
 
-    // Orqaga tugmasi bosilganda o'zimizning muloqot oynasini chiqaramiz
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
@@ -344,11 +341,26 @@
     async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=10&entity=song`);
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            const soloTracks = data.results.filter(t => !["&", "feat", "with", " va "].some(m => t.artistName.toLowerCase().includes(m) || t.trackName.toLowerCase().includes(m)));
-            if (soloTracks.length > 0) return soloTracks[0].previewUrl;
+            
+            // Cover, Duet va Remikslarni qat'iy filtrlash
+            const filteredTracks = data.results.filter(t => {
+                const trackName = t.trackName.toLowerCase();
+                const artistName = t.artistName.toLowerCase();
+                
+                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
+                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
+                
+                return !isDuet && !isCover;
+            });
+
+            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
+            
+            // Agar filtrdan hech narsa o'tmasa va bu qayta urinish bo'lmasa, qidiruvni soddalashtiramiz
             if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
+            
+            // Oxirgi chora: hech bo'lmasa birinchi natijani berish (agar filtr juda qattiq bo'lsa)
             return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
