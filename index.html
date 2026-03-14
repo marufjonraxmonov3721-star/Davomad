@@ -26,6 +26,12 @@
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
+        /* Category Selection Styles */
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 15px; }
+        .cat-btn { background: #1a1a1a; border: 1px solid #333; padding: 18px 10px; border-radius: 18px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .cat-btn:active { transform: scale(0.95); background: #222; }
+        .cat-icon { font-size: 26px; }
+
         /* Game UI */
         .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; }
         .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
@@ -143,6 +149,7 @@
     <div id="page-game" class="page active-page">
         <div class="game-card" id="main-game-card">
             <div id="combo-badge">COMBO x1</div>
+            
             <div id="game-ui" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
                     <span id="score">BALL: 0</span>
@@ -155,9 +162,27 @@
             </div>
             
             <div id="pre-game">
-                <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
-                <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
-                <button class="start-btn" onclick="startGame()">BOSHLASH</button>
+                <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
+                <p style="color:#666; margin-bottom:20px;">Qaysi tildagi qo'shiqlarni yaxshi bilasiz?</p>
+                
+                <div class="cat-grid">
+                    <button class="cat-btn" onclick="startGame('uzbek')">
+                        <span class="cat-icon">🇺🇿</span>
+                        <span>O'zbekcha</span>
+                    </button>
+                    <button class="cat-btn" onclick="startGame('russian')">
+                        <span class="cat-icon">🇷🇺</span>
+                        <span>Ruscha</span>
+                    </button>
+                    <button class="cat-btn" onclick="startGame('english')">
+                        <span class="cat-icon">🇺🇸</span>
+                        <span>Inglizcha</span>
+                    </button>
+                    <button class="cat-btn" onclick="startGame('trend')">
+                        <span class="cat-icon">🔥</span>
+                        <span>Trend</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -235,6 +260,7 @@
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
     let comboCount = 0;
+    let currentCategory = 'uzbek';
 
     window.onload = () => {
         setTimeout(() => {
@@ -303,11 +329,12 @@
         if(pageId === 'profile') loadProfileData();
     };
 
-    window.startGame = () => {
+    window.startGame = (category) => {
         if (!navigator.onLine) {
             tg.showAlert("O'yinni boshlash uchun internet kerak!");
             return;
         }
+        currentCategory = category || 'uzbek';
         isPlaying = true;
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
@@ -324,18 +351,25 @@
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
-        startGame();
+        document.getElementById('pre-game').style.display = 'block';
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
     };
 
     async function initGame() {
         try {
-            const snap = await get(ref(db, 'questions'));
+            const snap = await get(ref(db, `questions/${currentCategory}`));
             if(snap.exists()) {
-                questions = Object.values(snap.val());
+                const data = snap.val();
+                questions = Object.values(data).sort(() => Math.random() - 0.5);
                 loadRound();
+            } else {
+                tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
+                quitGame();
             }
         } catch (e) {
             tg.showAlert("Ma'lumot yuklashda xatolik!");
+            quitGame();
         }
     }
 
@@ -368,9 +402,8 @@
             currentIdx++; loadRound(); return;
         }
 
-        const displayOptions = q.options.slice(0, 4);
         const correctText = q.options[q.correct];
-        const shuffledOptions = [...displayOptions].sort(() => Math.random() - 0.5);
+        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((opt) => {
             const btn = document.createElement('button');
@@ -460,9 +493,8 @@
             const filteredTracks = data.results.filter(t => {
                 const trackName = t.trackName.toLowerCase();
                 const artistName = t.artistName.toLowerCase();
-                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
                 const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isDuet && !isCover;
+                return !isCover;
             });
             if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
             if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
