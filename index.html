@@ -6,7 +6,7 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
@@ -54,6 +54,11 @@
             pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
         }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+
+        /* Boss Mode Style */
+        .boss-mode { border-color: var(--boss) !important; box-shadow: 0 0 20px rgba(255, 0, 85, 0.2); }
+        .boss-text { color: var(--boss) !important; animation: blink 0.5s infinite alternate; }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.5; } }
 
         /* Custom Result Modal */
         #result-modal {
@@ -144,8 +149,8 @@
                     <div id="lives" class="lives-container">❤️❤️❤️</div>
                     <span id="timer">15</span>
                 </div>
-                <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;"></div></div>
-                <p id="status" style="color:#888; font-size:12px; height: 18px;"></p>
+                <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;" id="disc-center"></div></div>
+                <p id="status" style="color:#888; font-size:12px; height: 18px; font-weight: bold;"></p>
                 <div id="options-box"></div>
             </div>
             
@@ -230,6 +235,7 @@
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
     let comboCount = 0;
+    let roundCounter = 0;
 
     window.onload = () => {
         setTimeout(() => {
@@ -277,9 +283,11 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
+        resetBossUI();
         score = 0;
         lives = 3;
         comboCount = 0;
+        roundCounter = 0;
         document.getElementById('result-modal').style.display = 'none';
     }
 
@@ -315,6 +323,7 @@
         score = 0;
         lives = 3;
         comboCount = 0;
+        roundCounter = 0;
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
@@ -333,31 +342,63 @@
         }
     }
 
+    function resetBossUI() {
+        const card = document.getElementById('main-game-card');
+        const status = document.getElementById('status');
+        const discCenter = document.getElementById('disc-center');
+        card.classList.remove('boss-mode');
+        status.classList.remove('boss-text');
+        discCenter.style.background = 'var(--primary)';
+    }
+
     async function loadRound() {
         if(!isPlaying) return;
         if(lives <= 0) { endGame(true); return; }
         if(currentIdx >= questions.length) { endGame(false); return; }
         
+        roundCounter++;
+        const isBossRound = roundCounter % 10 === 0;
+        
         const q = questions[currentIdx];
         const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
+        const card = document.getElementById('main-game-card');
+        const discCenter = document.getElementById('disc-center');
 
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
-        status.innerText = "Musiqa qidirilmoqda...";
+        
+        resetBossUI();
+
+        if (isBossRound) {
+            card.classList.add('boss-mode');
+            status.classList.add('boss-text');
+            status.innerText = "BOSS ROUND: TAYYORLANING!";
+            discCenter.style.background = 'var(--boss)';
+            tg.HapticFeedback.notificationOccurred('warning');
+        } else {
+            status.innerText = "Musiqa qidirilmoqda...";
+        }
 
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => { disc.classList.add('spinning'); startTimer(15); status.innerText = "Eshiting..."; })
-                 .catch(() => { currentIdx++; loadRound(); });
+            audio.play().then(() => { 
+                disc.classList.add('spinning'); 
+                startTimer(isBossRound ? 5 : 15); 
+                status.innerText = isBossRound ? "🔥 BOSS ROUND 🔥" : "Eshiting..."; 
+            })
+            .catch(() => { currentIdx++; loadRound(); });
         } else {
             currentIdx++; loadRound(); return;
         }
 
-        q.options.forEach((opt, i) => {
+        // Boss roundda 6 ta variant ko'rsatish (agar savolda yetarli bo'lsa)
+        const displayOptions = isBossRound ? q.options.slice(0, 6) : q.options.slice(0, 4);
+
+        displayOptions.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
@@ -369,7 +410,7 @@
                     btn.classList.add('correct'); 
                     comboCount++;
                     const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                    const pointsToAdd = 10 * comboMultiplier;
+                    const pointsToAdd = isBossRound ? 100 : (10 * comboMultiplier);
                     score += pointsToAdd;
                     showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                     updateComboUI();
@@ -424,6 +465,7 @@
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
+        resetBossUI();
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
@@ -541,7 +583,6 @@
                 bestScoreEl.innerText = data.score || 0;
                 totalXpEl.innerText = xp;
                 
-                // Level calculation: Each level needs Level * 200 XP
                 let level = 1;
                 let remainingXP = xp;
                 let requiredXP = level * 200;
