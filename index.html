@@ -163,7 +163,9 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.enableClosingConfirmation();
+    
+    // MUHIM: Siz so'ragan o'sha standart oynani o'chirish
+    tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
@@ -175,7 +177,6 @@
             document.getElementById('app-container').style.display = 'flex';
         }, 2500);
         
-        // Tarmoq holatini tekshirish
         const checkNetwork = () => {
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
@@ -198,6 +199,7 @@
         checkNetwork();
     };
 
+    // Orqaga tugmasi bosilganda o'zimizning muloqot oynasini chiqaramiz
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
@@ -269,14 +271,8 @@
 
     async function loadRound() {
         if(!isPlaying) return;
-        if(lives <= 0) { 
-            endGame(true);
-            return; 
-        }
-        if(currentIdx >= questions.length) {
-            endGame(false);
-            return;
-        }
+        if(lives <= 0) { endGame(true); return; }
+        if(currentIdx >= questions.length) { endGame(false); return; }
         
         const q = questions[currentIdx];
         const status = document.getElementById('status');
@@ -361,7 +357,7 @@
         let t = startTime; document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            if (!navigator.onLine) return; // Internet yo'q bo'lsa to'xtab turadi
+            if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
@@ -392,7 +388,7 @@
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
         if (!navigator.onLine) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Reytingni ko'rish uchun internet kerak</p></div>";
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
             return;
         }
         listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
