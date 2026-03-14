@@ -32,12 +32,23 @@
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; }
         .correct { background: var(--primary) !important; color: #000 !important; }
         .wrong { background: var(--danger) !important; }
 
         .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
+
+        /* Custom Result Modal */
+        #result-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .result-card {
+            background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px;
+            border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
@@ -60,6 +71,15 @@
         <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
     <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
+</div>
+
+<div id="result-modal">
+    <div class="result-card">
+        <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
+        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
+        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
+        <button class="start-btn" onclick="location.reload()" style="width: 100%;">QAYTA O'YNASH</button>
+    </div>
 </div>
 
 <div id="app-container">
@@ -155,11 +175,7 @@
 
     async function loadRound() {
         if(lives <= 0 || currentIdx >= questions.length) { 
-            await saveScore();
-            tg.showPopup({ 
-                title: lives <= 0 ? "O'yin tugadi!" : "G'alaba!",
-                message: `Sizning natijangiz: ${score} ball.` 
-            }, () => { location.reload(); });
+            endGame();
             return; 
         }
         
@@ -208,7 +224,22 @@
 
     function updateLivesUI() {
         const livesEl = document.getElementById('lives');
-        livesEl.innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+        livesEl.innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+    }
+
+    function endGame() {
+        clearInterval(timerInterval);
+        audio.pause();
+        audio.src = ""; // Musiqani darhol o'chirish
+        saveScore();
+        
+        const modal = document.getElementById('result-modal');
+        const scoreDisplay = document.getElementById('final-score');
+        const titleDisplay = document.getElementById('result-title');
+        
+        titleDisplay.innerText = lives <= 0 ? "O'yin tugadi!" : "G'alaba!";
+        scoreDisplay.innerText = score;
+        modal.style.display = 'flex';
     }
 
     async function fetchMusic(term, isRetry = false) {
