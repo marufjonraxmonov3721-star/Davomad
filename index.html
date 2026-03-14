@@ -10,28 +10,24 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
-        /* Loading Animation */
-        #loading-screen { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        }
+        #loading-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .loader { display: flex; align-items: center; gap: 5px; height: 50px; }
         .bar { width: 8px; height: 20px; background: var(--primary); border-radius: 10px; animation: scaleY 1s infinite ease-in-out; }
-        .bar:nth-child(2) { animation-delay: 0.1s; }
-        .bar:nth-child(3) { animation-delay: 0.2s; }
-        .bar:nth-child(4) { animation-delay: 0.3s; }
         @keyframes scaleY { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(2.5); } }
 
         #app-container { height: 100vh; display: none; flex-direction: column; }
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
-        /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; }
-        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 30px; border: 1px solid #222; text-align: center; }
+        .vinyl { width: 140px; height: 140px; margin: 15px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
+        /* Lyrics Animation */
+        #lyrics-display { min-height: 50px; margin: 15px 0; color: var(--primary); font-style: italic; font-size: 16px; font-weight: 500; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; }
         .correct { background: var(--primary) !important; color: #000 !important; }
@@ -39,69 +35,34 @@
 
         .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
 
-        /* Custom Result Modal */
-        #result-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-        }
-        .result-card {
-            background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px;
-            border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
-            position: relative;
-        }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Leaderboard UI */
+        #result-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .result-card { background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px; border-radius: 30px; padding: 40px 20px; text-align: center; position: relative; }
+        
         .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
-        .rank-num { width: 30px; font-weight: bold; color: var(--primary); }
-        .rank-name { flex: 1; font-size: 14px; }
+        .rank-name { flex: 1; font-size: 14px; margin-left: 10px; }
         .rank-score { font-weight: bold; color: var(--primary); }
 
-        /* Navigation */
-        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
+        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
-        
-        .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
-
-        /* Modern Offline Toast */
-        #offline-notice {
-            position: fixed; top: -100px; left: 0; right: 0;
-            background: rgba(255, 62, 62, 0.95); color: white; 
-            padding: 15px; text-align: center; font-weight: bold; 
-            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
-        }
-        #offline-notice.show { top: 0; }
-        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .hidden-nav { display: none; }
     </style>
 </head>
 <body>
 
-<div id="offline-notice">
-    <span class="offline-icon">⚠️</span>
-    <span>Internet aloqasi yo'q!</span>
-</div>
+<div id="offline-notice">⚠️ Internet aloqasi yo'q!</div>
 
 <div id="loading-screen">
-    <div class="loader">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-    </div>
-    <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
+    <div class="loader"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+    <h1 style="color:var(--primary); margin-top:20px;">SongLyrics</h1>
 </div>
 
 <div id="result-modal">
     <div class="result-card">
-        <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
-        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
-        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+        <button class="start-btn" onclick="restartGame()">QAYTA O'YNASH</button>
     </div>
 </div>
 
@@ -109,19 +70,21 @@
     <div id="page-game" class="page active-page">
         <div class="game-card">
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold;">
                     <span id="score">BALL: 0</span>
                     <div id="lives" class="lives-container">❤️❤️❤️</div>
                     <span id="timer">15</span>
                 </div>
-                <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;"></div></div>
-                <p id="status" style="color:#888; font-size:12px; height: 18px;"></p>
+                <div class="vinyl" id="disc"><div style="position:absolute; inset:50px; background:var(--primary); border-radius:50%; border:5px solid #000;"></div></div>
+                
+                <div id="lyrics-display">🎵 Musiqa eshitilmoqda...</div>
+                
                 <div id="options-box"></div>
             </div>
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
-                <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
+                <p style="color:#666; margin-bottom:20px;">Qo'shiqning aytadigan joyini toping!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
             </div>
         </div>
@@ -135,35 +98,26 @@
     </div>
 
     <nav class="nav-bar" id="bottom-nav">
-        <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span>
-            <span>O'yin</span>
-        </div>
-        <div class="nav-item" onclick="showPage('rank', this)">
-            <span class="nav-icon">🏆</span>
-            <span>Reyting</span>
-        </div>
+        <div class="nav-item active" onclick="showPage('game', this)"><span>🎮 O'yin</span></div>
+        <div class="nav-item" onclick="showPage('rank', this)"><span>🏆 Reyting</span></div>
     </nav>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
         authDomain: "songlyrics-a5df9.firebaseapp.com",
         projectId: "songlyrics-a5df9",
-        storageBucket: "songlyrics-a5df9.firebasestorage.app",
-        messagingSenderId: "322622967401",
-        appId: "1:322622967401:web:24569afce697e18edc9cf8"
+        dbURL: "https://songlyrics-a5df9-default-rtdb.firebaseio.com"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
@@ -173,119 +127,55 @@
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
-        }, 2500);
-        
-        const checkNetwork = () => {
-            const notice = document.getElementById('offline-notice');
-            if(!navigator.onLine) {
-                notice.classList.add('show');
-                if(isPlaying) {
-                    clearInterval(timerInterval);
-                    audio.pause();
-                }
-            } else {
-                notice.classList.remove('show');
-                if(isPlaying && audio.src) {
-                   audio.play().catch(e => {});
-                   startTimer(parseInt(document.getElementById('timer').innerText));
-                }
-            }
-        };
-
-        window.addEventListener('offline', checkNetwork);
-        window.addEventListener('online', checkNetwork);
-        checkNetwork();
-    };
-
-    tg.BackButton.onClick(() => {
-        if(isPlaying) {
-            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) quitGame();
-            });
-        }
-    });
-
-    function quitGame() {
-        isPlaying = false;
-        clearInterval(timerInterval);
-        audio.pause();
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('pre-game').style.display = 'block';
-        score = 0;
-        lives = 3;
-        document.getElementById('result-modal').style.display = 'none';
-    }
-
-    window.closeResultModal = () => {
-        quitGame();
-    };
-
-    window.showPage = (pageId, el) => {
-        if(isPlaying) return;
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(`page-${pageId}`).classList.add('active-page');
-        el.classList.add('active');
-        if(pageId === 'rank') loadLeaderboard();
+        }, 2000);
     };
 
     window.startGame = () => {
-        if (!navigator.onLine) {
-            tg.showAlert("O'yinni boshlash uchun internet kerak!");
-            return;
-        }
         isPlaying = true;
-        tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
         initGame();
     };
 
-    window.restartGame = () => {
-        currentIdx = 0;
-        score = 0;
-        lives = 3;
-        document.getElementById('score').innerText = "BALL: 0";
-        updateLivesUI();
-        document.getElementById('result-modal').style.display = 'none';
-        startGame();
-    };
-
     async function initGame() {
-        try {
-            const snap = await get(ref(db, 'questions'));
-            if(snap.exists()) {
-                questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
-                loadRound();
-            }
-        } catch (e) {
-            tg.showAlert("Ma'lumot yuklashda xatolik!");
+        const snap = await get(ref(db, 'questions'));
+        if(snap.exists()) {
+            questions = Object.values(snap.val()).sort(() => 0.5 - Math.random());
+            loadRound();
         }
     }
 
     async function loadRound() {
-        if(!isPlaying) return;
-        if(lives <= 0) { endGame(true); return; }
+        if(!isPlaying || lives <= 0) { endGame(true); return; }
         if(currentIdx >= questions.length) { endGame(false); return; }
         
         const q = questions[currentIdx];
-        const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
+        const lyricsBox = document.getElementById('lyrics-display');
         const disc = document.getElementById('disc');
 
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
-        status.innerText = "Musiqa qidirilmoqda...";
+        lyricsBox.innerText = "Yuklanmoqda...";
 
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => { disc.classList.add('spinning'); startTimer(15); status.innerText = "Eshiting..."; })
-                 .catch(() => { currentIdx++; loadRound(); });
+            audio.oncanplaythrough = () => {
+                // 1-O'ZGARTIRISH: Qo'shiqni o'rtasidan boshlash (preview 30 sek bo'lsa, 5-10 sekdan boshlaydi)
+                if (audio.duration > 10) {
+                    audio.currentTime = Math.floor(Math.random() * 10) + 5;
+                }
+                audio.play();
+                disc.classList.add('spinning');
+                startTimer(15);
+                
+                // 2-O'ZGARTIRISH: Matnni ko'rsatish
+                // Agar Firebase'da 'lyrics' maydoni bo'lsa uni ko'rsatadi, bo'lmasa standart matn
+                lyricsBox.innerText = q.lyrics || "🎶 Qo'shiqni topishga harakat qiling...";
+            };
         } else {
             currentIdx++; loadRound(); return;
         }
@@ -296,18 +186,12 @@
             btn.innerText = opt;
             btn.onclick = () => {
                 clearInterval(timerInterval);
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
                 if(i === q.correct) {
                     btn.classList.add('correct'); score += 10;
                     document.getElementById('score').innerText = "BALL: " + score;
-                    tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    btn.classList.add('wrong'); 
-                    btns[q.correct].classList.add('correct');
-                    lives--;
+                    btn.classList.add('wrong'); lives--;
                     updateLivesUI();
-                    tg.HapticFeedback.notificationOccurred('error');
                 }
                 setTimeout(() => { currentIdx++; loadRound(); }, 1500);
             };
@@ -316,104 +200,65 @@
     }
 
     function updateLivesUI() {
-        const livesEl = document.getElementById('lives');
-        livesEl.innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+        document.getElementById('lives').innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
     }
 
-    function endGame(isGameOver) {
-        isPlaying = false;
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        clearInterval(timerInterval);
-        audio.pause();
-        audio.src = "";
-        saveScore();
-        
-        const modal = document.getElementById('result-modal');
-        const scoreDisplay = document.getElementById('final-score');
-        const titleDisplay = document.getElementById('result-title');
-        
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        scoreDisplay.innerText = score;
-        modal.style.display = 'flex';
-    }
-
-    async function fetchMusic(term, isRetry = false) {
-        if (!navigator.onLine) return null;
+    async function fetchMusic(term) {
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
             const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
-                const artistName = t.artistName.toLowerCase();
-                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
-                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isDuet && !isCover;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
             return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
 
-    function startTimer(startTime) {
-        let t = startTime; document.getElementById('timer').innerText = t;
+    function startTimer(t) {
+        document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
-            if(t <= 0) { 
-                clearInterval(timerInterval); 
-                lives--; 
-                updateLivesUI();
-                currentIdx++; 
-                loadRound(); 
-            }
+            if(t <= 0) { clearInterval(timerInterval); lives--; updateLivesUI(); currentIdx++; loadRound(); }
         }, 1000);
     }
 
-    async function saveScore() {
-        if (score <= 0 || !navigator.onLine) return;
-        const userRef = ref(db, `leaderboard/${user.id}`);
-        try {
-            const snap = await get(userRef);
-            const oldScore = snap.exists() ? snap.val().score : 0;
-            if (score > oldScore) {
-                await update(userRef, {
-                    name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                    score: score,
-                    id: user.id
-                });
-            }
-        } catch (e) {}
+    function endGame(isGameOver) {
+        isPlaying = false;
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        audio.pause();
+        saveScore();
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('result-modal').style.display = 'flex';
     }
+
+    window.restartGame = () => {
+        location.reload();
+    };
+
+    async function saveScore() {
+        if (score <= 0) return;
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        await update(userRef, { name: user.first_name, score: score, id: user.id });
+    }
+
+    window.showPage = (pageId, el) => {
+        if(isPlaying) return;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`page-${pageId}`).classList.add('active-page');
+        el.classList.add('active');
+        if(pageId === 'rank') loadLeaderboard();
+    };
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
-        if (!navigator.onLine) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
-            return;
-        }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
-        try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
-            const snap = await get(rankQuery);
-            if(snap.exists()) {
-                listDiv.innerHTML = "";
-                const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
-                rawData.reverse().forEach((u, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'rank-item';
-                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
-                    listDiv.appendChild(item);
-                });
-            } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
-            }
-        } catch (e) {
-            listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>";
+        listDiv.innerHTML = "Yuklanmoqda...";
+        const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10)));
+        if(snap.exists()) {
+            listDiv.innerHTML = "";
+            const data = [];
+            snap.forEach(c => { data.push(c.val()); });
+            data.reverse().forEach((u, i) => {
+                listDiv.innerHTML += `<div class="rank-item"><span>${i+1}</span><span class="rank-name">${u.name}</span><span class="rank-score">${u.score}</span></div>`;
+            });
         }
     }
 </script>
