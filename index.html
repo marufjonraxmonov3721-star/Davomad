@@ -151,7 +151,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -203,37 +203,41 @@
     };
 
     async function checkReferral() {
-        const startParam = tg.initDataUnsafe?.start_param;
-        const userRef = ref(db, `users/${user.id}`);
+        if (user.id === "guest") return;
         
-        // Foydalanuvchini har doim bazada ro'yxatdan o'tkazish (Statistika uchun)
-        const userSnap = await get(userRef);
-        if (!userSnap.exists()) {
-            await set(userRef, { 
-                id: user.id, 
-                name: user.first_name, 
-                joinedAt: Date.now(),
-                invitedBy: startParam || null 
-            });
+        const startParam = tg.initDataUnsafe?.start_param;
+        const localJoinedKey = `joined_${user.id}`;
+        
+        // Agar bu yangi foydalanuvchi bo'lsa (brauzer xotirasida belgisi yo'q)
+        if (!localStorage.getItem(localJoinedKey)) {
+            const userRef = ref(db, `users/${user.id}`);
+            
+            // Firebase'da ham tekshirib ko'ramiz (xavfsizlik uchun)
+            const snap = await get(userRef);
+            if (!snap.exists()) {
+                await set(userRef, {
+                    id: user.id,
+                    name: user.first_name,
+                    joinedAt: Date.now()
+                });
 
-            // Agar referal havola orqali kirgan bo'lsa
-            if (startParam && startParam !== user.id.toString()) {
-                const inviterRef = ref(db, `leaderboard/${startParam}`);
-                const inviterSnap = await get(inviterRef);
-                
-                if (inviterSnap.exists()) {
-                    const currentInviterScore = inviterSnap.val().score || 0;
-                    await update(inviterRef, { score: currentInviterScore + 100 });
-                } else {
-                    // Agar taklif qiluvchi reytingda bo'lmasa, yangi rekord yaratish
-                    await set(inviterRef, {
-                        id: startParam,
-                        name: "O'yinchi",
-                        score: 100
+                // Agar taklif havolasi bilan kirgan bo'lsa
+                if (startParam && startParam !== user.id.toString()) {
+                    const inviterRef = ref(db, `leaderboard/${startParam}`);
+                    
+                    // runTransaction ballni xatosiz va tez qo'shish uchun eng yaxshi usul
+                    await runTransaction(inviterRef, (currentData) => {
+                        if (currentData === null) {
+                            return { id: startParam, name: "O'yinchi", score: 100 };
+                        } else {
+                            currentData.score = (currentData.score || 0) + 100;
+                            return currentData;
+                        }
                     });
+                    tg.showAlert("Do'stingiz taklifi bilan kirdingiz! Unga 100 ball berildi.");
                 }
-                tg.showAlert("Tabriklaymiz! Do'stingiz taklifi uchun unga 100 ball berildi!");
             }
+            localStorage.setItem(localJoinedKey, "true");
         }
     }
 
