@@ -451,6 +451,8 @@
                 q = bossQuestion;
                 document.body.classList.add('boss-active');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
+                // Boss boshlanganda oddiy combo badge yashiriladi
+                document.getElementById('combo-badge').style.display = 'none';
             } else {
                 currentLevel++;
                 loadLevelQuestions();
@@ -473,7 +475,6 @@
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
                 const baseTime = Math.max(8, 18 - (currentLevel));
-                // Boss vaqti 10 soniya etib belgilandi
                 const levelTime = isBossRound ? 10 : baseTime;
                 startTimer(levelTime); 
                 status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
@@ -499,14 +500,14 @@
                 
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    comboCount++;
                     let pointsToAdd;
                     
                     if(isBossRound) {
+                        // Boss uchun bazadagi maxsus ball va combo ishlatiladi
                         const baseBossScore = q.boss_score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
-                        // Boss uchun aniq combo va ball ko'rsatiladi
+                        
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
                         
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
@@ -514,20 +515,21 @@
                             updateLivesUI();
                         }
                     } else {
+                        comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
                         pointsToAdd = (10 * comboMultiplier * currentLevel);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                        updateComboUI();
                     }
                     
                     score += pointsToAdd;
-                    updateComboUI();
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
-                    updateComboUI();
+                    if(!isBossRound) updateComboUI();
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -570,6 +572,12 @@
     }
 
     function updateComboUI() {
+        // Boss raundida oddiy combo UI ishlamaydi (yashiriladi)
+        if(isBossRound) {
+            document.getElementById('combo-badge').style.display = 'none';
+            return;
+        }
+        
         const badge = document.getElementById('combo-badge');
         if (comboCount >= 3) {
             const multiplier = Math.floor(comboCount / 3) + 1;
@@ -700,41 +708,4 @@
             } else {
                 listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
             }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
-    }
-
-    async function loadProfileData() {
-        const profileName = document.getElementById('profile-name');
-        const profileId = document.getElementById('profile-id');
-        const bestScoreEl = document.getElementById('best-score');
-        const bestLevelEl = document.getElementById('best-level');
-        const totalXpEl = document.getElementById('total-xp');
-        const profileAvatar = document.getElementById('profile-avatar');
-
-        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-        profileId.innerText = "ID: " + user.id;
-
-        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
-        else { profileAvatar.innerText = user.first_name.charAt(0); }
-
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                const data = snap.val();
-                bestScoreEl.innerText = data.score || 0;
-                bestLevelEl.innerText = data.level || 1;
-                totalXpEl.innerText = data.total_xp || 0;
-            } else {
-                bestScoreEl.innerText = "0";
-                bestLevelEl.innerText = "1";
-                totalXpEl.innerText = "0";
-            }
-        } catch (e) { 
-            bestScoreEl.innerText = "0";
-            bestLevelEl.innerText = "1";
-            totalXpEl.innerText = "0";
-        }
-    }
-</script>
-</body>
-</html>
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding
