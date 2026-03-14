@@ -283,8 +283,9 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
-    // YUKLANGAN SAVOLLARNI TEKSHIRISH UCHUN SET
+    // SAVOLLARNI MUZLATISH MEXANIZMI
     let usedQuestions = new Set();
+    let defeatCount = 0; // Necha marta yutqazilganini sanash
     
     let rankLimit = 10;
 
@@ -351,7 +352,12 @@
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
-        usedQuestions.clear(); 
+        
+        // Agar 5 marta yutqazilgan bo'lsa, savollarni tozalash (qayta tushishi uchun)
+        if (defeatCount >= 5) {
+            usedQuestions.clear();
+            defeatCount = 0;
+        }
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -388,7 +394,6 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
-        usedQuestions.clear(); 
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -425,6 +430,7 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
+        // Faqat ishlatilmagan (usedQuestions to'plamida yo'q) savollarni olish
         const levelData = Object.values(allQuestions).filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
         );
@@ -438,8 +444,12 @@
             currentIdx = 0;
             loadRound();
         } else {
+            // Agar savollar qolmagan bo'lsa va hali yutqazish limiti (5) to'lmagan bo'lsa
             if (currentLevel > 1) endGame(false);
-            else { tg.showAlert("Savollar yetarli emas!"); quitGame(); }
+            else { 
+                tg.showAlert("Yangi savollar qolmadi! Eski savollar ochilishi uchun yana " + (5 - defeatCount) + " marta o'yinni tugatishingiz kerak."); 
+                quitGame(); 
+            }
         }
     }
 
@@ -470,6 +480,7 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
+        // SAVOL KO'RSATILDIMI? UNI "ISHALITILDI" DEB BELGILASH
         usedQuestions.add(q.search_term);
 
         optionsBox.innerHTML = "";
@@ -612,6 +623,11 @@
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
+        
+        // AGAR O'YIN TUGASA (MAG'LUBIYAT), SANAGIChNI OSHIRISH
+        if (isGameOver) {
+            defeatCount++;
+        }
         
         saveScore();
         
