@@ -150,7 +150,7 @@
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
                     <div id="game-stats-left">
                         <span id="score">BALL: 0</span><br>
-                        <span id="round-counter" style="font-size: 10px; color: #666;">SAVOL: 1/15</span>
+                        <span id="round-counter" style="font-size: 10px; color: #666;">BOSQICH: 1 | SAVOL: 1/5</span>
                     </div>
                     <div id="lives" class="lives-container">🎵🎵🎵</div>
                     <span id="timer">15</span>
@@ -162,7 +162,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">15 ta savoldan iborat raundda o'zingizni sinang!</p>
+                <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
                 
                 <div class="cat-grid">
                     <button class="cat-btn" onclick="startGame('uzbek')">
@@ -257,11 +257,12 @@
     tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
-    let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
+    let allQuestions = {}, questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
     let comboCount = 0;
     let currentCategory = 'uzbek';
-    const ROUND_LIMIT = 15; // Raunddagi savollar soni
+    let currentLevel = 1;
+    const QUESTIONS_PER_LEVEL = 5;
     
     let rankLimit = 10;
 
@@ -324,6 +325,7 @@
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
+        currentLevel = 1;
         document.getElementById('result-modal').style.display = 'none';
     }
 
@@ -349,6 +351,8 @@
         }
         currentCategory = category || 'uzbek';
         isPlaying = true;
+        currentLevel = 1;
+        currentIdx = 0;
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
@@ -361,8 +365,9 @@
         score = 0;
         lives = 3;
         comboCount = 0;
+        currentLevel = 1;
         document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `SAVOL: 1/${ROUND_LIMIT}`;
+        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
@@ -374,10 +379,8 @@
         try {
             const snap = await get(ref(db, `questions/${currentCategory}`));
             if(snap.exists()) {
-                const data = snap.val();
-                // Barcha savollarni aralashtirib, faqat 15 tasini kesib olamiz
-                questions = Object.values(data).sort(() => Math.random() - 0.5).slice(0, ROUND_LIMIT);
-                loadRound();
+                allQuestions = snap.val();
+                loadLevelQuestions();
             } else {
                 tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
                 quitGame();
@@ -388,14 +391,39 @@
         }
     }
 
+    function loadLevelQuestions() {
+        // Hozirgi levelga tegishli savollarni ajratib olamiz
+        const levelQuestions = Object.values(allQuestions).filter(q => (q.level || 1) == currentLevel);
+        
+        if(levelQuestions.length > 0) {
+            // Level ichidagi savollarni aralashtirib, 5 tasini olamiz
+            questions = levelQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+            currentIdx = 0;
+            loadRound();
+        } else {
+            // Agar bu levelda savol bo'lmasa, lekin oldingi levelni tugatgan bo'lsa - g'alaba
+            if (currentLevel > 1) {
+                endGame(false);
+            } else {
+                tg.showAlert("Savollar yetarli emas!");
+                quitGame();
+            }
+        }
+    }
+
     async function loadRound() {
         if(!isPlaying) return;
         
-        // Agar jon tugasa yoki barcha 15 ta savol tugasa o'yin tugaydi
         if(lives <= 0) { endGame(true); return; }
-        if(currentIdx >= questions.length) { endGame(false); return; }
         
-        document.getElementById('round-counter').innerText = `SAVOL: ${currentIdx + 1}/${ROUND_LIMIT}`;
+        // Agar leveldagi 5 ta savol tugasa, keyingi levelga o'tamiz
+        if(currentIdx >= questions.length) { 
+            currentLevel++;
+            loadLevelQuestions();
+            return; 
+        }
+        
+        document.getElementById('round-counter').innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         
         const q = questions[currentIdx];
         const status = document.getElementById('status');
@@ -413,7 +441,9 @@
             audio.src = musicUrl;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                startTimer(15); 
+                // Bosqich oshgan sari vaqt kamayadi (20s -> 15s -> 10s...)
+                const levelTime = Math.max(8, 20 - (currentLevel * 2));
+                startTimer(levelTime); 
                 status.innerText = "Eshiting..."; 
             })
             .catch(() => { currentIdx++; loadRound(); });
@@ -422,7 +452,6 @@
                 disc.classList.remove('spinning');
             };
         } else {
-            // Agar musiqa topilmasa, o'sha savolni o'tkazib yuboramiz
             currentIdx++; loadRound(); return;
         }
 
@@ -442,7 +471,8 @@
                     btn.classList.add('correct'); 
                     comboCount++;
                     const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                    const pointsToAdd = (10 * comboMultiplier);
+                    // Bosqich baland bo'lsa ko'proq ball beradi
+                    const pointsToAdd = (10 * comboMultiplier * currentLevel);
                     score += pointsToAdd;
                     showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                     updateComboUI();
@@ -504,7 +534,7 @@
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
         const titleDisplay = document.getElementById('result-title');
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "Barcha bosqichlar yakunlandi!";
         scoreDisplay.innerText = score;
         modal.style.display = 'flex';
     }
@@ -516,7 +546,6 @@
             const data = await res.json();
             const filteredTracks = data.results.filter(t => {
                 const trackName = t.trackName.toLowerCase();
-                const artistName = t.artistName.toLowerCase();
                 const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
                 return !isCover;
             });
@@ -527,7 +556,8 @@
     }
 
     function startTimer(startTime) {
-        let t = startTime; document.getElementById('timer').innerText = t;
+        let t = Math.floor(startTime); 
+        document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if (!navigator.onLine) return;
@@ -555,7 +585,7 @@
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                 score: newBestScore,
-                total_xp: increment(score), // Har bir o'yin ballari qo'shilib boradi
+                total_xp: increment(score),
                 id: user.id
             });
         } catch (e) {}
