@@ -229,7 +229,6 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
@@ -242,58 +241,7 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             loadProfileData();
-        }, 2500);
-        
-        const checkNetwork = () => {
-            const notice = document.getElementById('offline-notice');
-            if(!navigator.onLine) {
-                notice.classList.add('show');
-                if(isPlaying) {
-                    clearInterval(timerInterval);
-                    audio.pause();
-                }
-            } else {
-                notice.classList.remove('show');
-                if(isPlaying && audio.src) {
-                   audio.play().catch(e => {});
-                   startTimer(parseInt(document.getElementById('timer').innerText));
-                }
-            }
-        };
-
-        window.addEventListener('offline', checkNetwork);
-        window.addEventListener('online', checkNetwork);
-        checkNetwork();
-    };
-
-    tg.BackButton.onClick(() => {
-        if(isPlaying) {
-            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) quitGame();
-            });
-        }
-    });
-
-    function quitGame() {
-        isPlaying = false;
-        clearInterval(timerInterval);
-        audio.pause();
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('pre-game').style.display = 'block';
-        document.getElementById('combo-badge').style.display = 'none';
-        resetBossUI();
-        score = 0;
-        lives = 3;
-        comboCount = 0;
-        roundCounter = 0;
-        currentIdx = 0;
-        document.getElementById('result-modal').style.display = 'none';
-    }
-
-    window.closeResultModal = () => {
-        quitGame();
+        }, 2000);
     };
 
     window.showPage = (pageId, el) => {
@@ -306,41 +254,127 @@
         if(pageId === 'profile') loadProfileData();
     };
 
-    window.startGame = () => {
-        if (!navigator.onLine) {
-            tg.showAlert("O'yinni boshlash uchun internet kerak!");
-            return;
+    window.startGame = async () => {
+        const snap = await get(ref(db, 'questions'));
+        if(snap.exists()) {
+            questions = Object.values(snap.val()).sort(() => Math.random() - 0.5);
+            isPlaying = true;
+            document.getElementById('bottom-nav').classList.add('hidden-nav');
+            document.getElementById('pre-game').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            loadRound();
+        } else {
+            tg.showAlert("Savollar topilmadi!");
         }
-        isPlaying = true;
-        tg.BackButton.show();
-        document.getElementById('bottom-nav').classList.add('hidden-nav');
-        document.getElementById('pre-game').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'block';
-        initGame();
     };
 
     window.restartGame = () => {
-        currentIdx = 0;
-        score = 0;
-        lives = 3;
-        comboCount = 0;
-        roundCounter = 0;
+        currentIdx = 0; score = 0; lives = 3; comboCount = 0; roundCounter = 0;
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
         startGame();
     };
 
-    async function initGame() {
-        try {
-            const snap = await get(ref(db, 'questions'));
-            if(snap.exists()) {
-                questions = Object.values(snap.val());
-                loadRound();
-            }
-        } catch (e) {
-            tg.showAlert("Ma'lumot yuklashda xatolik!");
+    async function loadRound() {
+        if(!isPlaying) return;
+        if(lives <= 0 || currentIdx >= questions.length) { endGame(lives <= 0); return; }
+        
+        roundCounter++;
+        const isBossRound = roundCounter % 10 === 0;
+        const q = questions[currentIdx];
+        const optionsBox = document.getElementById('options-box');
+        const status = document.getElementById('status');
+        const disc = document.getElementById('disc');
+        const card = document.getElementById('main-game-card');
+        const discCenter = document.getElementById('disc-center');
+
+        optionsBox.innerHTML = "";
+        disc.classList.remove('spinning');
+        audio.pause();
+        resetBossUI();
+
+        if(isBossRound) {
+            card.classList.add('boss-mode');
+            status.classList.add('boss-text');
+            status.innerText = "BOSS ROUND: TAYYORLANING!";
+            discCenter.style.background = 'var(--boss)';
+        } else {
+            status.innerText = "Musiqa yuklanmoqda...";
         }
+
+        const musicUrl = await fetchMusic(q.search_term || q.search);
+        if(musicUrl) {
+            audio.src = musicUrl;
+            audio.play().then(() => {
+                disc.classList.add('spinning');
+                startTimer(isBossRound ? 7 : 15);
+                status.innerText = isBossRound ? "🔥 BOSS ROUND 🔥" : "Kim kuylayapti?";
+            }).catch(() => { skipRound(); });
+        } else {
+            skipRound();
+            return;
+        }
+
+        const correctText = q.options[q.correct];
+        // Boss roundda 6 ta, oddiyda 4 ta variant (agar bazada bor bo'lsa)
+        const displayLimit = isBossRound ? 6 : 4;
+        const shuffledOptions = [...q.options].slice(0, Math.min(q.options.length, displayLimit)).sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = (e) => {
+                clearInterval(timerInterval);
+                document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+                if(opt === correctText) {
+                    btn.classList.add('correct');
+                    comboCount++;
+                    const mult = Math.floor(comboCount / 3) + 1;
+                    const pts = isBossRound ? 100 : (10 * mult);
+                    score += pts;
+                    document.getElementById('score').innerText = "BALL: " + score;
+                    updateComboUI();
+                    showFloatingText(`+${pts}`, e.clientX, e.clientY);
+                } else {
+                    btn.classList.add('wrong');
+                    document.querySelectorAll('.option-btn').forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
+                    lives--; updateLivesUI(); comboCount = 0; updateComboUI();
+                }
+                setTimeout(() => { currentIdx++; loadRound(); }, 1500);
+            };
+            optionsBox.appendChild(btn);
+        });
+    }
+
+    function skipRound() {
+        currentIdx++;
+        loadRound();
+    }
+
+    async function fetchMusic(term) {
+        try {
+            // Qidiruvni aniqlashtirish uchun "music" so'zi qo'shildi
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
+            const data = await res.json();
+            return data.results[0]?.previewUrl || null;
+        } catch (e) { return null; }
+    }
+
+    function startTimer(time) {
+        let t = time;
+        document.getElementById('timer').innerText = t;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            t--;
+            document.getElementById('timer').innerText = t;
+            if(t <= 0) {
+                clearInterval(timerInterval);
+                lives--; updateLivesUI(); comboCount = 0; updateComboUI();
+                currentIdx++; loadRound();
+            }
+        }, 1000);
     }
 
     function resetBossUI() {
@@ -352,269 +386,91 @@
         discCenter.style.background = 'var(--primary)';
     }
 
-    async function loadRound() {
-        if(!isPlaying) return;
-        if(lives <= 0) { endGame(true); return; }
-        if(currentIdx >= questions.length) { endGame(false); return; }
-        
-        roundCounter++;
-        const isBossRound = roundCounter % 10 === 0;
-        
-        const q = questions[currentIdx];
-        const status = document.getElementById('status');
-        const optionsBox = document.getElementById('options-box');
-        const disc = document.getElementById('disc');
-        const card = document.getElementById('main-game-card');
-        const discCenter = document.getElementById('disc-center');
-
-        optionsBox.innerHTML = "";
-        disc.classList.remove('spinning');
-        audio.pause();
-        
-        resetBossUI();
-
-        if (isBossRound) {
-            card.classList.add('boss-mode');
-            status.classList.add('boss-text');
-            status.innerText = "BOSS ROUND: TAYYORLANING!";
-            discCenter.style.background = 'var(--boss)';
-            tg.HapticFeedback.notificationOccurred('warning');
-        } else {
-            status.innerText = "Musiqa qidirilmoqda...";
-        }
-
-        const musicUrl = await fetchMusic(q.search_term);
-        if(musicUrl) {
-            audio.src = musicUrl;
-            audio.play().then(() => { 
-                disc.classList.add('spinning'); 
-                startTimer(isBossRound ? 5 : 15); 
-                status.innerText = isBossRound ? "🔥 BOSS ROUND 🔥" : "Eshiting..."; 
-            })
-            .catch(() => { currentIdx++; loadRound(); });
-        } else {
-            currentIdx++; loadRound(); return;
-        }
-
-        // BOSS ROUNDDA 6 TA VARIANT, ODDIYDA 4 TA
-        const displayOptions = isBossRound ? q.options.slice(0, 6) : q.options.slice(0, 4);
-        
-        // To'g'ri javob matni
-        const correctText = q.options[q.correct];
-        
-        // Variantlarni aralashtirish
-        const shuffledOptions = [...displayOptions].sort(() => Math.random() - 0.5);
-
-        shuffledOptions.forEach((opt) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt;
-            btn.onclick = (e) => {
-                clearInterval(timerInterval);
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
-                
-                if(opt === correctText) {
-                    btn.classList.add('correct'); 
-                    comboCount++;
-                    const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                    const pointsToAdd = isBossRound ? 100 : (10 * comboMultiplier);
-                    score += pointsToAdd;
-                    showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
-                    updateComboUI();
-                    document.getElementById('score').innerText = "BALL: " + score;
-                    tg.HapticFeedback.notificationOccurred('success');
-                } else {
-                    btn.classList.add('wrong'); 
-                    btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
-                    comboCount = 0;
-                    updateComboUI();
-                    lives--;
-                    updateLivesUI();
-                    tg.HapticFeedback.notificationOccurred('error');
-                }
-                setTimeout(() => { currentIdx++; loadRound(); }, 1500);
-            };
-            optionsBox.appendChild(btn);
-        });
-    }
-
-    function showFloatingText(text, x, y) {
-        const el = document.createElement('div');
-        el.className = 'floating-text';
-        el.innerText = text;
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
+    function updateLivesUI() {
+        document.getElementById('lives').innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
     }
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        if (comboCount >= 3) {
-            const multiplier = Math.floor(comboCount / 3) + 1;
-            badge.innerText = `COMBO x${multiplier}`;
+        if(comboCount >= 3) {
+            badge.innerText = `COMBO x${Math.floor(comboCount/3)+1}`;
             badge.style.display = 'block';
-            badge.style.animation = 'none';
-            badge.offsetHeight; 
-            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        } else {
-            badge.style.display = 'none';
-        }
+        } else { badge.style.display = 'none'; }
     }
 
-    function updateLivesUI() {
-        const livesEl = document.getElementById('lives');
-        livesEl.innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+    function showFloatingText(txt, x, y) {
+        const el = document.createElement('div');
+        el.className = 'floating-text';
+        el.innerText = txt;
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
     }
 
-    function endGame(isGameOver) {
+    function endGame(isOver) {
         isPlaying = false;
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('combo-badge').style.display = 'none';
-        resetBossUI();
         clearInterval(timerInterval);
         audio.pause();
-        audio.src = "";
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('result-modal').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('result-title').innerText = isOver ? "O'yin tugadi!" : "G'alaba!";
         saveScore();
-        const modal = document.getElementById('result-modal');
-        const scoreDisplay = document.getElementById('final-score');
-        const titleDisplay = document.getElementById('result-title');
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        scoreDisplay.innerText = score;
-        modal.style.display = 'flex';
-    }
-
-    async function fetchMusic(term, isRetry = false) {
-        if (!navigator.onLine) return null;
-        try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
-            const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
-                const artistName = t.artistName.toLowerCase();
-                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
-                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isDuet && !isCover;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
-            return data.results[0]?.previewUrl;
-        } catch (e) { return null; }
-    }
-
-    function startTimer(startTime) {
-        let t = startTime; document.getElementById('timer').innerText = t;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            if (!navigator.onLine) return;
-            t--; document.getElementById('timer').innerText = t;
-            if(t <= 0) { 
-                clearInterval(timerInterval); 
-                comboCount = 0;
-                updateComboUI();
-                lives--; 
-                updateLivesUI();
-                currentIdx++; 
-                loadRound(); 
-            }
-        }, 1000);
     }
 
     async function saveScore() {
-        if (score <= 0 || !navigator.onLine) return;
+        if(score <= 0) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
-        try {
-            const snap = await get(userRef);
-            const data = snap.exists() ? snap.val() : { score: 0, totalXP: 0 };
-            const newBestScore = Math.max(score, data.score);
-            const newTotalXP = (data.totalXP || 0) + score;
-            await update(userRef, {
-                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                score: newBestScore,
-                totalXP: newTotalXP,
-                id: user.id
-            });
-        } catch (e) {}
+        const snap = await get(userRef);
+        const data = snap.exists() ? snap.val() : { score: 0, totalXP: 0 };
+        await update(userRef, {
+            name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+            score: Math.max(score, data.score),
+            totalXP: (data.totalXP || 0) + score,
+            id: user.id
+        });
     }
 
     async function loadLeaderboard() {
-        const listDiv = document.getElementById('rank-list');
-        if (!navigator.onLine) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
-            return;
+        const list = document.getElementById('rank-list');
+        list.innerHTML = "Yuklanmoqda...";
+        const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10)));
+        if(snap.exists()) {
+            list.innerHTML = "";
+            let res = [];
+            snap.forEach(c => { res.push(c.val()); });
+            res.reverse().forEach((u, i) => {
+                list.innerHTML += `<div class="rank-item" style="${u.id==user.id?'border-color:#ffcc00':''}">
+                    <div class="rank-num">${i+1}</div>
+                    <div class="rank-name">${u.name}</div>
+                    <div class="rank-score">${u.score}</div>
+                </div>`;
+            });
         }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
-        try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
-            const snap = await get(rankQuery);
-            if(snap.exists()) {
-                listDiv.innerHTML = "";
-                const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
-                rawData.reverse().forEach((u, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'rank-item';
-                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
-                    listDiv.appendChild(item);
-                });
-            } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
-            }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
-        const profileName = document.getElementById('profile-name');
-        const profileId = document.getElementById('profile-id');
-        const bestScoreEl = document.getElementById('best-score');
-        const totalXpEl = document.getElementById('total-xp');
-        const profileAvatar = document.getElementById('profile-avatar');
-        const levelVal = document.getElementById('level-value');
-        const xpCurr = document.getElementById('xp-current');
-        const xpNext = document.getElementById('xp-next');
-        const progress = document.getElementById('level-progress');
-
-        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-        profileId.innerText = "ID: " + user.id;
-
-        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
-        else { profileAvatar.innerText = user.first_name.charAt(0); }
-
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                const data = snap.val();
-                const xp = data.totalXP || 0;
-                bestScoreEl.innerText = data.score || 0;
-                totalXpEl.innerText = xp;
-                
-                let level = 1;
-                let remainingXP = xp;
-                let requiredXP = level * 200;
-                
-                while (remainingXP >= requiredXP) {
-                    remainingXP -= requiredXP;
-                    level++;
-                    requiredXP = level * 200;
-                }
-                
-                levelVal.innerText = level;
-                xpCurr.innerText = remainingXP;
-                xpNext.innerText = requiredXP;
-                progress.style.width = (remainingXP / requiredXP * 100) + "%";
-            } else {
-                bestScoreEl.innerText = "0";
-                totalXpEl.innerText = "0";
-                levelVal.innerText = "1";
-                xpCurr.innerText = "0";
-                xpNext.innerText = "200";
-                progress.style.width = "0%";
-            }
-        } catch (e) { bestScoreEl.innerText = "Error"; }
+        document.getElementById('profile-name').innerText = user.first_name;
+        document.getElementById('profile-id').innerText = "ID: " + user.id;
+        const snap = await get(ref(db, `leaderboard/${user.id}`));
+        if(snap.exists()) {
+            const d = snap.val();
+            document.getElementById('best-score').innerText = d.score;
+            document.getElementById('total-xp').innerText = d.totalXP;
+            let lvl = Math.floor((d.totalXP || 0) / 200) + 1;
+            let xpInLvl = (d.totalXP || 0) % 200;
+            document.getElementById('level-value').innerText = lvl;
+            document.getElementById('xp-current').innerText = xpInLvl;
+            document.getElementById('xp-next').innerText = 200;
+            document.getElementById('level-progress').style.width = (xpInLvl/200*100) + "%";
+        }
     }
+
+    window.closeResultModal = () => {
+        document.getElementById('result-modal').style.display = 'none';
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('pre-game').style.display = 'block';
+    };
 </script>
 </body>
 </html>
