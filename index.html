@@ -10,11 +10,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
-        /* Loading Animation */
-        #loading-screen { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        }
+        #loading-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .loader { display: flex; align-items: center; gap: 5px; height: 50px; }
         .bar { width: 8px; height: 20px; background: var(--primary); border-radius: 10px; animation: scaleY 1s infinite ease-in-out; }
         .bar:nth-child(2) { animation-delay: 0.1s; }
@@ -26,8 +22,7 @@
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
-        /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; }
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; transition: 0.3s; }
         .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -39,48 +34,27 @@
 
         .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
 
-        /* Combo Badge */
-        #combo-badge {
-            position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000;
-            padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px;
-            display: none; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
-        }
+        #combo-badge { position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000; padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px; display: none; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10; }
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        /* Floating Score Text */
-        .floating-text {
-            position: absolute; color: var(--primary); font-weight: bold; font-size: 20px;
-            pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
-        }
+        .floating-text { position: absolute; color: var(--primary); font-weight: bold; font-size: 20px; pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
-        /* Boss Mode Style */
         .boss-mode { border-color: var(--boss) !important; box-shadow: 0 0 20px rgba(255, 0, 85, 0.2); }
         .boss-text { color: var(--boss) !important; animation: blink 0.5s infinite alternate; }
         @keyframes blink { from { opacity: 1; } to { opacity: 0.5; } }
 
-        /* Custom Result Modal */
-        #result-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-        }
-        .result-card {
-            background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px;
-            border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
-            position: relative;
-        }
+        #result-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .result-card { background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px; border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out; position: relative; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
         .rank-num { width: 30px; font-weight: bold; color: var(--primary); }
         .rank-name { flex: 1; font-size: 14px; }
         .rank-score { font-weight: bold; color: var(--primary); }
 
-        /* Profile UI */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
         .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
@@ -89,43 +63,25 @@
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
         
-        /* Progress Bar */
         .progress-container { width: 100%; background: #333; height: 10px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: 0.5s; }
 
-        /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 20px; margin-bottom: 4px; }
-        
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        /* Modern Offline Toast */
-        #offline-notice {
-            position: fixed; top: -100px; left: 0; right: 0;
-            background: rgba(255, 62, 62, 0.95); color: white; 
-            padding: 15px; text-align: center; font-weight: bold; 
-            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
-        }
+        #offline-notice { position: fixed; top: -100px; left: 0; right: 0; background: rgba(255, 62, 62, 0.95); color: white; padding: 15px; text-align: center; font-weight: bold; z-index: 5000; transition: 0.5s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         #offline-notice.show { top: 0; }
-        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="offline-notice">
-    <span class="offline-icon">⚠️</span>
-    <span>Internet aloqasi yo'q!</span>
-</div>
+<div id="offline-notice"><span>⚠️ Internet aloqasi yo'q!</span></div>
 
 <div id="loading-screen">
-    <div class="loader">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-    </div>
+    <div class="loader"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
     <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
 </div>
 
@@ -135,7 +91,7 @@
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
-        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+        <button class="start-btn" onclick="restartGame()">QAYTA O'YNASH</button>
     </div>
 </div>
 
@@ -156,7 +112,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
-                <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
+                <p style="color:#666; margin-bottom:20px;">Xato qilmaslikka harakat qiling!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
             </div>
         </div>
@@ -172,43 +128,26 @@
     <div id="page-profile" class="page">
         <div class="profile-card">
             <div class="avatar-circle" id="profile-avatar">👤</div>
-            <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 15px;"></p>
-            
-            <div class="stat-item" style="margin-bottom: 15px;">
+            <h2 id="profile-name">Ism</h2>
+            <p id="profile-id" style="color:#666; font-size:12px; margin-bottom:15px;"></p>
+            <div class="stat-item">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <span style="font-size:14px; font-weight:bold;">LEVEL <span id="level-value">1</span></span>
-                    <span style="font-size:12px; color:#888;"><span id="xp-current">0</span> / <span id="xp-next">100</span> XP</span>
+                    <span style="font-size:12px; color:#888;"><span id="xp-current">0</span> / <span id="xp-next">200</span> XP</span>
                 </div>
                 <div class="progress-container"><div class="progress-bar" id="level-progress"></div></div>
             </div>
-
             <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija</div>
-                    <div class="stat-value" id="best-score">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Umumiy XP</div>
-                    <div class="stat-value" id="total-xp">0</div>
-                </div>
+                <div class="stat-item"><div class="stat-label">Eng yuqori natija</div><div class="stat-value" id="best-score">0</div></div>
+                <div class="stat-item"><div class="stat-label">Umumiy XP</div><div class="stat-value" id="total-xp">0</div></div>
             </div>
         </div>
     </div>
 
     <nav class="nav-bar" id="bottom-nav">
-        <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span>
-            <span>O'yin</span>
-        </div>
-        <div class="nav-item" onclick="showPage('rank', this)">
-            <span class="nav-icon">🏆</span>
-            <span>Reyting</span>
-        </div>
-        <div class="nav-item" onclick="showPage('profile', this)">
-            <span class="nav-icon">👤</span>
-            <span>Profil</span>
-        </div>
+        <div class="nav-item active" onclick="showPage('game', this)"><span class="nav-icon">🎮</span><span>O'yin</span></div>
+        <div class="nav-item" onclick="showPage('rank', this)"><span class="nav-icon">🏆</span><span>Reyting</span></div>
+        <div class="nav-item" onclick="showPage('profile', this)"><span class="nav-icon">👤</span><span>Profil</span></div>
     </nav>
 </div>
 
@@ -232,9 +171,7 @@
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
-    let isPlaying = false;
-    let comboCount = 0;
-    let roundCounter = 0;
+    let isPlaying = false, comboCount = 0, roundCounter = 0;
 
     window.onload = () => {
         setTimeout(() => {
@@ -255,16 +192,15 @@
     };
 
     window.startGame = async () => {
+        isPlaying = true;
+        document.getElementById('bottom-nav').classList.add('hidden-nav');
+        document.getElementById('pre-game').style.display = 'none';
+        document.getElementById('game-ui').style.display = 'block';
+        
         const snap = await get(ref(db, 'questions'));
         if(snap.exists()) {
             questions = Object.values(snap.val()).sort(() => Math.random() - 0.5);
-            isPlaying = true;
-            document.getElementById('bottom-nav').classList.add('hidden-nav');
-            document.getElementById('pre-game').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
             loadRound();
-        } else {
-            tg.showAlert("Savollar topilmadi!");
         }
     };
 
@@ -273,7 +209,7 @@
         document.getElementById('score').innerText = "BALL: 0";
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
-        startGame();
+        loadRound();
     };
 
     async function loadRound() {
@@ -283,8 +219,8 @@
         roundCounter++;
         const isBossRound = roundCounter % 10 === 0;
         const q = questions[currentIdx];
-        const optionsBox = document.getElementById('options-box');
         const status = document.getElementById('status');
+        const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
         const card = document.getElementById('main-game-card');
         const discCenter = document.getElementById('disc-center');
@@ -294,53 +230,61 @@
         audio.pause();
         resetBossUI();
 
-        if(isBossRound) {
+        if (isBossRound) {
             card.classList.add('boss-mode');
             status.classList.add('boss-text');
             status.innerText = "BOSS ROUND: TAYYORLANING!";
             discCenter.style.background = 'var(--boss)';
         } else {
-            status.innerText = "Musiqa yuklanmoqda...";
+            status.innerText = "Yuklanmoqda...";
         }
 
-        const musicUrl = await fetchMusic(q.search_term || q.search);
+        const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => {
-                disc.classList.add('spinning');
-                startTimer(isBossRound ? 7 : 15);
-                status.innerText = isBossRound ? "🔥 BOSS ROUND 🔥" : "Kim kuylayapti?";
-            }).catch(() => { skipRound(); });
+            audio.play().then(() => { 
+                disc.classList.add('spinning'); 
+                startTimer(isBossRound ? 7 : 15); 
+                status.innerText = isBossRound ? "🔥 BOSS MODE 🔥" : "Qaysi qo'shiq?"; 
+            }).catch(() => skipQuestion());
         } else {
-            skipRound();
+            skipQuestion();
             return;
         }
 
+        // 6 ta variant BOSS uchun, 4 ta oddiy uchun
         const correctText = q.options[q.correct];
-        // Boss roundda 6 ta, oddiyda 4 ta variant (agar bazada bor bo'lsa)
-        const displayLimit = isBossRound ? 6 : 4;
-        const shuffledOptions = [...q.options].slice(0, Math.min(q.options.length, displayLimit)).sort(() => Math.random() - 0.5);
-
-        shuffledOptions.forEach(opt => {
+        let optionsToDisplay = isBossRound ? q.options.slice(0, 6) : q.options.slice(0, 4);
+        
+        // Agar to'g'ri javob kesilgan ro'yxatda bo'lmasa, uni qo'shish
+        if(!optionsToDisplay.includes(correctText)) {
+            optionsToDisplay[0] = correctText;
+        }
+        
+        optionsToDisplay.sort(() => Math.random() - 0.5).forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
             btn.onclick = (e) => {
                 clearInterval(timerInterval);
-                document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+                const btns = document.querySelectorAll('.option-btn');
+                btns.forEach(b => b.disabled = true);
+                
                 if(opt === correctText) {
                     btn.classList.add('correct');
                     comboCount++;
                     const mult = Math.floor(comboCount / 3) + 1;
                     const pts = isBossRound ? 100 : (10 * mult);
                     score += pts;
-                    document.getElementById('score').innerText = "BALL: " + score;
-                    updateComboUI();
                     showFloatingText(`+${pts}`, e.clientX, e.clientY);
+                    updateComboUI();
+                    document.getElementById('score').innerText = "BALL: " + score;
+                    tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong');
-                    document.querySelectorAll('.option-btn').forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
-                    lives--; updateLivesUI(); comboCount = 0; updateComboUI();
+                    btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
+                    comboCount = 0; updateComboUI(); lives--; updateLivesUI();
+                    tg.HapticFeedback.notificationOccurred('error');
                 }
                 setTimeout(() => { currentIdx++; loadRound(); }, 1500);
             };
@@ -348,33 +292,9 @@
         });
     }
 
-    function skipRound() {
+    function skipQuestion() {
         currentIdx++;
         loadRound();
-    }
-
-    async function fetchMusic(term) {
-        try {
-            // Qidiruvni aniqlashtirish uchun "music" so'zi qo'shildi
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
-            const data = await res.json();
-            return data.results[0]?.previewUrl || null;
-        } catch (e) { return null; }
-    }
-
-    function startTimer(time) {
-        let t = time;
-        document.getElementById('timer').innerText = t;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            t--;
-            document.getElementById('timer').innerText = t;
-            if(t <= 0) {
-                clearInterval(timerInterval);
-                lives--; updateLivesUI(); comboCount = 0; updateComboUI();
-                currentIdx++; loadRound();
-            }
-        }, 1000);
     }
 
     function resetBossUI() {
@@ -386,45 +306,72 @@
         discCenter.style.background = 'var(--primary)';
     }
 
-    function updateLivesUI() {
-        document.getElementById('lives').innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+    async function fetchMusic(term) {
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
+            const data = await res.json();
+            return data.results[0]?.previewUrl || null;
+        } catch (e) { return null; }
     }
 
-    function updateComboUI() {
-        const badge = document.getElementById('combo-badge');
-        if(comboCount >= 3) {
-            badge.innerText = `COMBO x${Math.floor(comboCount/3)+1}`;
-            badge.style.display = 'block';
-        } else { badge.style.display = 'none'; }
+    function startTimer(time) {
+        let t = time; document.getElementById('timer').innerText = t;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            t--; document.getElementById('timer').innerText = t;
+            if(t <= 0) { 
+                clearInterval(timerInterval); 
+                lives--; updateLivesUI(); comboCount = 0; updateComboUI();
+                currentIdx++; loadRound(); 
+            }
+        }, 1000);
     }
 
-    function showFloatingText(txt, x, y) {
+    function showFloatingText(text, x, y) {
         const el = document.createElement('div');
         el.className = 'floating-text';
-        el.innerText = txt;
+        el.innerText = text;
         el.style.left = x + 'px'; el.style.top = y + 'px';
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
     }
 
-    function endGame(isOver) {
+    function updateComboUI() {
+        const badge = document.getElementById('combo-badge');
+        if (comboCount >= 3) {
+            badge.innerText = `COMBO x${Math.floor(comboCount / 3) + 1}`;
+            badge.style.display = 'block';
+        } else { badge.style.display = 'none'; }
+    }
+
+    function updateLivesUI() {
+        document.getElementById('lives').innerText = "❤️".repeat(lives) + "🖤".repeat(3-lives);
+    }
+
+    function endGame(isGameOver) {
         isPlaying = false;
         clearInterval(timerInterval);
         audio.pause();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        saveScore();
         document.getElementById('result-modal').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
-        document.getElementById('result-title').innerText = isOver ? "O'yin tugadi!" : "G'alaba!";
-        saveScore();
+        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
     }
 
+    window.closeResultModal = () => {
+        document.getElementById('result-modal').style.display = 'none';
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('pre-game').style.display = 'block';
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+    };
+
     async function saveScore() {
-        if(score <= 0) return;
+        if (score <= 0) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
         const snap = await get(userRef);
         const data = snap.exists() ? snap.val() : { score: 0, totalXP: 0 };
         await update(userRef, {
-            name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+            name: user.first_name,
             score: Math.max(score, data.score),
             totalXP: (data.totalXP || 0) + score,
             id: user.id
@@ -437,14 +384,9 @@
         const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10)));
         if(snap.exists()) {
             list.innerHTML = "";
-            let res = [];
-            snap.forEach(c => { res.push(c.val()); });
-            res.reverse().forEach((u, i) => {
-                list.innerHTML += `<div class="rank-item" style="${u.id==user.id?'border-color:#ffcc00':''}">
-                    <div class="rank-num">${i+1}</div>
-                    <div class="rank-name">${u.name}</div>
-                    <div class="rank-score">${u.score}</div>
-                </div>`;
+            let arr = []; snap.forEach(c => arr.push(c.val()));
+            arr.reverse().forEach((u, i) => {
+                list.innerHTML += `<div class="rank-item"><div class="rank-num">${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div></div>`;
             });
         }
     }
@@ -457,20 +399,13 @@
             const d = snap.val();
             document.getElementById('best-score').innerText = d.score;
             document.getElementById('total-xp').innerText = d.totalXP;
-            let lvl = Math.floor((d.totalXP || 0) / 200) + 1;
-            let xpInLvl = (d.totalXP || 0) % 200;
+            let lvl = Math.floor(d.totalXP / 200) + 1;
             document.getElementById('level-value').innerText = lvl;
-            document.getElementById('xp-current').innerText = xpInLvl;
-            document.getElementById('xp-next').innerText = 200;
-            document.getElementById('level-progress').style.width = (xpInLvl/200*100) + "%";
+            let currentXp = d.totalXP % 200;
+            document.getElementById('xp-current').innerText = currentXp;
+            document.getElementById('level-progress').style.width = (currentXp / 200 * 100) + "%";
         }
     }
-
-    window.closeResultModal = () => {
-        document.getElementById('result-modal').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('pre-game').style.display = 'block';
-    };
 </script>
 </body>
 </html>
