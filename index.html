@@ -127,6 +127,17 @@
         .boss-active .option-btn { border-color: #441122; }
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Lock Screen for cooldown */
+        #cooldown-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .cooldown-card {
+            background: var(--card); border: 1px solid var(--primary); border-radius: 30px;
+            padding: 40px; text-align: center; width: 100%; max-width: 350px;
+        }
+        #cooldown-timer { font-size: 40px; font-weight: 800; color: var(--primary); margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -151,6 +162,16 @@
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
         <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+    </div>
+</div>
+
+<div id="cooldown-modal">
+    <div class="cooldown-card">
+        <span style="font-size: 50px;">⏳</span>
+        <h2 style="margin-top:15px;">Yangi savollar qolmadi!</h2>
+        <p style="color:#888; margin-top:10px; font-size: 14px;">Iltimos, qayta urinib ko'rish uchun biroz kuting:</p>
+        <div id="cooldown-timer">05:00</div>
+        <button class="start-btn" onclick="document.getElementById('cooldown-modal').style.display='none'">YOPISH</button>
     </div>
 </div>
 
@@ -283,9 +304,10 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
-    // SAVOLLARNI MUZLATISH MEXANIZMI
+    // Cooldown variables
     let usedQuestions = new Set();
-    let defeatCount = 0; // Mag'lubiyatlar soni
+    let cooldownActive = false;
+    let cooldownInterval;
     
     let rankLimit = 10;
 
@@ -353,12 +375,6 @@
         currentIdx = 0;
         currentLevel = 1;
         
-        // Agar 3 marta yutqazilgan bo'lsa, savollarni tozalash (qayta tushishi uchun)
-        if (defeatCount >= 3) {
-            usedQuestions.clear();
-            defeatCount = 0;
-        }
-        
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
@@ -385,6 +401,12 @@
             tg.showAlert("O'yinni boshlash uchun internet kerak!");
             return;
         }
+
+        if (cooldownActive) {
+            document.getElementById('cooldown-modal').style.display = 'flex';
+            return;
+        }
+
         currentCategory = category || 'uzbek';
         isPlaying = true;
         
@@ -426,6 +448,30 @@
         }
     }
 
+    function startCooldown() {
+        cooldownActive = true;
+        document.getElementById('cooldown-modal').style.display = 'flex';
+        let timeLeft = 300; // 5 minutes
+        
+        const updateTimer = () => {
+            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const secs = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('cooldown-timer').innerText = `${mins}:${secs}`;
+        };
+
+        updateTimer();
+        cooldownInterval = setInterval(() => {
+            timeLeft--;
+            updateTimer();
+            if (timeLeft <= 0) {
+                clearInterval(cooldownInterval);
+                cooldownActive = false;
+                usedQuestions.clear();
+                document.getElementById('cooldown-modal').style.display = 'none';
+            }
+        }, 1000);
+    }
+
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
@@ -443,11 +489,10 @@
             currentIdx = 0;
             loadRound();
         } else {
-            if (currentLevel > 1) endGame(false);
-            else { 
-                tg.showAlert("Yangi savollar qolmadi! Eskilari ochilishi uchun yana " + (3 - defeatCount) + " marta o'yinni tugatish kerak."); 
-                quitGame(); 
-            }
+            // No more new questions in this level/category
+            endGame(false);
+            quitGame();
+            startCooldown();
         }
     }
 
@@ -620,10 +665,6 @@
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
-        
-        if (isGameOver) {
-            defeatCount++;
-        }
         
         saveScore();
         
