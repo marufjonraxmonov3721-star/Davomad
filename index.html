@@ -61,16 +61,6 @@
         }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
-        /* Library Styles */
-        .library-container { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; display: flex; flex-direction: column; }
-        .song-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 15px; margin-bottom: 10px; cursor: pointer; border-left: 4px solid #444; transition: 0.2s; }
-        .song-item:active { transform: scale(0.98); background: #2a2a2a; }
-        .song-item.playing { border-left-color: var(--primary); background: #1a2a1a; }
-        .song-icon { font-size: 20px; margin-right: 15px; color: var(--primary); }
-        .song-info { flex: 1; overflow: hidden; }
-        .song-title { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-cat { font-size: 10px; color: #777; text-transform: uppercase; }
-
         /* Custom Result Modal */
         #result-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
@@ -192,19 +182,6 @@
         </div>
     </div>
 
-    <div id="page-music" class="page">
-        <div class="library-container">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">MUSIQA OLAMI</h2>
-            <div style="display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
-                <button onclick="loadLibrary('uzbek')" style="background:#222; border:1px solid #333; color:#fff; padding:5px 12px; border-radius:10px; font-size:12px; flex-shrink:0;">O'zbekcha</button>
-                <button onclick="loadLibrary('russian')" style="background:#222; border:1px solid #333; color:#fff; padding:5px 12px; border-radius:10px; font-size:12px; flex-shrink:0;">Ruscha</button>
-                <button onclick="loadLibrary('english')" style="background:#222; border:1px solid #333; color:#fff; padding:5px 12px; border-radius:10px; font-size:12px; flex-shrink:0;">Inglizcha</button>
-                <button onclick="loadLibrary('trend')" style="background:#222; border:1px solid #333; color:#fff; padding:5px 12px; border-radius:10px; font-size:12px; flex-shrink:0;">Trend</button>
-            </div>
-            <div id="library-list"></div>
-        </div>
-    </div>
-
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
             <h2 style="color:var(--primary); text-align:center; margin-bottom:20px;">TOP O'YINCHILAR</h2>
@@ -244,10 +221,6 @@
             <span class="nav-icon">🎮</span>
             <span>O'yin</span>
         </div>
-        <div class="nav-item" onclick="showPage('music', this)">
-            <span class="nav-icon">🎵</span>
-            <span>Musiqa</span>
-        </div>
         <div class="nav-item" onclick="showPage('rank', this)">
             <span class="nav-icon">🏆</span>
             <span>Reyting</span>
@@ -283,7 +256,6 @@
     let isPlaying = false;
     let comboCount = 0;
     let currentCategory = 'uzbek';
-    let libraryData = [];
 
     window.onload = () => {
         setTimeout(() => {
@@ -352,48 +324,7 @@
         el.classList.add('active');
         if(pageId === 'rank') loadLeaderboard();
         if(pageId === 'profile') loadProfileData();
-        if(pageId === 'music') loadLibrary('uzbek');
     };
-
-    window.loadLibrary = async (category) => {
-        const list = document.getElementById('library-list');
-        list.innerHTML = "<p style='text-align:center; padding:20px; color:#555;'>Yuklanmoqda...</p>";
-        try {
-            const snap = await get(ref(db, `questions/${category}`));
-            if(snap.exists()) {
-                const data = Object.values(snap.val());
-                list.innerHTML = "";
-                data.forEach(q => {
-                    const item = document.createElement('div');
-                    item.className = 'song-item';
-                    item.innerHTML = `
-                        <div class="song-icon">▶️</div>
-                        <div class="song-info">
-                            <div class="song-title">${q.search_term}</div>
-                            <div class="song-cat">${category}</div>
-                        </div>
-                    `;
-                    item.onclick = () => playLibMusic(q.search_term, item);
-                    list.appendChild(item);
-                });
-            }
-        } catch(e) { list.innerHTML = "Xatolik!"; }
-    };
-
-    async function playLibMusic(term, element) {
-        document.querySelectorAll('.song-item').forEach(i => i.classList.remove('playing'));
-        element.classList.add('playing');
-        element.querySelector('.song-icon').innerText = "⏳";
-        
-        const url = await fetchMusic(term);
-        if(url) {
-            audio.src = url;
-            audio.play();
-            element.querySelector('.song-icon').innerText = "🔊";
-        } else {
-            element.querySelector('.song-icon').innerText = "❌";
-        }
-    }
 
     window.startGame = (category) => {
         if (!navigator.onLine) {
@@ -458,16 +389,13 @@
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            // Musiqa eshitishni boshlaymiz
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                // Taymer endi faqat javob berish uchun 15 sekund
                 startTimer(15); 
                 status.innerText = "Eshiting..."; 
             })
             .catch(() => { currentIdx++; loadRound(); });
             
-            // Muhim: Musiqa tugaganda (odatda 30s) disk to'xtashi uchun
             audio.onended = () => {
                 disc.classList.remove('spinning');
             };
