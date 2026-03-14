@@ -78,7 +78,7 @@
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 30px;">0</div>
-        <button class="start-btn" onclick="location.reload()" style="width: 100%;">QAYTA O'YNASH</button>
+        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
     </div>
 </div>
 
@@ -165,6 +165,19 @@
         initGame();
     };
 
+    window.restartGame = () => {
+        // Parametrlarni tozalash
+        currentIdx = 0;
+        score = 0;
+        lives = 3;
+        document.getElementById('score').innerText = "BALL: 0";
+        updateLivesUI();
+        
+        // Modalni yopish va o'yinni boshlash
+        document.getElementById('result-modal').style.display = 'none';
+        initGame();
+    };
+
     async function initGame() {
         const snap = await get(ref(db, 'questions'));
         if(snap.exists()) {
@@ -230,7 +243,7 @@
     function endGame() {
         clearInterval(timerInterval);
         audio.pause();
-        audio.src = ""; // Musiqani darhol o'chirish
+        audio.src = "";
         saveScore();
         
         const modal = document.getElementById('result-modal');
