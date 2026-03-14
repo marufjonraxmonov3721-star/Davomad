@@ -67,17 +67,26 @@
         
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        /* Offline Toast */
+        /* Modern Offline Toast */
         #offline-notice {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: var(--danger); color: white; padding: 10px 20px;
-            border-radius: 50px; font-weight: bold; z-index: 3000; display: none;
+            position: fixed; top: -100px; left: 0; right: 0;
+            background: rgba(255, 62, 62, 0.95); color: white; 
+            padding: 15px; text-align: center; font-weight: bold; 
+            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
         }
+        #offline-notice.show { top: 0; }
+        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="offline-notice">Internet aloqasi yo'q! ⚠️</div>
+<div id="offline-notice">
+    <span class="offline-icon">⚠️</span>
+    <span>Internet aloqasi yo'q!</span>
+</div>
 
 <div id="loading-screen">
     <div class="loader">
@@ -166,13 +175,27 @@
             document.getElementById('app-container').style.display = 'flex';
         }, 2500);
         
-        // Internet aloqasini tekshirish
-        window.addEventListener('offline', () => {
-            document.getElementById('offline-notice').style.display = 'block';
-        });
-        window.addEventListener('online', () => {
-            document.getElementById('offline-notice').style.display = 'none';
-        });
+        // Tarmoq holatini tekshirish
+        const checkNetwork = () => {
+            const notice = document.getElementById('offline-notice');
+            if(!navigator.onLine) {
+                notice.classList.add('show');
+                if(isPlaying) {
+                    clearInterval(timerInterval);
+                    audio.pause();
+                }
+            } else {
+                notice.classList.remove('show');
+                if(isPlaying && audio.src) {
+                   audio.play().catch(e => {});
+                   startTimer(parseInt(document.getElementById('timer').innerText));
+                }
+            }
+        };
+
+        window.addEventListener('offline', checkNetwork);
+        window.addEventListener('online', checkNetwork);
+        checkNetwork();
     };
 
     tg.BackButton.onClick(() => {
@@ -211,7 +234,7 @@
 
     window.startGame = () => {
         if (!navigator.onLine) {
-            tg.showAlert("Internetga ulaning!");
+            tg.showAlert("O'yinni boshlash uchun internet kerak!");
             return;
         }
         isPlaying = true;
@@ -247,11 +270,11 @@
     async function loadRound() {
         if(!isPlaying) return;
         if(lives <= 0) { 
-            endGame(true); // Faqat jon tugaganda modal
+            endGame(true);
             return; 
         }
         if(currentIdx >= questions.length) {
-            endGame(false); // G'alaba qozonganda modal
+            endGame(false);
             return;
         }
         
@@ -268,7 +291,7 @@
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.play().then(() => { disc.classList.add('spinning'); startTimer(); status.innerText = "Eshiting..."; })
+            audio.play().then(() => { disc.classList.add('spinning'); startTimer(15); status.innerText = "Eshiting..."; })
                  .catch(() => { currentIdx++; loadRound(); });
         } else {
             currentIdx++; loadRound(); return;
@@ -316,12 +339,9 @@
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
         const titleDisplay = document.getElementById('result-title');
-        const closeBtn = document.querySelector('.close-modal');
         
         titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
         scoreDisplay.innerText = score;
-        
-        // Modal ko'rsatish
         modal.style.display = 'flex';
     }
 
@@ -337,16 +357,11 @@
         } catch (e) { return null; }
     }
 
-    function startTimer() {
-        let t = 15; document.getElementById('timer').innerText = t;
+    function startTimer(startTime) {
+        let t = startTime; document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            if (!navigator.onLine) {
-                clearInterval(timerInterval);
-                audio.pause();
-                tg.showAlert("Internet aloqasi uzildi!");
-                return;
-            }
+            if (!navigator.onLine) return; // Internet yo'q bo'lsa to'xtab turadi
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
@@ -376,6 +391,10 @@
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Reytingni ko'rish uchun internet kerak</p></div>";
+            return;
+        }
         listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
         try {
             const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
