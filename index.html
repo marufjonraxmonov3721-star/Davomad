@@ -419,8 +419,6 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        document.getElementById('combo-badge').style.display = 'none'; // Boss raundi boshida comboni yashirish
-        
         const levelData = Object.values(allQuestions).filter(q => (q.level || 1) == currentLevel);
         
         const normalQuestions = levelData.filter(q => !q.is_boss);
@@ -452,7 +450,6 @@
                 isBossRound = true;
                 q = bossQuestion;
                 document.body.classList.add('boss-active');
-                document.getElementById('combo-badge').style.display = 'none'; // Boss savolida comboni yashirish
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
             } else {
                 currentLevel++;
@@ -501,13 +498,13 @@
                 
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
+                    comboCount++;
                     let pointsToAdd;
                     
                     if(isBossRound) {
                         const baseBossScore = q.boss_score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
-                        // Boss uchun maxsus combo matni
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
                         
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
@@ -515,21 +512,20 @@
                             updateLivesUI();
                         }
                     } else {
-                        comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
                         pointsToAdd = (10 * comboMultiplier * currentLevel);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
-                        updateComboUI();
                     }
                     
                     score += pointsToAdd;
+                    updateComboUI();
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
-                    if(!isBossRound) updateComboUI();
+                    updateComboUI();
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -573,7 +569,7 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        // Agar boss raundi bo'lsa combo badge doim yashirin bo'ladi
+        // BOSS raundida combo badge ko'rinmasin
         if (isBossRound) {
             badge.style.display = 'none';
             return;
@@ -728,4 +724,21 @@
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
-                const data
+                const data = snap.val();
+                bestScoreEl.innerText = data.score || 0;
+                bestLevelEl.innerText = data.level || 1;
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
+            }
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
+    }
+</script>
+</body>
+</html>
