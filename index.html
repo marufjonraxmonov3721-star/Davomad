@@ -130,7 +130,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Tayyormisiz?</h2>
-                <p style="color:#666; margin-bottom:20px;">Musiqa minusini eshitib topishga harakat qiling!</p>
+                <p style="color:#666; margin-bottom:20px;">3 ta joningiz bor. Xato qilmaslikka harakat qiling!</p>
                 <button class="start-btn" onclick="startGame()">BOSHLASH</button>
             </div>
         </div>
@@ -156,7 +156,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">Holat</div>
-                    <div class="stat-value" style="font-size:16px;">O'yinchi (Minus rejim)</div>
+                    <div class="stat-value" style="font-size:16px;">O'yinchi</div>
                 </div>
             </div>
         </div>
@@ -315,7 +315,6 @@
         audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
 
-        // Minusni qidirish mantiqi yaxshilandi
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
@@ -373,24 +372,21 @@
         modal.style.display = 'flex';
     }
 
-    async function fetchMusic(term) {
+    async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
         try {
-            // 1-urinish: Instrumental qidirish
-            const resInst = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term + " instrumental")}&limit=5&entity=song`);
-            const dataInst = await resInst.json();
-            if (dataInst.results.length > 0) return dataInst.results[0].previewUrl;
-
-            // 2-urinish: Karaoke qidirish
-            const resKara = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term + " karaoke")}&limit=5&entity=song`);
-            const dataKara = await resKara.json();
-            if (dataKara.results.length > 0) return dataKara.results[0].previewUrl;
-
-            // 3-urinish: Agar minus topilmasa, originalini yuklash (o'yin to'xtab qolmasligi uchun)
-            const resOrig = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=5&entity=song`);
-            const dataOrig = await resOrig.json();
-            return dataOrig.results[0]?.previewUrl || null;
-
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
+            const data = await res.json();
+            const filteredTracks = data.results.filter(t => {
+                const trackName = t.trackName.toLowerCase();
+                const artistName = t.artistName.toLowerCase();
+                const isDuet = ["feat", "with", "&", " va ", " x ", " and "].some(m => artistName.includes(m) || trackName.includes(m));
+                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
+                return !isDuet && !isCover;
+            });
+            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
+            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
+            return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
 
@@ -464,9 +460,9 @@
         profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
         profileId.innerText = "ID: " + user.id;
 
-        // Telegram rasm qismi
+        // Rasm yuklash mantiqi
         if (user.photo_url) {
-            profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Photo">`;
+            profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`;
         } else {
             profileAvatar.innerText = user.first_name.charAt(0);
         }
