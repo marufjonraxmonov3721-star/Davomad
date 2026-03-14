@@ -43,7 +43,7 @@
         .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.02); }
         .wrong { background: var(--danger) !important; }
 
-        .lives-container { font-size: 18px; color: var(--danger); letter-spacing: 2px; }
+        .lives-container { font-size: 18px; color: var(--primary); letter-spacing: 2px; }
 
         /* Combo Badge */
         #combo-badge {
@@ -148,7 +148,7 @@
             <div id="game-ui" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
                     <span id="score">BALL: 0</span>
-                    <div id="lives" class="lives-container">❤️❤️❤️</div>
+                    <div id="lives" class="lives-container">🎵🎵🎵</div>
                     <span id="timer">15</span>
                 </div>
                 <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;" id="disc-center"></div></div>
@@ -466,7 +466,7 @@
 
     function updateLivesUI() {
         const livesEl = document.getElementById('lives');
-        livesEl.innerText = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+        livesEl.innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
     }
 
     function endGame(isGameOver) {
