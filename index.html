@@ -59,6 +59,14 @@
         .rank-name { flex: 1; font-size: 14px; }
         .rank-score { font-weight: bold; color: var(--primary); }
 
+        /* Profile UI */
+        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
+        .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 25px; }
+        .stat-item { background: #222; padding: 15px; border-radius: 15px; border: 1px solid #333; }
+        .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
+
         /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
@@ -134,6 +142,25 @@
         </div>
     </div>
 
+    <div id="page-profile" class="page">
+        <div class="profile-card">
+            <div class="avatar-circle" id="profile-avatar">👤</div>
+            <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
+            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace;"></p>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Eng yuqori natija</div>
+                    <div class="stat-value" id="best-score">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Holat</div>
+                    <div class="stat-value" style="font-size:16px;">O'yinchi</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <nav class="nav-bar" id="bottom-nav">
         <div class="nav-item active" onclick="showPage('game', this)">
             <span class="nav-icon">🎮</span>
@@ -142,6 +169,10 @@
         <div class="nav-item" onclick="showPage('rank', this)">
             <span class="nav-icon">🏆</span>
             <span>Reyting</span>
+        </div>
+        <div class="nav-item" onclick="showPage('profile', this)">
+            <span class="nav-icon">👤</span>
+            <span>Profil</span>
         </div>
     </nav>
 </div>
@@ -173,6 +204,7 @@
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
+            loadProfileData();
         }, 2500);
         
         const checkNetwork = () => {
@@ -229,6 +261,7 @@
         document.getElementById(`page-${pageId}`).classList.add('active-page');
         el.classList.add('active');
         if(pageId === 'rank') loadLeaderboard();
+        if(pageId === 'profile') loadProfileData();
     };
 
     window.startGame = () => {
@@ -416,7 +449,29 @@
             listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>";
         }
     }
+
+    // NEW PROFILE FUNCTION
+    async function loadProfileData() {
+        const profileName = document.getElementById('profile-name');
+        const profileId = document.getElementById('profile-id');
+        const bestScoreEl = document.getElementById('best-score');
+        const profileAvatar = document.getElementById('profile-avatar');
+
+        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+        profileId.innerText = "ID: " + user.id;
+        profileAvatar.innerText = user.first_name.charAt(0);
+
+        try {
+            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            if (snap.exists()) {
+                bestScoreEl.innerText = snap.val().score;
+            } else {
+                bestScoreEl.innerText = "0";
+            }
+        } catch (e) {
+            bestScoreEl.innerText = "Error";
+        }
+    }
 </script>
 </body>
 </html>
-
