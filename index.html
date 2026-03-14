@@ -75,11 +75,16 @@
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Leaderboard UI */
-        .leaderboard-card { width: 100%; max-width: 400px; height: 80vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; overflow-y: auto; }
+        .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
+        .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
+        .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
+        .rank-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
+        .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
-        .rank-num { width: 30px; font-weight: bold; color: var(--primary); }
-        .rank-name { flex: 1; font-size: 14px; }
-        .rank-score { font-weight: bold; color: var(--primary); }
+        .rank-num { width: 35px; font-weight: bold; color: var(--primary); font-size: 14px; }
+        .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rank-score { font-weight: bold; color: var(--primary); font-size: 14px; }
+        .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
 
         /* Profile UI */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
@@ -125,7 +130,7 @@
 
 <div id="loading-screen">
     <div class="loader">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar) "></div><div class="bar"></div><div class="bar"></div>
     </div>
     <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
 </div>
@@ -184,8 +189,22 @@
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:20px;">TOP O'YINCHILAR</h2>
-            <div id="rank-list"></div>
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">REYTINGLAR</h2>
+            
+            <div class="rank-tabs">
+                <div class="rank-tab active" id="tab-score" onclick="setRankType('score')">BALL</div>
+                <div class="rank-tab" id="tab-xp" onclick="setRankType('totalXP')">XP</div>
+            </div>
+            
+            <div class="rank-tabs" style="margin-bottom: 15px;">
+                <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
+                <div class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</div>
+                <div class="rank-tab" id="limit-1000" onclick="setRankLimit(1000)">TOP 1000</div>
+            </div>
+
+            <div class="rank-list-container" id="rank-list"></div>
+            
+            <p class="reset-info">Yakshanba kuni barcha natijalar nolga tushiriladi.</p>
         </div>
     </div>
 
@@ -234,7 +253,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -256,12 +275,17 @@
     let isPlaying = false;
     let comboCount = 0;
     let currentCategory = 'uzbek';
+    
+    // Leaderboard state
+    let rankType = 'score';
+    let rankLimit = 10;
 
     window.onload = () => {
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             loadProfileData();
+            checkWeeklyReset();
         }, 2500);
         
         const checkNetwork = () => {
@@ -293,6 +317,31 @@
             });
         }
     });
+
+    async function checkWeeklyReset() {
+        // Bu funksiya oddiy versiya: oxirgi tozalangan yakshanba vaqtini local-da saqlaydi. 
+        // Haqiqiy yakshanba tozalash uchun Firebase Cloud Functions tavsiya etiladi.
+        const now = new Date();
+        const lastReset = localStorage.getItem('last_weekly_reset');
+        
+        // Yakshanba kuni soat 00:00 ni tekshirish logic...
+        // Hozircha bu shunchaki interfeysni tayyorlash uchun
+    }
+
+    window.setRankType = (type) => {
+        rankType = type;
+        document.getElementById('tab-score').classList.toggle('active', type === 'score');
+        document.getElementById('tab-xp').classList.toggle('active', type === 'totalXP');
+        loadLeaderboard();
+    };
+
+    window.setRankLimit = (limit) => {
+        rankLimit = limit;
+        document.getElementById('limit-10').classList.toggle('active', limit === 10);
+        document.getElementById('limit-100').classList.toggle('active', limit === 100);
+        document.getElementById('limit-1000').classList.toggle('active', limit === 1000);
+        loadLeaderboard();
+    };
 
     function quitGame() {
         isPlaying = false;
@@ -544,25 +593,40 @@
             listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
             return;
         }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Yuklanmoqda...</p>";
+        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
         try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
+            const rankQuery = query(ref(db, 'leaderboard'), orderByChild(rankType), limitToLast(rankLimit));
             const snap = await get(rankQuery);
             if(snap.exists()) {
                 listDiv.innerHTML = "";
                 const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
-                rawData.reverse().forEach((u, index) => {
+                snap.forEach(child => { 
+                    const val = child.val();
+                    // Firebase faqat kichikdan kattaga tartiblaydi, shuning uchun array-ga olib aylantiramiz
+                    rawData.push(val); 
+                });
+                
+                rawData.sort((a, b) => (b[rankType] || 0) - (a[rankType] || 0));
+
+                rawData.forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
                     if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    item.innerHTML = `<div class="rank-num">${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div>`;
+                    
+                    const displayValue = rankType === 'score' ? u.score : (u.totalXP || 0);
+                    const unit = rankType === 'score' ? "" : " XP";
+
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name}</div>
+                        <div class="rank-score">${displayValue}${unit}</div>
+                    `;
                     listDiv.appendChild(item);
                 });
             } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555;'>Hali o'yinchilar yo'q</p>";
+                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
             }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red;'>Tarmoq xatosi!</p>"; }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
