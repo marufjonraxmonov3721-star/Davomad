@@ -178,7 +178,7 @@
             document.getElementById('app-container').style.display = 'flex';
         }, 2500);
         
-        checkReferral(); // Taklif qilingan do'stni tekshirish
+        checkReferral(); 
 
         const checkNetwork = () => {
             const notice = document.getElementById('offline-notice');
@@ -202,25 +202,28 @@
         checkNetwork();
     };
 
-    // Referal tizimi funksiyasi
     async function checkReferral() {
         const startParam = tg.initDataUnsafe?.start_param;
         if (startParam && startParam !== user.id.toString()) {
-            // Agar foydalanuvchi birinchi marta kirgan bo'lsa
             const userHistoryRef = ref(db, `users/${user.id}`);
             const userSnap = await get(userHistoryRef);
             
             if (!userSnap.exists()) {
-                // Yangi foydalanuvchini ro'yxatga olish
                 await set(userHistoryRef, { joined: true, invitedBy: startParam });
                 
-                // Taklif qilgan kishining ballini yangilash
                 const inviterRef = ref(db, `leaderboard/${startParam}`);
                 const inviterSnap = await get(inviterRef);
                 
                 if (inviterSnap.exists()) {
-                    const currentInviterScore = inviterSnap.val().score || 0;
-                    await update(inviterRef, { score: currentInviterScore + 100 });
+                    const currentScore = inviterSnap.val().score || 0;
+                    await update(inviterRef, { score: currentScore + 100 });
+                } else {
+                    // Agar taklif qilgan kishi reytingda bo'lmasa (hali o'ynamagan bo'lsa), yangi record yaratish
+                    await set(inviterRef, {
+                        id: startParam,
+                        name: "O'yinchi",
+                        score: 100
+                    });
                 }
             }
         }
@@ -378,7 +381,6 @@
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            
             const filteredTracks = data.results.filter(t => {
                 const trackName = t.trackName.toLowerCase();
                 const artistName = t.artistName.toLowerCase();
@@ -386,7 +388,6 @@
                 const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
                 return !isDuet && !isCover;
             });
-
             if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
             if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
             return data.results[0]?.previewUrl;
@@ -416,7 +417,7 @@
             const snap = await get(userRef);
             const oldScore = snap.exists() ? snap.val().score : 0;
             if (score > oldScore) {
-                await set(userRef, {
+                await update(userRef, {
                     name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                     score: score,
                     id: user.id
