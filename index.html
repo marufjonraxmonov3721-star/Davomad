@@ -282,29 +282,19 @@
     let isBossRound = false;
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
+    
     let rankLimit = 10;
 
-    // --- SAVOLLARNI BOSHQARISH ---
-    const getSeenQuestions = () => JSON.parse(localStorage.getItem('seenQuestions') || "[]");
+    // --- SAVOLLARNI FILTRLASH LOGIKASI ---
+    const getSeenQuestions = () => JSON.parse(localStorage.getItem(`seen_${currentCategory}`) || "[]");
     const saveToSeen = (id) => {
         const seen = getSeenQuestions();
         if(!seen.includes(id)) {
             seen.push(id);
-            localStorage.setItem('seenQuestions', JSON.stringify(seen));
+            localStorage.setItem(`seen_${currentCategory}`, JSON.stringify(seen));
         }
     };
-    const resetSeenQuestions = () => localStorage.setItem('seenQuestions', JSON.stringify([]));
-    
-    // MAG'LUBIYAT SANAGICHI
-    const getGameOverCount = () => parseInt(localStorage.getItem('gameOverCount') || "0");
-    const incrementGameOverCount = () => {
-        let count = getGameOverCount() + 1;
-        if(count >= 3) {
-            resetSeenQuestions();
-            count = 0;
-        }
-        localStorage.setItem('gameOverCount', count);
-    };
+    // ------------------------------------
 
     window.onload = () => {
         setTimeout(() => {
@@ -399,6 +389,7 @@
 
         currentCategory = category || 'uzbek';
         isPlaying = true;
+        
         currentLevel = 1;
         currentIdx = 0;
         score = 0;
@@ -447,24 +438,28 @@
         
         const seen = getSeenQuestions();
         
-        // FAQAT 1 MARTA CHIQISHI UCHUN FILTER (SeenQuestions ichida bo'lmasligi shart)
-        let availableQuestions = allQuestions.filter(q => 
+        // 1. Shu levelga tegishli va ko'rilmagan savollarni ajratish
+        let available = allQuestions.filter(q => 
             (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
         );
-        
-        const normalQuestions = availableQuestions.filter(q => !q.is_boss);
-        const bosses = availableQuestions.filter(q => q.is_boss);
-        
-        // Agar bu levelda ko'rilmagan savol qolmagan bo'lsa - tamom, o'yin tugaydi!
-        if(normalQuestions.length === 0) {
-            endGame(false); 
-            return;
+
+        // 2. Agar ko'rilmagan savollar qolmagan bo'lsa, o'sha leveldagilarni hammasini qayta ishlatish
+        if(available.length === 0) {
+            available = allQuestions.filter(q => (q.level || 1) == currentLevel);
         }
         
-        questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
-        bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
-        currentIdx = 0;
-        loadRound();
+        const normalQuestions = available.filter(q => !q.is_boss);
+        const bosses = available.filter(q => q.is_boss);
+        
+        if(normalQuestions.length > 0) {
+            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
+            currentIdx = 0;
+            loadRound();
+        } else {
+            // Agar levelda umuman savol bo'lmasa (masalan oxirgi leveldan o'tgan bo'lsa)
+            endGame(false);
+        }
     }
 
     async function loadRound() {
@@ -494,7 +489,7 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        // SAVOLNI KO'RILDI DEB BELGILASH
+        // SAVOLNI KO'RILGANLAR RO'YXATIGA QO'SHISH
         saveToSeen(q.firebaseId);
         
         optionsBox.innerHTML = "";
@@ -631,15 +626,6 @@
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
-        
-        // G'ALABA QOZONSA (Hamma savol tugasa) -> Bazani tozalaymiz (Savollar qaytadan chiqishi uchun)
-        if(!isGameOver) {
-            resetSeenQuestions();
-            localStorage.setItem('gameOverCount', "0");
-        } else {
-            // MAG'LUBIYAT BO'LSA -> Sanagichni oshiramiz
-            incrementGameOverCount();
-        }
 
         saveScore();
         
