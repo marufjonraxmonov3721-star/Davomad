@@ -556,8 +556,7 @@
 
         const snap = await get(ref(db, 'questions/uzbek'));
         const all = Object.values(snap.val());
-        // Do'stlar o'yinida savollar tartib bilan chiqadi
-        const selected = all.slice(0, FRIEND_MATCH_QUESTIONS);
+        const selected = all.sort(() => 0.5 - Math.random()).slice(0, FRIEND_MATCH_QUESTIONS);
 
         await set(ref(db, `matches/${matchId}`), {
             host: { id: user.id, name: user.first_name, img: user.photo_url, score: 0, finished: false, ready: false },
@@ -727,29 +726,19 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
-        // SAVOLLAR TARTIBINI TO'G'IRLASH
-        // 1. Ob'ektni massivga o'tkazamiz
-        let levelData = Object.values(allQuestions);
-        
-        // 2. Faqat kerakli darajadagi va ishlatilmagan savollarni olamiz
-        levelData = levelData.filter(q => 
+        const levelData = Object.values(allQuestions).filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
         );
-
-        // 3. Savollarni ID yoki tartib raqami bo'yicha saralaymiz (agar id bo'lmasa search_term bo'yicha)
-        levelData.sort((a, b) => (a.id || a.search_term) > (b.id || b.search_term) ? 1 : -1);
         
         const normalQuestions = levelData.filter(q => !q.is_boss);
         const bosses = levelData.filter(q => q.is_boss);
         
         if(normalQuestions.length > 0) {
-            // QUESTIONS_PER_LEVEL miqdorida savol olamiz (tartib bilan)
-            questions = normalQuestions.slice(0, QUESTIONS_PER_LEVEL);
-            bossQuestion = bosses.length > 0 ? bosses[0] : null;
+            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar ushbu levelda savol qolmagan bo'lsa
             endGame(false);
             quitGame();
             setPersistentCooldown();
@@ -808,7 +797,6 @@
         }
 
         const correctText = q.options[q.correct];
-        // Faqat variantlar (javoblar) tasodifiy chiqadi
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((opt) => {
