@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -176,7 +175,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">Har bir savol faqat bir marta tushadi!</p>
+                <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
                 
                 <div class="cat-grid">
                     <button class="cat-btn" onclick="startGame('uzbek')">
@@ -285,10 +284,9 @@
     const QUESTIONS_PER_LEVEL = 5;
     let rankLimit = 10;
 
-    // --- TAKRORLANMASLIK LOGIKASI ---
+    // SAVOLLAR TAKRORLANMASLIGI TIZIMI
     const getSeenQuestions = () => JSON.parse(localStorage.getItem('seenQuestions') || "[]");
     const saveToSeen = (id) => {
-        if (!id) return;
         const seen = getSeenQuestions();
         if(!seen.includes(id)) {
             seen.push(id);
@@ -296,7 +294,8 @@
         }
     };
     const resetSeenQuestions = () => localStorage.setItem('seenQuestions', JSON.stringify([]));
-
+    
+    // MAG'LUBIYAT SANAGICHI (3 marta yutqazganda bazani tozalash)
     const getGameOverCount = () => parseInt(localStorage.getItem('gameOverCount') || "0");
     const incrementGameOverCount = () => {
         let count = getGameOverCount() + 1;
@@ -397,6 +396,7 @@
             tg.showAlert("O'yinni boshlash uchun internet kerak!");
             return;
         }
+
         currentCategory = category || 'uzbek';
         isPlaying = true;
         currentLevel = 1;
@@ -405,6 +405,11 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
+        
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        updateLivesUI();
+        
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
@@ -439,20 +444,21 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
+        
         const seen = getSeenQuestions();
         
-        // 1. Shu bosqichdagi ko'rilmagan savollarni qidirish
-        let available = allQuestions.filter(q => (q.level || 1) == currentLevel && !seen.includes(q.firebaseId));
+        // Ko'rilmagan savollarni filtrlaymiz
+        let availableQuestions = allQuestions.filter(q => 
+            (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
+        );
         
-        // 2. Agar ko'rilmagan savol qolmagan bo'lsa (G'alaba yoki takrorlanish)
-        if(available.length === 0) {
-            // Agar bosqichda umuman savol qolmagan bo'lsa, bosqichni tugatamiz yoki bazadagi barcha savollarni ko'rishga ruxsat beramiz
-            available = allQuestions.filter(q => (q.level || 1) == currentLevel);
-            if(available.length === 0) { endGame(false); return; }
+        // Agar hamma savol ko'rib bo'lingan bo'lsa (bazada savol qolmasa), majburan hammasini ochamiz
+        if(availableQuestions.length === 0) {
+            availableQuestions = allQuestions.filter(q => (q.level || 1) == currentLevel);
         }
         
-        const normalQuestions = available.filter(q => !q.is_boss);
-        const bosses = available.filter(q => q.is_boss);
+        const normalQuestions = availableQuestions.filter(q => !q.is_boss);
+        const bosses = availableQuestions.filter(q => q.is_boss);
         
         if(normalQuestions.length > 0) {
             questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
@@ -460,6 +466,7 @@
             currentIdx = 0;
             loadRound();
         } else {
+            // Agar bu levelda umuman savol bo'lmasa
             endGame(false);
         }
     }
@@ -471,6 +478,7 @@
         let q;
         const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
+        const disc = document.getElementById('disc');
         const roundCounter = document.getElementById('round-counter');
 
         if(currentIdx >= questions.length) { 
@@ -490,10 +498,11 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        saveToSeen(q.firebaseId); // SAVOLNI KO'RILDI DEB BELGILASH
+        // SAVOL ID-sini "KO'RILGAN" deb belgilash
+        saveToSeen(q.firebaseId);
         
         optionsBox.innerHTML = "";
-        document.getElementById('disc').classList.remove('spinning');
+        disc.classList.remove('spinning');
         audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
 
@@ -502,14 +511,16 @@
             audio.src = musicUrl;
             audio.playbackRate = isBossRound ? 1.05 : 1.0;
             audio.play().then(() => { 
-                document.getElementById('disc').classList.add('spinning'); 
+                disc.classList.add('spinning'); 
                 const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
                 startTimer(levelTime); 
                 status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
             })
-            .catch(() => skipRound());
+            .catch(() => { skipRound(); });
+            
+            audio.onended = () => disc.classList.remove('spinning');
         } else {
-            skipRound();
+            skipRound(); return;
         }
 
         const correctText = q.options[q.correct];
@@ -526,12 +537,29 @@
                 
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    let pts = isBossRound ? (q.score || 50) : (q.score || 10) * (Math.floor(comboCount / 3) + 1);
-                    if(!isBossRound) comboCount++;
-                    score += pts;
+                    let pointsToAdd;
+                    
+                    if(isBossRound) {
+                        const baseBossScore = q.score || q.boss_score || 50;
+                        const comboX = q.boss_combo || 1;
+                        pointsToAdd = baseBossScore * comboX;
+                        showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
+                        
+                        if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
+                            lives = Math.min(3, lives + 1);
+                            updateLivesUI();
+                        }
+                    } else {
+                        comboCount++;
+                        const comboMultiplier = Math.floor(comboCount / 3) + 1;
+                        const baseScore = q.score || 10;
+                        pointsToAdd = (baseScore * comboMultiplier);
+                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                        updateComboUI();
+                    }
+                    
+                    score += pointsToAdd;
                     document.getElementById('score').innerText = "BALL: " + score;
-                    showFloatingText(`+${pts}`, e.clientX, e.clientY);
-                    updateComboUI();
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
@@ -542,30 +570,55 @@
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
-                setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
+                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
             };
             optionsBox.appendChild(btn);
         });
     }
 
-    function skipRound() { currentIdx++; loadRound(); }
-    function nextStep() { if(isBossRound) { currentLevel++; loadLevelQuestions(); } else { currentIdx++; loadRound(); } }
+    function skipRound() {
+        currentIdx++;
+        loadRound();
+    }
+
+    function nextStep() {
+        if(isBossRound) {
+            currentLevel++;
+            loadLevelQuestions();
+        } else {
+            currentIdx++;
+            loadRound();
+        }
+    }
 
     function showFloatingText(text, x, y) {
         const el = document.createElement('div');
         el.className = 'floating-text';
+        if(isBossRound) el.style.color = 'var(--boss)';
         el.innerText = text;
-        el.style.left = `${x}px`; el.style.top = `${y}px`;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
     }
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        if (comboCount >= 3 && !isBossRound) {
-            badge.innerText = `COMBO x${Math.floor(comboCount / 3) + 1}`;
+        if (isBossRound) {
+            badge.style.display = 'none';
+            return;
+        }
+
+        if (comboCount >= 3) {
+            const multiplier = Math.floor(comboCount / 3) + 1;
+            badge.innerText = `COMBO x${multiplier}`;
             badge.style.display = 'block';
-        } else { badge.style.display = 'none'; }
+            badge.style.animation = 'none';
+            badge.offsetHeight; 
+            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
     function updateLivesUI() {
@@ -575,54 +628,84 @@
 
     function endGame(isGameOver) {
         isPlaying = false;
+        isBossRound = false;
+        tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('combo-badge').style.display = 'none';
         clearInterval(timerInterval);
         audio.pause();
+        audio.src = "";
         
-        if(isGameOver) {
-            incrementGameOverCount(); // Yutqazishlarni sanash
+        // G'alaba qozonsa ham savollar yangilanadi
+        if(!isGameOver) {
+            resetSeenQuestions();
         } else {
-            resetSeenQuestions(); // G'olib bo'lsa savollarni tozalash (ixtiyoriy)
+            incrementGameOverCount(); // Yutqazsa sanagich oshadi (3 marta bo'lsa tozalanadi)
         }
 
         saveScore();
-        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        document.getElementById('final-score').innerText = score;
-        document.getElementById('final-level').innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
-        document.getElementById('result-modal').style.display = 'flex';
+        
+        const modal = document.getElementById('result-modal');
+        const scoreDisplay = document.getElementById('final-score');
+        const levelDisplay = document.getElementById('final-level');
+        const titleDisplay = document.getElementById('result-title');
+        
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        scoreDisplay.innerText = score;
+        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
+
+        modal.style.display = 'flex';
         document.body.classList.remove('boss-active');
     }
 
-    async function fetchMusic(term) {
+    async function fetchMusic(term, isRetry = false) {
+        if (!navigator.onLine) return null;
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            return data.results[0]?.previewUrl || null;
+            const filteredTracks = data.results.filter(t => {
+                const trackName = t.trackName.toLowerCase();
+                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
+                return !isCover;
+            });
+            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
+            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
+            return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
 
     function startTimer(startTime) {
-        let t = startTime;
+        let t = Math.floor(startTime); 
         document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
+            if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
-                clearInterval(timerInterval); lives--; updateLivesUI();
-                if(lives > 0) nextStep(); else endGame(true);
+                clearInterval(timerInterval); 
+                comboCount = 0;
+                updateComboUI();
+                lives--; 
+                updateLivesUI();
+                if(lives > 0) nextStep();
+                else endGame(true);
             }
         }, 1000);
     }
 
     async function saveScore() {
-        if (score <= 0) return;
+        if (score <= 0 || !navigator.onLine) return;
+        const userRef = ref(db, `leaderboard/${user.id}`);
         try {
-            const userRef = ref(db, `leaderboard/${user.id}`);
             const snap = await get(userRef);
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            const newBestScore = Math.max(score, data.score || 0);
+            const newBestLevel = Math.max(currentLevel, data.level || 1);
+            
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                score: Math.max(score, data.score || 0),
-                level: Math.max(currentLevel, data.level || 1),
+                score: newBestScore,
+                level: newBestLevel,
                 total_xp: increment(score),
                 id: user.id
             });
@@ -631,35 +714,72 @@
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
-        listDiv.innerHTML = "Yuklanmoqda...";
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
+            return;
+        }
+        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
         try {
             const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
             const snap = await get(rankQuery);
             if(snap.exists()) {
                 listDiv.innerHTML = "";
                 const rawData = [];
-                snap.forEach(child => rawData.push(child.val()));
-                rawData.sort((a, b) => b.score - a.score).forEach((u, i) => {
+                snap.forEach(child => { rawData.push(child.val()); });
+                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+                rawData.forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
                     if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    item.innerHTML = `<div class="rank-num">#${i + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score-box"><span class="rank-score">${u.score}</span><span class="rank-lvl">LVL: ${u.level}</span></div>`;
+                    
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">${u.score}</span>
+                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
+                        </div>
+                    `;
                     listDiv.appendChild(item);
                 });
+            } else {
+                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
             }
-        } catch (e) { listDiv.innerHTML = "Xatolik!"; }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
+        const profileName = document.getElementById('profile-name');
+        const profileId = document.getElementById('profile-id');
+        const bestScoreEl = document.getElementById('best-score');
+        const bestLevelEl = document.getElementById('best-level');
+        const totalXpEl = document.getElementById('total-xp');
+        const profileAvatar = document.getElementById('profile-avatar');
+
+        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+        profileId.innerText = "ID: " + user.id;
+
+        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
+        else { profileAvatar.innerText = user.first_name.charAt(0); }
+
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
-            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
-            document.getElementById('profile-name').innerText = user.first_name;
-            document.getElementById('profile-id').innerText = "ID: " + user.id;
-            document.getElementById('best-score').innerText = data.score;
-            document.getElementById('best-level').innerText = data.level;
-            document.getElementById('total-xp').innerText = data.total_xp;
-        } catch (e) {}
+            if (snap.exists()) {
+                const data = snap.val();
+                bestScoreEl.innerText = data.score || 0;
+                bestLevelEl.innerText = data.level || 1;
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
+            }
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
     }
 </script>
 </body>
