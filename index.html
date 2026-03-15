@@ -479,7 +479,7 @@
         };
 
         updateTimer();
-        cooldownInterval = setInterval(() => {
+        cooldownInterval = setInterval(async () => {
             timeLeft--;
             updateTimer();
             if (timeLeft <= 0) {
@@ -488,19 +488,25 @@
                 usedQuestions.clear();
                 document.getElementById('cooldown-modal').style.display = 'none';
 
-                // Telegram Bot orqali xabar yuborish
-                const botToken = "8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw";
-                const message = `Assalomu alaykum, aziz <b>${user.first_name}</b>! ✨\n\nSiz intiqib kutgan vaqt keldi. Yangi ohanglar va qiziqarli savollar sizni sog'indi. 🎵\n\nMarhamat, o'yinni davom ettirishingiz mumkin. Omad yor bo'lsin! 🌟`;
-                
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: user.id,
-                        text: message,
-                        parse_mode: "HTML"
-                    })
-                }).catch(err => console.error("Xabar yuborishda xatolik:", err));
+                // Bot xabari (Faqat user.id raqam bo'lsa)
+                if (user.id !== "guest") {
+                    const botToken = "8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw";
+                    const text = `Assalomu alaykum, aziz <b>${user.first_name}</b>! ✨\n\nSiz intiqib kutgan vaqt keldi. Yangi ohanglar va qiziqarli savollar sizni sog'indi. 🎵\n\nMarhamat, o'yinni davom ettirishingiz mumkin. Omad yor bo'lsin! 🌟`;
+                    
+                    try {
+                        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: user.id,
+                                text: text,
+                                parse_mode: "HTML"
+                            })
+                        });
+                    } catch (err) {
+                        console.error("Bot xabar berishda xatolik:", err);
+                    }
+                }
             }
         }, 1000);
     }
