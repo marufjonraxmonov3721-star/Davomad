@@ -6,7 +6,7 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00ccff; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
@@ -31,7 +31,6 @@
         .cat-btn { background: #1a1a1a; border: 1px solid #333; padding: 18px 10px; border-radius: 18px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .cat-btn:active { transform: scale(0.95); background: #222; }
         .cat-icon { font-size: 26px; }
-        .friend-btn { grid-column: span 2; background: linear-gradient(45deg, #0055ff, #00ccff); border: none; }
 
         /* Game UI */
         .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; }
@@ -139,33 +138,6 @@
             padding: 40px; text-align: center; width: 100%; max-width: 350px;
         }
         #cooldown-timer { font-size: 40px; font-weight: 800; color: var(--primary); margin: 20px 0; }
-
-        /* FRIEND MATCH STYLES */
-        #friend-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-        }
-        .friend-card {
-            background: var(--card); border: 2px solid var(--friend); border-radius: 30px;
-            padding: 30px; text-align: center; width: 100%; max-width: 350px;
-        }
-        .match-code-display { font-size: 32px; font-weight: 800; color: var(--friend); margin: 20px 0; letter-spacing: 5px; background: #222; padding: 10px; border-radius: 15px; }
-        .friend-input { width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 12px; margin: 15px 0; text-align: center; font-size: 20px; letter-spacing: 3px; }
-
-        /* LOBBY STYLES */
-        #friend-lobby {
-            position: fixed; inset: 0; background: var(--bg); z-index: 2800;
-            display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
-        }
-        .lobby-players { display: flex; align-items: center; justify-content: space-around; width: 100%; margin-bottom: 40px; }
-        .lobby-user { text-align: center; flex: 1; }
-        .lobby-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--friend); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; background: #222; overflow: hidden; }
-        .vs-text { font-size: 24px; font-weight: 900; color: var(--danger); font-style: italic; }
-        .ready-badge { font-size: 10px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; display: inline-block; background: #333; color: #666; }
-        .ready-badge.is-ready { background: var(--primary); color: #000; }
-        
-        .match-result-item { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #333; }
-        .winner-glow { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
     </style>
 </head>
 <body>
@@ -186,53 +158,11 @@
     <div class="result-card">
         <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
-        <div id="single-result-box">
-            <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
-            <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
-            <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
-        </div>
-        <div id="friend-result-list" style="margin-bottom: 20px; display: none;"></div>
-        <button class="start-btn" onclick="restartGame()" style="width: 100%;">ASOSIY MENYU</button>
+        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
+        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
+        <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
+        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
     </div>
-</div>
-
-<div id="friend-modal">
-    <div class="friend-card">
-        <h2 style="color:var(--friend);">Friend Match</h2>
-        <div id="match-setup">
-            <button class="start-btn" style="background:var(--friend); margin-bottom:10px;" onclick="createMatch()">XONA OCHISH</button>
-            <p style="color:#555;">yoki</p>
-            <input type="text" id="join-code-input" class="friend-input" placeholder="KODNI YOZING" maxlength="6">
-            <button class="start-btn" style="background:#fff; color:#000;" onclick="joinMatch()">ULANISH</button>
-            <button class="option-btn" style="margin-top:20px;" onclick="closeFriendModal()">YOPISH</button>
-        </div>
-        <div id="match-waiting" style="display:none;">
-            <p style="color:#888;">Xona kodi:</p>
-            <div class="match-code-display" id="match-code-val">000000</div>
-            <p style="font-size:12px; color:#666;">Do'stingizga yuboring va u kirishini kuting...</p>
-            <div class="loader" style="margin:20px auto; transform:scale(0.6);"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
-            <button class="option-btn" onclick="cancelMatch()">BEKOR QILISH</button>
-        </div>
-    </div>
-</div>
-
-<div id="friend-lobby">
-    <h2 style="color:var(--friend); margin-bottom: 30px; letter-spacing: 2px;">MATCH TAYYOR!</h2>
-    <div class="lobby-players">
-        <div class="lobby-user">
-            <div class="lobby-avatar" id="lobby-p1-img">👤</div>
-            <div id="lobby-p1-name" style="font-weight:bold; font-size:14px;">Siz</div>
-            <div class="ready-badge" id="lobby-p1-ready">Kutilmoqda...</div>
-        </div>
-        <div class="vs-text">VS</div>
-        <div class="lobby-user">
-            <div class="lobby-avatar" id="lobby-p2-img">👤</div>
-            <div id="lobby-p2-name" style="font-weight:bold; font-size:14px;">Raqib</div>
-            <div class="ready-badge" id="lobby-p2-ready">Kutilmoqda...</div>
-        </div>
-    </div>
-    <button id="ready-btn" class="start-btn" style="background:var(--friend); width: 80%;" onclick="toggleReady()">TAYYORMAN!</button>
-    <p id="lobby-status" style="margin-top:20px; color:#555; font-size:12px;">Ikkala taraf tayyor bo'lishi kerak</p>
 </div>
 
 <div id="cooldown-modal">
@@ -284,10 +214,6 @@
                     <button class="cat-btn" onclick="startGame('trend')">
                         <span class="cat-icon">🔥</span>
                         <span>Trend</span>
-                    </button>
-                    <button class="cat-btn friend-btn" onclick="openFriendModal()">
-                        <span class="cat-icon">👥</span>
-                        <span>Friend Match</span>
                     </button>
                 </div>
             </div>
@@ -351,7 +277,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast, increment, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -368,7 +294,7 @@
     tg.expand();
     tg.disableClosingConfirmation(); 
 
-    const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon", photo_url: null };
+    const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let allQuestions = {}, questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
     let comboCount = 0;
@@ -378,13 +304,6 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
-    // Friend Match Vars
-    let isFriendMatch = false;
-    let matchId = null;
-    let isHost = false;
-    let amIReady = false;
-    const FRIEND_MATCH_QUESTIONS = 10;
-
     // Persistent Cooldown
     let usedQuestions = new Set();
     let cooldownInterval;
@@ -392,7 +311,7 @@
     let rankLimit = 10;
 
     window.onload = () => {
-        checkPersistentCooldown();
+        checkPersistentCooldown(); // Ilovaga kirganda tekshiramiz
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -452,13 +371,6 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
-        if(isFriendMatch && matchId) {
-            remove(ref(db, `matches/${matchId}`));
-        }
-        isFriendMatch = false;
-        matchId = null;
-        amIReady = false;
-        
         document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
         audio.pause();
@@ -468,8 +380,6 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('friend-lobby').style.display = 'none';
-        document.getElementById('result-modal').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -480,9 +390,7 @@
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
-        document.getElementById('friend-result-list').innerHTML = "";
-        document.getElementById('friend-result-list').style.display = 'none';
-        document.getElementById('single-result-box').style.display = 'block';
+        document.getElementById('result-modal').style.display = 'none';
     }
 
     window.closeResultModal = () => {
@@ -514,7 +422,6 @@
 
         currentCategory = category || 'uzbek';
         isPlaying = true;
-        isFriendMatch = false;
         
         currentLevel = 1;
         currentIdx = 0;
@@ -533,143 +440,6 @@
         document.getElementById('game-ui').style.display = 'block';
         initGame();
     };
-
-    // --- FRIEND MATCH LOGIC ---
-    window.openFriendModal = () => {
-        document.getElementById('friend-modal').style.display = 'flex';
-        document.getElementById('match-setup').style.display = 'block';
-        document.getElementById('match-waiting').style.display = 'none';
-    };
-
-    window.closeFriendModal = () => {
-        document.getElementById('friend-modal').style.display = 'none';
-    };
-
-    window.createMatch = async () => {
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        matchId = code;
-        isHost = true;
-        
-        document.getElementById('match-setup').style.display = 'none';
-        document.getElementById('match-waiting').style.display = 'block';
-        document.getElementById('match-code-val').innerText = code;
-
-        const snap = await get(ref(db, 'questions/uzbek'));
-        const all = Object.values(snap.val());
-        const selected = all.sort(() => 0.5 - Math.random()).slice(0, FRIEND_MATCH_QUESTIONS);
-
-        await set(ref(db, `matches/${matchId}`), {
-            host: { id: user.id, name: user.first_name, img: user.photo_url, score: 0, finished: false, ready: false },
-            guest: null,
-            questions: selected,
-            status: 'waiting'
-        });
-
-        onDisconnect(ref(db, `matches/${matchId}`)).remove();
-
-        const matchRef = ref(db, `matches/${matchId}`);
-        onValue(matchRef, (s) => {
-            const data = s.val();
-            if(data && data.status === 'playing' && isHost) {
-                showLobby(data);
-            }
-            if(data && data.status === 'start') {
-                startFriendGame(data.questions);
-            }
-        });
-    };
-
-    window.joinMatch = async () => {
-        const code = document.getElementById('join-code-input').value.trim();
-        if(code.length !== 6) return tg.showAlert("Kodni kiriting!");
-        
-        const matchRef = ref(db, `matches/${code}`);
-        const snap = await get(matchRef);
-        
-        if(!snap.exists()) return tg.showAlert("Xona topilmadi yoki yopilgan!");
-        
-        matchId = code;
-        isHost = false;
-        
-        await update(matchRef, {
-            guest: { id: user.id, name: user.first_name, img: user.photo_url, score: 0, finished: false, ready: false },
-            status: 'playing'
-        });
-
-        onDisconnect(ref(db, `matches/${matchId}/guest`)).remove();
-        
-        onValue(matchRef, (s) => {
-            const data = s.val();
-            if(data && data.status === 'playing') showLobby(data);
-            if(data && data.status === 'start') startFriendGame(data.questions);
-        });
-    };
-
-    function showLobby(data) {
-        closeFriendModal();
-        const lobby = document.getElementById('friend-lobby');
-        lobby.style.display = 'flex';
-        
-        // P1 (Host)
-        document.getElementById('lobby-p1-name').innerText = data.host.name;
-        document.getElementById('lobby-p1-img').innerHTML = data.host.img ? `<img src="${data.host.img}">` : "👤";
-        const p1Ready = document.getElementById('lobby-p1-ready');
-        p1Ready.innerText = data.host.ready ? "TAYYOR" : "Kutilmoqda...";
-        p1Ready.classList.toggle('is-ready', data.host.ready);
-
-        // P2 (Guest)
-        if(data.guest) {
-            document.getElementById('lobby-p2-name').innerText = data.guest.name;
-            document.getElementById('lobby-p2-img').innerHTML = data.guest.img ? `<img src="${data.guest.img}">` : "👤";
-            const p2Ready = document.getElementById('lobby-p2-ready');
-            p2Ready.innerText = data.guest.ready ? "TAYYOR" : "Kutilmoqda...";
-            p2Ready.classList.toggle('is-ready', data.guest.ready);
-        }
-
-        if(data.host.ready && data.guest?.ready && data.status !== 'start') {
-            if(isHost) {
-                setTimeout(() => {
-                    update(ref(db, `matches/${matchId}`), { status: 'start' });
-                }, 1000);
-            }
-        }
-    }
-
-    window.toggleReady = () => {
-        amIReady = !amIReady;
-        const role = isHost ? 'host' : 'guest';
-        const btn = document.getElementById('ready-btn');
-        btn.innerText = amIReady ? "TAYYORSIZ!" : "TAYYORMAN!";
-        btn.style.opacity = amIReady ? "0.6" : "1";
-        
-        update(ref(db, `matches/${matchId}/${role}`), { ready: amIReady });
-    };
-
-    window.cancelMatch = () => {
-        if(matchId) remove(ref(db, `matches/${matchId}`));
-        document.getElementById('match-setup').style.display = 'block';
-        document.getElementById('match-waiting').style.display = 'none';
-    };
-
-    function startFriendGame(qList) {
-        document.getElementById('friend-lobby').style.display = 'none';
-        isPlaying = true;
-        isFriendMatch = true;
-        questions = qList;
-        currentIdx = 0;
-        score = 0;
-        lives = 99; 
-
-        document.getElementById('pre-game').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'block';
-        document.getElementById('bottom-nav').classList.add('hidden-nav');
-        tg.BackButton.show();
-        
-        document.getElementById('lives').innerText = "⚔️ VS";
-        loadRound();
-    }
-
-    // --- GAME ENGINE ---
 
     window.restartGame = () => {
         quitGame();
@@ -692,8 +462,7 @@
     }
 
     function setPersistentCooldown() {
-        if(isFriendMatch) return;
-        const cooldownTime = 300; 
+        const cooldownTime = 300; // 5 daqiqa
         const endTime = Date.now() + (cooldownTime * 1000);
         localStorage.setItem(`cooldown_${user.id}`, endTime);
         startCooldownUI(cooldownTime);
@@ -718,6 +487,26 @@
                 localStorage.removeItem(`cooldown_${user.id}`);
                 usedQuestions.clear();
                 document.getElementById('cooldown-modal').style.display = 'none';
+
+                // Bot xabari (Faqat user.id raqam bo'lsa)
+                if (user.id !== "guest") {
+                    const botToken = "8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw";
+                    const text = `Assalomu alaykum, aziz <b>${user.first_name}</b>! ✨\n\nSiz intiqib kutgan vaqt keldi. Yangi ohanglar va qiziqarli savollar sizni sog'indi. 🎵\n\nMarhamat, o'yinni davom ettirishingiz mumkin. Omad yor bo'lsin! 🌟`;
+                    
+                    try {
+                        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: user.id,
+                                text: text,
+                                parse_mode: "HTML"
+                            })
+                        });
+                    } catch (err) {
+                        console.error("Bot xabar berishda xatolik:", err);
+                    }
+                }
             }
         }, 1000);
     }
@@ -747,7 +536,7 @@
 
     async function loadRound() {
         if(!isPlaying) return;
-        if(!isFriendMatch && lives <= 0) { endGame(true); return; }
+        if(lives <= 0) { endGame(true); return; }
         
         let q;
         const status = document.getElementById('status');
@@ -756,7 +545,6 @@
         const roundCounter = document.getElementById('round-counter');
 
         if(currentIdx >= questions.length) { 
-            if(isFriendMatch) { endGameFriend(); return; }
             if(bossQuestion && !isBossRound) {
                 isBossRound = true;
                 q = bossQuestion;
@@ -770,11 +558,10 @@
             }
         } else {
             q = questions[currentIdx];
-            const total = isFriendMatch ? FRIEND_MATCH_QUESTIONS : QUESTIONS_PER_LEVEL;
-            roundCounter.innerText = isFriendMatch ? `FRIEND MATCH | SAVOL: ${currentIdx + 1}/${total}` : `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${total}`;
+            roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        if(!isFriendMatch) usedQuestions.add(q.search_term);
+        usedQuestions.add(q.search_term);
 
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
@@ -787,11 +574,14 @@
             audio.playbackRate = isBossRound ? 1.1 : 1.0;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                const baseTime = isFriendMatch ? 10 : Math.max(8, 18 - (currentLevel));
-                startTimer(baseTime); 
-                status.innerText = "Kim aytgan?"; 
+                const baseTime = Math.max(8, 18 - (currentLevel));
+                const levelTime = isBossRound ? 10 : baseTime;
+                startTimer(levelTime); 
+                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
             })
             .catch(() => { skipRound(); });
+            
+            audio.onended = () => disc.classList.remove('spinning');
         } else {
             skipRound(); return;
         }
@@ -810,17 +600,36 @@
                 
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    let pointsToAdd = isFriendMatch ? 10 : (isBossRound ? (q.boss_score || 50) : (10 * (Math.floor(comboCount / 3) + 1) * currentLevel));
+                    let pointsToAdd;
+                    
+                    if(isBossRound) {
+                        const baseBossScore = q.boss_score || 50;
+                        const comboX = q.boss_combo || 1;
+                        pointsToAdd = baseBossScore * comboX;
+                        showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
+                        
+                        if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
+                            lives = Math.min(3, lives + 1);
+                            updateLivesUI();
+                        }
+                    } else {
+                        comboCount++;
+                        const comboMultiplier = Math.floor(comboCount / 3) + 1;
+                        pointsToAdd = (10 * comboMultiplier * currentLevel);
+                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                        updateComboUI();
+                    }
+                    
                     score += pointsToAdd;
-                    showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
-                    if(!isFriendMatch) { comboCount++; updateComboUI(); }
                     document.getElementById('score').innerText = "BALL: " + score;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
-                    if(!isBossRound && !isFriendMatch) { updateComboUI(); lives--; updateLivesUI(); }
+                    if(!isBossRound) updateComboUI();
+                    lives--;
+                    updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
                 setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
@@ -830,13 +639,23 @@
     }
 
     function skipRound() {
-        currentIdx++;
-        loadRound();
+        if(isBossRound) {
+            currentLevel++;
+            loadLevelQuestions();
+        } else {
+            currentIdx++;
+            loadRound();
+        }
     }
 
     function nextStep() {
-        currentIdx++;
-        loadRound();
+        if(isBossRound) {
+            currentLevel++;
+            loadLevelQuestions();
+        } else {
+            currentIdx++;
+            loadRound();
+        }
     }
 
     function showFloatingText(text, x, y) {
@@ -852,98 +671,64 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        if (isBossRound || isFriendMatch) { badge.style.display = 'none'; return; }
+        if (isBossRound) {
+            badge.style.display = 'none';
+            return;
+        }
+
         if (comboCount >= 3) {
             const multiplier = Math.floor(comboCount / 3) + 1;
             badge.innerText = `COMBO x${multiplier}`;
             badge.style.display = 'block';
-        } else { badge.style.display = 'none'; }
+            badge.style.animation = 'none';
+            badge.offsetHeight; 
+            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
     function updateLivesUI() {
         const livesEl = document.getElementById('lives');
-        if(isFriendMatch) return;
         livesEl.innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
     }
 
     function endGame(isGameOver) {
         isPlaying = false;
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('combo-badge').style.display = 'none';
         clearInterval(timerInterval);
         audio.pause();
+        audio.src = "";
         
         saveScore();
         
         const modal = document.getElementById('result-modal');
-        document.getElementById('single-result-box').style.display = 'block';
-        document.getElementById('friend-result-list').style.display = 'none';
-        document.getElementById('final-score').innerText = score;
-        document.getElementById('final-level').innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
-        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        const scoreDisplay = document.getElementById('final-score');
+        const levelDisplay = document.getElementById('final-level');
+        const titleDisplay = document.getElementById('result-title');
+        
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        scoreDisplay.innerText = score;
+        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
         modal.style.display = 'flex';
     }
 
-    async function endGameFriend() {
-        isPlaying = false;
-        clearInterval(timerInterval);
-        audio.pause();
-
-        const role = isHost ? 'host' : 'guest';
-        await update(ref(db, `matches/${matchId}/${role}`), {
-            score: score,
-            finished: true
-        });
-
-        const modal = document.getElementById('result-modal');
-        document.getElementById('single-result-box').style.display = 'none';
-        const resList = document.getElementById('friend-result-list');
-        resList.style.display = 'block';
-        resList.innerHTML = `
-            <div style="text-align:center; padding: 20px;">
-                <div class="loader" style="margin: 0 auto;"><div class="bar"></div><div class="bar"></div></div>
-                <p style="margin-top:15px; color:#888;">Raqibingiz tugatishini kutilmoqda...</p>
-            </div>
-        `;
-        modal.style.display = 'flex';
-
-        onValue(ref(db, `matches/${matchId}`), (s) => {
-            const data = s.val();
-            if(data && data.host.finished && data.guest && data.guest.finished) {
-                let winnerText = "DURANG!";
-                let winnerId = null;
-                if(data.host.score > data.guest.score) { winnerText = "SIZ G'ALABA QOZONDINGIZ!"; winnerId = data.host.id; }
-                else if(data.guest.score > data.host.score) { winnerText = "RAQIB G'ALABA QOZONDI!"; winnerId = data.guest.id; }
-
-                document.getElementById('result-title').innerText = winnerText;
-                document.getElementById('result-title').style.color = (winnerId === user.id) ? 'var(--primary)' : 'var(--danger)';
-
-                resList.innerHTML = `
-                    <div class="match-result-item ${winnerId === data.host.id ? 'winner-glow' : ''}">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:30px; height:30px; border-radius:50%; background:#333; overflow:hidden;">${data.host.img ? `<img src="${data.host.img}" style="width:100%">` : '👤'}</div>
-                            <span>${data.host.name}</span>
-                        </div>
-                        <span style="font-weight:bold; color:var(--primary);">${data.host.score}</span>
-                    </div>
-                    <div class="match-result-item ${winnerId === data.guest.id ? 'winner-glow' : ''}">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:30px; height:30px; border-radius:50%; background:#333; overflow:hidden;">${data.guest.img ? `<img src="${data.guest.img}" style="width:100%">` : '👤'}</div>
-                            <span>${data.guest.name}</span>
-                        </div>
-                        <span style="font-weight:bold; color:var(--primary);">${data.guest.score}</span>
-                    </div>
-                `;
-            }
-        });
-    }
-
-    async function fetchMusic(term) {
+    async function fetchMusic(term, isRetry = false) {
+        if (!navigator.onLine) return null;
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            const filteredTracks = data.results.filter(t => !["cover", "remix", "piano", "instrumental"].some(m => t.trackName.toLowerCase().includes(m)));
+            const filteredTracks = data.results.filter(t => {
+                const trackName = t.trackName.toLowerCase();
+                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
+                return !isCover;
+            });
             if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
+            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
             return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
@@ -953,26 +738,33 @@
         document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
+            if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
-                if(!isFriendMatch) { comboCount = 0; updateComboUI(); lives--; updateLivesUI(); }
-                if(isFriendMatch || lives > 0) nextStep();
+                comboCount = 0;
+                if(!isBossRound) updateComboUI();
+                lives--; 
+                updateLivesUI();
+                if(lives > 0) nextStep();
                 else endGame(true);
             }
         }, 1000);
     }
 
     async function saveScore() {
-        if (score <= 0 || isFriendMatch) return;
+        if (score <= 0 || !navigator.onLine) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            const newBestScore = Math.max(score, data.score || 0);
+            const newBestLevel = Math.max(currentLevel, data.level || 1);
+            
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                score: Math.max(score, data.score || 0),
-                level: Math.max(currentLevel, data.level || 1),
+                score: newBestScore,
+                level: newBestLevel,
                 total_xp: increment(score),
                 id: user.id
             });
@@ -981,7 +773,11 @@
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
-        listDiv.innerHTML = "Yuklanmoqda...";
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
+            return;
+        }
+        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
         try {
             const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
             const snap = await get(rankQuery);
@@ -990,34 +786,61 @@
                 const rawData = [];
                 snap.forEach(child => { rawData.push(child.val()); });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+
                 rawData.forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
                     if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    item.innerHTML = `<div class="rank-num">#${index + 1}</div><div class="rank-name">${u.name}</div><div class="rank-score-box"><span class="rank-score">${u.score}</span><span class="rank-lvl">LVL: ${u.level || 1}</span></div>`;
+                    
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">${u.score}</span>
+                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
+                        </div>
+                    `;
                     listDiv.appendChild(item);
                 });
+            } else {
+                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
             }
-        } catch (e) { listDiv.innerHTML = "Xato!"; }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
-        document.getElementById('profile-name').innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-        document.getElementById('profile-id').innerText = "ID: " + user.id;
-        const avatar = document.getElementById('profile-avatar');
-        if (user.photo_url) avatar.innerHTML = `<img src="${user.photo_url}">`;
-        else avatar.innerText = user.first_name.charAt(0);
+        const profileName = document.getElementById('profile-name');
+        const profileId = document.getElementById('profile-id');
+        const bestScoreEl = document.getElementById('best-score');
+        const bestLevelEl = document.getElementById('best-level');
+        const totalXpEl = document.getElementById('total-xp');
+        const profileAvatar = document.getElementById('profile-avatar');
+
+        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+        profileId.innerText = "ID: " + user.id;
+
+        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
+        else { profileAvatar.innerText = user.first_name.charAt(0); }
 
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
                 const data = snap.val();
-                document.getElementById('best-score').innerText = data.score || 0;
-                document.getElementById('best-level').innerText = data.level || 1;
-                document.getElementById('total-xp').innerText = data.total_xp || 0;
+                bestScoreEl.innerText = data.score || 0;
+                bestLevelEl.innerText = data.level || 1;
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
             }
-        } catch (e) {}
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
     }
 </script>
 </body>
 </html>
+
