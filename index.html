@@ -283,29 +283,28 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
-    // YUKLASH TIZIMI UCHUN OZGARUVCHILAR
     let rankLimit = 10;
 
-    // LOCALSTORAGE'DAN SAVOLLARNI TEKSHIRISH
-    const getSeenQuestions = () => JSON.parse(localStorage.getItem('seenQuestions') || "[]");
-    const saveToSeen = (id) => {
-        const seen = getSeenQuestions();
+    // --- SEEN QUESTIONS LOGIC ---
+    const getSeenQuestions = () => JSON.parse(localStorage.getItem('seen_q') || "[]");
+    const saveAsSeen = (id) => {
+        let seen = getSeenQuestions();
         if(!seen.includes(id)) {
             seen.push(id);
-            localStorage.setItem('seenQuestions', JSON.stringify(seen));
+            localStorage.setItem('seen_q', JSON.stringify(seen));
         }
     };
-    const resetSeenQuestions = () => localStorage.setItem('seenQuestions', JSON.stringify([]));
+    const clearSeenQuestions = () => localStorage.setItem('seen_q', JSON.stringify([]));
 
-    // YUTQAZISH SANAGICHI
-    const getGameOverCount = () => parseInt(localStorage.getItem('gameOverCount') || "0");
-    const incrementGameOverCount = () => {
+    // --- GAME OVER COUNTER ---
+    const getGameOverCount = () => parseInt(localStorage.getItem('g_over_count') || "0");
+    const trackGameOver = () => {
         let count = getGameOverCount() + 1;
         if(count >= 3) {
-            resetSeenQuestions();
+            clearSeenQuestions();
             count = 0;
         }
-        localStorage.setItem('gameOverCount', count);
+        localStorage.setItem('g_over_count', count);
     };
 
     window.onload = () => {
@@ -431,7 +430,7 @@
                 const data = snap.val();
                 allQuestions = Object.keys(data).map(key => ({
                     ...data[key],
-                    firebaseId: key
+                    id: key
                 }));
                 loadLevelQuestions();
             } else {
@@ -448,22 +447,20 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
-        const seen = getSeenQuestions();
+        const seenIds = getSeenQuestions();
         
-        // FOYDALANUVCHI KO'RMAGAN SAVOLLARNI FILTRLASH
-        const levelData = allQuestions.filter(q => 
-            (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
+        // --- FILTRLASH: FAQAT KO'RILMAGAN SAVOLLAR ---
+        let availableForThisLevel = allQuestions.filter(q => 
+            (q.level || 1) == currentLevel && !seenIds.includes(q.id)
         );
-        
-        // AGAR KO'RMAGAN SAVOLLAR TUGAGAN BO'LSA VA HALI RESTART BO'LMAGAN BO'LSA, 
-        // BARCHA SAVOLLARNI OLAMIZ (BUNI QILMASAK OYIN TOXTAB QOLADI)
-        let availableQuestions = levelData;
-        if(availableQuestions.length === 0) {
-            availableQuestions = allQuestions.filter(q => (q.level || 1) == currentLevel);
+
+        // Agar bu darajada barcha savollar ko'rib bo'lingan bo'lsa, ro'yxatni yangilaymiz
+        if(availableForThisLevel.length === 0) {
+            availableForThisLevel = allQuestions.filter(q => (q.level || 1) == currentLevel);
         }
-        
-        const normalQuestions = availableQuestions.filter(q => !q.is_boss);
-        const bosses = availableQuestions.filter(q => q.is_boss);
+
+        const normalQuestions = availableForThisLevel.filter(q => !q.is_boss);
+        const bosses = availableForThisLevel.filter(q => q.is_boss);
         
         if(normalQuestions.length > 0) {
             questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
@@ -471,7 +468,7 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar bu levelda hech qanday savol bo'lmasa (xatolik yoki oxiri)
+            // Agar savol qolmasa o'yinni yakunlash (Victory)
             endGame(false);
         }
     }
@@ -503,9 +500,9 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        // SAVOLNI KO'RILGANLAR RO'YXATIGA QO'SHISH
-        saveToSeen(q.firebaseId);
-        
+        // --- SAVOLNI KO'RILGAN DEB BELGILASH ---
+        saveAsSeen(q.id);
+
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
@@ -618,9 +615,6 @@
             const multiplier = Math.floor(comboCount / 3) + 1;
             badge.innerText = `COMBO x${multiplier}`;
             badge.style.display = 'block';
-            badge.style.animation = 'none';
-            badge.offsetHeight; 
-            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         } else {
             badge.style.display = 'none';
         }
@@ -641,9 +635,12 @@
         audio.pause();
         audio.src = "";
         
-        // AGAR YUTQAZSA SANAGICHNI OSHIRAMIZ
         if(isGameOver) {
-            incrementGameOverCount();
+            // --- MAG'LUBIYAT BO'LSA SANAGICHNI TEKSHIRISH ---
+            trackGameOver();
+        } else {
+            // G'olib bo'lsa ham savollarni yangilash mumkin (ixtiyoriy)
+            clearSeenQuestions();
         }
 
         saveScore();
@@ -653,7 +650,7 @@
         const levelDisplay = document.getElementById('final-level');
         const titleDisplay = document.getElementById('result-title');
         
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "Tabriklaymiz!";
         scoreDisplay.innerText = score;
         levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
 
