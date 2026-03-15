@@ -38,7 +38,9 @@
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; transition: opacity 0.5s ease-in; }
+        .options-grid.show-options { opacity: 1; }
+        
         .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; }
         .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.02); }
@@ -472,6 +474,7 @@
         
         usedQuestions.add(q.firebaseId);
         optionsBox.innerHTML = "";
+        optionsBox.classList.remove('show-options'); // Variantlarni yashirish
         disc.classList.remove('spinning');
         audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
@@ -480,14 +483,22 @@
         if(musicUrl) {
             audio.src = musicUrl;
             audio.playbackRate = isBossRound ? 1.05 : 1.0;
-            audio.play().then(() => { 
-                disc.classList.add('spinning'); 
-                const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
-                startTimer(levelTime); 
-                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
-            })
-            .catch(() => { skipRound(); });
             
+            audio.onplay = () => {
+                disc.classList.add('spinning'); 
+                status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
+                
+                // 2 soniyadan keyin variantlarni chiqarish
+                setTimeout(() => {
+                    if(!isPlaying) return;
+                    optionsBox.classList.add('show-options');
+                    status.innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
+                    const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
+                    startTimer(levelTime);
+                }, 2000);
+            };
+
+            audio.play().catch(() => { skipRound(); });
             audio.onended = () => disc.classList.remove('spinning');
         } else {
             skipRound(); return;
