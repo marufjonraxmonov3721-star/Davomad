@@ -495,7 +495,7 @@
                     status.innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
                     const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
                     startTimer(levelTime);
-                }, 2000);
+                }, 20000);
             };
 
             audio.play().catch(() => { skipRound(); });
