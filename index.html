@@ -283,7 +283,6 @@
     let currentLevel = 1;
     let isBossRound = false;
     let bossQuestion = null;
-    let gameSettings = { timer: { boss: 10, levels: {} } }; // Default vaqtlar
     const QUESTIONS_PER_LEVEL = 5;
     
     let usedQuestions = new Set();
@@ -294,7 +293,6 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             loadProfileData();
-            loadSettings(); // Sozlamalarni yuklash
         }, 2500);
         
         const checkNetwork = () => {
@@ -318,11 +316,6 @@
         window.addEventListener('online', checkNetwork);
         checkNetwork();
     };
-
-    async function loadSettings() {
-        const snap = await get(ref(db, 'settings/timer'));
-        if(snap.exists()) { gameSettings.timer = snap.val(); }
-    }
 
     tg.BackButton.onClick(() => {
         if(isPlaying) {
@@ -495,19 +488,8 @@
                 disc.classList.add('spinning'); 
                 status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
                 
-                // --- VAQTNI DINAMIK BELGILASH ---
-                let dynamicTime = 15; // default
-                if(isBossRound) {
-                    dynamicTime = gameSettings.timer.boss || 10;
-                } else {
-                    const levelKey = "L" + currentLevel;
-                    if(gameSettings.timer.levels && gameSettings.timer.levels[levelKey]) {
-                        dynamicTime = gameSettings.timer.levels[levelKey];
-                    } else {
-                        dynamicTime = Math.max(8, 18 - currentLevel);
-                    }
-                }
-                startTimer(dynamicTime);
+                const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
+                startTimer(levelTime);
             };
 
             audio.play().catch(() => { skipRound(); });
@@ -669,8 +651,8 @@
             document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
-                audio.pause(); // Musiqani darhol to'xtatish
-                document.getElementById('disc').classList.remove('spinning'); // Plastinka aylanishini to'xtatish
+                audio.pause(); // Taymer tugashi bilan musiqani to'xtatish
+                document.getElementById('disc').classList.remove('spinning');
                 document.getElementById('options-box').classList.add('show-options');
                 document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
             }
@@ -752,4 +734,19 @@
             if (snap.exists()) {
                 const data = snap.val();
                 bestScoreEl.innerText = data.score || 0;
-                bestLevelEl.innerText = data.level || 1
+                bestLevelEl.innerText = data.level || 1;
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
+            }
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
+    }
+</script>
+</body>
+</html>
