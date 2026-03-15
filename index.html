@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -163,13 +162,13 @@
             <div id="combo-badge">COMBO x1</div>
             
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weightbold; margin-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
                     <div id="game-stats-left">
                         <span id="score">BALL: 0</span><br>
                         <span id="round-counter" style="font-size: 10px; color: #666;">BOSQICH: 1 | SAVOL: 1/5</span>
                     </div>
                     <div id="lives" class="lives-container">🎵🎵🎵</div>
-                    <span id="timer">15</span>
+                    <span id="timer">--</span>
                 </div>
                 <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;" id="disc-center"></div></div>
                 <p id="status" style="color:#888; font-size:12px; height: 18px; font-weight: bold;"></p>
@@ -284,6 +283,7 @@
     let currentLevel = 1;
     let isBossRound = false;
     let bossQuestion = null;
+    let adminTimerSettings = {};
     const QUESTIONS_PER_LEVEL = 5;
     
     let usedQuestions = new Set();
@@ -308,7 +308,6 @@
                 notice.classList.remove('show');
                 if(isPlaying && audio.src) {
                    audio.play().catch(e => {});
-                   startTimer(parseInt(document.getElementById('timer').innerText));
                 }
             }
         };
@@ -374,11 +373,19 @@
         if(pageId === 'profile') loadProfileData();
     };
 
-    window.startGame = (category) => {
+    window.startGame = async (category) => {
         if (!navigator.onLine) {
             tg.showAlert("O'yinni boshlash uchun internet kerak!");
             return;
         }
+
+        // --- ADMIN SETTINGS YUKLASH ---
+        try {
+            const setSnap = await get(ref(db, 'settings/timer'));
+            if(setSnap.exists()) {
+                adminTimerSettings = setSnap.val();
+            }
+        } catch(e) {}
 
         currentCategory = category || 'uzbek';
         isPlaying = true;
@@ -489,11 +496,19 @@
                 disc.classList.add('spinning'); 
                 status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
                 
-                // --- BAZADAN VAQTNI OLISH ---
-                // Agar bazada time_limit bo'lsa, o'shani ishlatadi. 
-                // Bo'lmasa, boss uchun 15, oddiy uchun 5 soniya.
-                const levelTime = q.time_limit || (isBossRound ? 15 : 5);
-                startTimer(levelTime);
+                // --- ADMIN PANEL VAQTINI ANIQLASH ---
+                let dynamicTime = 10; // Favqulodda holat uchun
+                if(isBossRound) {
+                    dynamicTime = adminTimerSettings.boss || 15;
+                } else {
+                    // settings/timer/levels/${currentLevel} dagi vaqtni oladi
+                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
+                        dynamicTime = adminTimerSettings.levels[currentLevel];
+                    } else {
+                        dynamicTime = 10; // Agar admin belgilanmagan bo'lsa
+                    }
+                }
+                startTimer(dynamicTime);
             };
 
             audio.play().catch(() => { skipRound(); });
@@ -517,7 +532,7 @@
                     let pointsToAdd;
                     
                     if(isBossRound) {
-                        const baseBossScore = q.score || q.boss_score || 50;
+                        const baseBossScore = q.score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
