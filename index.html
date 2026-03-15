@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -162,7 +163,7 @@
             <div id="combo-badge">COMBO x1</div>
             
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weightbold; margin-bottom: 10px;">
                     <div id="game-stats-left">
                         <span id="score">BALL: 0</span><br>
                         <span id="round-counter" style="font-size: 10px; color: #666;">BOSQICH: 1 | SAVOL: 1/5</span>
@@ -488,13 +489,11 @@
                 disc.classList.add('spinning'); 
                 status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
                 
-                // --- XATOLIK TUZATILGAN JOY ---
-                // Bazadan kelayotgan vaqtni tekshiramiz, agar bo'lsa o'shani qo'yamiz
-                // Aks holda siz aytgan 5 soniya (boss uchun 15 yoki 10)
-                const defaultTime = isBossRound ? 15 : 5;
-                const levelTime = q.time_limit || defaultTime; 
+                // --- BAZADAN VAQTNI OLISH ---
+                // Agar bazada time_limit bo'lsa, o'shani ishlatadi. 
+                // Bo'lmasa, boss uchun 15, oddiy uchun 5 soniya.
+                const levelTime = q.time_limit || (isBossRound ? 15 : 5);
                 startTimer(levelTime);
-                // ------------------------------
             };
 
             audio.play().catch(() => { skipRound(); });
