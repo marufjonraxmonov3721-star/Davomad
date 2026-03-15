@@ -727,21 +727,29 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
-        // Savollarni level bo'yicha saralaymiz va TARTIB bilan chiqaramiz
-        const levelData = Object.values(allQuestions).filter(q => 
+        // SAVOLLAR TARTIBINI TO'G'IRLASH
+        // 1. Ob'ektni massivga o'tkazamiz
+        let levelData = Object.values(allQuestions);
+        
+        // 2. Faqat kerakli darajadagi va ishlatilmagan savollarni olamiz
+        levelData = levelData.filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
         );
+
+        // 3. Savollarni ID yoki tartib raqami bo'yicha saralaymiz (agar id bo'lmasa search_term bo'yicha)
+        levelData.sort((a, b) => (a.id || a.search_term) > (b.id || b.search_term) ? 1 : -1);
         
         const normalQuestions = levelData.filter(q => !q.is_boss);
         const bosses = levelData.filter(q => q.is_boss);
         
         if(normalQuestions.length > 0) {
-            // TARTIBNI SAQLASH: random() funksiyasi olib tashlandi
+            // QUESTIONS_PER_LEVEL miqdorida savol olamiz (tartib bilan)
             questions = normalQuestions.slice(0, QUESTIONS_PER_LEVEL);
-            bossQuestion = bosses.length > 0 ? bosses[0] : null; // Boss ham tartib bo'yicha birinchisi
+            bossQuestion = bosses.length > 0 ? bosses[0] : null;
             currentIdx = 0;
             loadRound();
         } else {
+            // Agar ushbu levelda savol qolmagan bo'lsa
             endGame(false);
             quitGame();
             setPersistentCooldown();
@@ -800,7 +808,7 @@
         }
 
         const correctText = q.options[q.correct];
-        // Faqat variantlar (javoblar) tasodifiy chiqadi, savol emas
+        // Faqat variantlar (javoblar) tasodifiy chiqadi
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((opt) => {
