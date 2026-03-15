@@ -46,7 +46,6 @@
 
         .lives-container { font-size: 18px; color: var(--primary); letter-spacing: 2px; }
 
-        /* Combo Badge */
         #combo-badge {
             position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000;
             padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px;
@@ -55,14 +54,12 @@
         }
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        /* Floating Score Text */
         .floating-text {
             position: absolute; color: var(--primary); font-weight: bold; font-size: 20px;
             pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
         }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
-        /* Custom Result Modal */
         #result-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
             display: none; align-items: center; justify-content: center; padding: 20px;
@@ -75,7 +72,6 @@
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
         .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
         .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
@@ -89,7 +85,6 @@
         .rank-lvl { font-size: 9px; color: #666; display: block; }
         .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
 
-        /* Profile UI */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
         .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
@@ -98,7 +93,6 @@
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
 
-        /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -106,7 +100,6 @@
         
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        /* Modern Offline Toast */
         #offline-notice {
             position: fixed; top: -100px; left: 0; right: 0;
             background: rgba(255, 62, 62, 0.95); color: white; 
@@ -119,7 +112,6 @@
         .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* BOSS STYLES */
         .boss-active .game-card { border-color: var(--boss); box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
         .boss-active .vinyl { border-color: var(--boss); }
         .boss-active #disc-center { background: var(--boss) !important; }
@@ -175,7 +167,7 @@
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
+                <p style="color:#666; margin-bottom:20px;">Har 3-sessiyada savollar yangilanadi!</p>
                 
                 <div class="cat-grid">
                     <button class="cat-btn" onclick="startGame('uzbek')">
@@ -202,15 +194,12 @@
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
             <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">REYTINGLAR</h2>
-            
             <div class="rank-tabs" style="margin-bottom: 15px;">
                 <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
                 <div class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</div>
                 <div class="rank-tab" id="limit-1000" onclick="setRankLimit(1000)">TOP 1000</div>
             </div>
-
             <div class="rank-list-container" id="rank-list"></div>
-            
             <p class="reset-info">Yakshanba kuni barcha natijalar nolga tushiriladi.</p>
         </div>
     </div>
@@ -220,18 +209,17 @@
             <div class="avatar-circle" id="profile-avatar">👤</div>
             <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
             <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 25px;"></p>
-            
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori bosqich (Best Level)</div>
+                    <div class="stat-label">Eng yuqori bosqich</div>
                     <div class="stat-value" id="best-level">1</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija (Best Score)</div>
+                    <div class="stat-label">Eng yuqori natija</div>
                     <div class="stat-value" id="best-score">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Umumiy Tajriba (Total XP)</div>
+                    <div class="stat-label">Umumiy Tajriba (XP)</div>
                     <div class="stat-value" id="total-xp">0</div>
                 </div>
             </div>
@@ -275,17 +263,25 @@
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let allQuestions = [], questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
-    let isPlaying = false;
-    let comboCount = 0;
-    let currentCategory = 'uzbek';
-    let currentLevel = 1;
-    let isBossRound = false;
-    let bossQuestion = null;
+    let isPlaying = false, comboCount = 0, currentCategory = 'uzbek', currentLevel = 1;
+    let isBossRound = false, bossQuestion = null, rankLimit = 10;
     const QUESTIONS_PER_LEVEL = 5;
-    
-    let rankLimit = 10;
 
-    // --- SAVOLLARNI FILTRLASH LOGIKASI ---
+    // --- SAVOLLARNI FILTRLASH VA 3 MARTALIK SIKL LOGIKASI ---
+    function handleSessionMemory() {
+        let sessionCount = parseInt(localStorage.getItem('session_count') || "0");
+        sessionCount++;
+        
+        // Har 3-sessiyada ko'rilgan savollar tarixini tozalaymiz
+        if(sessionCount >= 3) {
+            Object.keys(localStorage).forEach(key => {
+                if(key.startsWith('seen_')) localStorage.removeItem(key);
+            });
+            sessionCount = 0; // Siklni qaytadan boshlash
+        }
+        localStorage.setItem('session_count', sessionCount);
+    }
+
     const getSeenQuestions = () => JSON.parse(localStorage.getItem(`seen_${currentCategory}`) || "[]");
     const saveToSeen = (id) => {
         const seen = getSeenQuestions();
@@ -294,9 +290,10 @@
             localStorage.setItem(`seen_${currentCategory}`, JSON.stringify(seen));
         }
     };
-    // ------------------------------------
+    // -------------------------------------------------------
 
     window.onload = () => {
+        handleSessionMemory(); // Sessiyani tekshirish
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -307,19 +304,12 @@
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
                 notice.classList.add('show');
-                if(isPlaying) {
-                    clearInterval(timerInterval);
-                    audio.pause();
-                }
+                if(isPlaying) { clearInterval(timerInterval); audio.pause(); }
             } else {
                 notice.classList.remove('show');
-                if(isPlaying && audio.src) {
-                   audio.play().catch(e => {});
-                   startTimer(parseInt(document.getElementById('timer').innerText));
-                }
+                if(isPlaying && audio.src) { audio.play().catch(e => {}); startTimer(parseInt(document.getElementById('timer').innerText)); }
             }
         };
-
         window.addEventListener('offline', checkNetwork);
         window.addEventListener('online', checkNetwork);
         checkNetwork();
@@ -342,33 +332,22 @@
     };
 
     function quitGame() {
-        isPlaying = false;
-        isBossRound = false;
+        isPlaying = false; isBossRound = false;
         document.body.classList.remove('boss-active');
-        clearInterval(timerInterval);
-        audio.pause();
-        audio.src = "";
+        clearInterval(timerInterval); audio.pause(); audio.src = "";
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
-        
-        score = 0;
-        lives = 3;
-        comboCount = 0;
-        currentIdx = 0;
-        currentLevel = 1;
-        
+        score = 0; lives = 3; comboCount = 0; currentIdx = 0; currentLevel = 1;
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
     }
 
-    window.closeResultModal = () => {
-        quitGame();
-    };
+    window.closeResultModal = () => quitGame();
 
     window.showPage = (pageId, el) => {
         if(isPlaying) return;
@@ -382,25 +361,12 @@
     };
 
     window.startGame = (category) => {
-        if (!navigator.onLine) {
-            tg.showAlert("O'yinni boshlash uchun internet kerak!");
-            return;
-        }
-
+        if (!navigator.onLine) { tg.showAlert("O'yinni boshlash uchun internet kerak!"); return; }
         currentCategory = category || 'uzbek';
-        isPlaying = true;
-        
-        currentLevel = 1;
-        currentIdx = 0;
-        score = 0;
-        lives = 3;
-        comboCount = 0;
-        isBossRound = false;
-        
+        isPlaying = true; currentLevel = 1; currentIdx = 0; score = 0; lives = 3; comboCount = 0; isBossRound = false;
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
-        
         tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
@@ -408,42 +374,28 @@
         initGame();
     };
 
-    window.restartGame = () => {
-        quitGame();
-    };
+    window.restartGame = () => quitGame();
 
     async function initGame() {
         try {
             const snap = await get(ref(db, `questions/${currentCategory}`));
             if(snap.exists()) {
                 const data = snap.val();
-                allQuestions = Object.keys(data).map(key => ({
-                    ...data[key],
-                    firebaseId: key
-                }));
+                allQuestions = Object.keys(data).map(key => ({ ...data[key], firebaseId: key }));
                 loadLevelQuestions();
-            } else {
-                tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
-                quitGame();
-            }
-        } catch (e) {
-            tg.showAlert("Ma'lumot yuklashda xatolik!");
-            quitGame();
-        }
+            } else { tg.showAlert("Savollar topilmadi!"); quitGame(); }
+        } catch (e) { tg.showAlert("Ma'lumot yuklashda xatolik!"); quitGame(); }
     }
 
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        
         const seen = getSeenQuestions();
         
-        // 1. Shu levelga tegishli va ko'rilmagan savollarni ajratish
-        let available = allQuestions.filter(q => 
-            (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
-        );
+        // 1. Shu leveldagi ko'rilmagan savollar
+        let available = allQuestions.filter(q => (q.level || 1) == currentLevel && !seen.includes(q.firebaseId));
 
-        // 2. Agar ko'rilmagan savollar qolmagan bo'lsa, o'sha leveldagilarni hammasini qayta ishlatish
+        // 2. Agar barcha savollar ko'rib bo'lingan bo'lsa, sessiya ichida qayta ishlatish
         if(available.length === 0) {
             available = allQuestions.filter(q => (q.level || 1) == currentLevel);
         }
@@ -456,10 +408,7 @@
             bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
             currentIdx = 0;
             loadRound();
-        } else {
-            // Agar levelda umuman savol bo'lmasa (masalan oxirgi leveldan o'tgan bo'lsa)
-            endGame(false);
-        }
+        } else { endGame(false); }
     }
 
     async function loadRound() {
@@ -467,34 +416,25 @@
         if(lives <= 0) { endGame(true); return; }
         
         let q;
-        const status = document.getElementById('status');
-        const optionsBox = document.getElementById('options-box');
-        const disc = document.getElementById('disc');
-        const roundCounter = document.getElementById('round-counter');
+        const status = document.getElementById('status'), optionsBox = document.getElementById('options-box');
+        const disc = document.getElementById('disc'), roundCounter = document.getElementById('round-counter');
 
         if(currentIdx >= questions.length) { 
             if(bossQuestion && !isBossRound) {
-                isBossRound = true;
-                q = bossQuestion;
+                isBossRound = true; q = bossQuestion;
                 document.getElementById('combo-badge').style.display = 'none';
                 document.body.classList.add('boss-active');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
-            } else {
-                currentLevel++;
-                loadLevelQuestions();
-                return;
-            }
+            } else { currentLevel++; loadLevelQuestions(); return; }
         } else {
             q = questions[currentIdx];
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        // SAVOLNI KO'RILGANLAR RO'YXATIGA QO'SHISH
+        // Savolni ko'rilgan deb belgilash
         saveToSeen(q.firebaseId);
         
-        optionsBox.innerHTML = "";
-        disc.classList.remove('spinning');
-        audio.pause();
+        optionsBox.innerHTML = ""; disc.classList.remove('spinning'); audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
 
         const musicUrl = await fetchMusic(q.search_term);
@@ -503,142 +443,69 @@
             audio.playbackRate = isBossRound ? 1.05 : 1.0;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
-                startTimer(levelTime); 
+                startTimer(isBossRound ? 10 : Math.max(8, 18 - currentLevel)); 
                 status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
-            })
-            .catch(() => { skipRound(); });
-            
-            audio.onended = () => disc.classList.remove('spinning');
-        } else {
-            skipRound(); return;
-        }
+            }).catch(() => skipRound());
+        } else { skipRound(); return; }
 
         const correctText = q.options[q.correct];
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((opt) => {
             const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt;
+            btn.className = 'option-btn'; btn.innerText = opt;
             btn.onclick = (e) => {
                 clearInterval(timerInterval);
                 const btns = document.querySelectorAll('.option-btn');
                 btns.forEach(b => b.disabled = true);
-                
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    let pointsToAdd;
-                    
-                    if(isBossRound) {
-                        const baseBossScore = q.score || q.boss_score || 50;
-                        const comboX = q.boss_combo || 1;
-                        pointsToAdd = baseBossScore * comboX;
-                        showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
-                        
-                        if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
-                            lives = Math.min(3, lives + 1);
-                            updateLivesUI();
-                        }
-                    } else {
-                        comboCount++;
-                        const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                        const baseScore = q.score || 10;
-                        pointsToAdd = (baseScore * comboMultiplier);
-                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
-                        updateComboUI();
-                    }
-                    
-                    score += pointsToAdd;
-                    document.getElementById('score').innerText = "BALL: " + score;
-                    tg.HapticFeedback.notificationOccurred('success');
+                    let pts = isBossRound ? (q.score || 50) * (q.boss_combo || 1) : (q.score || 10) * (Math.floor(comboCount / 3) + 1);
+                    if(!isBossRound) comboCount++;
+                    score += pts; document.getElementById('score').innerText = "BALL: " + score;
+                    showFloatingText(`+${pts}`, e.clientX, e.clientY);
+                    updateComboUI(); tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
-                    comboCount = 0;
-                    updateComboUI();
-                    lives--;
-                    updateLivesUI();
+                    comboCount = 0; lives--; updateComboUI(); updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
                 }
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
+                setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
             };
             optionsBox.appendChild(btn);
         });
     }
 
-    function skipRound() {
-        currentIdx++;
-        loadRound();
-    }
-
-    function nextStep() {
-        if(isBossRound) {
-            currentLevel++;
-            loadLevelQuestions();
-        } else {
-            currentIdx++;
-            loadRound();
-        }
-    }
+    function skipRound() { currentIdx++; loadRound(); }
+    function nextStep() { if(isBossRound) { currentLevel++; loadLevelQuestions(); } else { currentIdx++; loadRound(); } }
 
     function showFloatingText(text, x, y) {
         const el = document.createElement('div');
-        el.className = 'floating-text';
-        if(isBossRound) el.style.color = 'var(--boss)';
-        el.innerText = text;
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
+        el.className = 'floating-text'; if(isBossRound) el.style.color = 'var(--boss)';
+        el.innerText = text; el.style.left = `${x}px`; el.style.top = `${y}px`;
+        document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
     }
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        if (isBossRound) {
-            badge.style.display = 'none';
-            return;
-        }
-
-        if (comboCount >= 3) {
-            const multiplier = Math.floor(comboCount / 3) + 1;
-            badge.innerText = `COMBO x${multiplier}`;
-            badge.style.display = 'block';
-            badge.style.animation = 'none';
-            badge.offsetHeight; 
-            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        } else {
-            badge.style.display = 'none';
-        }
+        if (isBossRound || comboCount < 3) { badge.style.display = 'none'; return; }
+        badge.innerText = `COMBO x${Math.floor(comboCount / 3) + 1}`;
+        badge.style.display = 'block';
     }
 
     function updateLivesUI() {
-        const livesEl = document.getElementById('lives');
-        livesEl.innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
+        document.getElementById('lives').innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
     }
 
     function endGame(isGameOver) {
-        isPlaying = false;
-        isBossRound = false;
-        tg.BackButton.hide();
+        isPlaying = false; isBossRound = false; tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('combo-badge').style.display = 'none';
-        clearInterval(timerInterval);
-        audio.pause();
-        audio.src = "";
-
+        clearInterval(timerInterval); audio.pause(); audio.src = "";
         saveScore();
-        
-        const modal = document.getElementById('result-modal');
-        const scoreDisplay = document.getElementById('final-score');
-        const levelDisplay = document.getElementById('final-level');
-        const titleDisplay = document.getElementById('result-title');
-        
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        scoreDisplay.innerText = score;
-        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
-
-        modal.style.display = 'flex';
+        document.getElementById('result-modal').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-level').innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
         document.body.classList.remove('boss-active');
     }
 
@@ -647,32 +514,20 @@
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
-                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isCover;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
-            return data.results[0]?.previewUrl;
+            const filtered = data.results.filter(t => !["cover", "karaoke", "remix", "piano", "live"].some(m => t.trackName.toLowerCase().includes(m)));
+            return filtered[0]?.previewUrl || data.results[0]?.previewUrl || null;
         } catch (e) { return null; }
     }
 
     function startTimer(startTime) {
-        let t = Math.floor(startTime); 
-        document.getElementById('timer').innerText = t;
+        let t = Math.floor(startTime); document.getElementById('timer').innerText = t;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if (!navigator.onLine) return;
             t--; document.getElementById('timer').innerText = t;
             if(t <= 0) { 
-                clearInterval(timerInterval); 
-                comboCount = 0;
-                updateComboUI();
-                lives--; 
-                updateLivesUI();
-                if(lives > 0) nextStep();
-                else endGame(true);
+                clearInterval(timerInterval); comboCount = 0; lives--; updateComboUI(); updateLivesUI();
+                if(lives > 0) nextStep(); else endGame(true);
             }
         }, 1000);
     }
@@ -683,13 +538,10 @@
         try {
             const snap = await get(userRef);
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
-            const newBestScore = Math.max(score, data.score || 0);
-            const newBestLevel = Math.max(currentLevel, data.level || 1);
-            
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                score: newBestScore,
-                level: newBestLevel,
+                score: Math.max(score, data.score || 0),
+                level: Math.max(currentLevel, data.level || 1),
                 total_xp: increment(score),
                 id: user.id
             });
@@ -698,72 +550,38 @@
 
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
-        if (!navigator.onLine) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
-            return;
-        }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
+        if (!navigator.onLine) { listDiv.innerHTML = "Internet kerak"; return; }
+        listDiv.innerHTML = "Yuklanmoqda...";
         try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
-            const snap = await get(rankQuery);
+            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
             if(snap.exists()) {
                 listDiv.innerHTML = "";
-                const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
-                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
-
-                rawData.forEach((u, index) => {
+                const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
+                rawData.sort((a, b) => b.score - a.score).forEach((u, i) => {
                     const item = document.createElement('div');
-                    item.className = 'rank-item';
-                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    
-                    item.innerHTML = `
-                        <div class="rank-num">#${index + 1}</div>
-                        <div class="rank-name">${u.name}</div>
-                        <div class="rank-score-box">
-                            <span class="rank-score">${u.score}</span>
-                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
-                        </div>
-                    `;
+                    item.className = 'rank-item'; if(u.id == user.id) item.style.borderColor = "#ffcc00";
+                    item.innerHTML = `<div class="rank-num">#${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-score-box"><span class="rank-score">${u.score}</span><span class="rank-lvl">LVL: ${u.level || 1}</span></div>`;
                     listDiv.appendChild(item);
                 });
-            } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
             }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
+        } catch (e) { listDiv.innerHTML = "Xatolik!"; }
     }
 
     async function loadProfileData() {
-        const profileName = document.getElementById('profile-name');
-        const profileId = document.getElementById('profile-id');
-        const bestScoreEl = document.getElementById('best-score');
-        const bestLevelEl = document.getElementById('best-level');
-        const totalXpEl = document.getElementById('total-xp');
-        const profileAvatar = document.getElementById('profile-avatar');
-
-        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-        profileId.innerText = "ID: " + user.id;
-
-        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
-        else { profileAvatar.innerText = user.first_name.charAt(0); }
-
+        const u = user;
+        document.getElementById('profile-name').innerText = u.first_name + (u.last_name ? " " + u.last_name : "");
+        document.getElementById('profile-id').innerText = "ID: " + u.id;
+        const av = document.getElementById('profile-avatar');
+        if (u.photo_url) av.innerHTML = `<img src="${u.photo_url}">`; else av.innerText = u.first_name.charAt(0);
         try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            const snap = await get(ref(db, `leaderboard/${u.id}`));
             if (snap.exists()) {
-                const data = snap.val();
-                bestScoreEl.innerText = data.score || 0;
-                bestLevelEl.innerText = data.level || 1;
-                totalXpEl.innerText = data.total_xp || 0;
-            } else {
-                bestScoreEl.innerText = "0";
-                bestLevelEl.innerText = "1";
-                totalXpEl.innerText = "0";
+                const d = snap.val();
+                document.getElementById('best-score').innerText = d.score || 0;
+                document.getElementById('best-level').innerText = d.level || 1;
+                document.getElementById('total-xp').innerText = d.total_xp || 0;
             }
-        } catch (e) { 
-            bestScoreEl.innerText = "0";
-            bestLevelEl.innerText = "1";
-            totalXpEl.innerText = "0";
-        }
+        } catch (e) {}
     }
 </script>
 </body>
