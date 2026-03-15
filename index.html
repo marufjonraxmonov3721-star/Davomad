@@ -283,8 +283,30 @@
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
     
-    let usedQuestions = new Set();
+    // YUKLASH TIZIMI UCHUN OZGARUVCHILAR
     let rankLimit = 10;
+
+    // LOCALSTORAGE'DAN SAVOLLARNI TEKSHIRISH
+    const getSeenQuestions = () => JSON.parse(localStorage.getItem('seenQuestions') || "[]");
+    const saveToSeen = (id) => {
+        const seen = getSeenQuestions();
+        if(!seen.includes(id)) {
+            seen.push(id);
+            localStorage.setItem('seenQuestions', JSON.stringify(seen));
+        }
+    };
+    const resetSeenQuestions = () => localStorage.setItem('seenQuestions', JSON.stringify([]));
+
+    // YUTQAZISH SANAGICHI
+    const getGameOverCount = () => parseInt(localStorage.getItem('gameOverCount') || "0");
+    const incrementGameOverCount = () => {
+        let count = getGameOverCount() + 1;
+        if(count >= 3) {
+            resetSeenQuestions();
+            count = 0;
+        }
+        localStorage.setItem('gameOverCount', count);
+    };
 
     window.onload = () => {
         setTimeout(() => {
@@ -426,12 +448,22 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
+        const seen = getSeenQuestions();
+        
+        // FOYDALANUVCHI KO'RMAGAN SAVOLLARNI FILTRLASH
         const levelData = allQuestions.filter(q => 
-            (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId)
+            (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
         );
         
-        const normalQuestions = levelData.filter(q => !q.is_boss);
-        const bosses = levelData.filter(q => q.is_boss);
+        // AGAR KO'RMAGAN SAVOLLAR TUGAGAN BO'LSA VA HALI RESTART BO'LMAGAN BO'LSA, 
+        // BARCHA SAVOLLARNI OLAMIZ (BUNI QILMASAK OYIN TOXTAB QOLADI)
+        let availableQuestions = levelData;
+        if(availableQuestions.length === 0) {
+            availableQuestions = allQuestions.filter(q => (q.level || 1) == currentLevel);
+        }
+        
+        const normalQuestions = availableQuestions.filter(q => !q.is_boss);
+        const bosses = availableQuestions.filter(q => q.is_boss);
         
         if(normalQuestions.length > 0) {
             questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
@@ -439,6 +471,7 @@
             currentIdx = 0;
             loadRound();
         } else {
+            // Agar bu levelda hech qanday savol bo'lmasa (xatolik yoki oxiri)
             endGame(false);
         }
     }
@@ -470,7 +503,9 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        usedQuestions.add(q.firebaseId);
+        // SAVOLNI KO'RILGANLAR RO'YXATIGA QO'SHISH
+        saveToSeen(q.firebaseId);
+        
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
@@ -606,6 +641,11 @@
         audio.pause();
         audio.src = "";
         
+        // AGAR YUTQAZSA SANAGICHNI OSHIRAMIZ
+        if(isGameOver) {
+            incrementGameOverCount();
+        }
+
         saveScore();
         
         const modal = document.getElementById('result-modal');
