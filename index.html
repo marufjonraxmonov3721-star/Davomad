@@ -284,7 +284,7 @@
     const QUESTIONS_PER_LEVEL = 5;
     let rankLimit = 10;
 
-    // SAVOLLAR TAKRORLANMASLIGI TIZIMI
+    // SAVOLLAR TAKRORLANMASLIGI TIZIMI (LOCALSTORAGE)
     const getSeenQuestions = () => JSON.parse(localStorage.getItem('seenQuestions') || "[]");
     const saveToSeen = (id) => {
         const seen = getSeenQuestions();
@@ -295,7 +295,7 @@
     };
     const resetSeenQuestions = () => localStorage.setItem('seenQuestions', JSON.stringify([]));
     
-    // MAG'LUBIYAT SANAGICHI (3 marta yutqazganda bazani tozalash)
+    // MAG'LUBIYAT SANAGICHI
     const getGameOverCount = () => parseInt(localStorage.getItem('gameOverCount') || "0");
     const incrementGameOverCount = () => {
         let count = getGameOverCount() + 1;
@@ -447,12 +447,13 @@
         
         const seen = getSeenQuestions();
         
-        // Ko'rilmagan savollarni filtrlaymiz
+        // Bu bosqichdagi hali ko'rilmagan savollarni olamiz
         let availableQuestions = allQuestions.filter(q => 
             (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
         );
         
-        // Agar hamma savol ko'rib bo'lingan bo'lsa (bazada savol qolmasa), majburan hammasini ochamiz
+        // Agar ushbu bosqichda ko'rilmagan savol qolmagan bo'lsa (lekin foydalanuvchi hali o'yinni tugatmagan bo'lsa)
+        // Shunchaki o'sha bosqich savollarini qayta yuklaymiz (bazada savol kam bo'lsa)
         if(availableQuestions.length === 0) {
             availableQuestions = allQuestions.filter(q => (q.level || 1) == currentLevel);
         }
@@ -466,7 +467,7 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar bu levelda umuman savol bo'lmasa
+            // Agar bu levelda hech qanday savol bo'lmasa, g'alaba deb hisoblaymiz (bazani yangilaymiz)
             endGame(false);
         }
     }
@@ -636,11 +637,13 @@
         audio.pause();
         audio.src = "";
         
-        // G'alaba qozonsa ham savollar yangilanadi
+        // G'ALABA QOZONSA (Hamma savol tugasa) -> Bazani tozalaymiz (Savollar qaytadan chiqishi uchun)
         if(!isGameOver) {
             resetSeenQuestions();
+            localStorage.setItem('gameOverCount', "0");
         } else {
-            incrementGameOverCount(); // Yutqazsa sanagich oshadi (3 marta bo'lsa tozalanadi)
+            // MAG'LUBIYAT BO'LSA -> Sanagichni oshiramiz
+            incrementGameOverCount();
         }
 
         saveScore();
@@ -784,3 +787,4 @@
 </script>
 </body>
 </html>
+
