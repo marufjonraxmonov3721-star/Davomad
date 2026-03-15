@@ -488,8 +488,13 @@
                 disc.classList.add('spinning'); 
                 status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
                 
-                const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
+                // --- XATOLIK TUZATILGAN JOY ---
+                // Bazadan kelayotgan vaqtni tekshiramiz, agar bo'lsa o'shani qo'yamiz
+                // Aks holda siz aytgan 5 soniya (boss uchun 15 yoki 10)
+                const defaultTime = isBossRound ? 15 : 5;
+                const levelTime = q.time_limit || defaultTime; 
                 startTimer(levelTime);
+                // ------------------------------
             };
 
             audio.play().catch(() => { skipRound(); });
@@ -651,7 +656,7 @@
             document.getElementById('timer').innerText = t;
             if(t <= 0) { 
                 clearInterval(timerInterval); 
-                audio.pause(); // Taymer tugashi bilan musiqani to'xtatish
+                audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
                 document.getElementById('options-box').classList.add('show-options');
                 document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
