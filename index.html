@@ -6,7 +6,7 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00ccff; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00d4ff; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
@@ -128,6 +128,12 @@
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
+        /* FRIEND MATCH STYLES */
+        .friend-active .game-card { border-color: var(--friend); box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
+        .friend-active #disc-center { background: var(--friend) !important; }
+        .friend-active #round-counter { color: var(--friend) !important; }
+        .friend-title { color: var(--friend); font-weight: 800; text-shadow: 0 0 10px var(--friend); }
+
         /* Lock Screen for cooldown */
         #cooldown-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
@@ -161,6 +167,9 @@
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
         <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
+        <div id="friend-share-section" style="display:none; margin-bottom: 15px;">
+            <button class="start-btn" onclick="shareFriendResult()" style="background:var(--friend); color:#000; width:100%;">DO'STLARGA YUBORISH 🚀</button>
+        </div>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
     </div>
 </div>
@@ -215,9 +224,12 @@
                         <span class="cat-icon">🔥</span>
                         <span>Trend</span>
                     </button>
-                    <button class="cat-btn" onclick="startGame('friend')" style="border-color:var(--friend); grid-column: span 2;">
-                        <span class="cat-icon">👥</span>
-                        <span style="color:var(--friend)">Friend Match</span>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="cat-btn" onclick="startGame('friend')" style="width: 100%; border-color: var(--friend);">
+                        <span class="cat-icon">🤝</span>
+                        <span style="color: var(--friend);">Friend Match (10 ta savol)</span>
                     </button>
                 </div>
             </div>
@@ -305,13 +317,13 @@
     let currentCategory = 'uzbek';
     let currentLevel = 1;
     let isBossRound = false;
+    let isFriendMatch = false;
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
+    const FRIEND_MATCH_TOTAL = 10;
     
-    // Persistent Cooldown
     let usedQuestions = new Set();
     let cooldownInterval;
-    
     let rankLimit = 10;
 
     window.onload = () => {
@@ -375,7 +387,8 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
-        document.body.classList.remove('boss-active');
+        isFriendMatch = false;
+        document.body.classList.remove('boss-active', 'friend-active');
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
@@ -384,6 +397,7 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('friend-share-section').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -425,6 +439,7 @@
         }
 
         currentCategory = category || 'uzbek';
+        isFriendMatch = (category === 'friend');
         isPlaying = true;
         
         currentLevel = 1;
@@ -434,8 +449,12 @@
         comboCount = 0;
         isBossRound = false;
         
+        if (isFriendMatch) {
+            document.body.classList.add('friend-active');
+        }
+
         document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        document.getElementById('round-counter').innerText = isFriendMatch ? `SAVOL: 1/${FRIEND_MATCH_TOTAL}` : `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
         
         tg.BackButton.show();
@@ -451,10 +470,16 @@
 
     async function initGame() {
         try {
-            const snap = await get(ref(db, `questions/${currentCategory}`));
+            const dbPath = isFriendMatch ? `questions/friend_match` : `questions/${currentCategory}`;
+            const snap = await get(ref(db, dbPath));
             if(snap.exists()) {
                 allQuestions = snap.val();
-                loadLevelQuestions();
+                if (isFriendMatch) {
+                    questions = Object.values(allQuestions).sort(() => Math.random() - 0.5).slice(0, FRIEND_MATCH_TOTAL);
+                    loadRound();
+                } else {
+                    loadLevelQuestions();
+                }
             } else {
                 tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
                 quitGame();
@@ -466,6 +491,7 @@
     }
 
     function setPersistentCooldown() {
+        if (isFriendMatch) return; // Friend matchda cooldown yo'q
         const cooldownTime = 300; 
         const endTime = Date.now() + (cooldownTime * 1000);
         localStorage.setItem(`cooldown_${user.id}`, endTime);
@@ -519,7 +545,7 @@
         document.body.classList.remove('boss-active');
         
         const levelData = Object.values(allQuestions).filter(q => 
-            currentCategory === 'friend' ? !usedQuestions.has(q.search_term) : ((q.level || 1) == currentLevel && !usedQuestions.has(q.search_term))
+            (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
         );
         
         const normalQuestions = levelData.filter(q => !q.is_boss);
@@ -548,7 +574,11 @@
         const roundCounter = document.getElementById('round-counter');
 
         if(currentIdx >= questions.length) { 
-            if(bossQuestion && !isBossRound && currentCategory !== 'friend') {
+            if (isFriendMatch) {
+                endGame(false);
+                return;
+            }
+            if(bossQuestion && !isBossRound) {
                 isBossRound = true;
                 q = bossQuestion;
                 document.getElementById('combo-badge').style.display = 'none';
@@ -561,10 +591,14 @@
             }
         } else {
             q = questions[currentIdx];
-            roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
+            if (isFriendMatch) {
+                roundCounter.innerHTML = `<span class="friend-title">FRIEND MATCH: ${currentIdx + 1}/${FRIEND_MATCH_TOTAL}</span>`;
+            } else {
+                roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
+            }
         }
         
-        usedQuestions.add(q.search_term);
+        if (!isFriendMatch) usedQuestions.add(q.search_term);
 
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
@@ -574,13 +608,13 @@
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.playbackRate = isBossRound ? 1.1 : 1.0;
+            audio.playbackRate = (isBossRound || isFriendMatch) ? 1.05 : 1.0;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                const baseTime = Math.max(8, 18 - (currentLevel));
+                const baseTime = isFriendMatch ? 15 : Math.max(8, 18 - (currentLevel));
                 const levelTime = isBossRound ? 10 : baseTime;
                 startTimer(levelTime); 
-                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : (currentCategory === 'friend' ? "Friend Match: Kim aytgan?" : "Eshiting..."); 
+                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : (isFriendMatch ? "Diqqat bilan eshiting..." : "Eshiting..."); 
             })
             .catch(() => { skipRound(); });
             
@@ -615,6 +649,9 @@
                             lives = Math.min(3, lives + 1);
                             updateLivesUI();
                         }
+                    } else if (isFriendMatch) {
+                        pointsToAdd = 20;
+                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                     } else {
                         comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
@@ -630,7 +667,7 @@
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
-                    if(!isBossRound) updateComboUI();
+                    if(!isBossRound && !isFriendMatch) updateComboUI();
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -642,7 +679,10 @@
     }
 
     function skipRound() {
-        if(isBossRound || currentCategory === 'friend') {
+        if (isFriendMatch) {
+            currentIdx++;
+            loadRound();
+        } else if(isBossRound) {
             currentLevel++;
             loadLevelQuestions();
         } else {
@@ -652,7 +692,10 @@
     }
 
     function nextStep() {
-        if(isBossRound) {
+        if (isFriendMatch) {
+            currentIdx++;
+            loadRound();
+        } else if(isBossRound) {
             currentLevel++;
             loadLevelQuestions();
         } else {
@@ -665,6 +708,7 @@
         const el = document.createElement('div');
         el.className = 'floating-text';
         if(isBossRound) el.style.color = 'var(--boss)';
+        if(isFriendMatch) el.style.color = 'var(--friend)';
         el.innerText = text;
         el.style.left = `${x}px`;
         el.style.top = `${y}px`;
@@ -674,7 +718,7 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        if (isBossRound) {
+        if (isBossRound || isFriendMatch) {
             badge.style.display = 'none';
             return;
         }
@@ -699,7 +743,6 @@
     function endGame(isGameOver) {
         isPlaying = false;
         isBossRound = false;
-        document.body.classList.remove('boss-active');
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
@@ -707,18 +750,34 @@
         audio.pause();
         audio.src = "";
         
-        saveScore();
+        if (!isFriendMatch) saveScore();
         
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
         const levelDisplay = document.getElementById('final-level');
         const titleDisplay = document.getElementById('result-title');
         
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : (isFriendMatch ? "Friend Match Yakunlandi!" : "G'alaba!");
         scoreDisplay.innerText = score;
-        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
+        
+        if (isFriendMatch) {
+            levelDisplay.innerText = `To'g'ri javoblar: ${score / 20}/10`;
+            document.getElementById('friend-share-section').style.display = 'block';
+        } else {
+            levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
+            document.getElementById('friend-share-section').style.display = 'none';
+        }
+
         modal.style.display = 'flex';
+        document.body.classList.remove('boss-active', 'friend-active');
     }
+
+    window.shareFriendResult = () => {
+        const correctOnes = score / 20;
+        const text = `🎵 SongLyrics: Friend Match! \n\nMen 10 ta savoldan ${correctOnes} tasiga to'g'ri javob berdim! 🔥\n\nSiz-chi? Mening natijamni yangilay olasizmi? 😎`;
+        const shareUrl = `https://t.me/share/url?url=https://t.me/SongLyrics_Pro_Bot/app&text=${encodeURIComponent(text)}`;
+        tg.openTelegramLink(shareUrl);
+    };
 
     async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
@@ -746,7 +805,7 @@
             if(t <= 0) { 
                 clearInterval(timerInterval); 
                 comboCount = 0;
-                if(!isBossRound) updateComboUI();
+                if(!isBossRound && !isFriendMatch) updateComboUI();
                 lives--; 
                 updateLivesUI();
                 if(lives > 0) nextStep();
@@ -756,7 +815,7 @@
     }
 
     async function saveScore() {
-        if (score <= 0 || !navigator.onLine) return;
+        if (score <= 0 || !navigator.onLine || isFriendMatch) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
@@ -831,4 +890,18 @@
                 const data = snap.val();
                 bestScoreEl.innerText = data.score || 0;
                 bestLevelEl.innerText = data.level || 1;
-                totalX
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
+            }
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
+    }
+</script>
+</body>
+</html>
