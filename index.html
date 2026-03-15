@@ -127,23 +127,6 @@
         .boss-active .option-btn { border-color: #441122; }
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        /* FRIEND MATCH STYLES */
-        .friend-active .game-card { border-color: var(--friend); box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
-        .friend-active #disc-center { background: var(--friend) !important; }
-        .friend-active #round-counter { color: var(--friend) !important; }
-        .friend-title { color: var(--friend); font-weight: 800; text-shadow: 0 0 10px var(--friend); }
-
-        /* Lock Screen for cooldown */
-        #cooldown-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-        }
-        .cooldown-card {
-            background: var(--card); border: 1px solid var(--primary); border-radius: 30px;
-            padding: 40px; text-align: center; width: 100%; max-width: 350px;
-        }
-        #cooldown-timer { font-size: 40px; font-weight: 800; color: var(--primary); margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -167,20 +150,7 @@
         <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
         <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
-        <div id="friend-share-section" style="display:none; margin-bottom: 15px;">
-            <button class="start-btn" onclick="shareFriendResult()" style="background:var(--friend); color:#000; width:100%;">DO'STLARGA YUBORISH 🚀</button>
-        </div>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
-    </div>
-</div>
-
-<div id="cooldown-modal">
-    <div class="cooldown-card">
-        <span style="font-size: 50px;">⏳</span>
-        <h2 style="margin-top:15px;">Yangi savollar qolmadi!</h2>
-        <p style="color:#888; margin-top:10px; font-size: 14px;">Iltimos, qayta urinib ko'rish uchun biroz kuting:</p>
-        <div id="cooldown-timer">05:00</div>
-        <button class="start-btn" onclick="document.getElementById('cooldown-modal').style.display='none'">YOPISH</button>
     </div>
 </div>
 
@@ -223,13 +193,6 @@
                     <button class="cat-btn" onclick="startGame('trend')">
                         <span class="cat-icon">🔥</span>
                         <span>Trend</span>
-                    </button>
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <button class="cat-btn" onclick="startGame('friend')" style="width: 100%; border-color: var(--friend);">
-                        <span class="cat-icon">🤝</span>
-                        <span style="color: var(--friend);">Friend Match (10 ta savol)</span>
                     </button>
                 </div>
             </div>
@@ -317,17 +280,13 @@
     let currentCategory = 'uzbek';
     let currentLevel = 1;
     let isBossRound = false;
-    let isFriendMatch = false;
     let bossQuestion = null;
     const QUESTIONS_PER_LEVEL = 5;
-    const FRIEND_MATCH_TOTAL = 10;
     
     let usedQuestions = new Set();
-    let cooldownInterval;
     let rankLimit = 10;
 
     window.onload = () => {
-        checkPersistentCooldown();
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -356,18 +315,6 @@
         checkNetwork();
     };
 
-    function checkPersistentCooldown() {
-        const cooldownEnd = localStorage.getItem(`cooldown_${user.id}`);
-        if (cooldownEnd) {
-            const now = Date.now();
-            if (now < cooldownEnd) {
-                startCooldownUI(Math.ceil((cooldownEnd - now) / 1000));
-            } else {
-                localStorage.removeItem(`cooldown_${user.id}`);
-            }
-        }
-    }
-
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
@@ -387,8 +334,7 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
-        isFriendMatch = false;
-        document.body.classList.remove('boss-active', 'friend-active');
+        document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
@@ -397,7 +343,6 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('friend-share-section').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -432,14 +377,7 @@
             return;
         }
 
-        const cooldownEnd = localStorage.getItem(`cooldown_${user.id}`);
-        if (cooldownEnd && Date.now() < cooldownEnd) {
-            checkPersistentCooldown();
-            return;
-        }
-
         currentCategory = category || 'uzbek';
-        isFriendMatch = (category === 'friend');
         isPlaying = true;
         
         currentLevel = 1;
@@ -449,12 +387,8 @@
         comboCount = 0;
         isBossRound = false;
         
-        if (isFriendMatch) {
-            document.body.classList.add('friend-active');
-        }
-
         document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = isFriendMatch ? `SAVOL: 1/${FRIEND_MATCH_TOTAL}` : `BOSQICH: 1 | SAVOL: 1/5`;
+        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
         
         tg.BackButton.show();
@@ -470,22 +404,14 @@
 
     async function initGame() {
         try {
-            const dbPath = isFriendMatch ? `questions/friend` : `questions/${currentCategory}`;
-            const snap = await get(ref(db, dbPath));
+            const snap = await get(ref(db, `questions/${currentCategory}`));
             if(snap.exists()) {
-                // Yangilangan qism: Firebase'dagi ob'ektni massivga aylantiramiz
                 const data = snap.val();
                 allQuestions = Object.keys(data).map(key => ({
                     ...data[key],
                     firebaseId: key
                 }));
-
-                if (isFriendMatch) {
-                    questions = allQuestions.sort(() => Math.random() - 0.5).slice(0, FRIEND_MATCH_TOTAL);
-                    loadRound();
-                } else {
-                    loadLevelQuestions();
-                }
+                loadLevelQuestions();
             } else {
                 tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
                 quitGame();
@@ -496,42 +422,10 @@
         }
     }
 
-    function setPersistentCooldown() {
-        if (isFriendMatch) return; 
-        const cooldownTime = 300; 
-        const endTime = Date.now() + (cooldownTime * 1000);
-        localStorage.setItem(`cooldown_${user.id}`, endTime);
-        startCooldownUI(cooldownTime);
-    }
-
-    function startCooldownUI(timeLeft) {
-        document.getElementById('cooldown-modal').style.display = 'flex';
-        clearInterval(cooldownInterval);
-        
-        const updateTimer = () => {
-            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const secs = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('cooldown-timer').innerText = `${mins}:${secs}`;
-        };
-
-        updateTimer();
-        cooldownInterval = setInterval(async () => {
-            timeLeft--;
-            updateTimer();
-            if (timeLeft <= 0) {
-                clearInterval(cooldownInterval);
-                localStorage.removeItem(`cooldown_${user.id}`);
-                usedQuestions.clear();
-                document.getElementById('cooldown-modal').style.display = 'none';
-            }
-        }, 1000);
-    }
-
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
         
-        // Yangilangan filtr: Savollar endi massivdan olinadi
         const levelData = allQuestions.filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId)
         );
@@ -545,10 +439,7 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar ushbu levelda savol qolmagan bo'lsa
             endGame(false);
-            quitGame();
-            setPersistentCooldown();
         }
     }
 
@@ -563,10 +454,6 @@
         const roundCounter = document.getElementById('round-counter');
 
         if(currentIdx >= questions.length) { 
-            if (isFriendMatch) {
-                endGame(false);
-                return;
-            }
             if(bossQuestion && !isBossRound) {
                 isBossRound = true;
                 q = bossQuestion;
@@ -580,15 +467,10 @@
             }
         } else {
             q = questions[currentIdx];
-            if (isFriendMatch) {
-                roundCounter.innerHTML = `<span class="friend-title">FRIEND MATCH: ${currentIdx + 1}/${FRIEND_MATCH_TOTAL}</span>`;
-            } else {
-                roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
-            }
+            roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        if (!isFriendMatch) usedQuestions.add(q.firebaseId);
-
+        usedQuestions.add(q.firebaseId);
         optionsBox.innerHTML = "";
         disc.classList.remove('spinning');
         audio.pause();
@@ -597,13 +479,12 @@
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.playbackRate = (isBossRound || isFriendMatch) ? 1.05 : 1.0;
+            audio.playbackRate = isBossRound ? 1.05 : 1.0;
             audio.play().then(() => { 
                 disc.classList.add('spinning'); 
-                const baseTime = isFriendMatch ? 15 : Math.max(8, 18 - (currentLevel));
-                const levelTime = isBossRound ? 10 : baseTime;
+                const levelTime = isBossRound ? 10 : Math.max(8, 18 - currentLevel);
                 startTimer(levelTime); 
-                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : (isFriendMatch ? "Diqqat bilan eshiting..." : "Eshiting..."); 
+                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
             })
             .catch(() => { skipRound(); });
             
@@ -629,7 +510,7 @@
                     let pointsToAdd;
                     
                     if(isBossRound) {
-                        const baseBossScore = q.boss_score || 50;
+                        const baseBossScore = q.score || q.boss_score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
@@ -638,13 +519,11 @@
                             lives = Math.min(3, lives + 1);
                             updateLivesUI();
                         }
-                    } else if (isFriendMatch) {
-                        pointsToAdd = 20;
-                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                     } else {
                         comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                        pointsToAdd = (10 * comboMultiplier * currentLevel);
+                        const baseScore = q.score || 10;
+                        pointsToAdd = (baseScore * comboMultiplier);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                         updateComboUI();
                     }
@@ -656,7 +535,7 @@
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
-                    if(!isBossRound && !isFriendMatch) updateComboUI();
+                    updateComboUI();
                     lives--;
                     updateLivesUI();
                     tg.HapticFeedback.notificationOccurred('error');
@@ -686,7 +565,6 @@
         const el = document.createElement('div');
         el.className = 'floating-text';
         if(isBossRound) el.style.color = 'var(--boss)';
-        if(isFriendMatch) el.style.color = 'var(--friend)';
         el.innerText = text;
         el.style.left = `${x}px`;
         el.style.top = `${y}px`;
@@ -696,7 +574,7 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        if (isBossRound || isFriendMatch) {
+        if (isBossRound) {
             badge.style.display = 'none';
             return;
         }
@@ -728,34 +606,20 @@
         audio.pause();
         audio.src = "";
         
-        if (!isFriendMatch) saveScore();
+        saveScore();
         
         const modal = document.getElementById('result-modal');
         const scoreDisplay = document.getElementById('final-score');
         const levelDisplay = document.getElementById('final-level');
         const titleDisplay = document.getElementById('result-title');
         
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : (isFriendMatch ? "Friend Match Yakunlandi!" : "G'alaba!");
+        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
         scoreDisplay.innerText = score;
-        
-        if (isFriendMatch) {
-            levelDisplay.innerText = `To'g'ri javoblar: ${score / 20}/10`;
-            document.getElementById('friend-share-section').style.display = 'block';
-        } else {
-            levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
-            document.getElementById('friend-share-section').style.display = 'none';
-        }
+        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
 
         modal.style.display = 'flex';
-        document.body.classList.remove('boss-active', 'friend-active');
+        document.body.classList.remove('boss-active');
     }
-
-    window.shareFriendResult = () => {
-        const correctOnes = score / 20;
-        const text = `🎵 SongLyrics: Friend Match! \n\nMen 10 ta savoldan ${correctOnes} tasiga to'g'ri javob berdim! 🔥\n\nSiz-chi? Mening natijamni yangilay olasizmi? 😎`;
-        const shareUrl = `https://t.me/share/url?url=https://t.me/SongLyrics_Pro_Bot/app&text=${encodeURIComponent(text)}`;
-        tg.openTelegramLink(shareUrl);
-    };
 
     async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
@@ -783,7 +647,7 @@
             if(t <= 0) { 
                 clearInterval(timerInterval); 
                 comboCount = 0;
-                if(!isBossRound && !isFriendMatch) updateComboUI();
+                updateComboUI();
                 lives--; 
                 updateLivesUI();
                 if(lives > 0) nextStep();
@@ -793,7 +657,7 @@
     }
 
     async function saveScore() {
-        if (score <= 0 || !navigator.onLine || isFriendMatch) return;
+        if (score <= 0 || !navigator.onLine) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
