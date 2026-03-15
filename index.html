@@ -284,7 +284,7 @@
     const QUESTIONS_PER_LEVEL = 5;
     let rankLimit = 10;
 
-    // SAVOLLAR TAKRORLANMASLIGI TIZIMI (LOCALSTORAGE)
+    // --- SAVOLLARNI BOSHQARISH ---
     const getSeenQuestions = () => JSON.parse(localStorage.getItem('seenQuestions') || "[]");
     const saveToSeen = (id) => {
         const seen = getSeenQuestions();
@@ -447,29 +447,24 @@
         
         const seen = getSeenQuestions();
         
-        // Bu bosqichdagi hali ko'rilmagan savollarni olamiz
+        // FAQAT 1 MARTA CHIQISHI UCHUN FILTER (SeenQuestions ichida bo'lmasligi shart)
         let availableQuestions = allQuestions.filter(q => 
             (q.level || 1) == currentLevel && !seen.includes(q.firebaseId)
         );
         
-        // Agar ushbu bosqichda ko'rilmagan savol qolmagan bo'lsa (lekin foydalanuvchi hali o'yinni tugatmagan bo'lsa)
-        // Shunchaki o'sha bosqich savollarini qayta yuklaymiz (bazada savol kam bo'lsa)
-        if(availableQuestions.length === 0) {
-            availableQuestions = allQuestions.filter(q => (q.level || 1) == currentLevel);
-        }
-        
         const normalQuestions = availableQuestions.filter(q => !q.is_boss);
         const bosses = availableQuestions.filter(q => q.is_boss);
         
-        if(normalQuestions.length > 0) {
-            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
-            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
-            currentIdx = 0;
-            loadRound();
-        } else {
-            // Agar bu levelda hech qanday savol bo'lmasa, g'alaba deb hisoblaymiz (bazani yangilaymiz)
-            endGame(false);
+        // Agar bu levelda ko'rilmagan savol qolmagan bo'lsa - tamom, o'yin tugaydi!
+        if(normalQuestions.length === 0) {
+            endGame(false); 
+            return;
         }
+        
+        questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+        bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
+        currentIdx = 0;
+        loadRound();
     }
 
     async function loadRound() {
@@ -499,7 +494,7 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        // SAVOL ID-sini "KO'RILGAN" deb belgilash
+        // SAVOLNI KO'RILDI DEB BELGILASH
         saveToSeen(q.firebaseId);
         
         optionsBox.innerHTML = "";
@@ -787,4 +782,3 @@
 </script>
 </body>
 </html>
-
