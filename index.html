@@ -151,6 +151,21 @@
         }
         .match-code-display { font-size: 32px; font-weight: 800; color: var(--friend); margin: 20px 0; letter-spacing: 5px; background: #222; padding: 10px; border-radius: 15px; }
         .friend-input { width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 12px; margin: 15px 0; text-align: center; font-size: 20px; letter-spacing: 3px; }
+
+        /* LOBBY STYLES */
+        #friend-lobby {
+            position: fixed; inset: 0; background: var(--bg); z-index: 2800;
+            display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
+        }
+        .lobby-players { display: flex; align-items: center; justify-content: space-around; width: 100%; margin-bottom: 40px; }
+        .lobby-user { text-align: center; flex: 1; }
+        .lobby-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--friend); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; background: #222; overflow: hidden; }
+        .vs-text { font-size: 24px; font-weight: 900; color: var(--danger); font-style: italic; }
+        .ready-badge { font-size: 10px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; display: inline-block; background: #333; color: #666; }
+        .ready-badge.is-ready { background: var(--primary); color: #000; }
+        
+        .match-result-item { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #333; }
+        .winner-glow { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
     </style>
 </head>
 <body>
@@ -171,11 +186,13 @@
     <div class="result-card">
         <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
-        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
-        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
-        <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
-        <div id="friend-result-list" style="margin-bottom: 20px;"></div>
-        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+        <div id="single-result-box">
+            <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
+            <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
+            <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
+        </div>
+        <div id="friend-result-list" style="margin-bottom: 20px; display: none;"></div>
+        <button class="start-btn" onclick="restartGame()" style="width: 100%;">ASOSIY MENYU</button>
     </div>
 </div>
 
@@ -197,6 +214,25 @@
             <button class="option-btn" onclick="cancelMatch()">BEKOR QILISH</button>
         </div>
     </div>
+</div>
+
+<div id="friend-lobby">
+    <h2 style="color:var(--friend); margin-bottom: 30px; letter-spacing: 2px;">MATCH TAYYOR!</h2>
+    <div class="lobby-players">
+        <div class="lobby-user">
+            <div class="lobby-avatar" id="lobby-p1-img">👤</div>
+            <div id="lobby-p1-name" style="font-weight:bold; font-size:14px;">Siz</div>
+            <div class="ready-badge" id="lobby-p1-ready">Kutilmoqda...</div>
+        </div>
+        <div class="vs-text">VS</div>
+        <div class="lobby-user">
+            <div class="lobby-avatar" id="lobby-p2-img">👤</div>
+            <div id="lobby-p2-name" style="font-weight:bold; font-size:14px;">Raqib</div>
+            <div class="ready-badge" id="lobby-p2-ready">Kutilmoqda...</div>
+        </div>
+    </div>
+    <button id="ready-btn" class="start-btn" style="background:var(--friend); width: 80%;" onclick="toggleReady()">TAYYORMAN!</button>
+    <p id="lobby-status" style="margin-top:20px; color:#555; font-size:12px;">Ikkala taraf tayyor bo'lishi kerak</p>
 </div>
 
 <div id="cooldown-modal">
@@ -332,7 +368,7 @@
     tg.expand();
     tg.disableClosingConfirmation(); 
 
-    const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
+    const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon", photo_url: null };
     let allQuestions = {}, questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     let isPlaying = false;
     let comboCount = 0;
@@ -346,6 +382,7 @@
     let isFriendMatch = false;
     let matchId = null;
     let isHost = false;
+    let amIReady = false;
     const FRIEND_MATCH_QUESTIONS = 10;
 
     // Persistent Cooldown
@@ -420,6 +457,7 @@
         }
         isFriendMatch = false;
         matchId = null;
+        amIReady = false;
         
         document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
@@ -430,6 +468,8 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('friend-lobby').style.display = 'none';
+        document.getElementById('result-modal').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -440,8 +480,9 @@
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
         updateLivesUI();
-        document.getElementById('result-modal').style.display = 'none';
         document.getElementById('friend-result-list').innerHTML = "";
+        document.getElementById('friend-result-list').style.display = 'none';
+        document.getElementById('single-result-box').style.display = 'block';
     }
 
     window.closeResultModal = () => {
@@ -513,13 +554,12 @@
         document.getElementById('match-waiting').style.display = 'block';
         document.getElementById('match-code-val').innerText = code;
 
-        // Get random questions for both players
-        const snap = await get(ref(db, 'questions/uzbek')); // Default uzbek for friend match
+        const snap = await get(ref(db, 'questions/uzbek'));
         const all = Object.values(snap.val());
         const selected = all.sort(() => 0.5 - Math.random()).slice(0, FRIEND_MATCH_QUESTIONS);
 
         await set(ref(db, `matches/${matchId}`), {
-            host: { id: user.id, name: user.first_name, score: 0, finished: false },
+            host: { id: user.id, name: user.first_name, img: user.photo_url, score: 0, finished: false, ready: false },
             guest: null,
             questions: selected,
             status: 'waiting'
@@ -531,6 +571,9 @@
         onValue(matchRef, (s) => {
             const data = s.val();
             if(data && data.status === 'playing' && isHost) {
+                showLobby(data);
+            }
+            if(data && data.status === 'start') {
                 startFriendGame(data.questions);
             }
         });
@@ -549,12 +592,57 @@
         isHost = false;
         
         await update(matchRef, {
-            guest: { id: user.id, name: user.first_name, score: 0, finished: false },
+            guest: { id: user.id, name: user.first_name, img: user.photo_url, score: 0, finished: false, ready: false },
             status: 'playing'
         });
 
         onDisconnect(ref(db, `matches/${matchId}/guest`)).remove();
-        startFriendGame(snap.val().questions);
+        
+        onValue(matchRef, (s) => {
+            const data = s.val();
+            if(data && data.status === 'playing') showLobby(data);
+            if(data && data.status === 'start') startFriendGame(data.questions);
+        });
+    };
+
+    function showLobby(data) {
+        closeFriendModal();
+        const lobby = document.getElementById('friend-lobby');
+        lobby.style.display = 'flex';
+        
+        // P1 (Host)
+        document.getElementById('lobby-p1-name').innerText = data.host.name;
+        document.getElementById('lobby-p1-img').innerHTML = data.host.img ? `<img src="${data.host.img}">` : "👤";
+        const p1Ready = document.getElementById('lobby-p1-ready');
+        p1Ready.innerText = data.host.ready ? "TAYYOR" : "Kutilmoqda...";
+        p1Ready.classList.toggle('is-ready', data.host.ready);
+
+        // P2 (Guest)
+        if(data.guest) {
+            document.getElementById('lobby-p2-name').innerText = data.guest.name;
+            document.getElementById('lobby-p2-img').innerHTML = data.guest.img ? `<img src="${data.guest.img}">` : "👤";
+            const p2Ready = document.getElementById('lobby-p2-ready');
+            p2Ready.innerText = data.guest.ready ? "TAYYOR" : "Kutilmoqda...";
+            p2Ready.classList.toggle('is-ready', data.guest.ready);
+        }
+
+        if(data.host.ready && data.guest?.ready && data.status !== 'start') {
+            if(isHost) {
+                setTimeout(() => {
+                    update(ref(db, `matches/${matchId}`), { status: 'start' });
+                }, 1000);
+            }
+        }
+    }
+
+    window.toggleReady = () => {
+        amIReady = !amIReady;
+        const role = isHost ? 'host' : 'guest';
+        const btn = document.getElementById('ready-btn');
+        btn.innerText = amIReady ? "TAYYORSIZ!" : "TAYYORMAN!";
+        btn.style.opacity = amIReady ? "0.6" : "1";
+        
+        update(ref(db, `matches/${matchId}/${role}`), { ready: amIReady });
     };
 
     window.cancelMatch = () => {
@@ -564,13 +652,13 @@
     };
 
     function startFriendGame(qList) {
-        closeFriendModal();
+        document.getElementById('friend-lobby').style.display = 'none';
         isPlaying = true;
         isFriendMatch = true;
         questions = qList;
         currentIdx = 0;
         score = 0;
-        lives = 99; // Friend matchda o'yin tugamaydi
+        lives = 99; 
 
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
@@ -788,6 +876,8 @@
         saveScore();
         
         const modal = document.getElementById('result-modal');
+        document.getElementById('single-result-box').style.display = 'block';
+        document.getElementById('friend-result-list').style.display = 'none';
         document.getElementById('final-score').innerText = score;
         document.getElementById('final-level').innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
         document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
@@ -806,30 +896,49 @@
         });
 
         const modal = document.getElementById('result-modal');
+        document.getElementById('single-result-box').style.display = 'none';
         const resList = document.getElementById('friend-result-list');
-        resList.innerHTML = "<p>Raqib kutilmoqda...</p>";
+        resList.style.display = 'block';
+        resList.innerHTML = `
+            <div style="text-align:center; padding: 20px;">
+                <div class="loader" style="margin: 0 auto;"><div class="bar"></div><div class="bar"></div></div>
+                <p style="margin-top:15px; color:#888;">Raqibingiz tugatishini kutilmoqda...</p>
+            </div>
+        `;
         modal.style.display = 'flex';
 
         onValue(ref(db, `matches/${matchId}`), (s) => {
             const data = s.val();
             if(data && data.host.finished && data.guest && data.guest.finished) {
-                let winner = "Durang!";
-                if(data.host.score > data.guest.score) winner = `${data.host.name} G'alaba qozondi!`;
-                else if(data.guest.score > data.host.score) winner = `${data.guest.name} G'alaba qozondi!`;
+                let winnerText = "DURANG!";
+                let winnerId = null;
+                if(data.host.score > data.guest.score) { winnerText = "SIZ G'ALABA QOZONDINGIZ!"; winnerId = data.host.id; }
+                else if(data.guest.score > data.host.score) { winnerText = "RAQIB G'ALABA QOZONDI!"; winnerId = data.guest.id; }
+
+                document.getElementById('result-title').innerText = winnerText;
+                document.getElementById('result-title').style.color = (winnerId === user.id) ? 'var(--primary)' : 'var(--danger)';
 
                 resList.innerHTML = `
-                    <div style="background:#222; padding:15px; border-radius:15px; margin-top:10px;">
-                        <p style="color:var(--friend); font-weight:bold;">${winner}</p>
-                        <hr style="margin:10px 0; border-color:#333;">
-                        <p>${data.host.name}: ${data.host.score}</p>
-                        <p>${data.guest.name}: ${data.guest.score}</p>
+                    <div class="match-result-item ${winnerId === data.host.id ? 'winner-glow' : ''}">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:30px; height:30px; border-radius:50%; background:#333; overflow:hidden;">${data.host.img ? `<img src="${data.host.img}" style="width:100%">` : '👤'}</div>
+                            <span>${data.host.name}</span>
+                        </div>
+                        <span style="font-weight:bold; color:var(--primary);">${data.host.score}</span>
+                    </div>
+                    <div class="match-result-item ${winnerId === data.guest.id ? 'winner-glow' : ''}">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:30px; height:30px; border-radius:50%; background:#333; overflow:hidden;">${data.guest.img ? `<img src="${data.guest.img}" style="width:100%">` : '👤'}</div>
+                            <span>${data.guest.name}</span>
+                        </div>
+                        <span style="font-weight:bold; color:var(--primary);">${data.guest.score}</span>
                     </div>
                 `;
             }
         });
     }
 
-    async function fetchMusic(term, isRetry = false) {
+    async function fetchMusic(term) {
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
