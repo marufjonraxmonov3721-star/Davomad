@@ -6,7 +6,7 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; }
+        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00ccff; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; }
         
@@ -215,6 +215,10 @@
                         <span class="cat-icon">🔥</span>
                         <span>Trend</span>
                     </button>
+                    <button class="cat-btn" onclick="startGame('friend')" style="border-color:var(--friend); grid-column: span 2;">
+                        <span class="cat-icon">👥</span>
+                        <span style="color:var(--friend)">Friend Match</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -311,7 +315,7 @@
     let rankLimit = 10;
 
     window.onload = () => {
-        checkPersistentCooldown(); // Ilovaga kirganda tekshiramiz
+        checkPersistentCooldown();
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -462,7 +466,7 @@
     }
 
     function setPersistentCooldown() {
-        const cooldownTime = 300; // 5 daqiqa
+        const cooldownTime = 300; 
         const endTime = Date.now() + (cooldownTime * 1000);
         localStorage.setItem(`cooldown_${user.id}`, endTime);
         startCooldownUI(cooldownTime);
@@ -488,7 +492,6 @@
                 usedQuestions.clear();
                 document.getElementById('cooldown-modal').style.display = 'none';
 
-                // Bot xabari (Faqat user.id raqam bo'lsa)
                 if (user.id !== "guest") {
                     const botToken = "8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw";
                     const text = `Assalomu alaykum, aziz <b>${user.first_name}</b>! ✨\n\nSiz intiqib kutgan vaqt keldi. Yangi ohanglar va qiziqarli savollar sizni sog'indi. 🎵\n\nMarhamat, o'yinni davom ettirishingiz mumkin. Omad yor bo'lsin! 🌟`;
@@ -516,7 +519,7 @@
         document.body.classList.remove('boss-active');
         
         const levelData = Object.values(allQuestions).filter(q => 
-            (q.level || 1) == currentLevel && !usedQuestions.has(q.search_term)
+            currentCategory === 'friend' ? !usedQuestions.has(q.search_term) : ((q.level || 1) == currentLevel && !usedQuestions.has(q.search_term))
         );
         
         const normalQuestions = levelData.filter(q => !q.is_boss);
@@ -545,7 +548,7 @@
         const roundCounter = document.getElementById('round-counter');
 
         if(currentIdx >= questions.length) { 
-            if(bossQuestion && !isBossRound) {
+            if(bossQuestion && !isBossRound && currentCategory !== 'friend') {
                 isBossRound = true;
                 q = bossQuestion;
                 document.getElementById('combo-badge').style.display = 'none';
@@ -577,7 +580,7 @@
                 const baseTime = Math.max(8, 18 - (currentLevel));
                 const levelTime = isBossRound ? 10 : baseTime;
                 startTimer(levelTime); 
-                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : "Eshiting..."; 
+                status.innerText = isBossRound ? "🔥 BOSS: Kim aytgan? 🔥" : (currentCategory === 'friend' ? "Friend Match: Kim aytgan?" : "Eshiting..."); 
             })
             .catch(() => { skipRound(); });
             
@@ -639,7 +642,7 @@
     }
 
     function skipRound() {
-        if(isBossRound) {
+        if(isBossRound || currentCategory === 'friend') {
             currentLevel++;
             loadLevelQuestions();
         } else {
@@ -828,20 +831,4 @@
                 const data = snap.val();
                 bestScoreEl.innerText = data.score || 0;
                 bestLevelEl.innerText = data.level || 1;
-                totalXpEl.innerText = data.total_xp || 0;
-            } else {
-                bestScoreEl.innerText = "0";
-                bestLevelEl.innerText = "1";
-                totalXpEl.innerText = "0";
-            }
-        } catch (e) { 
-            bestScoreEl.innerText = "0";
-            bestLevelEl.innerText = "1";
-            totalXpEl.innerText = "0";
-        }
-    }
-</script>
-</body>
-</html>
-
- 
+                totalX
