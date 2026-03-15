@@ -376,7 +376,9 @@
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) quitGame();
+                if(confirmed) {
+                    quitGame();
+                }
             });
         }
     });
@@ -392,29 +394,45 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
+        
+        // 1. Vizual holatni tozalash
         document.body.classList.remove('boss-active');
         document.body.classList.remove('boss-pulse');
         document.getElementById('main-game-card').classList.remove('combo-fire');
-        cancelAnimationFrame(animationId);
-        clearInterval(timerInterval);
+        document.getElementById('combo-badge').style.display = 'none';
+        
+        // 2. Audio va Visualizerni to'xtatish
+        if(animationId) cancelAnimationFrame(animationId);
+        if(timerInterval) clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
+        
+        // Canvasni tozalash
+        if(ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 3. UI elementlarini qayta tiklash
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
-        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('result-modal').style.display = 'none';
         
+        // 4. O'yin o'zgaruvchilarini nolga tushirish
         score = 0;
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
+        usedQuestions.clear();
         
+        // Statlarni yangilash
         document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('timer').innerText = "--";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        document.getElementById('options-box').innerHTML = "";
+        document.getElementById('options-box').classList.remove('show-options');
+        document.getElementById('disc').classList.remove('spinning');
         updateLivesUI();
-        document.getElementById('result-modal').style.display = 'none';
     }
 
     window.closeResultModal = () => {
@@ -456,6 +474,7 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
+        usedQuestions.clear();
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
