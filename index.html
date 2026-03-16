@@ -161,6 +161,13 @@
         
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Resume Overlay */
+        #resume-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #resume-countdown { font-size: 100px; font-weight: 900; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -177,6 +184,11 @@
         <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
     <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
+</div>
+
+<div id="resume-overlay">
+    <div id="resume-countdown">3</div>
+    <p style="color:#fff; margin-top:20px; font-weight:bold;">O'YIN DAVOM ETMOQDA...</p>
 </div>
 
 <div id="result-modal">
@@ -320,6 +332,7 @@
     let allQuestions = [], questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     audio.crossOrigin = "anonymous";
     let isPlaying = false;
+    let isPaused = false;
     let comboCount = 0;
     let currentCategory = 'uzbek';
     let currentLevel = 1;
@@ -334,6 +347,8 @@
 
     let usedQuestions = new Set();
     let rankLimit = 10;
+    let currentRemainingTime = 0;
+    let gamePhase = 'listening'; // 'listening' yoki 'choosing'
 
     // --- VISUALIZER LOGIC ---
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
@@ -359,7 +374,7 @@
     }
 
     function drawVisualizer() {
-        if (!isPlaying) {
+        if (!isPlaying || isPaused) {
             if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
@@ -413,21 +428,57 @@
     // Telegram yopilsa yoki orqaga ketsa
     tg.onEvent('viewportChanged', (data) => {
         if (data.isStateStable && tg.isExpanded === false) {
-             stopAllSounds();
+             pauseGame();
         }
     });
 
     // Brauzer yoki tab almashtirilsa
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
-            stopAllSounds();
+            pauseGame();
         } else {
-            if(isPlaying && audio.src && navigator.onLine) {
-                 // Foydalanuvchi qaytib kelsa va o'yin davom etayotgan bo'lsa
-                 // timer to'xtagan bo'lsa ham musiqa qayta ijro etilmasligi uchun shartlar qo'yish mumkin
-            }
+            resumeGameWithCountdown();
         }
     });
+
+    function pauseGame() {
+        if (!isPlaying || isPaused) return;
+        isPaused = true;
+        stopAllSounds();
+        if (animationId) cancelAnimationFrame(animationId);
+    }
+
+    function resumeGameWithCountdown() {
+        if (!isPlaying || !isPaused) return;
+        
+        const overlay = document.getElementById('resume-overlay');
+        const countText = document.getElementById('resume-countdown');
+        overlay.style.display = 'flex';
+        
+        let count = 3;
+        countText.innerText = count;
+        
+        const countInt = setInterval(() => {
+            count--;
+            if (count > 0) {
+                countText.innerText = count;
+            } else {
+                clearInterval(countInt);
+                overlay.style.display = 'none';
+                isPaused = false;
+                
+                if (gamePhase === 'listening') {
+                    audio.play();
+                    document.getElementById('disc').classList.add('spinning');
+                    startTimer(currentRemainingTime);
+                    drawVisualizer();
+                } else if (gamePhase === 'choosing') {
+                    // Variantlar bosqichida vaqt allaqachon tugagan bo'ladi, shunchaki visual davom etadi
+                    drawVisualizer();
+                }
+            }
+        }, 1000);
+    }
 
     window.onload = () => {
         loadOptionsAudio(); // Ovozni oldindan yuklash
@@ -441,7 +492,7 @@
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
                 notice.classList.add('show');
-                stopAllSounds();
+                pauseGame();
             } else {
                 notice.classList.remove('show');
             }
@@ -470,6 +521,7 @@
 
     function quitGame() {
         isPlaying = false;
+        isPaused = false;
         isBossRound = false;
         document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
@@ -489,6 +541,7 @@
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
         document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('resume-overlay').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -532,6 +585,7 @@
         
         currentCategory = category || 'uzbek';
         isPlaying = true;
+        isPaused = false;
         
         drawVisualizer();
 
@@ -640,6 +694,7 @@
         disc.classList.remove('spinning');
         audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
+        gamePhase = 'listening';
 
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
@@ -647,6 +702,7 @@
             audio.playbackRate = isBossRound ? 1.05 : 1.0;
             
             audio.onplay = () => {
+                if (isPaused) { audio.pause(); return; }
                 disc.classList.add('spinning'); 
                 status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
                 
@@ -778,7 +834,7 @@
 
     function endGame(isGameOver) {
         isPlaying = false;
-        isBossRound = false;
+        isPaused = false;
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
@@ -823,17 +879,18 @@
     }
 
     function startTimer(startTime) {
-        let t = Math.floor(startTime); 
-        document.getElementById('timer').innerText = t;
+        currentRemainingTime = startTime;
+        document.getElementById('timer').innerText = Math.floor(currentRemainingTime);
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            if (!navigator.onLine) return;
-            t--; 
-            document.getElementById('timer').innerText = t;
-            if(t <= 0) { 
+            if (!navigator.onLine || isPaused) return;
+            currentRemainingTime--; 
+            document.getElementById('timer').innerText = Math.max(0, Math.floor(currentRemainingTime));
+            if(currentRemainingTime <= 0) { 
                 clearInterval(timerInterval); 
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
+                gamePhase = 'choosing';
                 
                 const optionsBox = document.getElementById('options-box');
                 optionsBox.classList.add('show-options');
@@ -841,11 +898,10 @@
                 
                 btns.forEach((btn, index) => {
                     setTimeout(() => {
-                        if(!isPlaying) return; // O'yin tark etilgan bo'lsa ovoz chiqmasligi uchun
+                        if(!isPlaying) return; 
                         btn.classList.add('reveal');
                         
-                        // BAZADAN KELGAN OVOZNI IJRO ETISH
-                        if(tickSound.src && isPlaying) {
+                        if(tickSound.src && isPlaying && !isPaused) {
                             const playPromise = tickSound.cloneNode().play();
                             if (playPromise !== undefined) {
                                 playPromise.catch(error => { console.log("Sound play prevented"); });
