@@ -783,7 +783,7 @@
                         tg.HapticFeedback.notificationOccurred('success');
                     } else {
                         comboCount++;
-                        const comboMultiplier = Math.floor(comboCount / 3) + 1;
+                        const multiplier = Math.floor(comboCount / 3) + 1;
                         const baseScore = q.score || 10;
                         pointsToAdd = (baseScore * multiplier);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
@@ -952,6 +952,7 @@
         document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
 
         // Variantlar chiqishi
+        let animationsStarted = 0;
         btns.forEach((btn, index) => {
             setTimeout(() => {
                 if(!isPlaying || gamePhase !== 'choosing') return; 
@@ -960,21 +961,24 @@
                     const tickClone = optionsTickSound.cloneNode();
                     tickClone.play().catch(() => {});
                 }
-            }, index * 200); // Tezroq chiqishi uchun interval kamaytirildi
+                animationsStarted++;
+                
+                // Barcha variantlar chiqib bo'lgach taymerni boshlash
+                if(animationsStarted === btns.length) {
+                    setTimeout(() => {
+                        if(!isPlaying || gamePhase !== 'choosing') return;
+                        if(timerTickSound.src && !isPaused) {
+                            timerTickSound.loop = true;
+                            timerTickSound.play().catch(() => {});
+                        }
+                        startChoosingTimer(10); 
+                    }, 300);
+                }
+            }, index * 200); 
         });
-
-        // Variantlar chiqib bo'lgach 10 soniyalik taymerni boshlash
-        setTimeout(() => {
-            if(!isPlaying || gamePhase !== 'choosing') return;
-            if(timerTickSound.src) {
-                timerTickSound.loop = true;
-                timerTickSound.play().catch(() => {});
-            }
-            startChoosingTimer(10); 
-        }, btns.length * 200);
     }
 
-    // Variantlarni tanlash uchun 10 soniyalik taymer
+    // Variantlarni tanlash uchun qat'iy 10 soniyalik taymer
     function startChoosingTimer(seconds) {
         currentRemainingTime = seconds;
         document.getElementById('timer').innerText = currentRemainingTime;
@@ -990,7 +994,7 @@
                 timerTickSound.pause();
                 timerTickSound.currentTime = 0;
                 
-                // VAQT TUGADI -> XATO
+                // VAQT TUGADI -> To'g'ri javobni ko'rsatib keyingisiga o'tish
                 let q = isBossRound ? bossQuestion : questions[currentIdx];
                 handleWrongAnswer(null, q.options[q.correct]);
                 
