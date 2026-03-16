@@ -413,13 +413,18 @@
             const snap = await get(ref(db, 'settings'));
             if(snap.exists()) {
                 const settings = snap.val();
-                if(settings.optionsAudio) tickSound.src = settings.optionsAudio;
-                if(settings.correctAudio) correctSound.src = settings.correctAudio;
-                if(settings.wrongAudio) wrongSound.src = settings.wrongAudio;
-                
-                tickSound.preload = 'auto';
-                correctSound.preload = 'auto';
-                wrongSound.preload = 'auto';
+                if(settings.optionsAudio) {
+                    tickSound.src = settings.optionsAudio;
+                    tickSound.load();
+                }
+                if(settings.correctAudio) {
+                    correctSound.src = settings.correctAudio;
+                    correctSound.load();
+                }
+                if(settings.wrongAudio) {
+                    wrongSound.src = settings.wrongAudio;
+                    wrongSound.load();
+                }
             }
         } catch(e) { console.log("Audio load error"); }
     }
@@ -747,11 +752,10 @@
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
                     
-                    // TO'G'RI JAVOB OVOZI - 1 SEKUND
+                    // TO'G'RI JAVOB OVOZI
                     if(correctSound.src) {
                         correctSound.currentTime = 0;
-                        correctSound.play();
-                        setTimeout(() => { correctSound.pause(); }, 1000);
+                        correctSound.play().catch(err => console.log("Sound play error", err));
                     }
 
                     let pointsToAdd;
@@ -779,11 +783,10 @@
                 } else {
                     btn.classList.add('wrong'); 
                     
-                    // XATO JAVOB OVOZI - 1 SEKUND
+                    // XATO JAVOB OVOZI
                     if(wrongSound.src) {
                         wrongSound.currentTime = 0;
-                        wrongSound.play();
-                        setTimeout(() => { wrongSound.pause(); }, 1000);
+                        wrongSound.play().catch(err => console.log("Sound play error", err));
                     }
 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
@@ -924,10 +927,8 @@
                         btn.classList.add('reveal');
                         
                         if(tickSound.src && isPlaying && !isPaused) {
-                            const playPromise = tickSound.cloneNode().play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch(error => { console.log("Sound play prevented"); });
-                            }
+                            const tickClone = tickSound.cloneNode();
+                            tickClone.play().catch(error => { console.log("Sound play prevented"); });
                         }
                     }, index * 1000); 
                 });
