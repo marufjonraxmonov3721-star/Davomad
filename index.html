@@ -951,7 +951,7 @@
         
         document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
 
-        // Variantlar chiqishi
+        // Variantlar chiqishi (Revealing phase)
         let animationsStarted = 0;
         btns.forEach((btn, index) => {
             setTimeout(() => {
@@ -963,7 +963,7 @@
                 }
                 animationsStarted++;
                 
-                // Barcha variantlar chiqib bo'lgach taymerni boshlash
+                // Barcha variantlar (jami 4 ta) 1 soniya interval bilan chiqib bo'lgach taymerni boshlash
                 if(animationsStarted === btns.length) {
                     setTimeout(() => {
                         if(!isPlaying || gamePhase !== 'choosing') return;
@@ -972,9 +972,9 @@
                             timerTickSound.play().catch(() => {});
                         }
                         startChoosingTimer(10); 
-                    }, 300);
+                    }, 500);
                 }
-            }, index * 200); 
+            }, index * 1000); // Har bir variant uchun 1 sekund ketsin
         });
     }
 
