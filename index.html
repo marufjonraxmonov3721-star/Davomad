@@ -342,10 +342,13 @@
     const QUESTIONS_PER_LEVEL = 5;
     
     // OVOZLAR UCHUN O'ZGARUVCHILAR
-    let tickSound = new Audio();
+    let optionsTickSound = new Audio();
+    let timerTickSound = new Audio();
     let correctSound = new Audio();
     let wrongSound = new Audio();
-    tickSound.volume = 0.5;
+    
+    optionsTickSound.volume = 0.5;
+    timerTickSound.volume = 0.6;
     correctSound.volume = 0.8;
     wrongSound.volume = 0.8;
 
@@ -414,8 +417,12 @@
             if(snap.exists()) {
                 const settings = snap.val();
                 if(settings.optionsAudio) {
-                    tickSound.src = settings.optionsAudio;
-                    tickSound.load();
+                    optionsTickSound.src = settings.optionsAudio;
+                    optionsTickSound.load();
+                }
+                if(settings.timerAudio) {
+                    timerTickSound.src = settings.timerAudio;
+                    timerTickSound.load();
                 }
                 if(settings.correct) {
                     correctSound.src = settings.correct;
@@ -429,13 +436,14 @@
         } catch(e) { console.log("Audio load error"); }
     }
 
-    // --- ILOVADAN CHIQISHDA OVOZNI O'CHIRISH LOGIKASI ---
     const stopAllSounds = () => {
         audio.pause();
-        tickSound.pause();
+        optionsTickSound.pause();
+        timerTickSound.pause();
         correctSound.pause();
         wrongSound.pause();
-        tickSound.currentTime = 0;
+        optionsTickSound.currentTime = 0;
+        timerTickSound.currentTime = 0;
         correctSound.currentTime = 0;
         wrongSound.currentTime = 0;
         if(isPlaying) {
@@ -490,6 +498,8 @@
                     startTimer(currentRemainingTime);
                     drawVisualizer();
                 } else if (gamePhase === 'choosing') {
+                    if(timerTickSound.src) timerTickSound.play();
+                    startChoosingTimer(currentRemainingTime);
                     drawVisualizer();
                 }
             }
@@ -589,8 +599,7 @@
             return;
         }
 
-        // Brauzer ovoz siyosati uchun "silent play"
-        [tickSound, correctSound, wrongSound].forEach(s => {
+        [optionsTickSound, timerTickSound, correctSound, wrongSound].forEach(s => {
             if(s.src) s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
         });
 
@@ -749,10 +758,13 @@
                 const btns = document.querySelectorAll('.option-btn');
                 btns.forEach(b => b.disabled = true);
                 
+                // Javob berilganda taymerni va ovozni to'xtatish
+                clearInterval(timerInterval);
+                timerTickSound.pause();
+                timerTickSound.currentTime = 0;
+
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    
-                    // TO'G'RI JAVOB OVOZI
                     if(correctSound.src) {
                         correctSound.currentTime = 0;
                         correctSound.play().catch(err => console.log("Sound play error", err));
@@ -773,7 +785,7 @@
                         comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
                         const baseScore = q.score || 10;
-                        pointsToAdd = (baseScore * comboMultiplier);
+                        pointsToAdd = (baseScore * multiplier);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                         updateComboUI();
                         tg.HapticFeedback.impactOccurred('medium');
@@ -781,26 +793,34 @@
                     score += pointsToAdd;
                     document.getElementById('score').innerText = "BALL: " + score;
                 } else {
-                    btn.classList.add('wrong'); 
-                    
-                    // XATO JAVOB OVOZI
-                    if(wrongSound.src) {
-                        wrongSound.currentTime = 0;
-                        wrongSound.play().catch(err => console.log("Sound play error", err));
-                    }
-
-                    btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
-                    comboCount = 0;
-                    updateComboUI();
-                    lives--;
-                    updateLivesUI();
-                    tg.HapticFeedback.notificationOccurred('error');
+                    handleWrongAnswer(btn, correctText);
                 }
                 
                 setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
             };
             optionsBox.appendChild(btn);
         });
+    }
+
+    function handleWrongAnswer(clickedBtn, correctText) {
+        if(clickedBtn) clickedBtn.classList.add('wrong');
+        
+        if(wrongSound.src) {
+            wrongSound.currentTime = 0;
+            wrongSound.play().catch(err => console.log("Sound play error", err));
+        }
+
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => { 
+            b.disabled = true;
+            if(b.innerText === correctText) b.classList.add('correct'); 
+        });
+        
+        comboCount = 0;
+        updateComboUI();
+        lives--;
+        updateLivesUI();
+        tg.HapticFeedback.notificationOccurred('error');
     }
 
     function skipRound() {
@@ -903,6 +923,7 @@
         } catch (e) { return null; }
     }
 
+    // Musiqa eshitish taymeri
     function startTimer(startTime) {
         currentRemainingTime = startTime;
         document.getElementById('timer').innerText = Math.floor(currentRemainingTime);
@@ -915,26 +936,65 @@
                 clearInterval(timerInterval); 
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
-                gamePhase = 'choosing';
                 
-                const optionsBox = document.getElementById('options-box');
-                optionsBox.classList.add('show-options');
-                const btns = document.querySelectorAll('.option-btn');
-                
-                btns.forEach((btn, index) => {
-                    setTimeout(() => {
-                        if(!isPlaying) return; 
-                        btn.classList.add('reveal');
-                        
-                        // Options audio (o'zgartirilmagan)
-                        if(tickSound.src && isPlaying && !isPaused) {
-                            const tickClone = tickSound.cloneNode();
-                            tickClone.play().catch(error => { console.log("Sound play prevented"); });
-                        }
-                    }, index * 1000); 
-                });
+                // Tanlash bosqichiga o'tish
+                showOptionsPhase();
+            }
+        }, 1000);
+    }
 
-                document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
+    function showOptionsPhase() {
+        gamePhase = 'choosing';
+        const optionsBox = document.getElementById('options-box');
+        optionsBox.classList.add('show-options');
+        const btns = document.querySelectorAll('.option-btn');
+        
+        document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
+
+        // Variantlar chiqishi
+        btns.forEach((btn, index) => {
+            setTimeout(() => {
+                if(!isPlaying || gamePhase !== 'choosing') return; 
+                btn.classList.add('reveal');
+                if(optionsTickSound.src && !isPaused) {
+                    const tickClone = optionsTickSound.cloneNode();
+                    tickClone.play().catch(() => {});
+                }
+            }, index * 200); // Tezroq chiqishi uchun interval kamaytirildi
+        });
+
+        // Variantlar chiqib bo'lgach 10 soniyalik taymerni boshlash
+        setTimeout(() => {
+            if(!isPlaying || gamePhase !== 'choosing') return;
+            if(timerTickSound.src) {
+                timerTickSound.loop = true;
+                timerTickSound.play().catch(() => {});
+            }
+            startChoosingTimer(10); 
+        }, btns.length * 200);
+    }
+
+    // Variantlarni tanlash uchun 10 soniyalik taymer
+    function startChoosingTimer(seconds) {
+        currentRemainingTime = seconds;
+        document.getElementById('timer').innerText = currentRemainingTime;
+        clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            if (!navigator.onLine || isPaused) return;
+            currentRemainingTime--;
+            document.getElementById('timer').innerText = Math.max(0, currentRemainingTime);
+            
+            if(currentRemainingTime <= 0) {
+                clearInterval(timerInterval);
+                timerTickSound.pause();
+                timerTickSound.currentTime = 0;
+                
+                // VAQT TUGADI -> XATO
+                let q = isBossRound ? bossQuestion : questions[currentIdx];
+                handleWrongAnswer(null, q.options[q.correct]);
+                
+                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
             }
         }, 1000);
     }
