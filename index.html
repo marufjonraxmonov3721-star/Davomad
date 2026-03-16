@@ -8,11 +8,8 @@
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00d4ff; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; position: relative; }
+        body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; transition: box-shadow 0.3s ease; }
         
-        /* Visualizer Canvas */
-        #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.4; }
-
         /* Loading Animation */
         #loading-screen { 
             position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
@@ -25,7 +22,7 @@
         .bar:nth-child(4) { animation-delay: 0.3s; }
         @keyframes scaleY { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(2.5); } }
 
-        #app-container { height: 100vh; display: none; flex-direction: column; position: relative; z-index: 1; }
+        #app-container { height: 100vh; display: none; flex-direction: column; }
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
@@ -36,12 +33,12 @@
         .cat-icon { font-size: 26px; }
 
         /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; transition: 0.3s; z-index: 2; }
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; z-index: 5; }
         .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; z-index: 2; }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in; }
         .options-grid.show-options { opacity: 1; pointer-events: auto; }
         
         .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
@@ -58,15 +55,6 @@
             display: none; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
         }
-        
-        /* Fire/Sparks for Combo */
-        .combo-flame { 
-            position: absolute; inset: -5px; border-radius: 35px; border: 2px solid var(--accent);
-            box-shadow: 0 0 20px var(--accent); pointer-events: none; animation: flamePulse 0.5s infinite alternate;
-            display: none;
-        }
-        @keyframes flamePulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.8; transform: scale(1.05); } }
-
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
         /* Floating Score Text */
@@ -134,24 +122,35 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* BOSS STYLES */
-        .boss-active #main-game-card { border-color: var(--boss); box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
+        .boss-active .game-card { border-color: var(--boss); box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
         .boss-active .vinyl { border-color: var(--boss); }
         .boss-active #disc-center { background: var(--boss) !important; }
         .boss-active #round-counter { color: var(--boss) !important; }
         .boss-active .option-btn { border-color: #441122; }
-        .boss-active::before { 
-            content: ''; position: fixed; inset: 0; border: 8px solid var(--boss); 
-            z-index: 999; pointer-events: none; animation: bossPulse 1s infinite;
-        }
-        @keyframes bossPulse { 0% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } 50% { opacity: 0.6; box-shadow: inset 0 0 50px var(--boss); } 100% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } }
-        
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* --- NEW VIBE EFFECTS --- */
+        #visualizer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.4; z-index: 1; border-radius: 30px; }
+        
+        .boss-pulse { animation: bossPulse 0.8s infinite; }
+        @keyframes bossPulse {
+            0% { box-shadow: inset 0 0 0px var(--boss); }
+            50% { box-shadow: inset 0 0 30px var(--boss); }
+            100% { box-shadow: inset 0 0 0px var(--boss); }
+        }
+
+        #fire-overlay {
+            position: absolute; inset: 0; border-radius: 30px; pointer-events: none;
+            background: radial-gradient(circle at bottom, rgba(255,100,0,0.3) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.5s; z-index: 1;
+        }
+        .combo-fire #fire-overlay { opacity: 1; }
+        .combo-fire .game-card { border-color: var(--accent); box-shadow: 0 0 25px rgba(255, 204, 0, 0.6); }
+
     </style>
 </head>
 <body>
-
-<canvas id="visualizer"></canvas>
 
 <div id="offline-notice">
     <span class="offline-icon">⚠️</span>
@@ -179,10 +178,11 @@
 <div id="app-container">
     <div id="page-game" class="page active-page">
         <div class="game-card" id="main-game-card">
-            <div id="combo-flame" class="combo-flame"></div>
+            <canvas id="visualizer"></canvas>
+            <div id="fire-overlay"></div>
             <div id="combo-badge">COMBO x1</div>
             
-            <div id="game-ui" style="display:none;">
+            <div id="game-ui" style="display:none; position:relative; z-index:10;">
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
                     <div id="game-stats-left">
                         <span id="score">BALL: 0</span><br>
@@ -196,7 +196,7 @@
                 <div id="options-box" class="options-grid"></div>
             </div>
             
-            <div id="pre-game">
+            <div id="pre-game" style="position:relative; z-index:10;">
                 <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
                 <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
                 
@@ -311,41 +311,8 @@
     let usedQuestions = new Set();
     let rankLimit = 10;
 
-    // --- VISUALIZER LOGIC ---
-    let audioContext, analyser, dataArray, canvas, ctx, animationId;
-    function setupVisualizer() {
-        if (audioContext) return;
-        canvas = document.getElementById('visualizer');
-        ctx = canvas.getContext('2d');
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-        analyser.fftSize = 64;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-    }
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-
-    function drawVisualizer() {
-        animationId = requestAnimationFrame(drawVisualizer);
-        analyser.getByteFrequencyData(dataArray);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / dataArray.length) * 2;
-        let x = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const barHeight = (dataArray[i] / 255) * canvas.height * 0.5;
-            ctx.fillStyle = isBossRound ? `rgba(255, 0, 85, 0.4)` : `rgba(0, 255, 136, 0.4)`;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
-            x += barWidth;
-        }
-    }
+    // Visualizer variables
+    let audioCtx, analyser, source, dataArray, canvas, ctx, animationId;
 
     window.onload = () => {
         setTimeout(() => {
@@ -354,6 +321,9 @@
             loadProfileData();
         }, 2500);
         
+        canvas = document.getElementById('visualizer');
+        ctx = canvas.getContext('2d');
+
         const checkNetwork = () => {
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
@@ -375,10 +345,40 @@
         checkNetwork();
     };
 
+    function initVisualizer() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 64;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+        }
+    }
+
+    function drawVisualizer() {
+        animationId = requestAnimationFrame(drawVisualizer);
+        analyser.getByteFrequencyData(dataArray);
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const barWidth = (canvas.width / dataArray.length) * 2;
+        let x = 0;
+
+        for (let i = 0; i < dataArray.length; i++) {
+            const barHeight = dataArray[i] / 2;
+            ctx.fillStyle = isBossRound ? `rgb(${dataArray[i]+100}, 0, 85)` : `rgb(0, ${dataArray[i]+100}, 136)`;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
+        }
+    }
+
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) quitGame();
+                if(confirmed) {
+                    quitGame();
+                }
             });
         }
     });
@@ -394,28 +394,45 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
+        
+        // 1. Vizual holatni tozalash
         document.body.classList.remove('boss-active');
-        clearInterval(timerInterval);
+        document.body.classList.remove('boss-pulse');
+        document.getElementById('main-game-card').classList.remove('combo-fire');
+        document.getElementById('combo-badge').style.display = 'none';
+        
+        // 2. Audio va Visualizerni to'xtatish
+        if(animationId) cancelAnimationFrame(animationId);
+        if(timerInterval) clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
-        cancelAnimationFrame(animationId);
+        
+        // Canvasni tozalash
+        if(ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 3. UI elementlarini qayta tiklash
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
-        document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('result-modal').style.display = 'none';
         
+        // 4. O'yin o'zgaruvchilarini nolga tushirish
         score = 0;
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
+        usedQuestions.clear();
         
+        // Statlarni yangilash
         document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('timer').innerText = "--";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        document.getElementById('options-box').innerHTML = "";
+        document.getElementById('options-box').classList.remove('show-options');
+        document.getElementById('disc').classList.remove('spinning');
         updateLivesUI();
-        document.getElementById('result-modal').style.display = 'none';
     }
 
     window.closeResultModal = () => {
@@ -439,11 +456,8 @@
             return;
         }
 
-        setupVisualizer();
-        if (audioContext.state === 'suspended') audioContext.resume();
-        drawVisualizer();
+        initVisualizer();
 
-        // --- ADMIN SETTINGS YUKLASH ---
         try {
             const setSnap = await get(ref(db, 'settings/timer'));
             if(setSnap.exists()) {
@@ -460,6 +474,7 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
+        usedQuestions.clear();
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -499,6 +514,7 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
+        document.body.classList.remove('boss-pulse');
         
         const levelData = allQuestions.filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId)
@@ -532,8 +548,8 @@
                 isBossRound = true;
                 q = bossQuestion;
                 document.getElementById('combo-badge').style.display = 'none';
-                document.getElementById('combo-flame').style.display = 'none';
                 document.body.classList.add('boss-active');
+                document.body.classList.add('boss-pulse');
                 tg.HapticFeedback.notificationOccurred('warning');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
             } else {
@@ -553,34 +569,7 @@
         audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
 
-        const musicUrl = await fetchMusic(q.search_term);
-        if(musicUrl) {
-            audio.src = musicUrl;
-            audio.playbackRate = isBossRound ? 1.05 : 1.0;
-            
-            audio.onplay = () => {
-                disc.classList.add('spinning'); 
-                status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
-                
-                // --- ADMIN PANEL VAQTINI ANIQLASH ---
-                let dynamicTime = 10; 
-                if(isBossRound) {
-                    dynamicTime = adminTimerSettings.boss || 15;
-                } else {
-                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
-                        dynamicTime = adminTimerSettings.levels[currentLevel];
-                    } else {
-                        dynamicTime = 10; 
-                    }
-                }
-                startTimer(dynamicTime);
-            };
-
-            audio.play().catch(() => { skipRound(); });
-        } else {
-            skipRound(); return;
-        }
-
+        // Musiqa yuklanishidan oldin variantlarni tayyorlaymiz, lekin ko'rsatmaymiz
         const correctText = q.options[q.correct];
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
@@ -601,12 +590,12 @@
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
+                        tg.HapticFeedback.impactOccurred('heavy');
                         
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
                             lives = Math.min(3, lives + 1);
                             updateLivesUI();
                         }
-                        tg.HapticFeedback.notificationOccurred('success');
                     } else {
                         comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
@@ -614,11 +603,11 @@
                         pointsToAdd = (baseScore * comboMultiplier);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                         updateComboUI();
-                        tg.HapticFeedback.impactOccurred('medium');
                     }
                     
                     score += pointsToAdd;
                     document.getElementById('score').innerText = "BALL: " + score;
+                    tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
@@ -633,6 +622,36 @@
             };
             optionsBox.appendChild(btn);
         });
+
+        const musicUrl = await fetchMusic(q.search_term);
+        if(musicUrl) {
+            audio.src = musicUrl;
+            audio.playbackRate = isBossRound ? 1.05 : 1.0;
+            
+            audio.onplay = () => {
+                disc.classList.add('spinning'); 
+                status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
+                
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                drawVisualizer();
+
+                let dynamicTime = 10; 
+                if(isBossRound) {
+                    dynamicTime = adminTimerSettings.boss || 15;
+                } else {
+                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
+                        dynamicTime = adminTimerSettings.levels[currentLevel];
+                    } else {
+                        dynamicTime = 10;
+                    }
+                }
+                startTimer(dynamicTime);
+            };
+
+            audio.play().catch(() => { skipRound(); });
+        } else {
+            skipRound(); return;
+        }
     }
 
     function skipRound() {
@@ -663,24 +682,29 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        const flame = document.getElementById('combo-flame');
+        const card = document.getElementById('main-game-card');
+        
         if (isBossRound) {
             badge.style.display = 'none';
-            flame.style.display = 'none';
+            card.classList.remove('combo-fire');
             return;
+        }
+
+        if (comboCount >= 10) {
+            card.classList.add('combo-fire');
+        } else {
+            card.classList.remove('combo-fire');
         }
 
         if (comboCount >= 3) {
             const multiplier = Math.floor(comboCount / 3) + 1;
             badge.innerText = `COMBO x${multiplier}`;
             badge.style.display = 'block';
-            flame.style.display = 'block';
             badge.style.animation = 'none';
             badge.offsetHeight; 
             badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         } else {
             badge.style.display = 'none';
-            flame.style.display = 'none';
         }
     }
 
@@ -695,9 +719,10 @@
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('combo-flame').style.display = 'none';
-        clearInterval(timerInterval);
+        document.getElementById('main-game-card').classList.remove('combo-fire');
+        document.body.classList.remove('boss-pulse');
         cancelAnimationFrame(animationId);
+        clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
         
