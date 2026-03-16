@@ -53,18 +53,19 @@
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in; }
         .options-grid.show-options { opacity: 1; pointer-events: auto; }
         
-        /* Variantlar uchun yangi animatsiya */
+        /* Variantlar uchun sekinlashtirilgan animatsiya */
         .option-btn { 
             background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; 
             border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; 
-            font-weight: bold; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            font-weight: bold; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             opacity: 0; transform: scale(0.5);
         }
         .show-options .option-btn { opacity: 1; transform: scale(1); }
-        .show-options .option-btn:nth-child(1) { transition-delay: 0.1s; }
-        .show-options .option-btn:nth-child(2) { transition-delay: 0.2s; }
-        .show-options .option-btn:nth-child(3) { transition-delay: 0.3s; }
-        .show-options .option-btn:nth-child(4) { transition-delay: 0.4s; }
+        /* Har bir variant 1.5 sekund (1500ms) farq bilan chiqishi uchun */
+        .show-options .option-btn:nth-child(1) { transition-delay: 0s; }
+        .show-options .option-btn:nth-child(2) { transition-delay: 1.5s; }
+        .show-options .option-btn:nth-child(3) { transition-delay: 3s; }
+        .show-options .option-btn:nth-child(4) { transition-delay: 4.5s; }
 
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.05) !important; border-color: var(--primary) !important; }
