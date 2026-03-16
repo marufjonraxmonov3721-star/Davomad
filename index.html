@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -422,11 +423,8 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
-        
-        // BOSS effektlarini tozalash
+        // Xatolik tuzatilgan joy: Boss effektlarini butunlay tozalash
         document.body.classList.remove('boss-active');
-        document.getElementById('main-game-card').style.boxShadow = "0 20px 40px rgba(0,0,0,0.5)";
-        document.getElementById('main-game-card').style.borderColor = "rgba(255,255,255,0.05)";
         
         clearInterval(timerInterval);
         audio.pause();
@@ -722,15 +720,11 @@
 
     function endGame(isGameOver) {
         isPlaying = false;
-        
-        // Visual effektlarni tozalash
-        document.body.classList.remove('boss-active');
-        document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('combo-flame').style.display = 'none';
-        
+        isBossRound = false;
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        
+        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
         clearInterval(timerInterval);
         cancelAnimationFrame(animationId);
         audio.pause();
@@ -748,7 +742,8 @@
         levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
 
         modal.style.display = 'flex';
-        isBossRound = false;
+        // Xatolik tuzatilgan joy: Boss effektlarini butunlay tozalash
+        document.body.classList.remove('boss-active');
     }
 
     async function fetchMusic(term, isRetry = false) {
