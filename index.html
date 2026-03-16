@@ -399,6 +399,36 @@
         } catch(e) { console.log("Audio load error"); }
     }
 
+    // --- ILOVADAN CHIQISHDA OVOZNI O'CHIRISH LOGIKASI ---
+    const stopAllSounds = () => {
+        audio.pause();
+        tickSound.pause();
+        tickSound.currentTime = 0;
+        if(isPlaying) {
+            clearInterval(timerInterval);
+            document.getElementById('disc').classList.remove('spinning');
+        }
+    };
+
+    // Telegram yopilsa yoki orqaga ketsa
+    tg.onEvent('viewportChanged', (data) => {
+        if (data.isStateStable && tg.isExpanded === false) {
+             stopAllSounds();
+        }
+    });
+
+    // Brauzer yoki tab almashtirilsa
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopAllSounds();
+        } else {
+            if(isPlaying && audio.src && navigator.onLine) {
+                 // Foydalanuvchi qaytib kelsa va o'yin davom etayotgan bo'lsa
+                 // timer to'xtagan bo'lsa ham musiqa qayta ijro etilmasligi uchun shartlar qo'yish mumkin
+            }
+        }
+    });
+
     window.onload = () => {
         loadOptionsAudio(); // Ovozni oldindan yuklash
         setTimeout(() => {
@@ -411,15 +441,9 @@
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
                 notice.classList.add('show');
-                if(isPlaying) {
-                    clearInterval(timerInterval);
-                    audio.pause();
-                }
+                stopAllSounds();
             } else {
                 notice.classList.remove('show');
-                if(isPlaying && audio.src) {
-                   audio.play().catch(e => {});
-                }
             }
         };
 
@@ -449,8 +473,12 @@
         isBossRound = false;
         document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
+        
+        // BARCHA OVOZLARNI TO'XTATISH
         audio.pause();
         audio.src = "";
+        tickSound.pause();
+        tickSound.currentTime = 0;
         
         if (animationId) cancelAnimationFrame(animationId);
         if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -480,7 +508,7 @@
 
     window.showPage = (pageId, el) => {
         if(isPlaying) return;
-        audio.pause(); 
+        stopAllSounds();
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(`page-${pageId}`).classList.add('active-page');
@@ -760,7 +788,7 @@
         if (animationId) cancelAnimationFrame(animationId);
         if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        audio.pause();
+        stopAllSounds();
         audio.src = "";
         
         saveScore();
@@ -813,10 +841,11 @@
                 
                 btns.forEach((btn, index) => {
                     setTimeout(() => {
+                        if(!isPlaying) return; // O'yin tark etilgan bo'lsa ovoz chiqmasligi uchun
                         btn.classList.add('reveal');
                         
                         // BAZADAN KELGAN OVOZNI IJRO ETISH
-                        if(tickSound.src) {
+                        if(tickSound.src && isPlaying) {
                             const playPromise = tickSound.cloneNode().play();
                             if (playPromise !== undefined) {
                                 playPromise.catch(error => { console.log("Sound play prevented"); });
