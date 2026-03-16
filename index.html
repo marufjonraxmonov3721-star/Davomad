@@ -44,62 +44,56 @@
             border-radius: 50%; border: 8px solid #1a1a1a; 
             position: relative; z-index: 6;
             box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.05);
+            transition: transform 0.5s ease;
         }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
         #disc-center { position:absolute; inset:65px; background:var(--primary); border-radius:50%; border:6px solid #000; box-shadow: 0 0 15px var(--primary); }
 
-        /* Options Grid Animation */
+        /* Variantlar chiqishi - Musiqa pleyer uslubi */
         .options-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px; 
-            margin-top: 10px; 
-            opacity: 0; 
-            transform: translateY(20px);
-            pointer-events: none; 
-            transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; 
+            opacity: 0; transform: translateY(20px); pointer-events: none; 
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); 
         }
-        .options-grid.show-options { 
-            opacity: 1; 
-            transform: translateY(0);
-            pointer-events: auto; 
-        }
+        .options-grid.show-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
         
-        .option-btn, .start-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
-        .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; }
-        .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.02); }
-        .wrong { background: var(--danger) !important; }
+        .option-btn { 
+            background: #1e1e1e; border: 1px solid #333; color: #fff; padding: 16px 10px; 
+            border-radius: 20px; width: 100%; cursor: pointer; font-size: 14px; 
+            font-weight: 600; transition: 0.3s; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .option-btn:active { transform: scale(0.95); }
+        .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; border-radius: 20px; font-weight: bold;}
+        
+        .correct { background: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; }
+        .wrong { background: var(--danger) !important; border-color: var(--danger) !important; }
 
         .lives-container { font-size: 18px; color: var(--primary); letter-spacing: 2px; }
 
-        /* Combo Badge */
         #combo-badge {
             position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000;
             padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px;
             display: none; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
+            z-index: 10;
         }
         
-        /* Fire/Sparks for Combo */
         .combo-flame { 
             position: absolute; inset: -5px; border-radius: 35px; border: 2px solid var(--accent);
             box-shadow: 0 0 20px var(--accent); pointer-events: none; animation: flamePulse 0.5s infinite alternate;
             display: none;
         }
         @keyframes flamePulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.8; transform: scale(1.05); } }
-
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        /* Floating Score Text */
         .floating-text {
             position: absolute; color: var(--primary); font-weight: bold; font-size: 20px;
             pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
         }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
-        /* Custom Result Modal */
         #result-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
             display: none; align-items: center; justify-content: center; padding: 20px;
@@ -112,7 +106,6 @@
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
         .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
         .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
@@ -124,9 +117,7 @@
         .rank-score-box { text-align: right; }
         .rank-score { font-weight: bold; color: var(--primary); font-size: 14px; display: block; }
         .rank-lvl { font-size: 9px; color: #666; display: block; }
-        .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
 
-        /* Profile UI */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
         .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
@@ -135,7 +126,6 @@
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
 
-        /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -143,33 +133,22 @@
         
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        /* Modern Offline Toast */
         #offline-notice {
             position: fixed; top: -100px; left: 0; right: 0;
-            background: rgba(255, 62, 62, 0.95); color: white; 
-            padding: 15px; text-align: center; font-weight: bold; 
-            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255, 62, 62, 0.95); color: white; padding: 15px; text-align: center; font-weight: bold; 
+            z-index: 5000; transition: 0.5s; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         #offline-notice.show { top: 0; }
-        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* BOSS STYLES */
         .boss-active #main-game-card { border-color: var(--boss); box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
         .boss-active .vinyl { border-color: var(--boss); }
         .boss-active #disc-center { background: var(--boss) !important; }
-        .boss-active #round-counter { color: var(--boss) !important; }
-        .boss-active .option-btn { border-color: #441122; }
         .boss-active::before { 
             content: ''; position: fixed; inset: 0; border: 8px solid var(--boss); 
             z-index: 999; pointer-events: none; animation: bossPulse 1s infinite;
         }
-        @keyframes bossPulse { 0% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } 50% { opacity: 0.6; box-shadow: inset 0 0 50px var(--boss); } 100% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } }
-        
+        @keyframes bossPulse { 0% { opacity: 0.2; } 50% { opacity: 0.6; } 100% { opacity: 0.2; } }
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -177,8 +156,7 @@
 <canvas id="visualizer"></canvas>
 
 <div id="offline-notice">
-    <span class="offline-icon">⚠️</span>
-    <span>Internet aloqasi yo'q!</span>
+    <span>⚠️ Internet aloqasi yo'q!</span>
 </div>
 
 <div id="loading-screen">
@@ -192,7 +170,6 @@
     <div class="result-card">
         <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
-        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
         <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
@@ -206,14 +183,14 @@
             <div id="combo-badge">COMBO x1</div>
             
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 25px;">
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 20px;">
                     <div id="game-stats-left" style="text-align: left;">
                         <span id="score" style="font-size: 18px;">BALL: 0</span><br>
                         <span id="round-counter" style="font-size: 11px; color: rgba(255,255,255,0.5);">BOSQICH: 1 | SAVOL: 1/5</span>
                     </div>
                     <div style="text-align: right;">
                         <div id="lives" class="lives-container">🎵🎵🎵</div>
-                        <span id="timer" style="font-size: 18px; display: block; margin-top: 4px;">--</span>
+                        <span id="timer" style="font-size: 18px; display: block; margin-top: 4px; color: #fff;">--</span>
                     </div>
                 </div>
                 
@@ -221,31 +198,18 @@
                     <div id="disc-center"></div>
                 </div>
                 
-                <p id="status" style="color:rgba(255,255,255,0.7); font-size:13px; margin: 15px 0; height: 18px; font-weight: bold; letter-spacing: 1px;"></p>
+                <p id="status" style="color:rgba(255,255,255,0.8); font-size:14px; margin: 15px 0; height: 20px; font-weight: bold; letter-spacing: 0.5px;"></p>
+                
                 <div id="options-box" class="options-grid"></div>
             </div>
             
             <div id="pre-game">
                 <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
-                
                 <div class="cat-grid">
-                    <button class="cat-btn" onclick="startGame('uzbek')">
-                        <span class="cat-icon">🇺🇿</span>
-                        <span>O'zbekcha</span>
-                    </button>
-                    <button class="cat-btn" onclick="startGame('russian')">
-                        <span class="cat-icon">🇷🇺</span>
-                        <span>Ruscha</span>
-                    </button>
-                    <button class="cat-btn" onclick="startGame('english')">
-                        <span class="cat-icon">🇺🇸</span>
-                        <span>Inglizcha</span>
-                    </button>
-                    <button class="cat-btn" onclick="startGame('trend')">
-                        <span class="cat-icon">🔥</span>
-                        <span>Trend</span>
-                    </button>
+                    <button class="cat-btn" onclick="startGame('uzbek')"><span class="cat-icon">🇺🇿</span><span>O'zbekcha</span></button>
+                    <button class="cat-btn" onclick="startGame('russian')"><span class="cat-icon">🇷🇺</span><span>Ruscha</span></button>
+                    <button class="cat-btn" onclick="startGame('english')"><span class="cat-icon">🇺🇸</span><span>Inglizcha</span></button>
+                    <button class="cat-btn" onclick="startGame('trend')"><span class="cat-icon">🔥</span><span>Trend</span></button>
                 </div>
             </div>
         </div>
@@ -253,56 +217,33 @@
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">REYTINGLAR</h2>
-            
-            <div class="rank-tabs" style="margin-bottom: 15px;">
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px;">REYTINGLAR</h2>
+            <div class="rank-tabs">
                 <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
                 <div class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</div>
                 <div class="rank-tab" id="limit-1000" onclick="setRankLimit(1000)">TOP 1000</div>
             </div>
-
             <div class="rank-list-container" id="rank-list"></div>
-            
-            <p class="reset-info">Yakshanba kuni barcha natijalar nolga tushiriladi.</p>
         </div>
     </div>
 
     <div id="page-profile" class="page">
         <div class="profile-card">
             <div class="avatar-circle" id="profile-avatar">👤</div>
-            <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 25px;"></p>
-            
+            <h2 id="profile-name">Ism</h2>
+            <p id="profile-id" style="color:#666; font-size:12px; margin-bottom: 25px;"></p>
             <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">Eng yuqori bosqich (Best Level)</div>
-                    <div class="stat-value" id="best-level">1</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija (Best Score)</div>
-                    <div class="stat-value" id="best-score">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Umumiy Tajriba (Total XP)</div>
-                    <div class="stat-value" id="total-xp">0</div>
-                </div>
+                <div class="stat-item"><div class="stat-label">Best Level</div><div class="stat-value" id="best-level">1</div></div>
+                <div class="stat-item"><div class="stat-label">Best Score</div><div class="stat-value" id="best-score">0</div></div>
+                <div class="stat-item"><div class="stat-label">Total XP</div><div class="stat-value" id="total-xp">0</div></div>
             </div>
         </div>
     </div>
 
     <nav class="nav-bar" id="bottom-nav">
-        <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span>
-            <span>O'yin</span>
-        </div>
-        <div class="nav-item" onclick="showPage('rank', this)">
-            <span class="nav-icon">🏆</span>
-            <span>Reyting</span>
-        </div>
-        <div class="nav-item" onclick="showPage('profile', this)">
-            <span class="nav-icon">👤</span>
-            <span>Profil</span>
-        </div>
+        <div class="nav-item active" onclick="showPage('game', this)"><span class="nav-icon">🎮</span><span>O'yin</span></div>
+        <div class="nav-item" onclick="showPage('rank', this)"><span class="nav-icon">🏆</span><span>Reyting</span></div>
+        <div class="nav-item" onclick="showPage('profile', this)"><span class="nav-icon">👤</span><span>Profil</span></div>
     </nav>
 </div>
 
@@ -323,25 +264,15 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let allQuestions = [], questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     audio.crossOrigin = "anonymous";
-    let isPlaying = false;
-    let comboCount = 0;
-    let currentCategory = 'uzbek';
-    let currentLevel = 1;
-    let isBossRound = false;
-    let bossQuestion = null;
-    let adminTimerSettings = {};
-    const QUESTIONS_PER_LEVEL = 5;
-    
-    let usedQuestions = new Set();
-    let rankLimit = 10;
+    let isPlaying = false, comboCount = 0, currentCategory = 'uzbek', currentLevel = 1, isBossRound = false;
+    let bossQuestion = null, adminTimerSettings = {}, usedQuestions = new Set(), rankLimit = 10;
 
-    // --- VISUALIZER LOGIC (RASMDAGI YASHIL BARLAR) ---
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
+
     function setupVisualizer() {
         if (audioContext) return;
         canvas = document.getElementById('visualizer');
@@ -351,38 +282,25 @@
         const source = audioContext.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioContext.destination);
-        analyser.fftSize = 64; // Rasmdagidek keng barlar uchun
+        analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
     }
 
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 
     function drawVisualizer() {
         animationId = requestAnimationFrame(drawVisualizer);
         analyser.getByteFrequencyData(dataArray);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         const barWidth = (canvas.width / dataArray.length) * 1.5;
         let x = 0;
-        
         for (let i = 0; i < dataArray.length; i++) {
             const barHeight = (dataArray[i] / 255) * canvas.height * 0.7;
-            
-            // Rasmdagi yashil gradient effekt
             const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
-            if(isBossRound) {
-                gradient.addColorStop(0, 'rgba(255, 0, 85, 0.8)');
-                gradient.addColorStop(1, 'rgba(255, 0, 85, 0.2)');
-            } else {
-                gradient.addColorStop(0, '#00ff88'); // Rasmdagi yashil rang
-                gradient.addColorStop(1, 'rgba(0, 255, 136, 0.1)');
-            }
-            
+            if(isBossRound) { gradient.addColorStop(0, '#ff0055'); gradient.addColorStop(1, 'rgba(255,0,85,0.1)'); } 
+            else { gradient.addColorStop(0, '#00ff88'); gradient.addColorStop(1, 'rgba(0,255,136,0.1)'); }
             ctx.fillStyle = gradient;
             ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
             x += barWidth;
@@ -394,491 +312,213 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             loadProfileData();
-        }, 2500);
-        
-        const checkNetwork = () => {
-            const notice = document.getElementById('offline-notice');
-            if(!navigator.onLine) {
-                notice.classList.add('show');
-                if(isPlaying) {
-                    clearInterval(timerInterval);
-                    audio.pause();
-                }
-            } else {
-                notice.classList.remove('show');
-                if(isPlaying && audio.src) {
-                   audio.play().catch(e => {});
-                }
-            }
-        };
-
-        window.addEventListener('offline', checkNetwork);
-        window.addEventListener('online', checkNetwork);
-        checkNetwork();
-    };
-
-    tg.BackButton.onClick(() => {
-        if(isPlaying) {
-            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) quitGame();
-            });
-        }
-    });
-
-    window.setRankLimit = (limit) => {
-        rankLimit = limit;
-        document.getElementById('limit-10').classList.toggle('active', limit === 10);
-        document.getElementById('limit-100').classList.toggle('active', limit === 100);
-        document.getElementById('limit-1000').classList.toggle('active', limit === 1000);
-        loadLeaderboard();
-    };
-
-    function quitGame() {
-        isPlaying = false;
-        isBossRound = false;
-        document.body.classList.remove('boss-active');
-        clearInterval(timerInterval);
-        audio.pause();
-        audio.src = "";
-        cancelAnimationFrame(animationId);
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('pre-game').style.display = 'block';
-        document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('combo-flame').style.display = 'none';
-        
-        score = 0;
-        lives = 3;
-        comboCount = 0;
-        currentIdx = 0;
-        currentLevel = 1;
-        
-        document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
-        updateLivesUI();
-        document.getElementById('result-modal').style.display = 'none';
-    }
-
-    window.closeResultModal = () => {
-        quitGame();
-    };
-
-    window.showPage = (pageId, el) => {
-        if(isPlaying) return;
-        audio.pause(); 
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(`page-${pageId}`).classList.add('active-page');
-        el.classList.add('active');
-        if(pageId === 'rank') loadLeaderboard();
-        if(pageId === 'profile') loadProfileData();
+        }, 2000);
     };
 
     window.startGame = async (category) => {
-        if (!navigator.onLine) {
-            tg.showAlert("O'yinni boshlash uchun internet kerak!");
-            return;
-        }
-
+        if (!navigator.onLine) { tg.showAlert("Internet kerak!"); return; }
         setupVisualizer();
         if (audioContext.state === 'suspended') audioContext.resume();
         drawVisualizer();
 
-        try {
-            const setSnap = await get(ref(db, 'settings/timer'));
-            if(setSnap.exists()) {
-                adminTimerSettings = setSnap.val();
-            }
-        } catch(e) {}
-
-        currentCategory = category || 'uzbek';
+        currentCategory = category;
         isPlaying = true;
-        
         currentLevel = 1;
         currentIdx = 0;
         score = 0;
         lives = 3;
-        comboCount = 0;
-        isBossRound = false;
         
-        document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
-        updateLivesUI();
-        
-        tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
+        
+        try {
+            const setSnap = await get(ref(db, 'settings/timer'));
+            if(setSnap.exists()) adminTimerSettings = setSnap.val();
+        } catch(e) {}
+
         initGame();
     };
 
-    window.restartGame = () => {
-        quitGame();
-    };
-
     async function initGame() {
-        try {
-            const snap = await get(ref(db, `questions/${currentCategory}`));
-            if(snap.exists()) {
-                const data = snap.val();
-                allQuestions = Object.keys(data).map(key => ({
-                    ...data[key],
-                    firebaseId: key
-                }));
-                loadLevelQuestions();
-            } else {
-                tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
-                quitGame();
-            }
-        } catch (e) {
-            tg.showAlert("Ma'lumot yuklashda xatolik!");
-            quitGame();
+        const snap = await get(ref(db, `questions/${currentCategory}`));
+        if(snap.exists()) {
+            allQuestions = Object.keys(snap.val()).map(key => ({ ...snap.val()[key], firebaseId: key }));
+            loadLevelQuestions();
         }
     }
 
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        
-        const levelData = allQuestions.filter(q => 
-            (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId)
-        );
-        
-        const normalQuestions = levelData.filter(q => !q.is_boss);
+        const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId));
+        const normal = levelData.filter(q => !q.is_boss);
         const bosses = levelData.filter(q => q.is_boss);
         
-        if(normalQuestions.length > 0) {
-            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
-            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
+        if(normal.length > 0) {
+            questions = normal.sort(() => Math.random() - 0.5).slice(0, 5);
+            bossQuestion = bosses.length > 0 ? bosses[0] : null;
             currentIdx = 0;
             loadRound();
-        } else {
-            endGame(false);
-        }
+        } else { endGame(false); }
     }
 
     async function loadRound() {
-        if(!isPlaying) return;
-        if(lives <= 0) { endGame(true); return; }
+        if(!isPlaying || lives <= 0) return;
         
         let q;
-        const status = document.getElementById('status');
         const optionsBox = document.getElementById('options-box');
         const disc = document.getElementById('disc');
-        const roundCounter = document.getElementById('round-counter');
+        
+        optionsBox.classList.remove('show-options'); 
+        disc.style.transform = "scale(1)";
 
         if(currentIdx >= questions.length) { 
-            if(bossQuestion && !isBossRound) {
-                isBossRound = true;
-                q = bossQuestion;
-                document.getElementById('combo-badge').style.display = 'none';
-                document.getElementById('combo-flame').style.display = 'none';
-                document.body.classList.add('boss-active');
-                tg.HapticFeedback.notificationOccurred('warning');
-                roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
-            } else {
-                currentLevel++;
-                loadLevelQuestions();
-                return;
-            }
-        } else {
-            q = questions[currentIdx];
-            roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
-        }
+            if(bossQuestion && !isBossRound) { isBossRound = true; q = bossQuestion; document.body.classList.add('boss-active'); } 
+            else { currentLevel++; loadLevelQuestions(); return; }
+        } else { q = questions[currentIdx]; }
         
         usedQuestions.add(q.firebaseId);
         optionsBox.innerHTML = "";
-        optionsBox.classList.remove('show-options'); 
-        disc.classList.remove('spinning');
-        audio.pause();
-        status.innerText = "Musiqa qidirilmoqda...";
+        document.getElementById('status').innerText = "Yuklanmoqda...";
 
         const musicUrl = await fetchMusic(q.search_term);
         if(musicUrl) {
             audio.src = musicUrl;
-            audio.playbackRate = isBossRound ? 1.05 : 1.0;
-            
             audio.onplay = () => {
-                disc.classList.add('spinning'); 
-                status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
-                
-                let dynamicTime = 10; 
-                if(isBossRound) {
-                    dynamicTime = adminTimerSettings.boss || 15;
-                } else {
-                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
-                        dynamicTime = adminTimerSettings.levels[currentLevel];
-                    } else {
-                        dynamicTime = 10; 
-                    }
-                }
-                startTimer(dynamicTime);
+                disc.classList.add('spinning');
+                document.getElementById('status').innerText = "Diqqat bilan eshiting...";
+                startTimer(isBossRound ? (adminTimerSettings.boss || 15) : (adminTimerSettings.levels?.[currentLevel] || 10));
             };
-
-            audio.play().catch(() => { skipRound(); });
-        } else {
-            skipRound(); return;
+            audio.play();
         }
 
         const correctText = q.options[q.correct];
-        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-        shuffledOptions.forEach((opt) => {
+        [...q.options].sort(() => Math.random() - 0.5).forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = (e) => {
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
-                
-                if(opt === correctText) {
-                    btn.classList.add('correct'); 
-                    let pointsToAdd;
-                    
-                    if(isBossRound) {
-                        const baseBossScore = q.score || 50;
-                        const comboX = q.boss_combo || 1;
-                        pointsToAdd = baseBossScore * comboX;
-                        showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
-                        
-                        if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
-                            lives = Math.min(3, lives + 1);
-                            updateLivesUI();
-                        }
-                        tg.HapticFeedback.notificationOccurred('success');
-                    } else {
-                        comboCount++;
-                        const comboMultiplier = Math.floor(comboCount / 3) + 1;
-                        const baseScore = q.score || 10;
-                        pointsToAdd = (baseScore * comboMultiplier);
-                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
-                        updateComboUI();
-                        tg.HapticFeedback.impactOccurred('medium');
-                    }
-                    
-                    score += pointsToAdd;
-                    document.getElementById('score').innerText = "BALL: " + score;
-                } else {
-                    btn.classList.add('wrong'); 
-                    btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
-                    comboCount = 0;
-                    updateComboUI();
-                    lives--;
-                    updateLivesUI();
-                    tg.HapticFeedback.notificationOccurred('error');
-                }
-                
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
-            };
+            btn.onclick = (e) => handleAnswer(opt, correctText, btn, e, q);
             optionsBox.appendChild(btn);
         });
     }
 
-    function skipRound() {
-        currentIdx++;
-        loadRound();
+    function handleAnswer(selected, correct, btn, e, q) {
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.disabled = true);
+        
+        if(selected === correct) {
+            btn.classList.add('correct');
+            let pts = isBossRound ? (q.score || 50) : (q.score || 10);
+            score += pts;
+            showFloatingText(`+${pts}`, e.clientX, e.clientY);
+            comboCount++;
+        } else {
+            btn.classList.add('wrong');
+            btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+            lives--;
+            comboCount = 0;
+        }
+        
+        document.getElementById('score').innerText = "BALL: " + score;
+        updateLivesUI();
+        setTimeout(() => { if(lives > 0) { currentIdx++; loadRound(); } else { endGame(true); } }, 1500);
     }
 
-    function nextStep() {
-        if(isBossRound) {
-            currentLevel++;
-            loadLevelQuestions();
-        } else {
-            currentIdx++;
-            loadRound();
-        }
+    function startTimer(t) {
+        document.getElementById('timer').innerText = t;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            t--;
+            document.getElementById('timer').innerText = t;
+            if(t <= 0) {
+                clearInterval(timerInterval);
+                audio.pause();
+                document.getElementById('disc').classList.remove('spinning');
+                document.getElementById('disc').style.transform = "scale(0.85)";
+                document.getElementById('status').innerText = "Kim aytgan?";
+                document.getElementById('options-box').classList.add('show-options');
+            }
+        }, 1000);
+    }
+
+    async function fetchMusic(term) {
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
+            const data = await res.json();
+            return data.results[0]?.previewUrl;
+        } catch (e) { return null; }
+    }
+
+    function updateLivesUI() {
+        document.getElementById('lives').innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
     }
 
     function showFloatingText(text, x, y) {
         const el = document.createElement('div');
         el.className = 'floating-text';
-        if(isBossRound) el.style.color = 'var(--boss)';
         el.innerText = text;
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
+        el.style.left = x + 'px'; el.style.top = y + 'px';
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
     }
 
-    function updateComboUI() {
-        const badge = document.getElementById('combo-badge');
-        const flame = document.getElementById('combo-flame');
-        if (isBossRound) {
-            badge.style.display = 'none';
-            flame.style.display = 'none';
-            return;
-        }
-
-        if (comboCount >= 3) {
-            const multiplier = Math.floor(comboCount / 3) + 1;
-            badge.innerText = `COMBO x${multiplier}`;
-            badge.style.display = 'block';
-            flame.style.display = 'block';
-            badge.style.animation = 'none';
-            badge.offsetHeight; 
-            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        } else {
-            badge.style.display = 'none';
-            flame.style.display = 'none';
-        }
-    }
-
-    function updateLivesUI() {
-        const livesEl = document.getElementById('lives');
-        livesEl.innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
-    }
-
-    function endGame(isGameOver) {
+    function endGame(isOver) {
         isPlaying = false;
-        isBossRound = false;
-        tg.BackButton.hide();
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
-        document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('combo-flame').style.display = 'none';
         clearInterval(timerInterval);
-        cancelAnimationFrame(animationId);
         audio.pause();
-        audio.src = "";
-        
+        document.getElementById('result-modal').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-level').innerText = "ERISHILGAN BOSQICH: " + currentLevel;
         saveScore();
-        
-        const modal = document.getElementById('result-modal');
-        const scoreDisplay = document.getElementById('final-score');
-        const levelDisplay = document.getElementById('final-level');
-        const titleDisplay = document.getElementById('result-title');
-        
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        scoreDisplay.innerText = score;
-        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
-
-        modal.style.display = 'flex';
-        document.body.classList.remove('boss-active');
-    }
-
-    async function fetchMusic(term, isRetry = false) {
-        if (!navigator.onLine) return null;
-        try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
-            const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
-                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isCover;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
-            return data.results[0]?.previewUrl;
-        } catch (e) { return null; }
-    }
-
-    function startTimer(startTime) {
-        let t = Math.floor(startTime); 
-        document.getElementById('timer').innerText = t;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            if (!navigator.onLine) return;
-            t--; 
-            document.getElementById('timer').innerText = t;
-            if(t <= 0) { 
-                clearInterval(timerInterval); 
-                audio.pause(); 
-                document.getElementById('disc').classList.remove('spinning');
-                
-                // Variatnlar chiqish animatsiyasi
-                const optionsBox = document.getElementById('options-box');
-                optionsBox.classList.add('show-options');
-                document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
-            }
-        }, 1000);
     }
 
     async function saveScore() {
-        if (score <= 0 || !navigator.onLine) return;
         const userRef = ref(db, `leaderboard/${user.id}`);
-        try {
-            const snap = await get(userRef);
-            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
-            const newBestScore = Math.max(score, data.score || 0);
-            const newBestLevel = Math.max(currentLevel, data.level || 1);
-            
-            await update(userRef, {
-                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
-                score: newBestScore,
-                level: newBestLevel,
-                total_xp: increment(score),
-                id: user.id
-            });
-        } catch (e) {}
+        const snap = await get(userRef);
+        const old = snap.exists() ? snap.val() : { score: 0, level: 1 };
+        await update(userRef, {
+            name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+            score: Math.max(score, old.score),
+            level: Math.max(currentLevel, old.level),
+            total_xp: increment(score),
+            id: user.id
+        });
     }
 
-    async function loadLeaderboard() {
-        const listDiv = document.getElementById('rank-list');
-        if (!navigator.onLine) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
-            return;
-        }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
-        try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
-            const snap = await get(rankQuery);
-            if(snap.exists()) {
-                listDiv.innerHTML = "";
-                const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
-                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+    window.restartGame = () => { location.reload(); };
+    window.closeResultModal = () => { location.reload(); };
+    
+    window.showPage = (pageId, el) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`page-${pageId}`).classList.add('active-page');
+        el.classList.add('active');
+        if(pageId === 'rank') loadLeaderboard();
+    };
 
-                rawData.forEach((u, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'rank-item';
-                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    
-                    item.innerHTML = `
-                        <div class="rank-num">#${index + 1}</div>
-                        <div class="rank-name">${u.name}</div>
-                        <div class="rank-score-box">
-                            <span class="rank-score">${u.score}</span>
-                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
-                        </div>
-                    `;
-                    listDiv.appendChild(item);
-                });
-            } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
-            }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
+    async function loadLeaderboard() {
+        const list = document.getElementById('rank-list');
+        list.innerHTML = "Yuklanmoqda...";
+        const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
+        if(snap.exists()) {
+            list.innerHTML = "";
+            let arr = []; snap.forEach(c => arr.push(c.val()));
+            arr.sort((a,b) => b.score - a.score).forEach((u, i) => {
+                list.innerHTML += `<div class="rank-item"><div class="rank-num">#${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-score-box"><span class="rank-score">${u.score}</span></div></div>`;
+            });
+        }
     }
 
     async function loadProfileData() {
-        const profileName = document.getElementById('profile-name');
-        const profileId = document.getElementById('profile-id');
-        const bestScoreEl = document.getElementById('best-score');
-        const bestLevelEl = document.getElementById('best-level');
-        const totalXpEl = document.getElementById('total-xp');
-        const profileAvatar = document.getElementById('profile-avatar');
-
-        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-        profileId.innerText = "ID: " + user.id;
-
-        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
-        else { profileAvatar.innerText = user.first_name.charAt(0); }
-
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                const data = snap.val();
-                bestScoreEl.innerText = data.score || 0;
-                bestLevelEl.innerText = data.level || 1;
-                totalXpEl.innerText = data.total_xp || 0;
-            } else {
-                bestScoreEl.innerText = "0";
-                bestLevelEl.innerText = "1";
-                totalXpEl.innerText = "0";
-            }
-        } catch (e) { 
-            bestScoreEl.innerText = "0";
-            bestLevelEl.innerText = "1";
-            totalXpEl.innerText = "0";
+        document.getElementById('profile-name').innerText = user.first_name;
+        document.getElementById('profile-id').innerText = "ID: " + user.id;
+        const snap = await get(ref(db, `leaderboard/${user.id}`));
+        if(snap.exists()){
+            const d = snap.val();
+            document.getElementById('best-score').innerText = d.score || 0;
+            document.getElementById('best-level').innerText = d.level || 1;
+            document.getElementById('total-xp').innerText = d.total_xp || 0;
         }
     }
 </script>
