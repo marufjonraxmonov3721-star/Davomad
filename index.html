@@ -410,19 +410,19 @@
     // BAZADAN BARCHA OVOZLARNI YUKLASH
     async function loadGameSounds() {
         try {
-            const snap = await get(ref(db, 'settings/audio'));
+            const snap = await get(ref(db, 'settings'));
             if(snap.exists()) {
                 const settings = snap.val();
                 if(settings.optionsAudio) {
                     tickSound.src = settings.optionsAudio;
                     tickSound.load();
                 }
-                if(settings.correct) {
-                    correctSound.src = settings.correct;
+                if(settings.correctAudio) {
+                    correctSound.src = settings.correctAudio;
                     correctSound.load();
                 }
-                if(settings.wrong) {
-                    wrongSound.src = settings.wrong;
+                if(settings.wrongAudio) {
+                    wrongSound.src = settings.wrongAudio;
                     wrongSound.load();
                 }
             }
@@ -752,11 +752,10 @@
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
                     
-                    // TO'G'RI JAVOB OVOZI - BAZADAN VA 1 SEKUND
+                    // TO'G'RI JAVOB OVOZI
                     if(correctSound.src) {
                         correctSound.currentTime = 0;
                         correctSound.play().catch(err => console.log("Sound play error", err));
-                        setTimeout(() => { correctSound.pause(); correctSound.currentTime = 0; }, 1000);
                     }
 
                     let pointsToAdd;
@@ -784,11 +783,10 @@
                 } else {
                     btn.classList.add('wrong'); 
                     
-                    // XATO JAVOB OVOZI - BAZADAN VA 1 SEKUND
+                    // XATO JAVOB OVOZI
                     if(wrongSound.src) {
                         wrongSound.currentTime = 0;
                         wrongSound.play().catch(err => console.log("Sound play error", err));
-                        setTimeout(() => { wrongSound.pause(); wrongSound.currentTime = 0; }, 1000);
                     }
 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
@@ -799,7 +797,8 @@
                     tg.HapticFeedback.notificationOccurred('error');
                 }
                 
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1200); // 1 sek ovoz + 0.2 kutish
+                // JAVOBDAN KEYIN 1 SEKUND KUTISH VA KEYINGI SAVOLGA O'TISH
+                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1000);
             };
             optionsBox.appendChild(btn);
         });
