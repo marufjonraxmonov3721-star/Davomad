@@ -733,7 +733,6 @@
                 tg.HapticFeedback.notificationOccurred('warning');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
             } else {
-                // --- NEW ANIMATION LOGIC BEFORE LEVEL UP ---
                 showLevelCompleteAnimation();
                 return;
             }
@@ -786,6 +785,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = opt;
+                btn.disabled = true; // Dastlab bloklab qo'yiladi
                 btn.onclick = (e) => {
                     const btns = document.querySelectorAll('.option-btn');
                     btns.forEach(b => b.disabled = true);
@@ -834,7 +834,6 @@
         }
     }
 
-    // --- NEW: LEVEL COMPLETE ANIMATION FUNCTION ---
     function showLevelCompleteAnimation() {
         const modal = document.getElementById('level-complete-modal');
         const bar = document.getElementById('lvl-progress-fill');
@@ -853,7 +852,7 @@
                 modal.style.display = 'none';
                 currentLevel++;
                 loadLevelQuestions();
-            }, 2000); // 2 soniyadan keyin modal yopilib yangi bosqich boshlanadi
+            }, 2000); 
         }, 100);
     }
 
@@ -1014,7 +1013,11 @@
                 }
                 animationsStarted++;
                 
+                // --- YANGI: Barcha variantlar chiqib bo'lganligini tekshirish ---
                 if(animationsStarted === btns.length) {
+                    // Hammasi chiqib bo'lgach, barcha tugmalarni faollashtirish
+                    btns.forEach(b => b.disabled = false);
+                    
                     setTimeout(() => {
                         if(!isPlaying || gamePhase !== 'choosing') return;
                         if(timerTickSound.src && !isPaused) {
