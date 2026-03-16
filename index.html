@@ -752,7 +752,7 @@
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
                     
-                    // TO'G'RI JAVOB OVOZI
+                    // TO'G'RI JAVOB OVOZI - YANGILANGAN
                     if(correctSound.src) {
                         correctSound.currentTime = 0;
                         correctSound.play().catch(err => console.log("Sound play error", err));
@@ -783,7 +783,7 @@
                 } else {
                     btn.classList.add('wrong'); 
                     
-                    // XATO JAVOB OVOZI
+                    // XATO JAVOB OVOZI - YANGILANGAN
                     if(wrongSound.src) {
                         wrongSound.currentTime = 0;
                         wrongSound.play().catch(err => console.log("Sound play error", err));
