@@ -50,8 +50,22 @@
         
         #disc-center { position:absolute; inset:65px; background:var(--primary); border-radius:50%; border:6px solid #000; box-shadow: 0 0 15px var(--primary); }
 
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in; }
-        .options-grid.show-options { opacity: 1; pointer-events: auto; }
+        /* Options Grid Animation */
+        .options-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-top: 10px; 
+            opacity: 0; 
+            transform: translateY(20px);
+            pointer-events: none; 
+            transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .options-grid.show-options { 
+            opacity: 1; 
+            transform: translateY(0);
+            pointer-events: auto; 
+        }
         
         .option-btn, .start-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; }
@@ -770,7 +784,10 @@
                 clearInterval(timerInterval); 
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
-                document.getElementById('options-box').classList.add('show-options');
+                
+                // Variatnlar chiqish animatsiyasi
+                const optionsBox = document.getElementById('options-box');
+                optionsBox.classList.add('show-options');
                 document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
             }
         }, 1000);
@@ -867,4 +884,3 @@
 </script>
 </body>
 </html>
-
