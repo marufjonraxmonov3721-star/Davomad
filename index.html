@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -966,13 +967,25 @@
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
+            
+            // Cover, remix va instrumental versiyalarni filtrlaymiz
             const filteredTracks = data.results.filter(t => {
-                const trackName = t.trackName.toLowerCase();
+                const trackName = (t.trackName || "").toLowerCase();
                 const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
                 return !isCover;
             });
+
+            // Agar natija bo'lsa, birinchisini qaytaramiz
             if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes('-')) return await fetchMusic(term.split('-')[0].trim(), true);
+
+            // AGAR TOPILMASA: "Xonanda - Qo'shiq" formatida bo'lsa, faqat Qo'shiq qismini olib qayta qidiramiz
+            if (!isRetry && term.includes(' - ')) {
+                const parts = term.split(' - ');
+                const songOnly = parts[1] ? parts[1].trim() : parts[0].trim();
+                return await fetchMusic(songOnly, true);
+            }
+            
+            // Retry bo'lganda ham topilmasa, borini qaytaramiz
             return data.results[0]?.previewUrl;
         } catch (e) { return null; }
     }
