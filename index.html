@@ -328,10 +328,9 @@
     let adminTimerSettings = {};
     const QUESTIONS_PER_LEVEL = 5;
     
-    // Ovoz effektlari - To'g'ridan to'g'ri Audio obyektlari
-    const tickSound = new Audio('https://www.soundjay.com/buttons/sounds/button-20.mp3');
+    // VARIANT OVOZI UCHUN DINAMIK AUDIO
+    let tickSound = new Audio();
     tickSound.volume = 0.5;
-    tickSound.preload = 'auto'; // Oldindan yuklash
 
     let usedQuestions = new Set();
     let rankLimit = 10;
@@ -389,7 +388,19 @@
         }
     }
 
+    // BAZADAN VARIANT OVOZINI YUKLASH
+    async function loadOptionsAudio() {
+        try {
+            const snap = await get(ref(db, 'settings/optionsAudio'));
+            if(snap.exists()) {
+                tickSound.src = snap.val();
+                tickSound.preload = 'auto';
+            }
+        } catch(e) { console.log("Audio load error"); }
+    }
+
     window.onload = () => {
+        loadOptionsAudio(); // Ovozni oldindan yuklash
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -484,8 +495,9 @@
             return;
         }
 
-        // Brauzer ovoz siyosati uchun bir marta ovozni "uygotib" olish
-        tickSound.play().then(() => { tickSound.pause(); tickSound.currentTime = 0; }).catch(() => {});
+        if(tickSound.src) {
+            tickSound.play().then(() => { tickSound.pause(); tickSound.currentTime = 0; }).catch(() => {});
+        }
 
         setupVisualizer();
         if (audioContext.state === 'suspended') audioContext.resume();
@@ -795,23 +807,23 @@
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
                 
-                // Variantlarni chiqarish
                 const optionsBox = document.getElementById('options-box');
                 optionsBox.classList.add('show-options');
                 const btns = document.querySelectorAll('.option-btn');
                 
                 btns.forEach((btn, index) => {
                     setTimeout(() => {
-                        // Variantni ko'rsatish
                         btn.classList.add('reveal');
                         
-                        // Ovoz chiqarish - Telegram ichida ishonchliroq ijro
-                        const playPromise = tickSound.cloneNode().play();
-                        if (playPromise !== undefined) {
-                            playPromise.catch(error => { console.log("Sound play prevented"); });
+                        // BAZADAN KELGAN OVOZNI IJRO ETISH
+                        if(tickSound.src) {
+                            const playPromise = tickSound.cloneNode().play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(error => { console.log("Sound play prevented"); });
+                            }
                         }
                         
-                    }, index * 1000); // HAR BIR VARIANT 1 SEKUNDDA CHIQADI
+                    }, index * 1000); 
                 });
 
                 document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
