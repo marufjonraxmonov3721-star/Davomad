@@ -103,6 +103,27 @@
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+        /* --- NEW: LEVEL COMPLETE MODAL --- */
+        #level-complete-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .level-card {
+            background: #111; border: 2px solid var(--primary); width: 100%; max-width: 320px;
+            border-radius: 35px; padding: 30px 20px; text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .progress-container {
+            width: 100%; height: 12px; background: #222; border-radius: 10px; 
+            margin: 25px 0; overflow: hidden; border: 1px solid #333;
+        }
+        .progress-fill-anim {
+            width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), #fff);
+            box-shadow: 0 0 10px var(--primary); transition: width 1.5s ease-in-out;
+        }
+        .star-anim { font-size: 40px; color: var(--accent); margin: 10px 0; display: block; animation: starPop 0.6s infinite alternate; }
+        @keyframes starPop { from { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent)); } to { transform: scale(1.2); filter: drop-shadow(0 0 15px var(--accent)); } }
+
         /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
         .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
@@ -189,6 +210,18 @@
 <div id="resume-overlay">
     <div id="resume-countdown">3</div>
     <p style="color:#fff; margin-top:20px; font-weight:bold;">O'YIN DAVOM ETMOQDA...</p>
+</div>
+
+<div id="level-complete-modal">
+    <div class="level-card">
+        <span class="star-anim">🌟</span>
+        <h2 id="lvl-complete-title" style="color:var(--primary); font-size: 24px;">BOSQICH YAKUNLANDI!</h2>
+        <p id="lvl-complete-text" style="color:#888; margin-top:10px;">Navbatdagi bosqich yuklanmoqda...</p>
+        <div class="progress-container">
+            <div id="lvl-progress-fill" class="progress-fill-anim"></div>
+        </div>
+        <p id="lvl-info-text" style="font-weight: bold; color: #fff;">LEVEL 1 ➔ LEVEL 2</p>
+    </div>
 </div>
 
 <div id="result-modal">
@@ -341,7 +374,6 @@
     let adminTimerSettings = {};
     const QUESTIONS_PER_LEVEL = 5;
     
-    // OVOZLAR UCHUN O'ZGARUVCHILAR
     let optionsTickSound = new Audio();
     let timerTickSound = new Audio();
     let correctSound = new Audio();
@@ -355,9 +387,8 @@
     let usedQuestions = new Set();
     let rankLimit = 10;
     let currentRemainingTime = 0;
-    let gamePhase = 'listening'; // 'listening' yoki 'choosing'
+    let gamePhase = 'listening'; 
 
-    // --- VISUALIZER LOGIC ---
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
     function setupVisualizer() {
         if (audioContext) return;
@@ -410,7 +441,6 @@
         }
     }
 
-    // BAZADAN BARCHA OVOZLARNI YUKLASH
     async function loadGameSounds() {
         try {
             const snap = await get(ref(db, 'settings/audio'));
@@ -565,6 +595,7 @@
         document.getElementById('combo-badge').style.display = 'none';
         document.getElementById('combo-flame').style.display = 'none';
         document.getElementById('resume-overlay').style.display = 'none';
+        document.getElementById('level-complete-modal').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -702,8 +733,8 @@
                 tg.HapticFeedback.notificationOccurred('warning');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
             } else {
-                currentLevel++;
-                loadLevelQuestions();
+                // --- NEW ANIMATION LOGIC BEFORE LEVEL UP ---
+                showLevelCompleteAnimation();
                 return;
             }
         } else {
@@ -711,95 +742,119 @@
             roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
-        usedQuestions.add(q.firebaseId);
-        optionsBox.innerHTML = "";
-        optionsBox.classList.remove('show-options'); 
-        disc.classList.remove('spinning');
-        audio.pause();
-        status.innerText = "Musiqa qidirilmoqda...";
-        gamePhase = 'listening';
+        if(q) {
+            usedQuestions.add(q.firebaseId);
+            optionsBox.innerHTML = "";
+            optionsBox.classList.remove('show-options'); 
+            disc.classList.remove('spinning');
+            audio.pause();
+            status.innerText = "Musiqa qidirilmoqda...";
+            gamePhase = 'listening';
 
-        const musicUrl = await fetchMusic(q.search_term);
-        if(musicUrl) {
-            audio.src = musicUrl;
-            audio.playbackRate = isBossRound ? 1.05 : 1.0;
-            
-            audio.onplay = () => {
-                if (isPaused) { audio.pause(); return; }
-                disc.classList.add('spinning'); 
-                status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
+            const musicUrl = await fetchMusic(q.search_term);
+            if(musicUrl) {
+                audio.src = musicUrl;
+                audio.playbackRate = isBossRound ? 1.05 : 1.0;
                 
-                let dynamicTime = 10; 
-                if(isBossRound) {
-                    dynamicTime = adminTimerSettings.boss || 15;
-                } else {
-                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
-                        dynamicTime = adminTimerSettings.levels[currentLevel];
-                    } else {
-                        dynamicTime = 10; 
-                    }
-                }
-                startTimer(dynamicTime);
-            };
-
-            audio.play().catch(() => { skipRound(); });
-        } else {
-            skipRound(); return;
-        }
-
-        const correctText = q.options[q.correct];
-        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-        shuffledOptions.forEach((opt, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt;
-            btn.onclick = (e) => {
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
-                
-                // Javob berilganda taymerni va ovozni to'xtatish
-                clearInterval(timerInterval);
-                timerTickSound.pause();
-                timerTickSound.currentTime = 0;
-
-                if(opt === correctText) {
-                    btn.classList.add('correct'); 
-                    if(correctSound.src) {
-                        correctSound.currentTime = 0;
-                        correctSound.play().catch(err => console.log("Sound play error", err));
-                    }
-
-                    let pointsToAdd;
+                audio.onplay = () => {
+                    if (isPaused) { audio.pause(); return; }
+                    disc.classList.add('spinning'); 
+                    status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
+                    
+                    let dynamicTime = 10; 
                     if(isBossRound) {
-                        const baseBossScore = q.score || 50;
-                        const comboX = q.boss_combo || 1;
-                        pointsToAdd = baseBossScore * comboX;
-                        showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
-                        if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
-                            lives = Math.min(3, lives + 1);
-                            updateLivesUI();
-                        }
-                        tg.HapticFeedback.notificationOccurred('success');
+                        dynamicTime = adminTimerSettings.boss || 15;
                     } else {
-                        comboCount++;
-                        const multiplier = Math.floor(comboCount / 3) + 1;
-                        const baseScore = q.score || 10;
-                        pointsToAdd = (baseScore * multiplier);
-                        showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
-                        updateComboUI();
-                        tg.HapticFeedback.impactOccurred('medium');
+                        if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
+                            dynamicTime = adminTimerSettings.levels[currentLevel];
+                        } else {
+                            dynamicTime = 10; 
+                        }
                     }
-                    score += pointsToAdd;
-                    document.getElementById('score').innerText = "BALL: " + score;
-                } else {
-                    handleWrongAnswer(btn, correctText);
-                }
-                
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
-            };
-            optionsBox.appendChild(btn);
-        });
+                    startTimer(dynamicTime);
+                };
+
+                audio.play().catch(() => { skipRound(); });
+            } else {
+                skipRound(); return;
+            }
+
+            const correctText = q.options[q.correct];
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = (e) => {
+                    const btns = document.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.disabled = true);
+                    
+                    clearInterval(timerInterval);
+                    timerTickSound.pause();
+                    timerTickSound.currentTime = 0;
+
+                    if(opt === correctText) {
+                        btn.classList.add('correct'); 
+                        if(correctSound.src) {
+                            correctSound.currentTime = 0;
+                            correctSound.play().catch(err => console.log("Sound play error", err));
+                        }
+
+                        let pointsToAdd;
+                        if(isBossRound) {
+                            const baseBossScore = q.score || 50;
+                            const comboX = q.boss_combo || 1;
+                            pointsToAdd = baseBossScore * comboX;
+                            showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
+                            if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
+                                lives = Math.min(3, lives + 1);
+                                updateLivesUI();
+                            }
+                            tg.HapticFeedback.notificationOccurred('success');
+                        } else {
+                            comboCount++;
+                            const multiplier = Math.floor(comboCount / 3) + 1;
+                            const baseScore = q.score || 10;
+                            pointsToAdd = (baseScore * multiplier);
+                            showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                            updateComboUI();
+                            tg.HapticFeedback.impactOccurred('medium');
+                        }
+                        score += pointsToAdd;
+                        document.getElementById('score').innerText = "BALL: " + score;
+                    } else {
+                        handleWrongAnswer(btn, correctText);
+                    }
+                    
+                    setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
+                };
+                optionsBox.appendChild(btn);
+            });
+        }
+    }
+
+    // --- NEW: LEVEL COMPLETE ANIMATION FUNCTION ---
+    function showLevelCompleteAnimation() {
+        const modal = document.getElementById('level-complete-modal');
+        const bar = document.getElementById('lvl-progress-fill');
+        const info = document.getElementById('lvl-info-text');
+        
+        stopAllSounds();
+        modal.style.display = 'flex';
+        bar.style.width = '0%';
+        info.innerText = `BOSQICH ${currentLevel} ➔ ${currentLevel + 1}`;
+        
+        tg.HapticFeedback.notificationOccurred('success');
+
+        setTimeout(() => {
+            bar.style.width = '100%';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                currentLevel++;
+                loadLevelQuestions();
+            }, 2000); // 2 soniyadan keyin modal yopilib yangi bosqich boshlanadi
+        }, 100);
     }
 
     function handleWrongAnswer(clickedBtn, correctText) {
@@ -830,8 +885,7 @@
 
     function nextStep() {
         if(isBossRound) {
-            currentLevel++;
-            loadLevelQuestions();
+            showLevelCompleteAnimation();
         } else {
             currentIdx++;
             loadRound();
@@ -884,6 +938,7 @@
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
         document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('level-complete-modal').style.display = 'none';
         clearInterval(timerInterval);
         
         if (animationId) cancelAnimationFrame(animationId);
@@ -923,7 +978,6 @@
         } catch (e) { return null; }
     }
 
-    // Musiqa eshitish taymeri
     function startTimer(startTime) {
         currentRemainingTime = startTime;
         document.getElementById('timer').innerText = Math.floor(currentRemainingTime);
@@ -936,8 +990,6 @@
                 clearInterval(timerInterval); 
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
-                
-                // Tanlash bosqichiga o'tish
                 showOptionsPhase();
             }
         }, 1000);
@@ -951,7 +1003,6 @@
         
         document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
 
-        // Variantlar chiqishi (Revealing phase)
         let animationsStarted = 0;
         btns.forEach((btn, index) => {
             setTimeout(() => {
@@ -963,7 +1014,6 @@
                 }
                 animationsStarted++;
                 
-                // Barcha variantlar (jami 4 ta) 1 soniya interval bilan chiqib bo'lgach taymerni boshlash
                 if(animationsStarted === btns.length) {
                     setTimeout(() => {
                         if(!isPlaying || gamePhase !== 'choosing') return;
@@ -974,11 +1024,10 @@
                         startChoosingTimer(10); 
                     }, 500);
                 }
-            }, index * 1000); // Har bir variant uchun 1 sekund ketsin
+            }, index * 1000); 
         });
     }
 
-    // Variantlarni tanlash uchun qat'iy 10 soniyalik taymer
     function startChoosingTimer(seconds) {
         currentRemainingTime = seconds;
         document.getElementById('timer').innerText = currentRemainingTime;
@@ -994,7 +1043,6 @@
                 timerTickSound.pause();
                 timerTickSound.currentTime = 0;
                 
-                // VAQT TUGADI -> To'g'ri javobni ko'rsatib keyingisiga o'tish
                 let q = isBossRound ? bossQuestion : questions[currentIdx];
                 handleWrongAnswer(null, q.options[q.correct]);
                 
