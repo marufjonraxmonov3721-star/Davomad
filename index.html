@@ -718,6 +718,7 @@
     function endGame(isGameOver) {
         isPlaying = false;
         isBossRound = false;
+        document.body.classList.remove('boss-active'); // Boss effektini o'chirish
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
@@ -739,7 +740,6 @@
         levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
 
         modal.style.display = 'flex';
-        document.body.classList.remove('boss-active');
     }
 
     async function fetchMusic(term, isRetry = false) {
@@ -867,4 +867,3 @@
 </script>
 </body>
 </html>
-
