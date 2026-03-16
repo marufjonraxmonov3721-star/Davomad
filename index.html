@@ -10,8 +10,8 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; position: relative; }
         
-        /* Visualizer Canvas - Skrinshotdagidek pastki qismga tushirildi va shaffofligi kamaytirildi */
-        #visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 250px; z-index: 0; pointer-events: none; opacity: 0.2; }
+        /* Visualizer Canvas - Rasmdagi yashil barlar */
+        #visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; z-index: 1; pointer-events: none; opacity: 0.8; }
 
         /* Loading Animation */
         #loading-screen { 
@@ -25,7 +25,7 @@
         .bar:nth-child(4) { animation-delay: 0.3s; }
         @keyframes scaleY { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(2.5); } }
 
-        #app-container { height: 100vh; display: none; flex-direction: column; position: relative; z-index: 1; }
+        #app-container { height: 100vh; display: none; flex-direction: column; position: relative; z-index: 2; }
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
@@ -35,16 +35,25 @@
         .cat-btn:active { transform: scale(0.95); background: #222; }
         .cat-icon { font-size: 26px; }
 
-        /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; transition: 0.3s; z-index: 2; }
-        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; z-index: 2; }
+        /* Game UI - Rasmdagi effektlar */
+        .game-card { width: 100%; max-width: 400px; background: rgba(21, 21, 21, 0.9); padding: 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.05); text-align: center; position: relative; transition: 0.3s; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        
+        .vinyl { 
+            width: 180px; height: 180px; margin: 20px auto; 
+            background: radial-gradient(circle, #222 0%, #111 40%, #000 100%); 
+            border-radius: 50%; border: 8px solid #1a1a1a; 
+            position: relative; z-index: 6;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.05);
+        }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
+        #disc-center { position:absolute; inset:65px; background:var(--primary); border-radius:50%; border:6px solid #000; box-shadow: 0 0 15px var(--primary); }
+
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in; }
         .options-grid.show-options { opacity: 1; pointer-events: auto; }
         
-        .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .option-btn, .start-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; }
         .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.02); }
         .wrong { background: var(--danger) !important; }
@@ -59,8 +68,13 @@
             box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
         }
         
-        /* Combo Flame - Olib tashlandi */
-        .combo-flame { display: none; }
+        /* Fire/Sparks for Combo */
+        .combo-flame { 
+            position: absolute; inset: -5px; border-radius: 35px; border: 2px solid var(--accent);
+            box-shadow: 0 0 20px var(--accent); pointer-events: none; animation: flamePulse 0.5s infinite alternate;
+            display: none;
+        }
+        @keyframes flamePulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.8; transform: scale(1.05); } }
 
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
@@ -129,13 +143,16 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* BOSS STYLES */
-        .boss-active #main-game-card { border-color: var(--boss); }
+        .boss-active #main-game-card { border-color: var(--boss); box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
         .boss-active .vinyl { border-color: var(--boss); }
         .boss-active #disc-center { background: var(--boss) !important; }
         .boss-active #round-counter { color: var(--boss) !important; }
         .boss-active .option-btn { border-color: #441122; }
-        /* Boss Pulsation - Olib tashlandi */
-        .boss-active::before { display: none; }
+        .boss-active::before { 
+            content: ''; position: fixed; inset: 0; border: 8px solid var(--boss); 
+            z-index: 999; pointer-events: none; animation: bossPulse 1s infinite;
+        }
+        @keyframes bossPulse { 0% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } 50% { opacity: 0.6; box-shadow: inset 0 0 50px var(--boss); } 100% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } }
         
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -171,19 +188,26 @@
 <div id="app-container">
     <div id="page-game" class="page active-page">
         <div class="game-card" id="main-game-card">
+            <div id="combo-flame" class="combo-flame"></div>
             <div id="combo-badge">COMBO x1</div>
             
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
-                    <div id="game-stats-left">
-                        <span id="score">BALL: 0</span><br>
-                        <span id="round-counter" style="font-size: 10px; color: #666;">BOSQICH: 1 | SAVOL: 1/5</span>
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 25px;">
+                    <div id="game-stats-left" style="text-align: left;">
+                        <span id="score" style="font-size: 18px;">BALL: 0</span><br>
+                        <span id="round-counter" style="font-size: 11px; color: rgba(255,255,255,0.5);">BOSQICH: 1 | SAVOL: 1/5</span>
                     </div>
-                    <div id="lives" class="lives-container">🎵🎵🎵</div>
-                    <span id="timer">--</span>
+                    <div style="text-align: right;">
+                        <div id="lives" class="lives-container">🎵🎵🎵</div>
+                        <span id="timer" style="font-size: 18px; display: block; margin-top: 4px;">--</span>
+                    </div>
                 </div>
-                <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;" id="disc-center"></div></div>
-                <p id="status" style="color:#888; font-size:12px; height: 18px; font-weight: bold;"></p>
+                
+                <div class="vinyl" id="disc">
+                    <div id="disc-center"></div>
+                </div>
+                
+                <p id="status" style="color:rgba(255,255,255,0.7); font-size:13px; margin: 15px 0; height: 18px; font-weight: bold; letter-spacing: 1px;"></p>
                 <div id="options-box" class="options-grid"></div>
             </div>
             
@@ -302,7 +326,7 @@
     let usedQuestions = new Set();
     let rankLimit = 10;
 
-    // --- VISUALIZER LOGIC ---
+    // --- VISUALIZER LOGIC (RASMDAGI YASHIL BARLAR) ---
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
     function setupVisualizer() {
         if (audioContext) return;
@@ -313,7 +337,7 @@
         const source = audioContext.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioContext.destination);
-        analyser.fftSize = 64;
+        analyser.fftSize = 64; // Rasmdagidek keng barlar uchun
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
@@ -328,12 +352,25 @@
         animationId = requestAnimationFrame(drawVisualizer);
         analyser.getByteFrequencyData(dataArray);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / dataArray.length) * 2;
+        
+        const barWidth = (canvas.width / dataArray.length) * 1.5;
         let x = 0;
+        
         for (let i = 0; i < dataArray.length; i++) {
-            const barHeight = (dataArray[i] / 255) * canvas.height * 0.5;
-            ctx.fillStyle = isBossRound ? `rgba(255, 0, 85, 0.4)` : `rgba(0, 255, 136, 0.4)`;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+            const barHeight = (dataArray[i] / 255) * canvas.height * 0.7;
+            
+            // Rasmdagi yashil gradient effekt
+            const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+            if(isBossRound) {
+                gradient.addColorStop(0, 'rgba(255, 0, 85, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 0, 85, 0.2)');
+            } else {
+                gradient.addColorStop(0, '#00ff88'); // Rasmdagi yashil rang
+                gradient.addColorStop(1, 'rgba(0, 255, 136, 0.1)');
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
             x += barWidth;
         }
     }
@@ -395,6 +432,7 @@
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
         document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
         
         score = 0;
         lives = 3;
@@ -433,7 +471,6 @@
         if (audioContext.state === 'suspended') audioContext.resume();
         drawVisualizer();
 
-        // --- ADMIN SETTINGS YUKLASH ---
         try {
             const setSnap = await get(ref(db, 'settings/timer'));
             if(setSnap.exists()) {
@@ -552,7 +589,6 @@
                 disc.classList.add('spinning'); 
                 status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
                 
-                // --- ADMIN PANEL VAQTINI ANIQLASH ---
                 let dynamicTime = 10; 
                 if(isBossRound) {
                     dynamicTime = adminTimerSettings.boss || 15;
@@ -741,3 +777,94 @@
     }
 
     async function saveScore() {
+        if (score <= 0 || !navigator.onLine) return;
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        try {
+            const snap = await get(userRef);
+            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            const newBestScore = Math.max(score, data.score || 0);
+            const newBestLevel = Math.max(currentLevel, data.level || 1);
+            
+            await update(userRef, {
+                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+                score: newBestScore,
+                level: newBestLevel,
+                total_xp: increment(score),
+                id: user.id
+            });
+        } catch (e) {}
+    }
+
+    async function loadLeaderboard() {
+        const listDiv = document.getElementById('rank-list');
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
+            return;
+        }
+        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
+        try {
+            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
+            const snap = await get(rankQuery);
+            if(snap.exists()) {
+                listDiv.innerHTML = "";
+                const rawData = [];
+                snap.forEach(child => { rawData.push(child.val()); });
+                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+                rawData.forEach((u, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'rank-item';
+                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
+                    
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">${u.score}</span>
+                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            } else {
+                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
+            }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
+    }
+
+    async function loadProfileData() {
+        const profileName = document.getElementById('profile-name');
+        const profileId = document.getElementById('profile-id');
+        const bestScoreEl = document.getElementById('best-score');
+        const bestLevelEl = document.getElementById('best-level');
+        const totalXpEl = document.getElementById('total-xp');
+        const profileAvatar = document.getElementById('profile-avatar');
+
+        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+        profileId.innerText = "ID: " + user.id;
+
+        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
+        else { profileAvatar.innerText = user.first_name.charAt(0); }
+
+        try {
+            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            if (snap.exists()) {
+                const data = snap.val();
+                bestScoreEl.innerText = data.score || 0;
+                bestLevelEl.innerText = data.level || 1;
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
+            }
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
+    }
+</script>
+</body>
+</html>
+
