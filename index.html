@@ -341,9 +341,13 @@
     let adminTimerSettings = {};
     const QUESTIONS_PER_LEVEL = 5;
     
-    // VARIANT OVOZI UCHUN DINAMIK AUDIO
+    // OVOZLAR UCHUN O'ZGARUVCHILAR
     let tickSound = new Audio();
+    let correctSound = new Audio();
+    let wrongSound = new Audio();
     tickSound.volume = 0.5;
+    correctSound.volume = 0.7;
+    wrongSound.volume = 0.7;
 
     let usedQuestions = new Set();
     let rankLimit = 10;
@@ -403,13 +407,19 @@
         }
     }
 
-    // BAZADAN VARIANT OVOZINI YUKLASH
-    async function loadOptionsAudio() {
+    // BAZADAN BARCHA OVOZLARNI YUKLASH
+    async function loadGameSounds() {
         try {
-            const snap = await get(ref(db, 'settings/optionsAudio'));
+            const snap = await get(ref(db, 'settings'));
             if(snap.exists()) {
-                tickSound.src = snap.val();
+                const settings = snap.val();
+                if(settings.optionsAudio) tickSound.src = settings.optionsAudio;
+                if(settings.correctAudio) correctSound.src = settings.correctAudio;
+                if(settings.wrongAudio) wrongSound.src = settings.wrongAudio;
+                
                 tickSound.preload = 'auto';
+                correctSound.preload = 'auto';
+                wrongSound.preload = 'auto';
             }
         } catch(e) { console.log("Audio load error"); }
     }
@@ -418,21 +428,23 @@
     const stopAllSounds = () => {
         audio.pause();
         tickSound.pause();
+        correctSound.pause();
+        wrongSound.pause();
         tickSound.currentTime = 0;
+        correctSound.currentTime = 0;
+        wrongSound.currentTime = 0;
         if(isPlaying) {
             clearInterval(timerInterval);
             document.getElementById('disc').classList.remove('spinning');
         }
     };
 
-    // Telegram yopilsa yoki orqaga ketsa
     tg.onEvent('viewportChanged', (data) => {
         if (data.isStateStable && tg.isExpanded === false) {
              pauseGame();
         }
     });
 
-    // Brauzer yoki tab almashtirilsa
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             pauseGame();
@@ -473,7 +485,6 @@
                     startTimer(currentRemainingTime);
                     drawVisualizer();
                 } else if (gamePhase === 'choosing') {
-                    // Variantlar bosqichida vaqt allaqachon tugagan bo'ladi, shunchaki visual davom etadi
                     drawVisualizer();
                 }
             }
@@ -481,7 +492,7 @@
     }
 
     window.onload = () => {
-        loadOptionsAudio(); // Ovozni oldindan yuklash
+        loadGameSounds(); 
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -526,11 +537,8 @@
         document.body.classList.remove('boss-active');
         clearInterval(timerInterval);
         
-        // BARCHA OVOZLARNI TO'XTATISH
-        audio.pause();
+        stopAllSounds();
         audio.src = "";
-        tickSound.pause();
-        tickSound.currentTime = 0;
         
         if (animationId) cancelAnimationFrame(animationId);
         if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -576,9 +584,10 @@
             return;
         }
 
-        if(tickSound.src) {
-            tickSound.play().then(() => { tickSound.pause(); tickSound.currentTime = 0; }).catch(() => {});
-        }
+        // Brauzer ovoz siyosati uchun "silent play"
+        [tickSound, correctSound, wrongSound].forEach(s => {
+            if(s.src) s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+        });
 
         setupVisualizer();
         if (audioContext.state === 'suspended') audioContext.resume();
@@ -737,14 +746,20 @@
                 
                 if(opt === correctText) {
                     btn.classList.add('correct'); 
-                    let pointsToAdd;
                     
+                    // TO'G'RI JAVOB OVOZI - 1 SEKUND
+                    if(correctSound.src) {
+                        correctSound.currentTime = 0;
+                        correctSound.play();
+                        setTimeout(() => { correctSound.pause(); }, 1000);
+                    }
+
+                    let pointsToAdd;
                     if(isBossRound) {
                         const baseBossScore = q.score || 50;
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
-                        
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
                             lives = Math.min(3, lives + 1);
                             updateLivesUI();
@@ -759,11 +774,18 @@
                         updateComboUI();
                         tg.HapticFeedback.impactOccurred('medium');
                     }
-                    
                     score += pointsToAdd;
                     document.getElementById('score').innerText = "BALL: " + score;
                 } else {
                     btn.classList.add('wrong'); 
+                    
+                    // XATO JAVOB OVOZI - 1 SEKUND
+                    if(wrongSound.src) {
+                        wrongSound.currentTime = 0;
+                        wrongSound.play();
+                        setTimeout(() => { wrongSound.pause(); }, 1000);
+                    }
+
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                     comboCount = 0;
                     updateComboUI();
@@ -907,7 +929,6 @@
                                 playPromise.catch(error => { console.log("Sound play prevented"); });
                             }
                         }
-                        
                     }, index * 1000); 
                 });
 
