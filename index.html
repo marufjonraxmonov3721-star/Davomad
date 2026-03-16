@@ -346,8 +346,8 @@
     let correctSound = new Audio();
     let wrongSound = new Audio();
     tickSound.volume = 0.5;
-    correctSound.volume = 0.7;
-    wrongSound.volume = 0.7;
+    correctSound.volume = 0.8;
+    wrongSound.volume = 0.8;
 
     let usedQuestions = new Set();
     let rankLimit = 10;
@@ -410,19 +410,19 @@
     // BAZADAN BARCHA OVOZLARNI YUKLASH
     async function loadGameSounds() {
         try {
-            const snap = await get(ref(db, 'settings'));
+            const snap = await get(ref(db, 'settings/audio'));
             if(snap.exists()) {
                 const settings = snap.val();
                 if(settings.optionsAudio) {
                     tickSound.src = settings.optionsAudio;
                     tickSound.load();
                 }
-                if(settings.correctAudio) {
-                    correctSound.src = settings.correctAudio;
+                if(settings.correct) {
+                    correctSound.src = settings.correct;
                     correctSound.load();
                 }
-                if(settings.wrongAudio) {
-                    wrongSound.src = settings.wrongAudio;
+                if(settings.wrong) {
+                    wrongSound.src = settings.wrong;
                     wrongSound.load();
                 }
             }
@@ -797,8 +797,7 @@
                     tg.HapticFeedback.notificationOccurred('error');
                 }
                 
-                // JAVOBDAN KEYIN 1 SEKUND KUTISH VA KEYINGI SAVOLGA O'TISH
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1000);
+                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
             };
             optionsBox.appendChild(btn);
         });
@@ -927,6 +926,7 @@
                         if(!isPlaying) return; 
                         btn.classList.add('reveal');
                         
+                        // Options audio (o'zgartirilmagan)
                         if(tickSound.src && isPlaying && !isPaused) {
                             const tickClone = tickSound.cloneNode();
                             tickClone.play().catch(error => { console.log("Sound play prevented"); });
