@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -328,9 +329,9 @@
     let adminTimerSettings = {};
     const QUESTIONS_PER_LEVEL = 5;
     
-    // Ovoz effektlari
+    // Ovoz effektlari - To'g'ridan to'g'ri Audio obyektlari
     const tickSound = new Audio('https://www.soundjay.com/buttons/sounds/button-20.mp3');
-    tickSound.volume = 0.3;
+    tickSound.volume = 0.5;
 
     let usedQuestions = new Set();
     let rankLimit = 10;
@@ -791,18 +792,22 @@
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
                 
-                // Variantlarni bitta-bitta chiqarish
+                // Variantlarni chiqarish
                 const optionsBox = document.getElementById('options-box');
                 optionsBox.classList.add('show-options');
                 const btns = document.querySelectorAll('.option-btn');
                 
                 btns.forEach((btn, index) => {
                     setTimeout(() => {
+                        // Variantni ko'rsatish
                         btn.classList.add('reveal');
-                        // Har bir variant chiqqanda ovoz chalish
-                        tickSound.currentTime = 0;
-                        tickSound.play().catch(() => {});
-                    }, index * 120); // Har bir variant oralig'i 0.12 soniya
+                        
+                        // Ovoz chiqarish - Har bir variant uchun yangi audio kloni
+                        const currentTick = tickSound.cloneNode();
+                        currentTick.volume = 0.5;
+                        currentTick.play().catch(e => console.log("Audio play error"));
+                        
+                    }, index * 1000); // HAR BIR VARIANT 1 SEKUNDDA CHIQADI
                 });
 
                 document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
