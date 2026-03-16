@@ -6,216 +6,316 @@
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00d4ff; }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; transition: box-shadow 0.3s ease; }
+        :root { 
+            --primary: #00ffcc; 
+            --bg: #050505; 
+            --card: #0f0f0f; 
+            --nav: #0a0a0a; 
+            --danger: #ff2d55; 
+            --accent: #ffcc00; 
+            --boss: #ff0055; 
+            --friend: #00d4ff; 
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
         
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg); 
+            color: #fff; 
+            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        
+        /* Visualizer Canvas */
+        #visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.3; }
+
         /* Loading Animation */
         #loading-screen { 
             position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
         }
-        .loader { display: flex; align-items: center; gap: 5px; height: 50px; }
-        .bar { width: 8px; height: 20px; background: var(--primary); border-radius: 10px; animation: scaleY 1s infinite ease-in-out; }
+        .loader { display: flex; align-items: center; gap: 6px; height: 60px; }
+        .bar { width: 6px; height: 20px; background: var(--primary); border-radius: 10px; animation: scaleY 1s infinite ease-in-out; box-shadow: 0 0 15px var(--primary); }
         .bar:nth-child(2) { animation-delay: 0.1s; }
         .bar:nth-child(3) { animation-delay: 0.2s; }
         .bar:nth-child(4) { animation-delay: 0.3s; }
-        @keyframes scaleY { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(2.5); } }
+        @keyframes scaleY { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(3); } }
 
-        #app-container { height: 100vh; display: none; flex-direction: column; }
+        #app-container { height: 100vh; display: none; flex-direction: column; position: relative; z-index: 1; }
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
         /* Category Selection Styles */
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 15px; }
-        .cat-btn { background: #1a1a1a; border: 1px solid #333; padding: 18px 10px; border-radius: 18px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .cat-btn:active { transform: scale(0.95); background: #222; }
-        .cat-icon { font-size: 26px; }
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px; }
+        .cat-btn { 
+            background: var(--glass); 
+            border: 1px solid var(--border); 
+            padding: 25px 10px; 
+            border-radius: 24px; 
+            color: #fff; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .cat-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.1); border-color: var(--primary); }
+        .cat-icon { font-size: 32px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
 
         /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; text-align: center; position: relative; z-index: 5; }
-        .vinyl { width: 150px; height: 150px; margin: 20px auto; background: radial-gradient(circle, #333 5%, #111 30%, #000 100%); border-radius: 50%; border: 5px solid #222; position: relative; z-index: 2; }
-        .spinning { animation: spin 4s linear infinite; }
+        .game-card { 
+            width: 100%; 
+            max-width: 400px; 
+            background: var(--card); 
+            padding: 30px; 
+            border-radius: 40px; 
+            border: 1px solid var(--border); 
+            text-align: center; 
+            position: relative; 
+            transition: 0.4s; 
+            z-index: 2;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        
+        .vinyl { 
+            width: 180px; 
+            height: 180px; 
+            margin: 25px auto; 
+            background: radial-gradient(circle, #222 2%, #050505 30%, #000 100%); 
+            border-radius: 50%; 
+            border: 8px solid #1a1a1a; 
+            position: relative; 
+            z-index: 2; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.05);
+        }
+        .spinning { animation: spin 3s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in; }
-        .options-grid.show-options { opacity: 1; pointer-events: auto; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; opacity: 0; pointer-events: none; transition: all 0.5s ease; transform: translateY(10px); }
+        .options-grid.show-options { opacity: 1; pointer-events: auto; transform: translateY(0); }
         
-        .option-btn, .start-btn { background: #222; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
-        .start-btn { background: var(--primary); color: #000; border: none; font-size: 18px; padding: 18px; margin-top: 10px; }
-        .correct { background: var(--primary) !important; color: #000 !important; transform: scale(1.02); }
-        .wrong { background: var(--danger) !important; }
+        .option-btn, .start-btn { 
+            background: var(--glass); 
+            border: 1px solid var(--border); 
+            color: #fff; 
+            padding: 16px; 
+            border-radius: 16px; 
+            width: 100%; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: 700; 
+            transition: 0.2s;
+            backdrop-filter: blur(5px);
+        }
+        .start-btn { 
+            background: var(--primary); 
+            color: #000; 
+            border: none; 
+            font-size: 18px; 
+            padding: 20px; 
+            margin-top: 15px; 
+            box-shadow: 0 10px 20px rgba(0, 255, 204, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .correct { background: var(--primary) !important; color: #000 !important; border-color: var(--primary) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+        .wrong { background: var(--danger) !important; border-color: var(--danger) !important; opacity: 0.8; }
 
-        .lives-container { font-size: 18px; color: var(--primary); letter-spacing: 2px; }
+        .lives-container { font-size: 20px; filter: drop-shadow(0 0 5px var(--primary)); }
 
         /* Combo Badge */
         #combo-badge {
             position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000;
-            padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px;
-            display: none; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
+            padding: 6px 15px; border-radius: 25px; font-weight: 900; font-size: 14px;
+            display: none; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 15px rgba(255, 204, 0, 0.5); z-index: 10;
         }
+        
+        /* Fire/Sparks for Combo */
+        .combo-flame { 
+            position: absolute; inset: -5px; border-radius: 45px; border: 2px solid var(--accent);
+            box-shadow: 0 0 25px var(--accent); pointer-events: none; animation: flamePulse 0.5s infinite alternate;
+            display: none;
+        }
+        @keyframes flamePulse { from { opacity: 0.4; transform: scale(1); } to { opacity: 0.9; transform: scale(1.04); } }
+
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
         /* Floating Score Text */
         .floating-text {
-            position: absolute; color: var(--primary); font-weight: bold; font-size: 20px;
-            pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
+            position: absolute; color: var(--primary); font-weight: 900; font-size: 24px;
+            pointer-events: none; animation: floatUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; z-index: 100;
+            text-shadow: 0 0 10px rgba(0,255,204,0.5);
         }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+        @keyframes floatUp { 0% { opacity: 0; transform: translateY(0) scale(0.5); } 20% { opacity: 1; transform: translateY(-20px) scale(1.2); } 100% { opacity: 0; transform: translateY(-80px) scale(1); } }
 
         /* Custom Result Modal */
         #result-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000;
+            display: none; align-items: center; justify-content: center; padding: 25px;
+            backdrop-filter: blur(15px);
         }
         .result-card {
-            background: var(--card); border: 1px solid #333; width: 100%; max-width: 350px;
-            border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
-            position: relative;
+            background: #111; border: 1px solid var(--border); width: 100%; max-width: 360px;
+            border-radius: 40px; padding: 50px 25px; text-align: center; animation: slideUp 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 26px; color: #444; cursor: pointer; transition: 0.2s; }
+        .close-modal:hover { color: #fff; }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Leaderboard UI */
-        .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
-        .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
-        .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
-        .rank-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
-        .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
-        .rank-num { width: 35px; font-weight: bold; color: var(--primary); font-size: 14px; }
-        .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 35px; padding: 25px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .rank-tabs { display: flex; gap: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 15px; }
+        .rank-tab { flex: 1; padding: 10px; border-radius: 12px; color: #666; font-size: 12px; cursor: pointer; text-align: center; font-weight: 800; transition: 0.3s; }
+        .rank-tab.active { background: var(--primary); color: #000; box-shadow: 0 4px 12px rgba(0, 255, 204, 0.2); }
+        
+        .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; scrollbar-width: none; }
+        .rank-list-container::-webkit-scrollbar { display: none; }
+        .rank-item { 
+            display: flex; align-items: center; background: var(--glass); padding: 15px 20px; 
+            border-radius: 20px; margin-bottom: 10px; border: 1px solid var(--border);
+            transition: 0.2s;
+        }
+        .rank-num { width: 40px; font-weight: 900; color: var(--primary); font-size: 16px; font-style: italic; }
+        .rank-name { flex: 1; font-size: 14px; font-weight: 600; color: #eee; }
         .rank-score-box { text-align: right; }
-        .rank-score { font-weight: bold; color: var(--primary); font-size: 14px; display: block; }
-        .rank-lvl { font-size: 9px; color: #666; display: block; }
-        .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
+        .rank-score { font-weight: 900; color: var(--primary); font-size: 16px; display: block; }
+        .rank-lvl { font-size: 10px; color: #555; font-weight: bold; text-transform: uppercase; }
 
         /* Profile UI */
-        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
-        .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; }
+        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 40px; padding: 40px 30px; border: 1px solid var(--border); text-align: center; }
+        .avatar-circle { 
+            width: 110px; height: 110px; background: var(--primary); border-radius: 50%; 
+            margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; 
+            font-size: 45px; color: #000; border: 6px solid #1a1a1a; overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 255, 204, 0.2);
+        }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 25px; }
-        .stat-item { background: #222; padding: 15px; border-radius: 15px; border: 1px solid #333; }
-        .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 30px; }
+        .stat-item { background: var(--glass); padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 800; }
+        .stat-value { font-size: 24px; font-weight: 900; color: var(--primary); }
 
         /* Navigation */
-        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
-        .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        .nav-bar { 
+            height: 75px; background: var(--nav); border-top: 1px solid var(--border); 
+            display: flex; justify-content: space-around; align-items: center; 
+            padding-bottom: 15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            backdrop-filter: blur(20px);
+        }
+        .nav-item { color: #444; font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; font-weight: 700; }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
+        .nav-icon { font-size: 22px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-item.active .nav-icon { filter: drop-shadow(0 0 8px var(--primary)); }
         
-        .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
+        .hidden-nav { transform: translateY(100%); opacity: 0; pointer-events: none; }
 
-        /* Modern Offline Toast */
+        /* Offline Toast */
         #offline-notice {
             position: fixed; top: -100px; left: 0; right: 0;
-            background: rgba(255, 62, 62, 0.95); color: white; 
-            padding: 15px; text-align: center; font-weight: bold; 
-            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
+            background: var(--danger); color: white; 
+            padding: 18px; text-align: center; font-weight: 800; 
+            z-index: 5000; transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         #offline-notice.show { top: 0; }
-        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* BOSS STYLES */
-        .boss-active .game-card { border-color: var(--boss); box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
-        .boss-active .vinyl { border-color: var(--boss); }
+        .boss-active #main-game-card { border-color: var(--boss); box-shadow: 0 0 50px rgba(255, 0, 85, 0.4); }
+        .boss-active .vinyl { border-color: var(--boss); box-shadow: 0 0 20px var(--boss); }
         .boss-active #disc-center { background: var(--boss) !important; }
-        .boss-active #round-counter { color: var(--boss) !important; }
-        .boss-active .option-btn { border-color: #441122; }
-        .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        /* --- NEW VIBE EFFECTS --- */
-        #visualizer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.4; z-index: 1; border-radius: 30px; }
+        .boss-active #round-counter { color: var(--boss) !important; font-weight: 900; }
+        .boss-active .option-btn { border-color: rgba(255, 0, 85, 0.3); }
+        .boss-active::before { 
+            content: ''; position: fixed; inset: 0; border: 4px solid var(--boss); 
+            z-index: 999; pointer-events: none; animation: bossPulse 1.5s infinite;
+        }
+        @keyframes bossPulse { 0% { opacity: 0.1; } 50% { opacity: 0.4; } 100% { opacity: 0.1; } }
         
-        .boss-pulse { animation: bossPulse 0.8s infinite; }
-        @keyframes bossPulse {
-            0% { box-shadow: inset 0 0 0px var(--boss); }
-            50% { box-shadow: inset 0 0 30px var(--boss); }
-            100% { box-shadow: inset 0 0 0px var(--boss); }
-        }
-
-        #fire-overlay {
-            position: absolute; inset: 0; border-radius: 30px; pointer-events: none;
-            background: radial-gradient(circle at bottom, rgba(255,100,0,0.3) 0%, transparent 70%);
-            opacity: 0; transition: opacity 0.5s; z-index: 1;
-        }
-        .combo-fire #fire-overlay { opacity: 1; }
-        .combo-fire .game-card { border-color: var(--accent); box-shadow: 0 0 25px rgba(255, 204, 0, 0.6); }
-
+        .boss-title { color: var(--boss); font-weight: 950; animation: blink 0.6s infinite; text-shadow: 0 0 15px var(--boss); letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
+<canvas id="visualizer"></canvas>
+
 <div id="offline-notice">
-    <span class="offline-icon">⚠️</span>
-    <span>Internet aloqasi yo'q!</span>
+    <span class="offline-icon">📡</span>
+    <span>INTERNET UZILDI!</span>
 </div>
 
 <div id="loading-screen">
     <div class="loader">
         <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
-    <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
+    <h1 style="color:var(--primary); margin-top:25px; letter-spacing: 4px; font-weight: 900; font-style: italic;">SONGLYRICS</h1>
+    <p style="color: #444; font-size: 10px; margin-top: 10px; font-weight: 800;">LOADING EXPERIENCE...</p>
 </div>
 
 <div id="result-modal">
     <div class="result-card">
         <span class="close-modal" onclick="closeResultModal()">✕</span>
-        <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
-        <p style="color:#888; margin-bottom:5px;">Sizning natijangiz:</p>
-        <div id="final-score" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 5px;">0</div>
-        <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
-        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
+        <h1 id="result-title" style="color:var(--primary); margin-bottom:15px; font-weight: 900; font-style: italic; letter-spacing: 1px;">O'YIN TUGADI!</h1>
+        <p style="color:#555; margin-bottom:8px; font-weight: 800; font-size: 12px; text-transform: uppercase;">Sizning natijangiz:</p>
+        <div id="final-score" style="font-size: 64px; font-weight: 900; color: #fff; margin-bottom: 5px; font-style: italic;">0</div>
+        <p id="final-level" style="color:var(--primary); font-weight: 900; margin-bottom: 35px; letter-spacing: 1px;">BOSQICH: 1</p>
+        <button class="start-btn" onclick="restartGame()" style="width: 100%;">YANA URINISH</button>
     </div>
 </div>
 
 <div id="app-container">
     <div id="page-game" class="page active-page">
         <div class="game-card" id="main-game-card">
-            <canvas id="visualizer"></canvas>
-            <div id="fire-overlay"></div>
+            <div id="combo-flame" class="combo-flame"></div>
             <div id="combo-badge">COMBO x1</div>
             
-            <div id="game-ui" style="display:none; position:relative; z-index:10;">
-                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 10px;">
+            <div id="game-ui" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:900; margin-bottom: 15px;">
                     <div id="game-stats-left">
                         <span id="score">BALL: 0</span><br>
-                        <span id="round-counter" style="font-size: 10px; color: #666;">BOSQICH: 1 | SAVOL: 1/5</span>
+                        <span id="round-counter" style="font-size: 9px; color: #555; text-transform: uppercase;">BOSQICH: 1 | SAVOL: 1/5</span>
                     </div>
                     <div id="lives" class="lives-container">🎵🎵🎵</div>
-                    <span id="timer">--</span>
+                    <span id="timer" style="background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 10px;">--</span>
                 </div>
-                <div class="vinyl" id="disc"><div style="position:absolute; inset:55px; background:var(--primary); border-radius:50%; border:5px solid #000;" id="disc-center"></div></div>
-                <p id="status" style="color:#888; font-size:12px; height: 18px; font-weight: bold;"></p>
+                
+                <div class="vinyl" id="disc">
+                    <div style="position:absolute; inset:65px; background:var(--primary); border-radius:50%; border:6px solid #000; transition: 0.3s;" id="disc-center"></div>
+                </div>
+                
+                <p id="status" style="color:#555; font-size:11px; height: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;"></p>
                 <div id="options-box" class="options-grid"></div>
             </div>
             
-            <div id="pre-game" style="position:relative; z-index:10;">
-                <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
+            <div id="pre-game">
+                <h2 style="margin-bottom:8px; font-weight: 900; font-style: italic;">JANRNI TANLANG</h2>
+                <p style="color:#444; margin-bottom:25px; font-size: 12px; font-weight: 800;">Musiqiy mahoratingizni sinab ko'ring!</p>
                 
                 <div class="cat-grid">
                     <button class="cat-btn" onclick="startGame('uzbek')">
                         <span class="cat-icon">🇺🇿</span>
-                        <span>O'zbekcha</span>
+                        <span>O'ZBEKCHA</span>
                     </button>
                     <button class="cat-btn" onclick="startGame('russian')">
                         <span class="cat-icon">🇷🇺</span>
-                        <span>Ruscha</span>
+                        <span>RUSCHA</span>
                     </button>
                     <button class="cat-btn" onclick="startGame('english')">
                         <span class="cat-icon">🇺🇸</span>
-                        <span>Inglizcha</span>
+                        <span>ENGLISH</span>
                     </button>
                     <button class="cat-btn" onclick="startGame('trend')">
                         <span class="cat-icon">🔥</span>
-                        <span>Trend</span>
+                        <span>TREND</span>
                     </button>
                 </div>
             </div>
@@ -224,37 +324,37 @@
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">REYTINGLAR</h2>
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:20px; font-size: 20px; font-weight: 900; font-style: italic; letter-spacing: 1px;">DUNYO REYTINGI</h2>
             
-            <div class="rank-tabs" style="margin-bottom: 15px;">
+            <div class="rank-tabs">
                 <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
                 <div class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</div>
-                <div class="rank-tab" id="limit-1000" onclick="setRankLimit(1000)">TOP 1000</div>
+                <div class="rank-tab" id="limit-1000" onclick="setRankLimit(1000)">ALL</div>
             </div>
 
             <div class="rank-list-container" id="rank-list"></div>
             
-            <p class="reset-info">Yakshanba kuni barcha natijalar nolga tushiriladi.</p>
+            <p class="reset-info">Natijalar har yakshanba yangilanadi.</p>
         </div>
     </div>
 
     <div id="page-profile" class="page">
         <div class="profile-card">
             <div class="avatar-circle" id="profile-avatar">👤</div>
-            <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 25px;"></p>
+            <h2 id="profile-name" style="margin-bottom:5px; font-weight: 900;">FOYDALANUVCHI</h2>
+            <p id="profile-id" style="color:#444; font-size:11px; font-family:monospace; margin-bottom: 30px; font-weight: 800;"></p>
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori bosqich (Best Level)</div>
+                    <div class="stat-label">Eng yuqori bosqich</div>
                     <div class="stat-value" id="best-level">1</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija (Best Score)</div>
+                    <div class="stat-label">Maksimal natija</div>
                     <div class="stat-value" id="best-score">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Umumiy Tajriba (Total XP)</div>
+                    <div class="stat-label">Umumiy tajriba (XP)</div>
                     <div class="stat-value" id="total-xp">0</div>
                 </div>
             </div>
@@ -263,16 +363,16 @@
 
     <nav class="nav-bar" id="bottom-nav">
         <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span>
-            <span>O'yin</span>
+            <span class="nav-icon">🎸</span>
+            <span>O'YIN</span>
         </div>
         <div class="nav-item" onclick="showPage('rank', this)">
-            <span class="nav-icon">🏆</span>
-            <span>Reyting</span>
+            <span class="nav-icon">👑</span>
+            <span>REYTING</span>
         </div>
         <div class="nav-item" onclick="showPage('profile', this)">
-            <span class="nav-icon">👤</span>
-            <span>Profil</span>
+            <span class="nav-icon">💎</span>
+            <span>PROFIL</span>
         </div>
     </nav>
 </div>
@@ -311,8 +411,41 @@
     let usedQuestions = new Set();
     let rankLimit = 10;
 
-    // Visualizer variables
-    let audioCtx, analyser, source, dataArray, canvas, ctx, animationId;
+    // --- VISUALIZER LOGIC ---
+    let audioContext, analyser, dataArray, canvas, ctx, animationId;
+    function setupVisualizer() {
+        if (audioContext) return;
+        canvas = document.getElementById('visualizer');
+        ctx = canvas.getContext('2d');
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 64;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function drawVisualizer() {
+        animationId = requestAnimationFrame(drawVisualizer);
+        analyser.getByteFrequencyData(dataArray);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const barWidth = (canvas.width / dataArray.length) * 2;
+        let x = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const barHeight = (dataArray[i] / 255) * canvas.height * 0.4;
+            ctx.fillStyle = isBossRound ? `rgba(255, 0, 85, 0.35)` : `rgba(0, 255, 204, 0.35)`;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+            x += barWidth;
+        }
+    }
 
     window.onload = () => {
         setTimeout(() => {
@@ -321,9 +454,6 @@
             loadProfileData();
         }, 2500);
         
-        canvas = document.getElementById('visualizer');
-        ctx = canvas.getContext('2d');
-
         const checkNetwork = () => {
             const notice = document.getElementById('offline-notice');
             if(!navigator.onLine) {
@@ -345,40 +475,10 @@
         checkNetwork();
     };
 
-    function initVisualizer() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            source = audioCtx.createMediaElementSource(audio);
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            analyser.fftSize = 64;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-        }
-    }
-
-    function drawVisualizer() {
-        animationId = requestAnimationFrame(drawVisualizer);
-        analyser.getByteFrequencyData(dataArray);
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / dataArray.length) * 2;
-        let x = 0;
-
-        for (let i = 0; i < dataArray.length; i++) {
-            const barHeight = dataArray[i] / 2;
-            ctx.fillStyle = isBossRound ? `rgb(${dataArray[i]+100}, 0, 85)` : `rgb(0, ${dataArray[i]+100}, 136)`;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 1;
-        }
-    }
-
     tg.BackButton.onClick(() => {
         if(isPlaying) {
             tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
-                if(confirmed) {
-                    quitGame();
-                }
+                if(confirmed) quitGame();
             });
         }
     });
@@ -394,45 +494,28 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
-        
-        // 1. Vizual holatni tozalash
         document.body.classList.remove('boss-active');
-        document.body.classList.remove('boss-pulse');
-        document.getElementById('main-game-card').classList.remove('combo-fire');
-        document.getElementById('combo-badge').style.display = 'none';
-        
-        // 2. Audio va Visualizerni to'xtatish
-        if(animationId) cancelAnimationFrame(animationId);
-        if(timerInterval) clearInterval(timerInterval);
+        clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
-        
-        // Canvasni tozalash
-        if(ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // 3. UI elementlarini qayta tiklash
+        cancelAnimationFrame(animationId);
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
         document.getElementById('pre-game').style.display = 'block';
-        document.getElementById('result-modal').style.display = 'none';
+        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
         
-        // 4. O'yin o'zgaruvchilarini nolga tushirish
         score = 0;
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
         currentLevel = 1;
-        usedQuestions.clear();
         
-        // Statlarni yangilash
         document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('timer').innerText = "--";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
-        document.getElementById('options-box').innerHTML = "";
-        document.getElementById('options-box').classList.remove('show-options');
-        document.getElementById('disc').classList.remove('spinning');
         updateLivesUI();
+        document.getElementById('result-modal').style.display = 'none';
     }
 
     window.closeResultModal = () => {
@@ -456,7 +539,9 @@
             return;
         }
 
-        initVisualizer();
+        setupVisualizer();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        drawVisualizer();
 
         try {
             const setSnap = await get(ref(db, 'settings/timer'));
@@ -474,7 +559,6 @@
         lives = 3;
         comboCount = 0;
         isBossRound = false;
-        usedQuestions.clear();
         
         document.getElementById('score').innerText = "BALL: 0";
         document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
@@ -514,7 +598,6 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        document.body.classList.remove('boss-pulse');
         
         const levelData = allQuestions.filter(q => 
             (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId)
@@ -548,8 +631,8 @@
                 isBossRound = true;
                 q = bossQuestion;
                 document.getElementById('combo-badge').style.display = 'none';
+                document.getElementById('combo-flame').style.display = 'none';
                 document.body.classList.add('boss-active');
-                document.body.classList.add('boss-pulse');
                 tg.HapticFeedback.notificationOccurred('warning');
                 roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
             } else {
@@ -569,7 +652,33 @@
         audio.pause();
         status.innerText = "Musiqa qidirilmoqda...";
 
-        // Musiqa yuklanishidan oldin variantlarni tayyorlaymiz, lekin ko'rsatmaymiz
+        const musicUrl = await fetchMusic(q.search_term);
+        if(musicUrl) {
+            audio.src = musicUrl;
+            audio.playbackRate = isBossRound ? 1.05 : 1.0;
+            
+            audio.onplay = () => {
+                disc.classList.add('spinning'); 
+                status.innerText = isBossRound ? "🔥 BOSS: DIQQAT BILAN ESHITING! 🔥" : "Diqqat bilan eshiting...";
+                
+                let dynamicTime = 10; 
+                if(isBossRound) {
+                    dynamicTime = adminTimerSettings.boss || 15;
+                } else {
+                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
+                        dynamicTime = adminTimerSettings.levels[currentLevel];
+                    } else {
+                        dynamicTime = 10; 
+                    }
+                }
+                startTimer(dynamicTime);
+            };
+
+            audio.play().catch(() => { skipRound(); });
+        } else {
+            skipRound(); return;
+        }
+
         const correctText = q.options[q.correct];
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
@@ -590,12 +699,12 @@
                         const comboX = q.boss_combo || 1;
                         pointsToAdd = baseBossScore * comboX;
                         showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
-                        tg.HapticFeedback.impactOccurred('heavy');
                         
                         if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
                             lives = Math.min(3, lives + 1);
                             updateLivesUI();
                         }
+                        tg.HapticFeedback.notificationOccurred('success');
                     } else {
                         comboCount++;
                         const comboMultiplier = Math.floor(comboCount / 3) + 1;
@@ -603,11 +712,11 @@
                         pointsToAdd = (baseScore * comboMultiplier);
                         showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                         updateComboUI();
+                        tg.HapticFeedback.impactOccurred('medium');
                     }
                     
                     score += pointsToAdd;
                     document.getElementById('score').innerText = "BALL: " + score;
-                    tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     btn.classList.add('wrong'); 
                     btns.forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
@@ -622,36 +731,6 @@
             };
             optionsBox.appendChild(btn);
         });
-
-        const musicUrl = await fetchMusic(q.search_term);
-        if(musicUrl) {
-            audio.src = musicUrl;
-            audio.playbackRate = isBossRound ? 1.05 : 1.0;
-            
-            audio.onplay = () => {
-                disc.classList.add('spinning'); 
-                status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
-                
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                drawVisualizer();
-
-                let dynamicTime = 10; 
-                if(isBossRound) {
-                    dynamicTime = adminTimerSettings.boss || 15;
-                } else {
-                    if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
-                        dynamicTime = adminTimerSettings.levels[currentLevel];
-                    } else {
-                        dynamicTime = 10;
-                    }
-                }
-                startTimer(dynamicTime);
-            };
-
-            audio.play().catch(() => { skipRound(); });
-        } else {
-            skipRound(); return;
-        }
     }
 
     function skipRound() {
@@ -682,29 +761,24 @@
 
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
-        const card = document.getElementById('main-game-card');
-        
+        const flame = document.getElementById('combo-flame');
         if (isBossRound) {
             badge.style.display = 'none';
-            card.classList.remove('combo-fire');
+            flame.style.display = 'none';
             return;
-        }
-
-        if (comboCount >= 10) {
-            card.classList.add('combo-fire');
-        } else {
-            card.classList.remove('combo-fire');
         }
 
         if (comboCount >= 3) {
             const multiplier = Math.floor(comboCount / 3) + 1;
             badge.innerText = `COMBO x${multiplier}`;
             badge.style.display = 'block';
+            flame.style.display = 'block';
             badge.style.animation = 'none';
             badge.offsetHeight; 
             badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         } else {
             badge.style.display = 'none';
+            flame.style.display = 'none';
         }
     }
 
@@ -719,10 +793,9 @@
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
-        document.getElementById('main-game-card').classList.remove('combo-fire');
-        document.body.classList.remove('boss-pulse');
-        cancelAnimationFrame(animationId);
+        document.getElementById('combo-flame').style.display = 'none';
         clearInterval(timerInterval);
+        cancelAnimationFrame(animationId);
         audio.pause();
         audio.src = "";
         
@@ -733,7 +806,7 @@
         const levelDisplay = document.getElementById('final-level');
         const titleDisplay = document.getElementById('result-title');
         
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        titleDisplay.innerText = isGameOver ? "O'YIN TUGADI!" : "G'ALABA!";
         scoreDisplay.innerText = score;
         levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
 
@@ -770,7 +843,7 @@
                 audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
                 document.getElementById('options-box').classList.add('show-options');
-                document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
+                document.getElementById('status').innerText = isBossRound ? "🔥 KIM AYTGAN? 🔥" : "Kim aytgan?";
             }
         }, 1000);
     }
@@ -813,7 +886,7 @@
                 rawData.forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
-                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
+                    if(u.id == user.id) item.style.borderColor = "var(--primary)";
                     
                     item.innerHTML = `
                         <div class="rank-num">#${index + 1}</div>
