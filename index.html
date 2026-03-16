@@ -327,7 +327,7 @@
     let usedQuestions = new Set();
     let rankLimit = 10;
 
-    // --- VISUALIZER LOGIC (RASMDAGI YASHIL BARLAR) ---
+    // --- VISUALIZER LOGIC ---
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
     function setupVisualizer() {
         if (audioContext) return;
@@ -338,18 +338,23 @@
         const source = audioContext.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioContext.destination);
-        analyser.fftSize = 64; // Rasmdagidek keng barlar uchun
+        analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
     }
 
     function resizeCanvas() {
+        if (!canvas) return;
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
 
     function drawVisualizer() {
+        if (!isPlaying) {
+            if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
         animationId = requestAnimationFrame(drawVisualizer);
         analyser.getByteFrequencyData(dataArray);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -360,13 +365,12 @@
         for (let i = 0; i < dataArray.length; i++) {
             const barHeight = (dataArray[i] / 255) * canvas.height * 0.7;
             
-            // Rasmdagi yashil gradient effekt
             const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
             if(isBossRound) {
                 gradient.addColorStop(0, 'rgba(255, 0, 85, 0.8)');
                 gradient.addColorStop(1, 'rgba(255, 0, 85, 0.2)');
             } else {
-                gradient.addColorStop(0, '#00ff88'); // Rasmdagi yashil rang
+                gradient.addColorStop(0, '#00ff88'); 
                 gradient.addColorStop(1, 'rgba(0, 255, 136, 0.1)');
             }
             
@@ -423,13 +427,15 @@
     function quitGame() {
         isPlaying = false;
         isBossRound = false;
-        // Xatolik tuzatilgan joy: Boss effektlarini butunlay tozalash
         document.body.classList.remove('boss-active');
-        
         clearInterval(timerInterval);
         audio.pause();
         audio.src = "";
-        cancelAnimationFrame(animationId);
+        
+        // Animatsiyani to'xtatish va canvasni tozalash
+        if (animationId) cancelAnimationFrame(animationId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('game-ui').style.display = 'none';
@@ -472,6 +478,10 @@
 
         setupVisualizer();
         if (audioContext.state === 'suspended') audioContext.resume();
+        
+        currentCategory = category || 'uzbek';
+        isPlaying = true;
+        
         drawVisualizer();
 
         try {
@@ -481,9 +491,6 @@
             }
         } catch(e) {}
 
-        currentCategory = category || 'uzbek';
-        isPlaying = true;
-        
         currentLevel = 1;
         currentIdx = 0;
         score = 0;
@@ -726,7 +733,10 @@
         document.getElementById('combo-badge').style.display = 'none';
         document.getElementById('combo-flame').style.display = 'none';
         clearInterval(timerInterval);
-        cancelAnimationFrame(animationId);
+        
+        if (animationId) cancelAnimationFrame(animationId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         audio.pause();
         audio.src = "";
         
@@ -742,7 +752,6 @@
         levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
 
         modal.style.display = 'flex';
-        // Xatolik tuzatilgan joy: Boss effektlarini butunlay tozalash
         document.body.classList.remove('boss-active');
     }
 
