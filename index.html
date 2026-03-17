@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -962,31 +961,18 @@
         document.body.classList.remove('boss-active');
     }
 
-    async function fetchMusic(term, isRetry = false) {
+    async function fetchMusic(term) {
         if (!navigator.onLine) return null;
         try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
+            // "Xonanda - Qo'shiq" formatini iTunesga to'g'ridan-to'g'ri yuboramiz
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
             const data = await res.json();
             
-            // Cover, remix va instrumental versiyalarni filtrlaymiz
-            const filteredTracks = data.results.filter(t => {
-                const trackName = (t.trackName || "").toLowerCase();
-                const isCover = ["cover", "tribute", "karaoke", "remix", "version", "piano", "instrumental", "live"].some(m => trackName.includes(m));
-                return !isCover;
-            });
-
-            // Agar natija bo'lsa, birinchisini qaytaramiz
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-
-            // AGAR TOPILMASA: "Xonanda - Qo'shiq" formatida bo'lsa, faqat Qo'shiq qismini olib qayta qidiramiz
-            if (!isRetry && term.includes(' - ')) {
-                const parts = term.split(' - ');
-                const songOnly = parts[1] ? parts[1].trim() : parts[0].trim();
-                return await fetchMusic(songOnly, true);
+            if (data.results && data.results.length > 0) {
+                return data.results[0].previewUrl;
             }
             
-            // Retry bo'lganda ham topilmasa, borini qaytaramiz
-            return data.results[0]?.previewUrl;
+            return null;
         } catch (e) { return null; }
     }
 
@@ -1152,9 +1138,5 @@
         } catch (e) { 
             bestScoreEl.innerText = "0";
             bestLevelEl.innerText = "1";
-            totalXpEl.innerText = "0";
-        }
-    }
-</script>
-</body>
-</html>
+            totalXpEl
+
