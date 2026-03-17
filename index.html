@@ -961,18 +961,30 @@
         document.body.classList.remove('boss-active');
     }
 
-    async function fetchMusic(term) {
+    async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
         try {
-            // "Xonanda - Qo'shiq" formatini iTunesga to'g'ridan-to'g'ri yuboramiz
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
+            // "Xamdam Sobirov - Maktabimda" formatida to'g'ridan-to'g'ri qidiruv
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
             
-            if (data.results && data.results.length > 0) {
-                return data.results[0].previewUrl;
+            // Asl versiyalarni (remix va instrumental bo'lmagan) saralash
+            const filteredTracks = data.results.filter(t => {
+                const trackName = (t.trackName || "").toLowerCase();
+                const isExclude = ["karaoke", "instrumental", "piano", "tribute"].some(m => trackName.includes(m));
+                return !isExclude;
+            });
+
+            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
+
+            // Agar natija chiqmasa va termda " - " bo'lsa, ikkinchi qism (qo'shiq nomi) bilan qidirib ko'ramiz
+            if (!isRetry && term.includes(' - ')) {
+                const parts = term.split(' - ');
+                const songOnly = parts[1] ? parts[1].trim() : parts[0].trim();
+                return await fetchMusic(songOnly, true);
             }
             
-            return null;
+            return data.results[0]?.previewUrl || null;
         } catch (e) { return null; }
     }
 
@@ -1012,9 +1024,7 @@
                 }
                 animationsStarted++;
                 
-                // --- YANGI: Barcha variantlar chiqib bo'lganligini tekshirish ---
                 if(animationsStarted === btns.length) {
-                    // Hammasi chiqib bo'lgach, barcha tugmalarni faollashtirish
                     btns.forEach(b => b.disabled = false);
                     
                     setTimeout(() => {
@@ -1138,5 +1148,9 @@
         } catch (e) { 
             bestScoreEl.innerText = "0";
             bestLevelEl.innerText = "1";
-            totalXpEl
-
+            totalXpEl.innerText = "0";
+        }
+    }
+</script>
+</body>
+</html>
