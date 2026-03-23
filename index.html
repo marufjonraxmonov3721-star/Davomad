@@ -10,7 +10,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; position: relative; }
         
-        /* Visualizer Canvas - Rasmdagi yashil barlar */
+        /* Visualizer Canvas */
         #visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; z-index: 1; pointer-events: none; opacity: 0.8; }
 
         /* Loading Animation */
@@ -29,13 +29,18 @@
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
-        /* Category Selection Styles */
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 15px; }
-        .cat-btn { background: #1a1a1a; border: 1px solid #333; padding: 18px 10px; border-radius: 18px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .cat-btn:active { transform: scale(0.95); background: #222; }
-        .cat-icon { font-size: 26px; }
+        /* Start Button Styles */
+        .start-container { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .main-play-btn { 
+            background: linear-gradient(135deg, var(--primary), #00cc6e); 
+            color: #000; border: none; padding: 25px 50px; border-radius: 25px; 
+            font-size: 20px; font-weight: 900; cursor: pointer; transition: 0.3s; 
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3); width: 100%;
+            letter-spacing: 2px;
+        }
+        .main-play-btn:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2); }
 
-        /* Game UI - Rasmdagi effektlar */
+        /* Game UI */
         .game-card { width: 100%; max-width: 400px; background: rgba(21, 21, 21, 0.9); padding: 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.05); text-align: center; position: relative; transition: 0.3s; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         
         .vinyl { 
@@ -55,7 +60,6 @@
         
         .option-btn, .start-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         
-        /* Variant chiqish animatsiyasi */
         .option-btn { opacity: 0; transform: translateY(20px); }
         .option-btn.reveal { opacity: 1; transform: translateY(0); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
@@ -65,7 +69,6 @@
 
         .lives-container { font-size: 18px; color: var(--primary); letter-spacing: 2px; }
 
-        /* Combo Badge */
         #combo-badge {
             position: absolute; top: 80px; right: 20px; background: var(--accent); color: #000;
             padding: 5px 12px; border-radius: 20px; font-weight: 900; font-size: 14px;
@@ -73,7 +76,6 @@
             box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); z-index: 10;
         }
         
-        /* Fire/Sparks for Combo */
         .combo-flame { 
             position: absolute; inset: -5px; border-radius: 35px; border: 2px solid var(--accent);
             box-shadow: 0 0 20px var(--accent); pointer-events: none; animation: flamePulse 0.5s infinite alternate;
@@ -83,14 +85,12 @@
 
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        /* Floating Score Text */
         .floating-text {
             position: absolute; color: var(--primary); font-weight: bold; font-size: 20px;
             pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
         }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
-        /* Custom Result Modal */
         #result-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
             display: none; align-items: center; justify-content: center; padding: 20px;
@@ -103,7 +103,6 @@
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* --- NEW: LEVEL COMPLETE MODAL --- */
         #level-complete-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500;
             display: none; align-items: center; justify-content: center; padding: 20px;
@@ -124,7 +123,6 @@
         .star-anim { font-size: 40px; color: var(--accent); margin: 10px 0; display: block; animation: starPop 0.6s infinite alternate; }
         @keyframes starPop { from { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent)); } to { transform: scale(1.2); filter: drop-shadow(0 0 15px var(--accent)); } }
 
-        /* Leaderboard UI */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
         .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
         .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
@@ -138,7 +136,6 @@
         .rank-lvl { font-size: 9px; color: #666; display: block; }
         .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
 
-        /* Profile UI */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
         .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
@@ -147,7 +144,6 @@
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
 
-        /* Navigation */
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -155,7 +151,6 @@
         
         .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        /* Modern Offline Toast */
         #offline-notice {
             position: fixed; top: -100px; left: 0; right: 0;
             background: rgba(255, 62, 62, 0.95); color: white; 
@@ -183,7 +178,6 @@
         .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* Resume Overlay */
         #resume-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -262,26 +256,11 @@
             </div>
             
             <div id="pre-game">
-                <h2 style="margin-bottom:10px;">Kategoriyani tanlang</h2>
-                <p style="color:#666; margin-bottom:20px;">Bosqichma-bosqich qiyinlashib boruvchi raundlar!</p>
+                <h2 style="margin-bottom:10px;">Xush kelibsiz!</h2>
+                <p style="color:#666; margin-bottom:30px;">Musiqalarni tinglang va ijrochini toping. Har bir bosqich qiyinlashib boradi!</p>
                 
-                <div class="cat-grid">
-                    <button class="cat-btn" onclick="startGame('uzbek')">
-                        <span class="cat-icon">🇺🇿</span>
-                        <span>O'zbekcha</span>
-                    </button>
-                    <button class="cat-btn" onclick="startGame('russian')">
-                        <span class="cat-icon">🇷🇺</span>
-                        <span>Ruscha</span>
-                    </button>
-                    <button class="cat-btn" onclick="startGame('english')">
-                        <span class="cat-icon">🇺🇸</span>
-                        <span>Inglizcha</span>
-                    </button>
-                    <button class="cat-btn" onclick="startGame('trend')">
-                        <span class="cat-icon">🔥</span>
-                        <span>Trend</span>
-                    </button>
+                <div class="start-container">
+                    <button class="main-play-btn" onclick="startGame('uzbek')">O'YINNI BOSHLASH</button>
                 </div>
             </div>
         </div>
@@ -482,12 +461,6 @@
         }
     };
 
-    tg.onEvent('viewportChanged', (data) => {
-        if (data.isStateStable && tg.isExpanded === false) {
-             pauseGame();
-        }
-    });
-
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             pauseGame();
@@ -683,7 +656,7 @@
                 }));
                 loadLevelQuestions();
             } else {
-                tg.showAlert("Ushbu kategoriyada savollar topilmadi!");
+                tg.showAlert("Savollar topilmadi!");
                 quitGame();
             }
         } catch (e) {
@@ -785,7 +758,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = opt;
-                btn.disabled = true; // Dastlab bloklab qo'yiladi
+                btn.disabled = true;
                 btn.onclick = (e) => {
                     const btns = document.querySelectorAll('.option-btn');
                     btns.forEach(b => b.disabled = true);
@@ -964,26 +937,19 @@
     async function fetchMusic(term, isRetry = false) {
         if (!navigator.onLine) return null;
         try {
-            // "Xamdam Sobirov - Maktabimda" formatida to'g'ridan-to'g'ri qidiruv
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            
-            // Asl versiyalarni (remix va instrumental bo'lmagan) saralash
             const filteredTracks = data.results.filter(t => {
                 const trackName = (t.trackName || "").toLowerCase();
                 const isExclude = ["karaoke", "instrumental", "piano", "tribute"].some(m => trackName.includes(m));
                 return !isExclude;
             });
-
             if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-
-            // Agar natija chiqmasa va termda " - " bo'lsa, ikkinchi qism (qo'shiq nomi) bilan qidirib ko'ramiz
             if (!isRetry && term.includes(' - ')) {
                 const parts = term.split(' - ');
                 const songOnly = parts[1] ? parts[1].trim() : parts[0].trim();
                 return await fetchMusic(songOnly, true);
             }
-            
             return data.results[0]?.previewUrl || null;
         } catch (e) { return null; }
     }
@@ -1010,7 +976,6 @@
         const optionsBox = document.getElementById('options-box');
         optionsBox.classList.add('show-options');
         const btns = document.querySelectorAll('.option-btn');
-        
         document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
 
         let animationsStarted = 0;
@@ -1023,10 +988,8 @@
                     tickClone.play().catch(() => {});
                 }
                 animationsStarted++;
-                
                 if(animationsStarted === btns.length) {
                     btns.forEach(b => b.disabled = false);
-                    
                     setTimeout(() => {
                         if(!isPlaying || gamePhase !== 'choosing') return;
                         if(timerTickSound.src && !isPaused) {
@@ -1044,20 +1007,16 @@
         currentRemainingTime = seconds;
         document.getElementById('timer').innerText = currentRemainingTime;
         clearInterval(timerInterval);
-        
         timerInterval = setInterval(() => {
             if (!navigator.onLine || isPaused) return;
             currentRemainingTime--;
             document.getElementById('timer').innerText = Math.max(0, currentRemainingTime);
-            
             if(currentRemainingTime <= 0) {
                 clearInterval(timerInterval);
                 timerTickSound.pause();
                 timerTickSound.currentTime = 0;
-                
                 let q = isBossRound ? bossQuestion : questions[currentIdx];
                 handleWrongAnswer(null, q.options[q.correct]);
-                
                 setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
             }
         }, 1000);
@@ -1071,7 +1030,6 @@
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
             const newBestScore = Math.max(score, data.score || 0);
             const newBestLevel = Math.max(currentLevel, data.level || 1);
-            
             await update(userRef, {
                 name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                 score: newBestScore,
@@ -1097,12 +1055,10 @@
                 const rawData = [];
                 snap.forEach(child => { rawData.push(child.val()); });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
-
                 rawData.forEach((u, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
                     if(u.id == user.id) item.style.borderColor = "#ffcc00";
-                    
                     item.innerHTML = `
                         <div class="rank-num">#${index + 1}</div>
                         <div class="rank-name">${u.name}</div>
