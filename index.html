@@ -621,10 +621,12 @@
             if(setSnap.exists()) {
                 adminTimerSettings = setSnap.val();
             }
-            
-            // BOSQICHNI FIREBASE DAN OLISH
+        } catch(e) {}
+
+        // O'yinchining darajasini Firebase'dan olish
+        try {
             const userSnap = await get(ref(db, `leaderboard/${user.id}`));
-            if(userSnap.exists()) {
+            if (userSnap.exists()) {
                 currentLevel = userSnap.val().level || 1;
             } else {
                 currentLevel = 1;
@@ -691,8 +693,14 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar savollar qolmagan bo'lsa, bosqichni tugatish yoki boshidan boshlash
-            endGame(false);
+            // Agar ushbu levelda savol qolmagan bo'lsa, keyingi levelni tekshirish yoki tugatish
+            currentLevel++;
+            const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
+            if(nextLevelData.length > 0) {
+                loadLevelQuestions();
+            } else {
+                endGame(false);
+            }
         }
     }
 
@@ -834,8 +842,7 @@
             setTimeout(() => {
                 modal.style.display = 'none';
                 currentLevel++;
-                // Bosqichni saqlash
-                saveScore();
+                saveScore(); // Level oshganda natijani saqlash
                 loadLevelQuestions();
             }, 2000); 
         }, 100);
@@ -1058,3 +1065,67 @@
             listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
             return;
         }
+        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
+        try {
+            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
+            const snap = await get(rankQuery);
+            if(snap.exists()) {
+                listDiv.innerHTML = "";
+                const rawData = [];
+                snap.forEach(child => { rawData.push(child.val()); });
+                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+                rawData.forEach((u, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'rank-item';
+                    if(u.id == user.id) item.style.borderColor = "#ffcc00";
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">${u.score}</span>
+                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            } else {
+                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
+            }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
+    }
+
+    async function loadProfileData() {
+        const profileName = document.getElementById('profile-name');
+        const profileId = document.getElementById('profile-id');
+        const bestScoreEl = document.getElementById('best-score');
+        const bestLevelEl = document.getElementById('best-level');
+        const totalXpEl = document.getElementById('total-xp');
+        const profileAvatar = document.getElementById('profile-avatar');
+
+        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+        profileId.innerText = "ID: " + user.id;
+
+        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
+        else { profileAvatar.innerText = user.first_name.charAt(0); }
+
+        try {
+            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            if (snap.exists()) {
+                const data = snap.val();
+                bestScoreEl.innerText = data.score || 0;
+                bestLevelEl.innerText = data.level || 1;
+                totalXpEl.innerText = data.total_xp || 0;
+            } else {
+                bestScoreEl.innerText = "0";
+                bestLevelEl.innerText = "1";
+                totalXpEl.innerText = "0";
+            }
+        } catch (e) { 
+            bestScoreEl.innerText = "0";
+            bestLevelEl.innerText = "1";
+            totalXpEl.innerText = "0";
+        }
+    }
+</script>
+</body>
+</html>
