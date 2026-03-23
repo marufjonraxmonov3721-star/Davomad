@@ -623,13 +623,13 @@
             }
         } catch(e) {}
 
-        // O'yinchining darajasini Firebase'dan olish
+        // Foydalanuvchi darajasini Firebase'dan olish (xatolik tuzatilgan qismi)
         try {
             const userSnap = await get(ref(db, `leaderboard/${user.id}`));
             if (userSnap.exists()) {
                 currentLevel = userSnap.val().level || 1;
             } else {
-                currentLevel = 1;
+                currentLevel = 1; // Agar bazada yo'q bo'lsa, 1-daraja
             }
         } catch(e) {
             currentLevel = 1;
@@ -693,7 +693,7 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar ushbu levelda savol qolmagan bo'lsa, keyingi levelni tekshirish yoki tugatish
+            // Agar ushbu levelda savol qolmagan bo'lsa, keyingisini tekshirish
             currentLevel++;
             const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
             if(nextLevelData.length > 0) {
@@ -842,7 +842,7 @@
             setTimeout(() => {
                 modal.style.display = 'none';
                 currentLevel++;
-                saveScore(); // Level oshganda natijani saqlash
+                saveScore(); // Yangi bosqichga o'tganda saqlash
                 loadLevelQuestions();
             }, 2000); 
         }, 100);
