@@ -622,10 +622,10 @@
                 adminTimerSettings = setSnap.val();
             }
             
-            // Eng yuqori bosqichni bazadan olish
-            const profileSnap = await get(ref(db, `leaderboard/${user.id}`));
-            if(profileSnap.exists()) {
-                currentLevel = profileSnap.val().level || 1;
+            // BOSQICHNI FIREBASE DAN OLISH
+            const userSnap = await get(ref(db, `leaderboard/${user.id}`));
+            if(userSnap.exists()) {
+                currentLevel = userSnap.val().level || 1;
             } else {
                 currentLevel = 1;
             }
@@ -691,14 +691,8 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar joriy bosqichda savol tugasa va hali o'yin davom etayotgan bo'lsa
-            if (currentLevel > 1) {
-                tg.showAlert("Ushbu bosqich uchun boshqa savol qolmagan, Level 1 dan boshlanadi.");
-                currentLevel = 1;
-                loadLevelQuestions();
-            } else {
-                endGame(false);
-            }
+            // Agar savollar qolmagan bo'lsa, bosqichni tugatish yoki boshidan boshlash
+            endGame(false);
         }
     }
 
@@ -840,6 +834,8 @@
             setTimeout(() => {
                 modal.style.display = 'none';
                 currentLevel++;
+                // Bosqichni saqlash
+                saveScore();
                 loadLevelQuestions();
             }, 2000); 
         }, 100);
@@ -1033,4 +1029,32 @@
                 timerTickSound.currentTime = 0;
                 let q = isBossRound ? bossQuestion : questions[currentIdx];
                 handleWrongAnswer(null, q.options[q.correct]);
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 15
+                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
+            }
+        }, 1000);
+    }
+
+    async function saveScore() {
+        if (!navigator.onLine) return;
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        try {
+            const snap = await get(userRef);
+            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            const newBestScore = Math.max(score, data.score || 0);
+            const newBestLevel = Math.max(currentLevel, data.level || 1);
+            await update(userRef, {
+                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
+                score: newBestScore,
+                level: newBestLevel,
+                total_xp: increment(score > 0 ? score : 0),
+                id: user.id
+            });
+        } catch (e) {}
+    }
+
+    async function loadLeaderboard() {
+        const listDiv = document.getElementById('rank-list');
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
+            return;
+        }
