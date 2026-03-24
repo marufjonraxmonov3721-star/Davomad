@@ -213,6 +213,17 @@
             transition: 0.2s;
         }
         .edit-avatar-badge:active { transform: scale(0.9); }
+        
+        /* Delete Avatar Badge */
+        .delete-avatar-badge {
+            position: absolute; top: 0; left: 0; background: var(--danger);
+            width: 30px; height: 30px; border-radius: 50%; display: none;
+            align-items: center; justify-content: center; font-size: 14px;
+            border: 3px solid #151515; color: #fff; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: 0.2s; z-index: 10;
+        }
+        .delete-avatar-badge:active { transform: scale(0.9); }
 
         .name-edit-wrapper { 
             position: relative; display: flex; align-items: center; 
@@ -411,6 +422,9 @@
             <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
             
             <div class="avatar-container">
+                <div class="delete-avatar-badge" id="delete-avatar-btn" onclick="deleteAvatar()">
+                    <i class="fas fa-times"></i>
+                </div>
                 <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">
                     <span>👤</span>
                 </div>
@@ -695,7 +709,7 @@
             if(!navigator.onLine) return;
             const newName = nameInput.value.trim();
             const avatarImg = document.querySelector('#profile-avatar img');
-            const avatarBase64 = avatarImg ? avatarImg.src : (user.photo_url || "");
+            const avatarBase64 = avatarImg ? avatarImg.src : "";
 
             if(newName.length < 3) {
                 tg.showAlert("Ism kamida 3 ta harfdan iborat bo'lishi kerak!");
@@ -757,9 +771,18 @@
             circle: false
         }).then(function(base64) {
             document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile">`;
+            document.getElementById('delete-avatar-btn').style.display = 'flex';
             document.getElementById('save-profile-btn').style.display = 'block';
             document.getElementById('crop-modal').style.display = 'none';
         });
+    };
+
+    window.deleteAvatar = () => {
+        const nameInput = document.getElementById('profile-input-name');
+        const firstChar = nameInput.value.trim().charAt(0).toUpperCase() || user.first_name.charAt(0);
+        document.getElementById('profile-avatar').innerHTML = `<span>${firstChar}</span>`;
+        document.getElementById('delete-avatar-btn').style.display = 'none';
+        document.getElementById('save-profile-btn').style.display = 'block';
     };
 
     tg.BackButton.onClick(() => {
@@ -1198,7 +1221,7 @@
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
                 rawData.slice(0, 3).forEach((u, i) => {
                     const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
-                    const av = u.photo ? `<img src="${u.photo}">` : u.name.charAt(0).toUpperCase();
+                    const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
                     item.innerHTML = `
                         <div class="podium-avatar">${av}</div>
                         <div class="podium-step rank-${rank}">
@@ -1233,6 +1256,7 @@
         const profileId = document.getElementById('profile-id');
         const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
         const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
+        const delBtn = document.getElementById('delete-avatar-btn');
         profileId.innerText = "ID: " + user.id;
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
@@ -1240,14 +1264,28 @@
                 const d = snap.val();
                 nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
                 bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
-                if (d.photo) pA.innerHTML = `<img src="${d.photo}" alt="P">`; 
-                else if (user.photo_url) pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
-                else pA.innerHTML = `<span>${user.first_name.charAt(0)}</span>`;
+                if (d.photo) {
+                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
+                    delBtn.style.display = 'flex';
+                }
+                else if (user.photo_url) {
+                    pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
+                    delBtn.style.display = 'flex';
+                }
+                else {
+                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                    delBtn.style.display = 'none';
+                }
             } else {
                 nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
                 bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
+                pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                delBtn.style.display = 'none';
             }
-        } catch (e) { nameInput.value = user.first_name; }
+        } catch (e) { 
+            nameInput.value = user.first_name; 
+            pA.innerHTML = `<span>${user.first_name.charAt(0).toUpperCase()}</span>`;
+        }
     }
 </script>
 </body>
