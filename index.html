@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -1314,7 +1313,10 @@
             const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
             if(snap.exists()) {
                 listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
-                const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
+                const rawData = []; snap.forEach(child => { 
+                    const userData = child.val();
+                    if(userData.score > 0) { rawData.push(userData); }
+                });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
                 
                 rawData.slice(0, 3).forEach((u, i) => {
@@ -1346,6 +1348,10 @@
                         </div>`;
                     listDiv.appendChild(item);
                 });
+                
+                if(rawData.length === 0) {
+                   listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
+                }
             } else { listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
         } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
