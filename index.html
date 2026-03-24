@@ -138,7 +138,7 @@
         .star-anim { font-size: 40px; color: var(--accent); margin: 10px 0; display: block; animation: starPop 0.6s infinite alternate; }
         @keyframes starPop { from { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent)); } to { transform: scale(1.2); filter: drop-shadow(0 0 15px var(--accent)); } }
 
-        /* LEADERBOARD ENHANCEMENTS - RE-STRUCTURED */
+        /* LEADERBOARD ENHANCEMENTS */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 15px; border: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; }
         
         .podium-container { 
@@ -1203,16 +1203,21 @@
 
     async function saveScore() {
         if (!navigator.onLine) return;
+        const nameInput = document.getElementById('profile-input-name');
+        const avatarImg = document.querySelector('#profile-avatar img');
+        const currentName = nameInput.value.trim() || user.first_name;
+        const currentPhoto = avatarImg ? avatarImg.src : "";
+        
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
-            const nameInput = document.getElementById('profile-input-name');
             await update(userRef, {
-                name: nameInput.value.trim() || user.first_name,
                 score: Math.max(score, data.score || 0),
                 level: Math.max(currentLevel, data.level || 1),
                 total_xp: increment(score > 0 ? score : 0),
+                name: currentName,
+                photo: currentPhoto,
                 id: user.id
             });
         } catch (e) {}
@@ -1230,10 +1235,16 @@
             const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
             if(snap.exists()) {
                 listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
-                const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
+                const rawData = []; 
+                snap.forEach(child => { 
+                    const val = child.val();
+                    // Ism mavjudligini tekshiramiz
+                    if(!val.name) val.name = "O'yinchi";
+                    rawData.push(val); 
+                });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
                 
-                // Podium: Faqat eng yaxshi 3 talik
+                // Podium: Top 3
                 rawData.slice(0, 3).forEach((u, i) => {
                     const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
                     const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
@@ -1249,7 +1260,7 @@
                     podiumDiv.appendChild(item);
                 });
 
-                // Ro'yxat: Top 10 yoki 100
+                // List: All
                 rawData.forEach((u, index) => {
                     if (index < 3 && rankLimit > 3) return; 
                     const item = document.createElement('div');
@@ -1279,22 +1290,15 @@
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
                 const d = snap.val();
-                const displayName = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
-                nameInput.value = displayName;
+                nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
                 bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
                 if (d.photo) {
                     pA.innerHTML = `<img src="${d.photo}" alt="P">`;
                     delBtn.style.display = 'flex';
                 }
-                else if (user.photo_url) {
-                    pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
-                    delBtn.style.display = 'flex';
-                }
                 else {
-                    pA.innerHTML = `<span>${displayName.charAt(0).toUpperCase()}</span>`;
+                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
                     delBtn.style.display = 'none';
                 }
             } else {
-                const defaultName = user.first_name + (user.last_name ? " " + user.last_name : "");
-                nameInput.value = defaultName;
-                bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
+                nameInput.value = user.first_name + (user.last_name ? " " + user.last_name :
