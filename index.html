@@ -34,14 +34,26 @@
 
         /* Start Button Styles */
         .start-container { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        /* New Stylish Play Button */
         .main-play-btn { 
             background: linear-gradient(135deg, var(--primary), #00cc6e); 
-            color: #000; border: none; padding: 25px 50px; border-radius: 25px; 
-            font-size: 20px; font-weight: 900; cursor: pointer; transition: 0.3s; 
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3); width: 100%;
-            letter-spacing: 2px;
+            color: #000; border: none; padding: 18px 35px; border-radius: 50px; 
+            font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.4s; 
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4); 
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            position: relative; overflow: hidden;
+            width: 80%;
         }
-        .main-play-btn:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2); }
+        .main-play-btn i { font-size: 20px; }
+        .main-play-btn:active { transform: scale(0.92); box-shadow: 0 4px 10px rgba(0, 255, 136, 0.2); }
+        .main-play-btn::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: rgba(255,255,255,0.2); transform: rotate(45deg);
+            transition: 0.5s; opacity: 0;
+        }
+        .main-play-btn:hover::after { left: 100%; opacity: 1; }
 
         /* Game UI */
         .game-card { width: 100%; max-width: 400px; background: rgba(21, 21, 21, 0.9); padding: 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.05); text-align: center; position: relative; transition: 0.3s; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
@@ -393,7 +405,9 @@
                 <p style="color:#666; margin-bottom:30px;">Musiqalarni tinglang va ijrochini toping. Har bir bosqich qiyinlashib boradi!</p>
                 
                 <div class="start-container">
-                    <button class="main-play-btn" onclick="startGame('uzbek')">O'YINNI BOSHLASH</button>
+                    <button class="main-play-btn" onclick="startGame('uzbek')">
+                        <i class="fas fa-play"></i> O'yinni boshlash
+                    </button>
                 </div>
             </div>
         </div>
