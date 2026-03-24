@@ -477,7 +477,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, increment, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -522,42 +522,7 @@
     let currentRemainingTime = 0;
     let gamePhase = 'listening'; 
 
-    // AI Configuration and Generation
-    async function generateAIQuestions(level, category) {
-        console.log("AI yangi savollar yaratmoqda...");
-        try {
-            // Bu qismda sizning serveringiz yoki Edge Function bo'lishi kerak.
-            // Brauzerda xavfsizlik uchun API KEY'ni saqlab bo'lmaydi.
-            // Namuna sifatida AI tomonidan yaratilgan deb faraz qilingan ma'lumotlarni bazaga qo'shamiz.
-            
-            const newQuestions = [
-                {
-                    search_term: "Sherali Jo'rayev - Karvon",
-                    options: ["Sherali Jo'rayev", "Tohir Sodiqov", "Ozodbek Nazarbekov", "Botir Qodirov"],
-                    correct: 0,
-                    level: level,
-                    score: 20
-                },
-                {
-                    search_term: "Konsta - O'zbekiston",
-                    options: ["Massa", "Konsta", "Shokir", "Parcha"],
-                    correct: 1,
-                    level: level,
-                    score: 20
-                }
-            ];
-
-            for(let q of newQuestions) {
-                await push(ref(db, `questions/${category}`), q);
-            }
-            console.log("AI savollarni muvaffaqiyatli yangiladi.");
-            return true;
-        } catch(e) {
-            console.log("AI xatosi:", e);
-            return false;
-        }
-    }
-
+    // Croppie Instance
     let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
@@ -569,6 +534,7 @@
         analyser = audioContext.createAnalyser();
         const source = audioContext.createMediaElementSource(audio);
         source.connect(analyser);
+        analyser.connect(audioContext.destination);
         analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         resizeCanvas();
@@ -949,13 +915,8 @@
                 }));
                 loadLevelQuestions();
             } else {
-                // Agar baza butkul bo'sh bo'lsa AI generatsiya qiladi
-                const success = await generateAIQuestions(1, currentCategory);
-                if(success) initGame();
-                else {
-                    tg.showAlert("Savollar topilmadi!");
-                    quitGame();
-                }
+                tg.showAlert("Savollar topilmadi!");
+                quitGame();
             }
         } catch (e) {
             tg.showAlert("Ma'lumot yuklashda xatolik!");
@@ -963,7 +924,7 @@
         }
     }
 
-    async function loadLevelQuestions() {
+    function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
         const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId));
@@ -976,22 +937,10 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar ushbu level uchun savollar tugagan bo'lsa AI ishga tushadi
-            console.log("Ushbu daraja uchun savollar qolmagan, AI chaqirilmoqda...");
-            const aiSuccess = await generateAIQuestions(currentLevel, currentCategory);
-            
-            if(aiSuccess) {
-                // Qayta yuklash
-                const snap = await get(ref(db, `questions/${currentCategory}`));
-                const data = snap.val();
-                allQuestions = Object.keys(data).map(key => ({ ...data[key], firebaseId: key }));
-                loadLevelQuestions();
-            } else {
-                currentLevel++;
-                const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
-                if(nextLevelData.length > 0) loadLevelQuestions();
-                else endGame(false);
-            }
+            currentLevel++;
+            const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
+            if(nextLevelData.length > 0) loadLevelQuestions();
+            else endGame(false);
         }
     }
 
@@ -1341,3 +1290,4 @@
 </script>
 </body>
 </html>
+
