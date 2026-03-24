@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SongLyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00d4ff; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -126,7 +128,6 @@
         /* LEADERBOARD ENHANCEMENTS */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
         
-        /* PODIUM STYLES RE-DESIGNED */
         .podium-container { 
             display: flex; justify-content: center; align-items: flex-end; 
             gap: 8px; margin-bottom: 30px; padding-top: 10px;
@@ -152,7 +153,6 @@
             box-shadow: inset 0 2px 5px rgba(255,255,255,0.1);
         }
         
-        /* Podium Info Boxes - Making names clearer */
         .podium-info {
             position: absolute; bottom: -25px; width: 100%;
             display: flex; flex-direction: column; align-items: center;
@@ -205,15 +205,28 @@
         #profile-input-name:focus { border-color: var(--primary); outline: none; background: rgba(255,255,255,0.05); }
         
         .save-profile-btn { 
-            background: var(--primary); color: #000; border: none; padding: 8px 20px; 
-            border-radius: 20px; font-weight: bold; font-size: 12px; margin-top: 10px; 
+            background: var(--primary); color: #000; border: none; padding: 12px 30px; 
+            border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 10px; 
             display: none; cursor: pointer; margin-left: auto; margin-right: auto;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
         .stat-item { background: #222; padding: 12px; border-radius: 15px; border: 1px solid #333; }
         .stat-label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 3px; }
         .stat-value { font-size: 18px; font-weight: bold; color: var(--primary); }
+
+        /* Crop Modal */
+        #crop-modal {
+            position: fixed; inset: 0; background: #000; z-index: 4000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .crop-container { width: 100%; max-width: 350px; height: 350px; margin-bottom: 30px; }
+        .crop-btns { display: flex; gap: 15px; width: 100%; max-width: 350px; }
+        .crop-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #333; color: #fff; }
+        .btn-confirm { background: var(--primary); color: #000; }
 
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
@@ -300,6 +313,17 @@
     </div>
 </div>
 
+<div id="crop-modal">
+    <h2 style="color:var(--primary); margin-bottom:20px;">Rasmni to'g'irlang</h2>
+    <div class="crop-container">
+        <div id="crop-area"></div>
+    </div>
+    <div class="crop-btns">
+        <button class="crop-btn btn-cancel" onclick="cancelCrop()">BEKOR QILISH</button>
+        <button class="crop-btn btn-confirm" onclick="confirmCrop()">TAYYOR</button>
+    </div>
+</div>
+
 <div id="app-container">
     <div id="page-game" class="page active-page">
         <div class="game-card" id="main-game-card">
@@ -341,8 +365,7 @@
         <div class="leaderboard-card">
             <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">ENG YAXSHI UCHLIK</h2>
             
-            <div class="podium-container" id="top-three-podium">
-                </div>
+            <div class="podium-container" id="top-three-podium"></div>
 
             <div class="rank-tabs" style="margin-bottom: 15px;">
                 <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
@@ -448,6 +471,9 @@
     let rankLimit = 10;
     let currentRemainingTime = 0;
     let gamePhase = 'listening'; 
+
+    // Croppie Instance
+    let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
     function setupVisualizer() {
@@ -612,7 +638,6 @@
         window.addEventListener('online', checkNetwork);
         checkNetwork();
 
-        // Profile Editing Logic
         const nameInput = document.getElementById('profile-input-name');
         const saveBtn = document.getElementById('save-profile-btn');
         const avatarUpload = document.getElementById('avatar-upload');
@@ -622,14 +647,9 @@
         avatarUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                if(file.size > 500000) { // 500KB limit for base64
-                    tg.showAlert("Rasm hajmi juda katta! Iltimos kichikroq rasm tanlang.");
-                    return;
-                }
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    document.getElementById('profile-avatar').innerHTML = `<img src="${event.target.result}" alt="Preview"><div class="camera-icon">📷</div>`;
-                    saveBtn.style.display = 'block';
+                    openCropModal(event.target.result);
                 };
                 reader.readAsDataURL(file);
             }
@@ -663,6 +683,47 @@
                 saveBtn.disabled = false;
             }
         };
+    };
+
+    // Crop Logic
+    function openCropModal(imgSrc) {
+        const modal = document.getElementById('crop-modal');
+        modal.style.display = 'flex';
+        const el = document.getElementById('crop-area');
+        
+        if (croppieInstance) {
+            croppieInstance.destroy();
+        }
+
+        croppieInstance = new Croppie(el, {
+            viewport: { width: 250, height: 250, type: 'circle' },
+            boundary: { width: 300, height: 300 },
+            showZoomer: true,
+            enableOrientation: true
+        });
+
+        croppieInstance.bind({
+            url: imgSrc
+        });
+    }
+
+    window.cancelCrop = () => {
+        document.getElementById('crop-modal').style.display = 'none';
+        document.getElementById('avatar-upload').value = "";
+    };
+
+    window.confirmCrop = () => {
+        croppieInstance.result({
+            type: 'base64',
+            size: { width: 300, height: 300 },
+            format: 'jpeg',
+            quality: 0.8,
+            circle: false
+        }).then(function(base64) {
+            document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile"><div class="camera-icon">📷</div>`;
+            document.getElementById('save-profile-btn').style.display = 'block';
+            document.getElementById('crop-modal').style.display = 'none';
+        });
     };
 
     tg.BackButton.onClick(() => {
@@ -751,9 +812,7 @@
 
         try {
             const setSnap = await get(ref(db, 'settings/timer'));
-            if(setSnap.exists()) {
-                adminTimerSettings = setSnap.val();
-            }
+            if(setSnap.exists()) adminTimerSettings = setSnap.val();
         } catch(e) {}
 
         try {
@@ -763,9 +822,7 @@
             } else {
                 currentLevel = 1;
             }
-        } catch(e) {
-            currentLevel = 1;
-        }
+        } catch(e) { currentLevel = 1; }
 
         currentIdx = 0;
         score = 0;
@@ -811,11 +868,7 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        
-        const levelData = allQuestions.filter(q => 
-            (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId)
-        );
-        
+        const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId));
         const normalQuestions = levelData.filter(q => !q.is_boss);
         const bosses = levelData.filter(q => q.is_boss);
         
@@ -827,11 +880,8 @@
         } else {
             currentLevel++;
             const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
-            if(nextLevelData.length > 0) {
-                loadLevelQuestions();
-            } else {
-                endGame(false);
-            }
+            if(nextLevelData.length > 0) loadLevelQuestions();
+            else endGame(false);
         }
     }
 
@@ -876,29 +926,15 @@
             if(musicUrl) {
                 audio.src = musicUrl;
                 audio.playbackRate = isBossRound ? 1.05 : 1.0;
-                
                 audio.onplay = () => {
                     if (isPaused) { audio.pause(); return; }
                     disc.classList.add('spinning'); 
                     status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
-                    
-                    let dynamicTime = 10; 
-                    if(isBossRound) {
-                        dynamicTime = adminTimerSettings.boss || 15;
-                    } else {
-                        if(adminTimerSettings.levels && adminTimerSettings.levels[currentLevel]) {
-                            dynamicTime = adminTimerSettings.levels[currentLevel];
-                        } else {
-                            dynamicTime = 10; 
-                        }
-                    }
-                    startTimer(dynamicTime);
+                    let dTime = isBossRound ? (adminTimerSettings.boss || 15) : (adminTimerSettings.levels && adminTimerSettings.levels[currentLevel] ? adminTimerSettings.levels[currentLevel] : 10);
+                    startTimer(dTime);
                 };
-
                 audio.play().catch(() => { skipRound(); });
-            } else {
-                skipRound(); return;
-            }
+            } else { skipRound(); return; }
 
             const correctText = q.options[q.correct];
             const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
@@ -911,45 +947,31 @@
                 btn.onclick = (e) => {
                     const btns = document.querySelectorAll('.option-btn');
                     btns.forEach(b => b.disabled = true);
-                    
                     clearInterval(timerInterval);
                     timerTickSound.pause();
                     timerTickSound.currentTime = 0;
 
                     if(opt === correctText) {
                         btn.classList.add('correct'); 
-                        if(correctSound.src) {
-                            correctSound.currentTime = 0;
-                            correctSound.play().catch(err => console.log("Sound play error", err));
-                        }
-
+                        if(correctSound.src) { correctSound.currentTime = 0; correctSound.play().catch(()=>{}); }
                         let pointsToAdd;
                         if(isBossRound) {
-                            const baseBossScore = q.score || 50;
-                            const comboX = q.boss_combo || 1;
-                            pointsToAdd = baseBossScore * comboX;
-                            showFloatingText(`BOSS COMBO x${comboX} +${pointsToAdd}`, e.clientX, e.clientY);
-                            if(q.boss_gift && q.boss_gift.includes("+1 Jon")) {
-                                lives = Math.min(3, lives + 1);
-                                updateLivesUI();
-                            }
+                            pointsToAdd = (q.score || 50) * (q.boss_combo || 1);
+                            showFloatingText(`BOSS COMBO x${q.boss_combo || 1} +${pointsToAdd}`, e.clientX, e.clientY);
+                            if(q.boss_gift && q.boss_gift.includes("+1 Jon")) lives = Math.min(3, lives + 1);
+                            updateLivesUI();
                             tg.HapticFeedback.notificationOccurred('success');
                         } else {
                             comboCount++;
-                            const multiplier = Math.floor(comboCount / 3) + 1;
-                            const baseScore = q.score || 10;
-                            pointsToAdd = (baseScore * multiplier);
+                            pointsToAdd = (q.score || 10) * (Math.floor(comboCount / 3) + 1);
                             showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
                             updateComboUI();
                             tg.HapticFeedback.impactOccurred('medium');
                         }
                         score += pointsToAdd;
                         document.getElementById('score').innerText = "BALL: " + score;
-                    } else {
-                        handleWrongAnswer(btn, correctText);
-                    }
-                    
-                    setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
+                    } else { handleWrongAnswer(btn, correctText); }
+                    setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
                 };
                 optionsBox.appendChild(btn);
             });
@@ -960,14 +982,11 @@
         const modal = document.getElementById('level-complete-modal');
         const bar = document.getElementById('lvl-progress-fill');
         const info = document.getElementById('lvl-info-text');
-        
         stopAllSounds();
         modal.style.display = 'flex';
         bar.style.width = '0%';
         info.innerText = `BOSQICH ${currentLevel} ➔ ${currentLevel + 1}`;
-        
         tg.HapticFeedback.notificationOccurred('success');
-
         setTimeout(() => {
             bar.style.width = '100%';
             setTimeout(() => {
@@ -981,46 +1000,25 @@
 
     function handleWrongAnswer(clickedBtn, correctText) {
         if(clickedBtn) clickedBtn.classList.add('wrong');
-        
-        if(wrongSound.src) {
-            wrongSound.currentTime = 0;
-            wrongSound.play().catch(err => console.log("Sound play error", err));
-        }
-
+        if(wrongSound.src) { wrongSound.currentTime = 0; wrongSound.play().catch(()=>{}); }
         const btns = document.querySelectorAll('.option-btn');
         btns.forEach(b => { 
             b.disabled = true;
             if(b.innerText === correctText) b.classList.add('correct'); 
         });
-        
-        comboCount = 0;
-        updateComboUI();
-        lives--;
-        updateLivesUI();
+        comboCount = 0; updateComboUI(); lives--; updateLivesUI();
         tg.HapticFeedback.notificationOccurred('error');
     }
 
-    function skipRound() {
-        currentIdx++;
-        loadRound();
-    }
-
-    function nextStep() {
-        if(isBossRound) {
-            showLevelCompleteAnimation();
-        } else {
-            currentIdx++;
-            loadRound();
-        }
-    }
+    function skipRound() { currentIdx++; loadRound(); }
+    function nextStep() { if(isBossRound) showLevelCompleteAnimation(); else { currentIdx++; loadRound(); } }
 
     function showFloatingText(text, x, y) {
         const el = document.createElement('div');
         el.className = 'floating-text';
         if(isBossRound) el.style.color = 'var(--boss)';
         el.innerText = text;
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
     }
@@ -1028,24 +1026,13 @@
     function updateComboUI() {
         const badge = document.getElementById('combo-badge');
         const flame = document.getElementById('combo-flame');
-        if (isBossRound) {
-            badge.style.display = 'none';
-            flame.style.display = 'none';
-            return;
-        }
-
+        if (isBossRound) { badge.style.display = 'none'; flame.style.display = 'none'; return; }
         if (comboCount >= 3) {
-            const multiplier = Math.floor(comboCount / 3) + 1;
-            badge.innerText = `COMBO x${multiplier}`;
-            badge.style.display = 'block';
-            flame.style.display = 'block';
-            badge.style.animation = 'none';
-            badge.offsetHeight; 
+            badge.innerText = `COMBO x${Math.floor(comboCount / 3) + 1}`;
+            badge.style.display = 'block'; flame.style.display = 'block';
+            badge.style.animation = 'none'; badge.offsetHeight; 
             badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        } else {
-            badge.style.display = 'none';
-            flame.style.display = 'none';
-        }
+        } else { badge.style.display = 'none'; flame.style.display = 'none'; }
     }
 
     function updateLivesUI() {
@@ -1054,32 +1041,20 @@
     }
 
     function endGame(isGameOver) {
-        isPlaying = false;
-        isPaused = false;
-        tg.BackButton.hide();
+        isPlaying = false; isPaused = false; tg.BackButton.hide();
         document.getElementById('bottom-nav').classList.remove('hidden-nav');
         document.getElementById('combo-badge').style.display = 'none';
         document.getElementById('combo-flame').style.display = 'none';
         document.getElementById('level-complete-modal').style.display = 'none';
         clearInterval(timerInterval);
-        
         if (animationId) cancelAnimationFrame(animationId);
         if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        stopAllSounds();
-        audio.src = "";
-        
+        stopAllSounds(); audio.src = "";
         saveScore();
-        
         const modal = document.getElementById('result-modal');
-        const scoreDisplay = document.getElementById('final-score');
-        const levelDisplay = document.getElementById('final-level');
-        const titleDisplay = document.getElementById('result-title');
-        
-        titleDisplay.innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
-        scoreDisplay.innerText = score;
-        levelDisplay.innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
-
+        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-level').innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
         modal.style.display = 'flex';
         document.body.classList.remove('boss-active');
     }
@@ -1089,17 +1064,9 @@
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
             const data = await res.json();
-            const filteredTracks = data.results.filter(t => {
-                const trackName = (t.trackName || "").toLowerCase();
-                const isExclude = ["karaoke", "instrumental", "piano", "tribute"].some(m => trackName.includes(m));
-                return !isExclude;
-            });
-            if (filteredTracks.length > 0) return filteredTracks[0].previewUrl;
-            if (!isRetry && term.includes(' - ')) {
-                const parts = term.split(' - ');
-                const songOnly = parts[1] ? parts[1].trim() : parts[0].trim();
-                return await fetchMusic(songOnly, true);
-            }
+            const f = data.results.filter(t => !["karaoke", "instrumental", "piano", "tribute"].some(m => (t.trackName || "").toLowerCase().includes(m)));
+            if (f.length > 0) return f[0].previewUrl;
+            if (!isRetry && term.includes(' - ')) return await fetchMusic(term.split(' - ')[1].trim(), true);
             return data.results[0]?.previewUrl || null;
         } catch (e) { return null; }
     }
@@ -1113,8 +1080,7 @@
             currentRemainingTime--; 
             document.getElementById('timer').innerText = Math.max(0, Math.floor(currentRemainingTime));
             if(currentRemainingTime <= 0) { 
-                clearInterval(timerInterval); 
-                audio.pause(); 
+                clearInterval(timerInterval); audio.pause(); 
                 document.getElementById('disc').classList.remove('spinning');
                 showOptionsPhase();
             }
@@ -1127,25 +1093,20 @@
         optionsBox.classList.add('show-options');
         const btns = document.querySelectorAll('.option-btn');
         document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
-
-        let animationsStarted = 0;
+        let started = 0;
         btns.forEach((btn, index) => {
             setTimeout(() => {
                 if(!isPlaying || gamePhase !== 'choosing') return; 
                 btn.classList.add('reveal');
                 if(optionsTickSound.src && !isPaused) {
-                    const tickClone = optionsTickSound.cloneNode();
-                    tickClone.play().catch(() => {});
+                    const c = optionsTickSound.cloneNode(); c.play().catch(()=>{});
                 }
-                animationsStarted++;
-                if(animationsStarted === btns.length) {
+                started++;
+                if(started === btns.length) {
                     btns.forEach(b => b.disabled = false);
                     setTimeout(() => {
                         if(!isPlaying || gamePhase !== 'choosing') return;
-                        if(timerTickSound.src && !isPaused) {
-                            timerTickSound.loop = true;
-                            timerTickSound.play().catch(() => {});
-                        }
+                        if(timerTickSound.src && !isPaused) { timerTickSound.loop = true; timerTickSound.play().catch(()=>{}); }
                         startChoosingTimer(10); 
                     }, 500);
                 }
@@ -1162,12 +1123,10 @@
             currentRemainingTime--;
             document.getElementById('timer').innerText = Math.max(0, currentRemainingTime);
             if(currentRemainingTime <= 0) {
-                clearInterval(timerInterval);
-                timerTickSound.pause();
-                timerTickSound.currentTime = 0;
+                clearInterval(timerInterval); timerTickSound.pause(); timerTickSound.currentTime = 0;
                 let q = isBossRound ? bossQuestion : questions[currentIdx];
                 handleWrongAnswer(null, q.options[q.correct]);
-                setTimeout(() => { if(isPlaying) { nextStep(); } }, 1500);
+                setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
             }
         }, 1000);
     }
@@ -1178,13 +1137,9 @@
         try {
             const snap = await get(userRef);
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
-            const newBestScore = Math.max(score, data.score || 0);
-            const newBestLevel = Math.max(currentLevel, data.level || 1);
-            
-            // Biz bu yerda rasm va ismni o'chirib yubormasligimiz kerak
             await update(userRef, {
-                score: newBestScore,
-                level: newBestLevel,
+                score: Math.max(score, data.score || 0),
+                level: Math.max(currentLevel, data.level || 1),
                 total_xp: increment(score > 0 ? score : 0),
                 id: user.id
             });
@@ -1194,110 +1149,69 @@
     async function loadLeaderboard() {
         const listDiv = document.getElementById('rank-list');
         const podiumDiv = document.getElementById('top-three-podium');
-        
         if (!navigator.onLine) {
             listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
-            podiumDiv.innerHTML = "";
-            return;
+            podiumDiv.innerHTML = ""; return;
         }
-        
         listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
-        
         try {
-            const rankQuery = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit));
-            const snap = await get(rankQuery);
-            
+            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
             if(snap.exists()) {
-                listDiv.innerHTML = "";
-                podiumDiv.innerHTML = "";
-                const rawData = [];
-                snap.forEach(child => { rawData.push(child.val()); });
+                listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
+                const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
-                
-                const topThree = rawData.slice(0, 3);
-                
-                topThree.forEach((u, i) => {
-                    const rank = i + 1;
-                    const item = document.createElement('div');
-                    item.className = `podium-item`;
-                    
-                    const avatarContent = u.photo ? `<img src="${u.photo}">` : u.name.charAt(0).toUpperCase();
-                    
+                rawData.slice(0, 3).forEach((u, i) => {
+                    const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
+                    const av = u.photo ? `<img src="${u.photo}">` : u.name.charAt(0).toUpperCase();
                     item.innerHTML = `
-                        <div class="podium-avatar">${avatarContent}</div>
+                        <div class="podium-avatar">${av}</div>
                         <div class="podium-step rank-${rank}">
                              <span class="podium-rank-num">${rank}</span>
                              <div class="podium-info">
                                 <div class="podium-name">${u.name}</div>
                                 <div class="podium-score">${u.score} PT</div>
                              </div>
-                        </div>
-                    `;
+                        </div>`;
                     podiumDiv.appendChild(item);
                 });
-
                 rawData.forEach((u, index) => {
                     if (index < 3 && rankLimit > 3) return; 
-                    
                     const item = document.createElement('div');
-                    const rankPos = index + 1;
-                    let rankClass = "rank-item";
-                    
+                    item.className = "rank-item";
                     if(u.id == user.id) item.style.boxShadow = "inset 0 0 10px rgba(0, 255, 136, 0.2)";
-                    
-                    item.className = rankClass;
                     item.innerHTML = `
-                        <div class="rank-num">#${rankPos}</div>
+                        <div class="rank-num">#${index + 1}</div>
                         <div class="rank-name">${u.name}</div>
                         <div class="rank-score-box">
                             <span class="rank-score">${u.score}</span>
                             <span class="rank-lvl">LVL: ${u.level || 1}</span>
-                        </div>
-                    `;
+                        </div>`;
                     listDiv.appendChild(item);
                 });
-            } else {
-                listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>";
-                podiumDiv.innerHTML = "";
-            }
+            } else { listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
         } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
         const nameInput = document.getElementById('profile-input-name');
         const profileId = document.getElementById('profile-id');
-        const bestScoreEl = document.getElementById('best-score');
-        const bestLevelEl = document.getElementById('best-level');
-        const totalXpEl = document.getElementById('total-xp');
-        const profileAvatar = document.getElementById('profile-avatar');
-
+        const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
+        const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
         profileId.innerText = "ID: " + user.id;
-
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
-                const data = snap.val();
-                nameInput.value = data.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
-                bestScoreEl.innerText = data.score || 0;
-                bestLevelEl.innerText = data.level || 1;
-                totalXpEl.innerText = data.total_xp || 0;
-                
-                if (data.photo) { 
-                    profileAvatar.innerHTML = `<img src="${data.photo}" alt="User Profile"><div class="camera-icon">📷</div>`; 
-                } else if (user.photo_url) {
-                    profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile"><div class="camera-icon">📷</div>`;
-                } else {
-                    profileAvatar.innerHTML = `<span>${user.first_name.charAt(0)}</span><div class="camera-icon">📷</div>`;
-                }
+                const d = snap.val();
+                nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
+                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
+                if (d.photo) pA.innerHTML = `<img src="${d.photo}" alt="P"><div class="camera-icon">📷</div>`; 
+                else if (user.photo_url) pA.innerHTML = `<img src="${user.photo_url}" alt="P"><div class="camera-icon">📷</div>`;
+                else pA.innerHTML = `<span>${user.first_name.charAt(0)}</span><div class="camera-icon">📷</div>`;
             } else {
                 nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
-                bestScoreEl.innerText = "0";
-                bestLevelEl.innerText = "1";
-                totalXpEl.innerText = "0";
+                bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
             }
-        } catch (e) { 
-            nameInput.value = user.first_name;
-        }
+        } catch (e) { nameInput.value = user.first_name; }
     }
 </script>
 </body>
