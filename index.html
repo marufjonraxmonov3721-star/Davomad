@@ -477,7 +477,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, set, update, query, orderByChild, limitToLast, increment, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -526,6 +526,60 @@
     let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
+
+    // --- AUTOMATIC QUESTION GENERATION LOGIC ---
+    async function generateAndSaveQuestions(level, count = 10) {
+        console.log(`Level ${level} uchun savollar generatsiya qilinmoqda...`);
+        const searchTerms = ['Uzbek', 'Ouzbekistan', 'Tashkent music', 'Yulduz Usmonova', 'Sherali Jo\'rayev', 'Hamdam Sobirov', 'Munisa Rizayeva'];
+        const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
+        
+        try {
+            const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(randomTerm)}&limit=50&entity=song`);
+            const data = await response.json();
+            const songs = data.results.filter(s => s.previewUrl && s.artistName && s.trackName);
+
+            if (songs.length < 5) return;
+
+            const artistList = [...new Set(songs.map(s => s.artistName))];
+            const newQuestions = {};
+
+            // 10 ta savol tanlash
+            for (let i = 0; i < count; i++) {
+                const song = songs[Math.floor(Math.random() * songs.length)];
+                const correctArtist = song.artistName;
+                
+                // Variantlarni yaratish
+                let options = [correctArtist];
+                let otherArtists = artistList.filter(a => a !== correctArtist);
+                
+                while (options.length < 4 && otherArtists.length > 0) {
+                    const randArtist = otherArtists.splice(Math.floor(Math.random() * otherArtists.length), 1)[0];
+                    options.push(randArtist);
+                }
+                
+                // Shuffle options and find correct index
+                options = options.sort(() => Math.random() - 0.5);
+                const correctIdx = options.indexOf(correctArtist);
+
+                const qId = push(ref(db, `questions/${currentCategory}`)).key;
+                newQuestions[qId] = {
+                    search_term: `${correctArtist} - ${song.trackName}`,
+                    options: options,
+                    correct: correctIdx,
+                    level: level,
+                    score: 10 + (level * 2),
+                    is_boss: (i === count - 1) // Oxirgi savol boss
+                };
+            }
+
+            await update(ref(db, `questions/${currentCategory}`), newQuestions);
+            console.log(`Level ${level} bazaga yuklandi.`);
+        } catch (e) {
+            console.error("Savol generatsiyasida xato:", e);
+        }
+    }
+    // -------------------------------------------
+
     function setupVisualizer() {
         if (audioContext) return;
         canvas = document.getElementById('visualizer');
@@ -771,7 +825,7 @@
             circle: false
         }).then(function(base64) {
             document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile">`;
-            document.getElementById('delete-avatar-btn').style.display = 'flex';
+            document.getElementById('delete-avatar-badge').style.display = 'flex';
             document.getElementById('save-profile-btn').style.display = 'block';
             document.getElementById('crop-modal').style.display = 'none';
         });
@@ -781,7 +835,7 @@
         const nameInput = document.getElementById('profile-input-name');
         const firstChar = nameInput.value.trim().charAt(0).toUpperCase() || user.first_name.charAt(0);
         document.getElementById('profile-avatar').innerHTML = `<span>${firstChar}</span>`;
-        document.getElementById('delete-avatar-btn').style.display = 'none';
+        document.getElementById('delete-avatar-badge').style.display = 'none';
         document.getElementById('save-profile-btn').style.display = 'block';
     };
 
@@ -915,8 +969,9 @@
                 }));
                 loadLevelQuestions();
             } else {
-                tg.showAlert("Savollar topilmadi!");
-                quitGame();
+                // Agar savol bo'lmasa, birinchi marta generatsiya qilish
+                await generateAndSaveQuestions(1, 10);
+                initGame();
             }
         } catch (e) {
             tg.showAlert("Ma'lumot yuklashda xatolik!");
@@ -924,7 +979,7 @@
         }
     }
 
-    function loadLevelQuestions() {
+    async function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
         const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId));
@@ -937,10 +992,9 @@
             currentIdx = 0;
             loadRound();
         } else {
-            currentLevel++;
-            const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
-            if(nextLevelData.length > 0) loadLevelQuestions();
-            else endGame(false);
+            // Agar bu level uchun savol tugasa, yangi level generatsiya qilish
+            await generateAndSaveQuestions(currentLevel, 10);
+            initGame(); // Qayta yuklash
         }
     }
 
@@ -1015,9 +1069,9 @@
                         if(correctSound.src) { correctSound.currentTime = 0; correctSound.play().catch(()=>{}); }
                         let pointsToAdd;
                         if(isBossRound) {
-                            pointsToAdd = (q.score || 50) * (q.boss_combo || 1);
-                            showFloatingText(`BOSS COMBO x${q.boss_combo || 1} +${pointsToAdd}`, e.clientX, e.clientY);
-                            if(q.boss_gift && q.boss_gift.includes("+1 Jon")) lives = Math.min(3, lives + 1);
+                            pointsToAdd = (q.score || 50);
+                            showFloatingText(`BOSS CLEARED +${pointsToAdd}`, e.clientX, e.clientY);
+                            lives = Math.min(3, lives + 1);
                             updateLivesUI();
                             tg.HapticFeedback.notificationOccurred('success');
                         } else {
@@ -1037,7 +1091,7 @@
         }
     }
 
-    function showLevelCompleteAnimation() {
+    async function showLevelCompleteAnimation() {
         const modal = document.getElementById('level-complete-modal');
         const bar = document.getElementById('lvl-progress-fill');
         const info = document.getElementById('lvl-info-text');
@@ -1046,13 +1100,17 @@
         bar.style.width = '0%';
         info.innerText = `BOSQICH ${currentLevel} ➔ ${currentLevel + 1}`;
         tg.HapticFeedback.notificationOccurred('success');
+        
+        // Keyingi level uchun savollarni tayyorlab qo'yish
+        await generateAndSaveQuestions(currentLevel + 1, 10);
+
         setTimeout(() => {
             bar.style.width = '100%';
             setTimeout(() => {
                 modal.style.display = 'none';
                 currentLevel++;
                 saveScore(); 
-                loadLevelQuestions();
+                initGame(); // Yangi savollarni bazadan qayta yuklash
             }, 2000); 
         }, 100);
     }
@@ -1169,7 +1227,7 @@
                         startChoosingTimer(10); 
                     }, 500);
                 }
-            }, index * 1000); 
+            }, index * 200); // Tezroq chiqish uchun vaqt qisqartirildi
         });
     }
 
@@ -1212,82 +1270,4 @@
             listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:#555; margin-top:10px;'>Internet kerak</p></div>";
             podiumDiv.innerHTML = ""; return;
         }
-        listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Yuklanmoqda...</p>";
-        try {
-            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
-            if(snap.exists()) {
-                listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
-                const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
-                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
-                rawData.slice(0, 3).forEach((u, i) => {
-                    const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
-                    const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
-                    item.innerHTML = `
-                        <div class="podium-avatar">${av}</div>
-                        <div class="podium-step rank-${rank}">
-                             <span class="podium-rank-num">${rank}</span>
-                             <div class="podium-info">
-                                <div class="podium-name">${u.name}</div>
-                                <div class="podium-score">${u.score} PT</div>
-                             </div>
-                        </div>`;
-                    podiumDiv.appendChild(item);
-                });
-                rawData.forEach((u, index) => {
-                    if (index < 3 && rankLimit > 3) return; 
-                    const item = document.createElement('div');
-                    item.className = "rank-item";
-                    if(u.id == user.id) item.style.boxShadow = "inset 0 0 10px rgba(0, 255, 136, 0.2)";
-                    item.innerHTML = `
-                        <div class="rank-num">#${index + 1}</div>
-                        <div class="rank-name">${u.name}</div>
-                        <div class="rank-score-box">
-                            <span class="rank-score">${u.score}</span>
-                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
-                        </div>`;
-                    listDiv.appendChild(item);
-                });
-            } else { listDiv.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
-    }
-
-    async function loadProfileData() {
-        const nameInput = document.getElementById('profile-input-name');
-        const profileId = document.getElementById('profile-id');
-        const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
-        const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
-        const delBtn = document.getElementById('delete-avatar-btn');
-        profileId.innerText = "ID: " + user.id;
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                const d = snap.val();
-                nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
-                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
-                if (d.photo) {
-                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
-                    delBtn.style.display = 'flex';
-                }
-                else if (user.photo_url) {
-                    pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
-                    delBtn.style.display = 'flex';
-                }
-                else {
-                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
-                    delBtn.style.display = 'none';
-                }
-            } else {
-                nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
-                bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
-                pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
-                delBtn.style.display = 'none';
-            }
-        } catch (e) { 
-            nameInput.value = user.first_name; 
-            pA.innerHTML = `<span>${user.first_name.charAt(0).toUpperCase()}</span>`;
-        }
-    }
-</script>
-</body>
-</html>
-
+        listDiv.innerHTML = "<p style='text-align:center; color:#5
