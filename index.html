@@ -1207,7 +1207,9 @@
         try {
             const snap = await get(userRef);
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            const nameInput = document.getElementById('profile-input-name');
             await update(userRef, {
+                name: nameInput.value.trim() || user.first_name,
                 score: Math.max(score, data.score || 0),
                 level: Math.max(currentLevel, data.level || 1),
                 total_xp: increment(score > 0 ? score : 0),
@@ -1277,7 +1279,8 @@
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
                 const d = snap.val();
-                nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
+                const displayName = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
+                nameInput.value = displayName;
                 bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
                 if (d.photo) {
                     pA.innerHTML = `<img src="${d.photo}" alt="P">`;
@@ -1288,20 +1291,10 @@
                     delBtn.style.display = 'flex';
                 }
                 else {
-                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                    pA.innerHTML = `<span>${displayName.charAt(0).toUpperCase()}</span>`;
                     delBtn.style.display = 'none';
                 }
             } else {
-                nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
+                const defaultName = user.first_name + (user.last_name ? " " + user.last_name : "");
+                nameInput.value = defaultName;
                 bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
-                pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
-                delBtn.style.display = 'none';
-            }
-        } catch (e) { 
-            nameInput.value = user.first_name; 
-            pA.innerHTML = `<span>${user.first_name.charAt(0).toUpperCase()}</span>`;
-        }
-    }
-</script>
-</body>
-</html>
