@@ -502,7 +502,7 @@
         <div class="settings-card">
             <h2 style="color:var(--primary); margin-bottom:20px;">Sozlamalar</h2>
             
-            <div class="setting-row">
+            <div class="setting-row" style="border-bottom: none;">
                 <div class="setting-info">
                     <div class="setting-title">O'yin Mavzusi</div>
                     <div class="setting-desc" id="theme-status">Avtomatik (System)</div>
@@ -512,23 +512,6 @@
                     <button class="theme-btn" id="theme-dark" onclick="setTheme('dark')">🌙</button>
                 </div>
             </div>
-
-            <div class="setting-row">
-                <div class="setting-info">
-                    <div class="setting-title">Ovoz effektlari</div>
-                    <div class="setting-desc">Tugma va Taymer ovozlari</div>
-                </div>
-                <div style="color: var(--primary); font-size: 20px;">🔊</div>
-            </div>
-
-            <div class="setting-row" style="border-bottom: none;">
-                <div class="setting-info">
-                    <div class="setting-title">Versiya</div>
-                    <div class="setting-desc">SongLyrics Pro v2.0</div>
-                </div>
-            </div>
-            
-            <p style="font-size: 11px; color: var(--subtext); margin-top: 20px;">Created for Telegram Mini Apps</p>
         </div>
     </div>
 
@@ -1456,39 +1439,3 @@
         const surnameInput = document.getElementById('profile-input-surname');
         const ageInfo = document.getElementById('profile-age-info');
         const bdayInfo = document.getElementById('profile-bday-countdown');
-        const profileId = document.getElementById('profile-id');
-        const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
-        const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
-        const delBtn = document.getElementById('delete-avatar-btn');
-        
-        profileId.innerText = "ID: " + user.id;
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                const d = snap.val();
-                nameInput.value = d.name || "";
-                surnameInput.value = d.surname || "";
-                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
-                
-                const age = calculateAge(d.birthdate);
-                if (age !== null) ageInfo.innerText = age + " yoshdasiz";
-                
-                const days = daysUntilBirthday(d.birthdate);
-                if (days !== null) {
-                    if (days === 365 || days === 0) bdayInfo.innerText = "BUGUN TUG'ILGAN KONINGIZ! 🎉";
-                    else bdayInfo.innerText = "Tug'ilgan kuningizga " + days + " kun qoldi";
-                }
-
-                if (d.photo) {
-                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
-                    delBtn.style.display = 'flex';
-                } else {
-                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
-                    delBtn.style.display = 'none';
-                }
-            }
-        } catch (e) {}
-    }
-</script>
-</body>
-</html>
