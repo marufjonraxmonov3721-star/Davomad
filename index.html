@@ -138,71 +138,72 @@
         .star-anim { font-size: 40px; color: var(--accent); margin: 10px 0; display: block; animation: starPop 0.6s infinite alternate; }
         @keyframes starPop { from { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent)); } to { transform: scale(1.2); filter: drop-shadow(0 0 15px var(--accent)); } }
 
-        /* LEADERBOARD ENHANCEMENTS */
-        .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #222; display: flex; flex-direction: column; }
+        /* LEADERBOARD ENHANCEMENTS - RE-STRUCTURED */
+        .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 15px; border: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; }
         
         .podium-container { 
             display: flex; justify-content: center; align-items: flex-end; 
-            gap: 8px; margin-bottom: 30px; padding-top: 10px;
-            height: 220px; position: relative;
+            gap: 8px; margin-bottom: 25px; padding-top: 5px;
+            height: 190px; position: relative;
         }
         .podium-item { 
             flex: 1; display: flex; flex-direction: column; align-items: center; 
             position: relative; text-align: center;
         }
         .podium-avatar {
-            width: 45px; height: 45px; border-radius: 50%; border: 3px solid #333;
+            width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333;
             background: #222; margin-bottom: 8px; display: flex; align-items: center; 
-            justify-content: center; font-weight: bold; font-size: 18px; color: #fff;
+            justify-content: center; font-weight: bold; font-size: 16px; color: #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             overflow: hidden;
         }
         .podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .podium-step {
-            width: 100%; border-radius: 12px 12px 5px 5px; 
+            width: 100%; border-radius: 10px 10px 5px 5px; 
             display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
-            padding-top: 15px; position: relative;
+            padding-top: 10px; position: relative;
             box-shadow: inset 0 2px 5px rgba(255,255,255,0.1);
         }
         
         .podium-info {
-            position: absolute; bottom: -25px; width: 100%;
+            position: absolute; bottom: -22px; width: 100%;
             display: flex; flex-direction: column; align-items: center;
         }
         .podium-name { 
-            font-size: 11px; font-weight: 900; color: #fff; 
-            background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
+            font-size: 10px; font-weight: 900; color: #fff; 
+            background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px;
             width: 85%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1px; border: 1px solid rgba(255,255,255,0.1);
         }
-        .podium-score { font-size: 10px; color: var(--primary); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,136,0.5); }
+        .podium-score { font-size: 9px; color: var(--primary); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,136,0.5); }
 
-        .rank-1 { height: 125px; background: linear-gradient(180deg, #ffd700, #b8860b); order: 2; z-index: 3; }
-        .rank-1 .podium-avatar { border-color: #ffd700; width: 60px; height: 60px; font-size: 24px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); margin-bottom: 12px; }
-        .rank-1 .podium-rank-num { font-size: 32px; color: rgba(0,0,0,0.3); position: absolute; top: 10px; font-weight: 900; }
+        .rank-1 { height: 100px; background: linear-gradient(180deg, #ffd700, #b8860b); order: 2; z-index: 3; }
+        .rank-1 .podium-avatar { border-color: #ffd700; width: 55px; height: 55px; font-size: 22px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); margin-bottom: 10px; }
+        .rank-1 .podium-rank-num { font-size: 28px; color: rgba(0,0,0,0.3); position: absolute; top: 10px; font-weight: 900; }
         .rank-1 .podium-name { background: #ffd700; color: #000; border-color: #b8860b; }
 
-        .rank-2 { height: 95px; background: linear-gradient(180deg, #e0e0e0, #708090); order: 1; z-index: 2; }
+        .rank-2 { height: 75px; background: linear-gradient(180deg, #e0e0e0, #708090); order: 1; z-index: 2; }
         .rank-2 .podium-avatar { border-color: #e0e0e0; }
-        .rank-2 .podium-rank-num { font-size: 24px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
+        .rank-2 .podium-rank-num { font-size: 22px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
 
-        .rank-3 { height: 75px; background: linear-gradient(180deg, #cd7f32, #8b4513); order: 3; z-index: 1; }
+        .rank-3 { height: 60px; background: linear-gradient(180deg, #cd7f32, #8b4513); order: 3; z-index: 1; }
         .rank-3 .podium-avatar { border-color: #cd7f32; }
-        .rank-3 .podium-rank-num { font-size: 20px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
+        .rank-3 .podium-rank-num { font-size: 18px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
 
-        .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
-        .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
-        .rank-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
-        .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); transition: 0.3s; }
+        .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; background: #111; padding: 4px; border-radius: 12px; }
+        .rank-tab { flex: 1; background: transparent; border: none; padding: 10px; border-radius: 10px; color: #666; font-size: 13px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.3s; }
+        .rank-tab.active { background: var(--primary); color: #000; box-shadow: 0 2px 10px rgba(0,255,136,0.2); }
         
-        .rank-num { width: 35px; font-weight: bold; color: var(--primary); font-size: 14px; }
-        .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .rank-item { display: flex; align-items: center; background: #1a1a1a; padding: 10px 15px; border-radius: 15px; margin-bottom: 8px; border: 1px solid #222; transition: 0.3s; }
+        
+        .rank-num { width: 30px; font-weight: 900; color: #555; font-size: 14px; }
+        .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; font-weight: 500; }
         .rank-score-box { text-align: right; }
-        .rank-score { font-weight: bold; color: var(--primary); font-size: 14px; display: block; }
-        .rank-lvl { font-size: 9px; color: #666; display: block; }
-        .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
+        .rank-score { font-weight: bold; color: var(--primary); font-size: 13px; display: block; }
+        .rank-lvl { font-size: 9px; color: #555; display: block; }
+        .reset-info { font-size: 10px; color: #444; text-align: center; margin-top: 8px; font-style: italic; letter-spacing: 0.5px; }
 
         /* PROFILE ENHANCEMENTS */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; position: relative; }
@@ -415,18 +416,18 @@
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:15px; font-size: 18px;">ENG YAXSHI UCHLIK</h2>
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size: 16px; font-weight: 900;">ENG YAXSHI UCHLIK</h2>
             
             <div class="podium-container" id="top-three-podium"></div>
 
-            <div class="rank-tabs" style="margin-bottom: 15px;">
-                <div class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</div>
-                <div class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</div>
+            <div class="rank-tabs">
+                <button class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</button>
+                <button class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</button>
             </div>
 
             <div class="rank-list-container" id="rank-list"></div>
             
-            <p class="reset-info">Yakshanba kuni barcha natijalar nolga tushiriladi.</p>
+            <p class="reset-info">Natijalar har Yakshanba kuni yangilanadi.</p>
         </div>
     </div>
 
@@ -535,7 +536,6 @@
     let currentRemainingTime = 0;
     let gamePhase = 'listening'; 
 
-    // Croppie Instance
     let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
@@ -748,7 +748,6 @@
         };
     };
 
-    // Crop Logic
     function openCropModal(imgSrc) {
         const modal = document.getElementById('crop-modal');
         modal.style.display = 'flex';
@@ -1231,6 +1230,8 @@
                 listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
                 const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+                
+                // Podium: Faqat eng yaxshi 3 talik
                 rawData.slice(0, 3).forEach((u, i) => {
                     const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
                     const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
@@ -1245,11 +1246,13 @@
                         </div>`;
                     podiumDiv.appendChild(item);
                 });
+
+                // Ro'yxat: Top 10 yoki 100
                 rawData.forEach((u, index) => {
                     if (index < 3 && rankLimit > 3) return; 
                     const item = document.createElement('div');
                     item.className = "rank-item";
-                    if(u.id == user.id) item.style.boxShadow = "inset 0 0 10px rgba(0, 255, 136, 0.2)";
+                    if(u.id == user.id) item.style.borderColor = "var(--primary)";
                     item.innerHTML = `
                         <div class="rank-num">#${index + 1}</div>
                         <div class="rank-name">${u.name}</div>
@@ -1268,5 +1271,37 @@
         const profileId = document.getElementById('profile-id');
         const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
         const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
-        const
-
+        const delBtn = document.getElementById('delete-avatar-btn');
+        profileId.innerText = "ID: " + user.id;
+        try {
+            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            if (snap.exists()) {
+                const d = snap.val();
+                nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
+                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
+                if (d.photo) {
+                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
+                    delBtn.style.display = 'flex';
+                }
+                else if (user.photo_url) {
+                    pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
+                    delBtn.style.display = 'flex';
+                }
+                else {
+                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                    delBtn.style.display = 'none';
+                }
+            } else {
+                nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
+                bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
+                pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                delBtn.style.display = 'none';
+            }
+        } catch (e) { 
+            nameInput.value = user.first_name; 
+            pA.innerHTML = `<span>${user.first_name.charAt(0).toUpperCase()}</span>`;
+        }
+    }
+</script>
+</body>
+</html>
