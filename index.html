@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -611,7 +610,6 @@
 
     function initTheme() {
         const savedTheme = localStorage.getItem('gameTheme');
-        // Check system preference
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         
         if(savedTheme) {
@@ -620,7 +618,6 @@
             setTheme(prefersDark ? 'dark' : 'light');
         }
 
-        // Listen for system changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
             if(!localStorage.getItem('gameTheme')) {
                 setTheme(event.matches ? 'dark' : 'light');
@@ -1427,6 +1424,49 @@
                         </div>`;
                     listDiv.appendChild(item);
                 });
+            } else { listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
+    }
+
+    async function loadProfileData() {
+        const nameInput = document.getElementById('profile-input-name');
+        const surnameInput = document.getElementById('profile-input-surname');
+        const ageInfo = document.getElementById('profile-age-info');
+        const bdayInfo = document.getElementById('profile-bday-countdown');
+        const profileId = document.getElementById('profile-id');
+        const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
+        const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
+        const delBtn = document.getElementById('delete-avatar-btn');
+        
+        profileId.innerText = "ID: " + user.id;
+        try {
+            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            if (snap.exists()) {
+                const d = snap.val();
+                nameInput.value = d.name || "";
+                surnameInput.value = d.surname || "";
+                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
                 
-                if(rawData.length === 0) {
-                   listDiv.innerHTML =
+                const age = calculateAge(d.birthdate);
+                if (age !== null) ageInfo.innerText = age + " yoshdasiz";
+                
+                const days = daysUntilBirthday(d.birthdate);
+                if (days !== null) {
+                    if (days === 365 || days === 0) bdayInfo.innerText = "BUGUN TUG'ILGAN KONINGIZ! 🎉";
+                    else bdayInfo.innerText = "Tug'ilgan kuningizga " + days + " kun qoldi";
+                }
+
+                if (d.photo) {
+                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
+                    delBtn.style.display = 'flex';
+                } else {
+                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                    delBtn.style.display = 'none';
+                }
+            }
+        } catch (e) {}
+    }
+</script>
+</body>
+</html>
+
