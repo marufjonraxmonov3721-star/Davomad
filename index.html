@@ -7,6 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #00ff88; --bg: #0a0a0a; --card: #151515; --nav: #1a1a1a; --danger: #ff3e3e; --accent: #ffcc00; --boss: #ff0055; --friend: #00d4ff; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -193,28 +194,54 @@
 
         /* PROFILE ENHANCEMENTS */
         .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; position: relative; }
-        .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; position: relative; cursor: pointer; }
-        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .camera-icon { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid #222; }
         
+        .avatar-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
+        .avatar-circle { 
+            width: 100%; height: 100%; background: #1a1a1a; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 40px; 
+            color: #fff; border: 3px solid var(--primary); overflow: hidden; position: relative; 
+            cursor: pointer; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); 
+        }
+        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .edit-avatar-badge { 
+            position: absolute; bottom: 0; right: 0; background: var(--primary); 
+            width: 34px; height: 34px; border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; font-size: 14px; 
+            border: 3px solid #151515; color: #000; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: 0.2s;
+        }
+        .edit-avatar-badge:active { transform: scale(0.9); }
+
+        .name-edit-wrapper { 
+            position: relative; display: flex; align-items: center; 
+            justify-content: center; margin-bottom: 5px; max-width: 250px; margin-left: auto; margin-right: auto;
+        }
         #profile-input-name { 
             background: transparent; border: 1px solid transparent; color: #fff; font-size: 22px; 
-            font-weight: bold; text-align: center; width: 100%; padding: 5px; border-radius: 8px; 
-            margin-bottom: 5px; 
+            font-weight: bold; text-align: center; width: 100%; padding: 8px 30px; border-radius: 12px; 
+            transition: 0.3s;
         }
         #profile-input-name:focus { border-color: var(--primary); outline: none; background: rgba(255,255,255,0.05); }
         
+        .edit-name-icon { 
+            position: absolute; right: 5px; color: var(--primary); font-size: 14px; 
+            pointer-events: none; opacity: 0.7; 
+        }
+        
         .save-profile-btn { 
             background: var(--primary); color: #000; border: none; padding: 12px 30px; 
-            border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 10px; 
+            border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 15px; 
             display: none; cursor: pointer; margin-left: auto; margin-right: auto;
-            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3); animation: pop 0.3s ease;
         }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
-        .stat-item { background: #222; padding: 12px; border-radius: 15px; border: 1px solid #333; }
-        .stat-label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 3px; }
-        .stat-value { font-size: 18px; font-weight: bold; color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 25px; }
+        .stat-item { background: #1a1a1a; padding: 14px; border-radius: 18px; border: 1px solid #252525; text-align: left; position: relative; overflow: hidden; }
+        .stat-item::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary); opacity: 0.5; }
+        .stat-label { font-size: 11px; color: #777; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #fff; }
 
         /* Crop Modal */
         #crop-modal {
@@ -382,27 +409,36 @@
     <div id="page-profile" class="page">
         <div class="profile-card">
             <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
-            <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">
-                <span>👤</span>
-                <div class="camera-icon">📷</div>
+            
+            <div class="avatar-container">
+                <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">
+                    <span>👤</span>
+                </div>
+                <div class="edit-avatar-badge" onclick="document.getElementById('avatar-upload').click()">
+                    <i class="fas fa-camera"></i>
+                </div>
             </div>
             
-            <input type="text" id="profile-input-name" placeholder="Ismingizni kiriting" maxlength="20">
-            <p id="profile-id" style="color:#666; font-size:11px; font-family:monospace; margin-bottom: 10px;"></p>
+            <div class="name-edit-wrapper">
+                <input type="text" id="profile-input-name" placeholder="Ismingizni kiriting" maxlength="20">
+                <i class="fas fa-pen edit-name-icon"></i>
+            </div>
+            
+            <p id="profile-id" style="color:#555; font-size:11px; font-family:monospace; margin-bottom: 15px;"></p>
             
             <button id="save-profile-btn" class="save-profile-btn">SAQLASH</button>
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori bosqich (Best Level)</div>
+                    <div class="stat-label">Eng yuqori bosqich</div>
                     <div class="stat-value" id="best-level">1</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Eng yuqori natija (Best Score)</div>
+                    <div class="stat-label">Eng yuqori natija</div>
                     <div class="stat-value" id="best-score">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Umumiy Tajriba (Total XP)</div>
+                    <div class="stat-label">Umumiy Tajriba (XP)</div>
                     <div class="stat-value" id="total-xp">0</div>
                 </div>
             </div>
@@ -720,7 +756,7 @@
             quality: 0.8,
             circle: false
         }).then(function(base64) {
-            document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile"><div class="camera-icon">📷</div>`;
+            document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile">`;
             document.getElementById('save-profile-btn').style.display = 'block';
             document.getElementById('crop-modal').style.display = 'none';
         });
@@ -1204,9 +1240,9 @@
                 const d = snap.val();
                 nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
                 bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
-                if (d.photo) pA.innerHTML = `<img src="${d.photo}" alt="P"><div class="camera-icon">📷</div>`; 
-                else if (user.photo_url) pA.innerHTML = `<img src="${user.photo_url}" alt="P"><div class="camera-icon">📷</div>`;
-                else pA.innerHTML = `<span>${user.first_name.charAt(0)}</span><div class="camera-icon">📷</div>`;
+                if (d.photo) pA.innerHTML = `<img src="${d.photo}" alt="P">`; 
+                else if (user.photo_url) pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
+                else pA.innerHTML = `<span>${user.first_name.charAt(0)}</span>`;
             } else {
                 nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
                 bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
