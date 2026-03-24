@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -1431,11 +1432,4 @@
                    listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>";
                 }
             } else { listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
-    }
-
-    async function loadProfileData() {
-        const nameInput = document.getElementById('profile-input-name');
-        const surnameInput = document.getElementById('profile-input-surname');
-        const ageInfo = document.getElementById('profile-age-info');
-        const bdayInfo = document.getElementById('profile-bday-countdown');
+        } catch (e) { listDiv.innerHTML =
