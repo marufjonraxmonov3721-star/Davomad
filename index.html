@@ -192,9 +192,8 @@
         .rank-3 .podium-rank-num { font-size: 20px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
 
         .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
-        .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 10px; border-radius: 10px; color: #888; font-size: 12px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.3s; }
-        .rank-tab.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
-        
+        .rank-tab { flex: 1; background: #222; border: 1px solid #333; padding: 8px; border-radius: 8px; color: #888; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
+        .rank-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
         .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
         .rank-item { display: flex; align-items: center; background: #222; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); transition: 0.3s; }
         
@@ -536,6 +535,7 @@
     let currentRemainingTime = 0;
     let gamePhase = 'listening'; 
 
+    // Croppie Instance
     let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
@@ -748,6 +748,7 @@
         };
     };
 
+    // Crop Logic
     function openCropModal(imgSrc) {
         const modal = document.getElementById('crop-modal');
         modal.style.display = 'flex';
@@ -1230,7 +1231,6 @@
                 listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
                 const rawData = []; snap.forEach(child => { rawData.push(child.val()); });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
-                
                 rawData.slice(0, 3).forEach((u, i) => {
                     const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
                     const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
@@ -1245,7 +1245,6 @@
                         </div>`;
                     podiumDiv.appendChild(item);
                 });
-
                 rawData.forEach((u, index) => {
                     if (index < 3 && rankLimit > 3) return; 
                     const item = document.createElement('div');
@@ -1269,37 +1268,5 @@
         const profileId = document.getElementById('profile-id');
         const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
         const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
-        const delBtn = document.getElementById('delete-avatar-btn');
-        profileId.innerText = "ID: " + user.id;
-        try {
-            const snap = await get(ref(db, `leaderboard/${user.id}`));
-            if (snap.exists()) {
-                const d = snap.val();
-                nameInput.value = d.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
-                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
-                if (d.photo) {
-                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
-                    delBtn.style.display = 'flex';
-                }
-                else if (user.photo_url) {
-                    pA.innerHTML = `<img src="${user.photo_url}" alt="P">`;
-                    delBtn.style.display = 'flex';
-                }
-                else {
-                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
-                    delBtn.style.display = 'none';
-                }
-            } else {
-                nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
-                bS.innerText = "0"; bL.innerText = "1"; tX.innerText = "0";
-                pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
-                delBtn.style.display = 'none';
-            }
-        } catch (e) { 
-            nameInput.value = user.first_name; 
-            pA.innerHTML = `<span>${user.first_name.charAt(0).toUpperCase()}</span>`;
-        }
-    }
-</script>
-</body>
-</html>
+        const
+
