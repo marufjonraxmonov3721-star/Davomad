@@ -14,20 +14,22 @@
             --bg: #0a0a0a; 
             --card: #151515; 
             --nav: #1a1a1a; 
-            --text: #ffffff;
             --danger: #ff3e3e; 
             --accent: #ffcc00; 
             --boss: #ff0055; 
-            --friend: #00d4ff; 
+            --friend: #00d4ff;
+            --text: #ffffff;
+            --subtext: #888888;
             --border: #333333;
         }
 
-        /* Light Mode Colors */
-        .light-theme {
+        /* Light Mode Styles */
+        body.light-mode {
             --bg: #f0f2f5;
             --card: #ffffff;
             --nav: #ffffff;
             --text: #1a1a1a;
+            --subtext: #666666;
             --border: #dddddd;
         }
         
@@ -39,7 +41,7 @@
 
         /* Loading Animation */
         #loading-screen { 
-            position: fixed; inset: 0; background: #0a0a0a; z-index: 1000; 
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
         }
         .loader { display: flex; align-items: center; gap: 5px; height: 50px; }
@@ -77,9 +79,15 @@
         }
         .main-play-btn i { font-size: 20px; }
         .main-play-btn:active { transform: scale(0.92); box-shadow: 0 4px 10px rgba(0, 255, 136, 0.2); }
+        .main-play-btn::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: rgba(255,255,255,0.2); transform: rotate(45deg);
+            transition: 0.5s; opacity: 0;
+        }
+        .main-play-btn:hover::after { left: 100%; opacity: 1; }
 
         /* Game UI */
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 40px; border: 1px solid var(--border); text-align: center; position: relative; transition: 0.3s; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); opacity: 0.95; }
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 40px; border: 1px solid var(--border); text-align: center; position: relative; transition: 0.3s; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         
         .vinyl { 
             width: 180px; height: 180px; margin: 20px auto; 
@@ -96,7 +104,7 @@
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in; }
         .options-grid.show-options { opacity: 1; pointer-events: auto; }
         
-        .option-btn, .start-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .option-btn, .start-btn { background: var(--nav); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
         
         .option-btn { opacity: 0; transform: translateY(20px); }
         .option-btn.reveal { opacity: 1; transform: translateY(0); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -138,7 +146,7 @@
             border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
             position: relative;
         }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #555; cursor: pointer; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: var(--subtext); cursor: pointer; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         #level-complete-modal {
@@ -146,7 +154,7 @@
             display: none; align-items: center; justify-content: center; padding: 20px;
         }
         .level-card {
-            background: var(--card); border: 2px solid var(--primary); width: 100%; max-width: 320px;
+            background: #111; border: 2px solid var(--primary); width: 100%; max-width: 320px;
             border-radius: 35px; padding: 30px 20px; text-align: center;
             box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -174,7 +182,8 @@
             width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333;
             background: #222; margin-bottom: 8px; display: flex; align-items: center; 
             justify-content: center; font-weight: bold; font-size: 16px; color: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
         }
         .podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
         
@@ -196,26 +205,37 @@
 
         .rank-1 { height: 100px; background: linear-gradient(180deg, #ffd700, #b8860b); order: 2; z-index: 3; }
         .rank-1 .podium-avatar { border-color: #ffd700; width: 55px; height: 55px; font-size: 22px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); margin-bottom: 10px; }
+        .rank-1 .podium-rank-num { font-size: 28px; color: rgba(0,0,0,0.3); position: absolute; top: 10px; font-weight: 900; }
+        .rank-1 .podium-name { background: #ffd700; color: #000; border-color: #b8860b; }
+
         .rank-2 { height: 75px; background: linear-gradient(180deg, #e0e0e0, #708090); order: 1; z-index: 2; }
+        .rank-2 .podium-avatar { border-color: #e0e0e0; }
+        .rank-2 .podium-rank-num { font-size: 22px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
+
         .rank-3 { height: 60px; background: linear-gradient(180deg, #cd7f32, #8b4513); order: 3; z-index: 1; }
+        .rank-3 .podium-avatar { border-color: #cd7f32; }
+        .rank-3 .podium-rank-num { font-size: 18px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
 
         .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; background: var(--bg); padding: 4px; border-radius: 12px; }
-        .rank-tab { flex: 1; background: transparent; border: none; padding: 10px; border-radius: 10px; color: #666; font-size: 13px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.3s; }
+        .rank-tab { flex: 1; background: transparent; border: none; padding: 10px; border-radius: 10px; color: var(--subtext); font-size: 13px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.3s; }
         .rank-tab.active { background: var(--primary); color: #000; box-shadow: 0 2px 10px rgba(0,255,136,0.2); }
         
         .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .rank-item { display: flex; align-items: center; background: var(--card); padding: 10px 15px; border-radius: 15px; margin-bottom: 8px; border: 1px solid var(--border); transition: 0.3s; }
+        .rank-item { display: flex; align-items: center; background: var(--nav); padding: 10px 15px; border-radius: 15px; margin-bottom: 8px; border: 1px solid var(--border); transition: 0.3s; }
         
-        .rank-num { width: 30px; font-weight: 900; color: #555; font-size: 14px; }
-        .rank-name { flex: 1; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; font-weight: 500; }
-        .rank-score { font-weight: bold; color: var(--primary); font-size: 13px; }
+        .rank-num { width: 30px; font-weight: 900; color: var(--subtext); font-size: 14px; }
+        .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; font-weight: 500; color: var(--text); }
+        .rank-score-box { text-align: right; }
+        .rank-score { font-weight: bold; color: var(--primary); font-size: 13px; display: block; }
+        .rank-lvl { font-size: 9px; color: var(--subtext); display: block; }
+        .reset-info { font-size: 10px; color: var(--subtext); text-align: center; margin-top: 8px; font-style: italic; letter-spacing: 0.5px; }
 
-        /* PROFILE ENHANCEMENTS */
-        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid var(--border); text-align: center; position: relative; }
+        /* PROFILE & SETTINGS ENHANCEMENTS */
+        .profile-card, .settings-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid var(--border); text-align: center; position: relative; }
         
         .avatar-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
         .avatar-circle { 
-            width: 100%; height: 100%; background: var(--bg); border-radius: 50%; 
+            width: 100%; height: 100%; background: var(--nav); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; font-size: 40px; 
             color: var(--text); border: 3px solid var(--primary); overflow: hidden; position: relative; 
             cursor: pointer; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); 
@@ -227,46 +247,50 @@
             width: 34px; height: 34px; border-radius: 50%; display: flex; 
             align-items: center; justify-content: center; font-size: 14px; 
             border: 3px solid var(--card); color: #000; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: 0.2s;
+        }
+        .edit-avatar-badge:active { transform: scale(0.9); }
+        
+        .delete-avatar-badge {
+            position: absolute; top: 0; left: 0; background: var(--danger);
+            width: 30px; height: 30px; border-radius: 50%; display: none;
+            align-items: center; justify-content: center; font-size: 14px;
+            border: 3px solid var(--card); color: #fff; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: 0.2s; z-index: 10;
         }
 
         .name-edit-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 5px; max-width: 250px; margin-left: auto; margin-right: auto; }
         #profile-input-name, #profile-input-surname { 
             background: transparent; border: 1px solid transparent; color: var(--text); font-size: 20px; 
             font-weight: bold; text-align: center; width: 100%; padding: 4px; border-radius: 8px; 
+            transition: 0.3s;
         }
-        #profile-input-name:focus, #profile-input-surname:focus { border-color: var(--primary); outline: none; }
+        #profile-input-name:focus, #profile-input-surname:focus { border-color: var(--primary); outline: none; background: rgba(128,128,128,0.1); }
         
         .save-profile-btn { 
             background: var(--primary); color: #000; border: none; padding: 12px 30px; 
             border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 15px; 
-            display: none; cursor: pointer;
+            display: none; cursor: pointer; margin-left: auto; margin-right: auto;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3); animation: pop 0.3s ease;
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 25px; }
-        .stat-item { background: var(--bg); padding: 14px; border-radius: 18px; border: 1px solid var(--border); text-align: left; position: relative; overflow: hidden; }
+        .stat-item { background: var(--nav); padding: 14px; border-radius: 18px; border: 1px solid var(--border); text-align: left; position: relative; overflow: hidden; }
         .stat-item::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary); opacity: 0.5; }
-        .stat-label { font-size: 11px; color: #777; text-transform: uppercase; }
+        .stat-label { font-size: 11px; color: var(--subtext); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--text); }
 
-        /* SETTINGS STYLES */
-        .settings-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid var(--border); }
-        .setting-group { margin-bottom: 25px; }
-        .setting-label { display: block; color: var(--text); font-weight: bold; margin-bottom: 12px; font-size: 16px; }
-        .theme-options { display: flex; flex-direction: column; gap: 10px; }
-        .theme-btn { 
-            background: var(--bg); border: 1px solid var(--border); color: var(--text); 
-            padding: 15px; border-radius: 15px; cursor: pointer; display: flex; 
-            align-items: center; justify-content: space-between; transition: 0.2s;
-        }
-        .theme-btn.active { border-color: var(--primary); background: rgba(0, 255, 136, 0.1); }
-        .theme-btn i { font-size: 18px; }
-
-        /* Nav Bar */
-        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; z-index: 100; }
-        .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
-        .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
+        /* Settings specific styles */
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .setting-info { text-align: left; }
+        .setting-title { font-weight: bold; color: var(--text); font-size: 15px; }
+        .setting-desc { font-size: 12px; color: var(--subtext); }
+        
+        .theme-switch { display: flex; background: var(--bg); padding: 4px; border-radius: 12px; gap: 5px; }
+        .theme-btn { border: none; background: transparent; padding: 8px 12px; border-radius: 10px; cursor: pointer; color: var(--subtext); transition: 0.3s; font-size: 14px; }
+        .theme-btn.active { background: var(--primary); color: #000; font-weight: bold; }
 
         /* Crop Modal */
         #crop-modal { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
@@ -276,23 +300,48 @@
         .btn-cancel { background: #333; color: #fff; }
         .btn-confirm { background: var(--primary); color: #000; }
 
+        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
+        .nav-item { color: var(--subtext); font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        
+        .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
+
         #offline-notice {
             position: fixed; top: -100px; left: 0; right: 0;
-            background: rgba(255, 62, 62, 0.95); color: white; padding: 15px; text-align: center;
-            z-index: 5000; transition: 0.5s; display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: rgba(255, 62, 62, 0.95); color: white; 
+            padding: 15px; text-align: center; font-weight: bold; 
+            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
         }
         #offline-notice.show { top: 0; }
+        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* BOSS STYLES */
         .boss-active #main-game-card { border-color: var(--boss); box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
-        .boss-active::before { content: ''; position: fixed; inset: 0; border: 8px solid var(--boss); z-index: 999; pointer-events: none; animation: bossPulse 1s infinite; }
-        @keyframes bossPulse { 0% { opacity: 0.2; } 50% { opacity: 0.6; } 100% { opacity: 0.2; } }
+        .boss-active .vinyl { border-color: var(--boss); }
+        .boss-active #disc-center { background: var(--boss) !important; }
+        .boss-active #round-counter { color: var(--boss) !important; }
+        .boss-active .option-btn { border-color: #441122; }
+        .boss-active::before { 
+            content: ''; position: fixed; inset: 0; border: 8px solid var(--boss); 
+            z-index: 999; pointer-events: none; animation: bossPulse 1s infinite;
+        }
+        @keyframes bossPulse { 0% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } 50% { opacity: 0.6; box-shadow: inset 0 0 50px var(--boss); } 100% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } }
+        
+        .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        #resume-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #resume-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
         #resume-countdown { font-size: 100px; font-weight: 900; color: var(--primary); }
     </style>
 </head>
-<body class="dark-theme">
+<body>
 
 <canvas id="visualizer"></canvas>
 
@@ -313,7 +362,7 @@
         <h2 style="color:var(--primary); margin-bottom:20px; text-align:center;">Ro'yxatdan o'tish</h2>
         <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz (Majburiy)">
         <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz (Ixtiyoriy)">
-        <p style="font-size:12px; color:var(--text); margin-bottom:5px; opacity: 0.6;">Tug'ilgan sanangiz (Majburiy):</p>
+        <p style="font-size:12px; color:var(--subtext); margin-bottom:5px;">Tug'ilgan sanangiz (Majburiy):</p>
         <input type="date" id="reg-birthdate" class="reg-input">
         <button class="start-btn" onclick="completeRegistration()" style="width: 100%;">TAYYOR</button>
     </div>
@@ -328,8 +377,11 @@
     <div class="level-card">
         <span class="star-anim">🌟</span>
         <h2 id="lvl-complete-title" style="color:var(--primary); font-size: 24px;">BOSQICH YAKUNLANDI!</h2>
-        <div class="progress-container"><div id="lvl-progress-fill" class="progress-fill-anim"></div></div>
-        <p id="lvl-info-text" style="font-weight: bold; color: var(--text);">LEVEL 1 ➔ LEVEL 2</p>
+        <p id="lvl-complete-text" style="color:#888; margin-top:10px;">Navbatdagi bosqich yuklanmoqda...</p>
+        <div class="progress-container">
+            <div id="lvl-progress-fill" class="progress-fill-anim"></div>
+        </div>
+        <p id="lvl-info-text" style="font-weight: bold; color: #fff;">LEVEL 1 ➔ LEVEL 2</p>
     </div>
 </div>
 
@@ -337,6 +389,7 @@
     <div class="result-card">
         <span class="close-modal" onclick="closeResultModal()">✕</span>
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
+        <p style="color:var(--subtext); margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: var(--text); margin-bottom: 5px;">0</div>
         <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">BOSQICH: 1</p>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
@@ -345,9 +398,11 @@
 
 <div id="crop-modal">
     <h2 style="color:var(--primary); margin-bottom:20px;">Rasmni to'g'irlang</h2>
-    <div class="crop-container"><div id="crop-area"></div></div>
+    <div class="crop-container">
+        <div id="crop-area"></div>
+    </div>
     <div class="crop-btns">
-        <button class="crop-btn btn-cancel" onclick="cancelCrop()">BEKOR</button>
+        <button class="crop-btn btn-cancel" onclick="cancelCrop()">BEKOR QILISH</button>
         <button class="crop-btn btn-confirm" onclick="confirmCrop()">TAYYOR</button>
     </div>
 </div>
@@ -359,38 +414,48 @@
             <div id="combo-badge">COMBO x1</div>
             
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items: center; color:var(--primary); font-weight:bold; margin-bottom: 25px;">
-                    <div style="text-align: left;">
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 25px;">
+                    <div id="game-stats-left" style="text-align: left;">
                         <span id="score" style="font-size: 18px;">BALL: 0</span><br>
-                        <span id="round-counter" style="font-size: 11px; opacity: 0.5;">BOSQICH: 1</span>
+                        <span id="round-counter" style="font-size: 11px; color: var(--subtext);">BOSQICH: 1 | SAVOL: 1/5</span>
                     </div>
                     <div style="text-align: right;">
                         <div id="lives" class="lives-container">🎵🎵🎵</div>
-                        <span id="timer" style="font-size: 18px; display: block;">--</span>
+                        <span id="timer" style="font-size: 18px; display: block; margin-top: 4px;">--</span>
                     </div>
                 </div>
-                <div class="vinyl" id="disc"><div id="disc-center"></div></div>
-                <p id="status" style="font-size:13px; margin: 15px 0; height: 18px; font-weight: bold;"></p>
+                
+                <div class="vinyl" id="disc">
+                    <div id="disc-center"></div>
+                </div>
+                
+                <p id="status" style="color:var(--subtext); font-size:13px; margin: 15px 0; height: 18px; font-weight: bold; letter-spacing: 1px;"></p>
                 <div id="options-box" class="options-grid"></div>
             </div>
             
             <div id="pre-game">
-                <h2 style="margin-bottom:10px;">Xush kelibsiz!</h2>
-                <p style="color:#666; margin-bottom:30px;">Musiqalarni tinglang va ijrochini toping!</p>
-                <button class="main-play-btn" onclick="startGame('uzbek')"><i class="fas fa-play"></i> O'yinni boshlash</button>
+                <h2 style="margin-bottom:10px; color: var(--text);">Xush kelibsiz!</h2>
+                <p style="color:var(--subtext); margin-bottom:30px;">Musiqalarni tinglang va ijrochini toping. Har bir bosqich qiyinlashib boradi!</p>
+                
+                <div class="start-container">
+                    <button class="main-play-btn" onclick="startGame('uzbek')">
+                        <i class="fas fa-play"></i> O'yinni boshlash
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size: 16px;">ENG YAXSHI UCHLIK</h2>
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size: 16px; font-weight: 900;">ENG YAXSHI UCHLIK</h2>
             <div class="podium-container" id="top-three-podium"></div>
             <div class="rank-tabs">
                 <button class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</button>
                 <button class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</button>
             </div>
             <div class="rank-list-container" id="rank-list"></div>
+            <p class="reset-info">Natijalar har Yakshanba kuni yangilanadi.</p>
         </div>
     </div>
 
@@ -398,62 +463,91 @@
         <div class="profile-card">
             <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
             <div class="avatar-container">
-                <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()"><span>👤</span></div>
-                <div class="edit-avatar-badge" onclick="document.getElementById('avatar-upload').click()"><i class="fas fa-camera"></i></div>
+                <div class="delete-avatar-badge" id="delete-avatar-btn" onclick="deleteAvatar()">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">
+                    <span>👤</span>
+                </div>
+                <div class="edit-avatar-badge" onclick="document.getElementById('avatar-upload').click()">
+                    <i class="fas fa-camera"></i>
+                </div>
             </div>
             <div class="name-edit-wrapper">
-                <input type="text" id="profile-input-name" placeholder="Ism">
-                <input type="text" id="profile-input-surname" placeholder="Familiya">
+                <input type="text" id="profile-input-name" placeholder="Ism" maxlength="20">
+                <input type="text" id="profile-input-surname" placeholder="Familiya" maxlength="20">
             </div>
             <p id="profile-age-info" style="color:var(--primary); font-size:13px; font-weight:bold; margin: 10px 0;"></p>
+            <p id="profile-bday-countdown" style="color:#ffcc00; font-size:12px; margin-bottom:10px;"></p>
+            <p id="profile-id" style="color:var(--subtext); font-size:11px; font-family:monospace; margin-bottom: 15px;"></p>
             <button id="save-profile-btn" class="save-profile-btn">SAQLASH</button>
             <div class="stats-grid">
-                <div class="stat-item"><div class="stat-label">Eng yuqori natija</div><div class="stat-value" id="best-score">0</div></div>
-                <div class="stat-item"><div class="stat-label">Eng yuqori bosqich</div><div class="stat-value" id="best-level">1</div></div>
+                <div class="stat-item">
+                    <div class="stat-label">Eng yuqori bosqich</div>
+                    <div class="stat-value" id="best-level">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Eng yuqori natija</div>
+                    <div class="stat-value" id="best-score">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Umumiy Tajriba (XP)</div>
+                    <div class="stat-value" id="total-xp">0</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="page-settings" class="page">
         <div class="settings-card">
-            <h2 style="color:var(--primary); margin-bottom:25px; text-align:center;">Sozlamalar</h2>
+            <h2 style="color:var(--primary); margin-bottom:20px;">Sozlamalar</h2>
             
-            <div class="setting-group">
-                <label class="setting-label">O'yin mavzusi</label>
-                <div class="theme-options">
-                    <button class="theme-btn" id="theme-light" onclick="setTheme('light')">
-                        <span><i class="fas fa-sun"></i> Kunduzgi</span>
-                        <i class="check-icon fas fa-check" style="display:none;"></i>
-                    </button>
-                    <button class="theme-btn" id="theme-dark" onclick="setTheme('dark')">
-                        <span><i class="fas fa-moon"></i> Tungi</span>
-                        <i class="check-icon fas fa-check" style="display:none;"></i>
-                    </button>
-                    <button class="theme-btn" id="theme-auto" onclick="setTheme('auto')">
-                        <span><i class="fas fa-robot"></i> Avtomatik (Tizim)</span>
-                        <i class="check-icon fas fa-check" style="display:none;"></i>
-                    </button>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <div class="setting-title">O'yin Mavzusi</div>
+                    <div class="setting-desc" id="theme-status">Avtomatik (System)</div>
+                </div>
+                <div class="theme-switch">
+                    <button class="theme-btn" id="theme-light" onclick="setTheme('light')">☀️</button>
+                    <button class="theme-btn" id="theme-dark" onclick="setTheme('dark')">🌙</button>
                 </div>
             </div>
 
-            <div class="setting-group" style="opacity: 0.5; border-top: 1px solid var(--border); padding-top: 20px;">
-                <p style="font-size: 12px; text-align: center;">SongLyrics Pro v2.0.0<br>Barcha huquqlar himoyalangan.</p>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <div class="setting-title">Ovoz effektlari</div>
+                    <div class="setting-desc">Tugma va Taymer ovozlari</div>
+                </div>
+                <div style="color: var(--primary); font-size: 20px;">🔊</div>
             </div>
+
+            <div class="setting-row" style="border-bottom: none;">
+                <div class="setting-info">
+                    <div class="setting-title">Versiya</div>
+                    <div class="setting-desc">SongLyrics Pro v2.0</div>
+                </div>
+            </div>
+            
+            <p style="font-size: 11px; color: var(--subtext); margin-top: 20px;">Created for Telegram Mini Apps</p>
         </div>
     </div>
 
     <nav class="nav-bar" id="bottom-nav">
         <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span><span>O'yin</span>
+            <span class="nav-icon">🎮</span>
+            <span>O'yin</span>
         </div>
         <div class="nav-item" onclick="showPage('rank', this)">
-            <span class="nav-icon">🏆</span><span>Reyting</span>
+            <span class="nav-icon">🏆</span>
+            <span>Reyting</span>
         </div>
         <div class="nav-item" onclick="showPage('profile', this)">
-            <span class="nav-icon">👤</span><span>Profil</span>
+            <span class="nav-icon">👤</span>
+            <span>Profil</span>
         </div>
         <div class="nav-item" onclick="showPage('settings', this)">
-            <span class="nav-icon">⚙️</span><span>Sozlamalar</span>
+            <span class="nav-icon">⚙️</span>
+            <span>Sozlamalar</span>
         </div>
     </nav>
 </div>
@@ -475,44 +569,80 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
+    tg.disableClosingConfirmation(); 
 
     const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let allQuestions = [], questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
     audio.crossOrigin = "anonymous";
-    let isPlaying = false, isPaused = false, comboCount = 0, currentCategory = 'uzbek', currentLevel = 1, isBossRound = false, bossQuestion = null;
-    let adminTimerSettings = {}, usedQuestions = new Set(), rankLimit = 10, currentRemainingTime = 0, gamePhase = 'listening'; 
-    let croppieInstance = null, audioContext, analyser, dataArray, canvas, ctx, animationId;
+    let isPlaying = false;
+    let isPaused = false;
+    let comboCount = 0;
+    let currentCategory = 'uzbek';
+    let currentLevel = 1;
+    let isBossRound = false;
+    let bossQuestion = null;
+    let adminTimerSettings = {};
+    const QUESTIONS_PER_LEVEL = 5;
+    
+    let optionsTickSound = new Audio();
+    let timerTickSound = new Audio();
+    let correctSound = new Audio();
+    let wrongSound = new Audio();
+    
+    optionsTickSound.volume = 0.5;
+    timerTickSound.volume = 0.6;
+    correctSound.volume = 0.8;
+    wrongSound.volume = 0.8;
 
-    // Theme Management
+    let usedQuestions = new Set();
+    let rankLimit = 10;
+    let currentRemainingTime = 0;
+    let gamePhase = 'listening'; 
+
+    let croppieInstance = null;
+
+    let audioContext, analyser, dataArray, canvas, ctx, animationId;
+
+    // Theme Logic
     window.setTheme = (mode) => {
-        localStorage.setItem('songlyrics_theme', mode);
-        applyTheme();
+        const body = document.body;
+        const lightBtn = document.getElementById('theme-light');
+        const darkBtn = document.getElementById('theme-dark');
+        const statusText = document.getElementById('theme-status');
+
+        if(mode === 'light') {
+            body.classList.add('light-mode');
+            lightBtn.classList.add('active');
+            darkBtn.classList.remove('active');
+            statusText.innerText = "Kunduzgi rejim";
+            localStorage.setItem('gameTheme', 'light');
+        } else {
+            body.classList.remove('light-mode');
+            darkBtn.classList.add('active');
+            lightBtn.classList.remove('active');
+            statusText.innerText = "Tungi rejim";
+            localStorage.setItem('gameTheme', 'dark');
+        }
     };
 
-    function applyTheme() {
-        const mode = localStorage.getItem('songlyrics_theme') || 'auto';
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    function initTheme() {
+        const savedTheme = localStorage.getItem('gameTheme');
+        // Check system preference
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        document.body.classList.remove('light-theme', 'dark-theme');
-        document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.check-icon').forEach(icon => icon.style.display = 'none');
-
-        if (mode === 'light' || (mode === 'auto' && !isDark)) {
-            document.body.classList.add('light-theme');
-            document.getElementById('theme-light').classList.add('active');
-            document.querySelector('#theme-light .check-icon').style.display = 'block';
+        if(savedTheme) {
+            setTheme(savedTheme);
         } else {
-            document.body.classList.add('dark-theme');
-            const target = mode === 'dark' ? 'theme-dark' : 'theme-auto';
-            document.getElementById(target).classList.add('active');
-            document.querySelector(`#${target} .check-icon`).style.display = 'block';
+            setTheme(prefersDark ? 'dark' : 'light');
         }
-    }
 
-    // Monitor system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if(localStorage.getItem('songlyrics_theme') === 'auto') applyTheme();
-    });
+        // Listen for system changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if(!localStorage.getItem('gameTheme')) {
+                setTheme(event.matches ? 'dark' : 'light');
+            }
+        });
+    }
 
     function setupVisualizer() {
         if (audioContext) return;
@@ -526,50 +656,207 @@
         analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
     }
 
-    function resizeCanvas() { if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; } }
+    function resizeCanvas() {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
 
     function drawVisualizer() {
-        if (!isPlaying || isPaused) { if(ctx) ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+        if (!isPlaying || isPaused) {
+            if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
         animationId = requestAnimationFrame(drawVisualizer);
         analyser.getByteFrequencyData(dataArray);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         const barWidth = (canvas.width / dataArray.length) * 1.5;
         let x = 0;
+        
+        const isLight = document.body.classList.contains('light-mode');
+
         for (let i = 0; i < dataArray.length; i++) {
             const barHeight = (dataArray[i] / 255) * canvas.height * 0.7;
-            ctx.fillStyle = isBossRound ? 'rgba(255, 0, 85, 0.6)' : 'rgba(0, 255, 136, 0.6)';
+            
+            const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+            if(isBossRound) {
+                gradient.addColorStop(0, 'rgba(255, 0, 85, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 0, 85, 0.2)');
+            } else {
+                gradient.addColorStop(0, isLight ? '#00cc6e' : '#00ff88'); 
+                gradient.addColorStop(1, isLight ? 'rgba(0, 204, 110, 0.1)' : 'rgba(0, 255, 136, 0.1)');
+            }
+            
+            ctx.fillStyle = gradient;
             ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
             x += barWidth;
         }
     }
 
-    let optionsTickSound = new Audio(), timerTickSound = new Audio(), correctSound = new Audio(), wrongSound = new Audio();
-    
     async function loadGameSounds() {
         try {
             const snap = await get(ref(db, 'settings/audio'));
             if(snap.exists()) {
-                const s = snap.val();
-                optionsTickSound.src = s.optionsAudio; timerTickSound.src = s.timerAudio;
-                correctSound.src = s.correct; wrongSound.src = s.wrong;
+                const settings = snap.val();
+                if(settings.optionsAudio) {
+                    optionsTickSound.src = settings.optionsAudio;
+                    optionsTickSound.load();
+                }
+                if(settings.timerAudio) {
+                    timerTickSound.src = settings.timerAudio;
+                    timerTickSound.load();
+                }
+                if(settings.correct) {
+                    correctSound.src = settings.correct;
+                    correctSound.load();
+                }
+                if(settings.wrong) {
+                    wrongSound.src = settings.wrong;
+                    wrongSound.load();
+                }
             }
-        } catch(e) {}
+        } catch(e) { console.log("Audio load error"); }
     }
 
-    function stopAllSounds() {
-        audio.pause(); optionsTickSound.pause(); timerTickSound.pause(); correctSound.pause(); wrongSound.pause();
-        clearInterval(timerInterval);
+    const stopAllSounds = () => {
+        audio.pause();
+        optionsTickSound.pause();
+        timerTickSound.pause();
+        correctSound.pause();
+        wrongSound.pause();
+        optionsTickSound.currentTime = 0;
+        timerTickSound.currentTime = 0;
+        correctSound.currentTime = 0;
+        wrongSound.currentTime = 0;
+        if(isPlaying) {
+            clearInterval(timerInterval);
+            document.getElementById('disc').classList.remove('spinning');
+        }
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            pauseGame();
+        } else {
+            resumeGameWithCountdown();
+        }
+    });
+
+    function pauseGame() {
+        if (!isPlaying || isPaused) return;
+        isPaused = true;
+        stopAllSounds();
+        if (animationId) cancelAnimationFrame(animationId);
+    }
+
+    function resumeGameWithCountdown() {
+        if (!isPlaying || !isPaused) return;
+        
+        const overlay = document.getElementById('resume-overlay');
+        const countText = document.getElementById('resume-countdown');
+        overlay.style.display = 'flex';
+        
+        let count = 3;
+        countText.innerText = count;
+        
+        const countInt = setInterval(() => {
+            count--;
+            if (count > 0) {
+                countText.innerText = count;
+            } else {
+                clearInterval(countInt);
+                overlay.style.display = 'none';
+                isPaused = false;
+                
+                if (gamePhase === 'listening') {
+                    audio.play();
+                    document.getElementById('disc').classList.add('spinning');
+                    startTimer(currentRemainingTime);
+                    drawVisualizer();
+                } else if (gamePhase === 'choosing') {
+                    if(timerTickSound.src) timerTickSound.play();
+                    startChoosingTimer(currentRemainingTime);
+                    drawVisualizer();
+                }
+            }
+        }, 1000);
     }
 
     window.onload = () => {
-        applyTheme();
+        initTheme();
         loadGameSounds(); 
-        setTimeout(() => {
+        setTimeout(async () => {
             document.getElementById('loading-screen').style.display = 'none';
             checkRegistration();
         }, 2500);
+        
+        const checkNetwork = () => {
+            const notice = document.getElementById('offline-notice');
+            if(!navigator.onLine) {
+                notice.classList.add('show');
+                pauseGame();
+            } else {
+                notice.classList.remove('show');
+            }
+        };
+
+        window.addEventListener('offline', checkNetwork);
+        window.addEventListener('online', checkNetwork);
+        checkNetwork();
+
+        const nameInput = document.getElementById('profile-input-name');
+        const surnameInput = document.getElementById('profile-input-surname');
+        const saveBtn = document.getElementById('save-profile-btn');
+        const avatarUpload = document.getElementById('avatar-upload');
+
+        const profileWatchers = [nameInput, surnameInput];
+        profileWatchers.forEach(el => el.addEventListener('input', () => { saveBtn.style.display = 'block'; }));
+        
+        avatarUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    openCropModal(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        saveBtn.onclick = async () => {
+            if(!navigator.onLine) return;
+            const newName = nameInput.value.trim();
+            const newSurname = surnameInput.value.trim();
+            const avatarImg = document.querySelector('#profile-avatar img');
+            const avatarBase64 = avatarImg ? avatarImg.src : "";
+
+            if(newName.length < 3) {
+                tg.showAlert("Iltimos ismingizni kiriting!");
+                return;
+            }
+
+            saveBtn.innerText = "SAQLANMOQDA...";
+            saveBtn.disabled = true;
+
+            try {
+                await update(ref(db, `leaderboard/${user.id}`), {
+                    name: newName,
+                    surname: newSurname,
+                    photo: avatarBase64
+                });
+                tg.showAlert("Profil saqlandi!");
+                saveBtn.style.display = 'none';
+            } catch (e) {
+                tg.showAlert("Xatolik yuz berdi!");
+            } finally {
+                saveBtn.innerText = "SAQLASH";
+                saveBtn.disabled = false;
+            }
+        };
     };
 
     async function checkRegistration() {
@@ -581,24 +868,171 @@
             } else {
                 document.getElementById('reg-screen').style.display = 'flex';
             }
-        } catch (e) { document.getElementById('reg-screen').style.display = 'flex'; }
+        } catch (e) {
+            document.getElementById('reg-screen').style.display = 'flex';
+        }
     }
 
     window.completeRegistration = async () => {
         const name = document.getElementById('reg-name').value.trim();
-        const bdate = document.getElementById('reg-birthdate').value;
-        if (name.length < 3 || !bdate) { tg.showAlert("Ma'lumotlarni to'liq kiriting!"); return; }
-        await set(ref(db, `leaderboard/${user.id}`), {
-            id: user.id, name: name, surname: document.getElementById('reg-surname').value,
-            birthdate: bdate, score: 0, level: 1, total_xp: 0, registered: true, photo: ""
+        const surname = document.getElementById('reg-surname').value.trim();
+        const birthdate = document.getElementById('reg-birthdate').value;
+
+        if (name.length < 3) {
+            tg.showAlert("Iltimos, ismingizni kiriting")
+            return;
+        }
+        
+        if (!birthdate) {
+            tg.showAlert("Iltimos, tug'ilgan sanangizni tanlang!");
+            return;
+        }
+
+        try {
+            await set(ref(db, `leaderboard/${user.id}`), {
+                id: user.id,
+                name: name,
+                surname: surname,
+                birthdate: birthdate,
+                score: 0,
+                level: 1,
+                total_xp: 0,
+                registered: true,
+                photo: ""
+            });
+            document.getElementById('reg-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            loadProfileData();
+        } catch (e) {
+            tg.showAlert("Xatolik yuz berdi, qaytadan uruning.");
+        }
+    };
+
+    function calculateAge(birthDateString) {
+        if (!birthDateString) return null;
+        const today = new Date();
+        const birthDate = new Date(birthDateString);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        return age;
+    }
+
+    function daysUntilBirthday(birthDateString) {
+        if (!birthDateString) return null;
+        const today = new Date();
+        const birthDate = new Date(birthDateString);
+        const nextBday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+        if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
+        const diff = nextBday - today;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    function openCropModal(imgSrc) {
+        const modal = document.getElementById('crop-modal');
+        modal.style.display = 'flex';
+        const el = document.getElementById('crop-area');
+        
+        if (croppieInstance) {
+            croppieInstance.destroy();
+        }
+
+        croppieInstance = new Croppie(el, {
+            viewport: { width: 250, height: 250, type: 'circle' },
+            boundary: { width: 300, height: 300 },
+            showZoomer: true,
+            enableOrientation: true
         });
-        document.getElementById('reg-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        loadProfileData();
+
+        croppieInstance.bind({
+            url: imgSrc
+        });
+    }
+
+    window.cancelCrop = () => {
+        document.getElementById('crop-modal').style.display = 'none';
+        document.getElementById('avatar-upload').value = "";
+    };
+
+    window.confirmCrop = () => {
+        croppieInstance.result({
+            type: 'base64',
+            size: { width: 300, height: 300 },
+            format: 'jpeg',
+            quality: 0.8,
+            circle: false
+        }).then(function(base64) {
+            document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile">`;
+            document.getElementById('delete-avatar-btn').style.display = 'flex';
+            document.getElementById('save-profile-btn').style.display = 'block';
+            document.getElementById('crop-modal').style.display = 'none';
+        });
+    };
+
+    window.deleteAvatar = () => {
+        const nameInput = document.getElementById('profile-input-name');
+        const firstChar = nameInput.value.trim().charAt(0).toUpperCase() || user.first_name.charAt(0);
+        document.getElementById('profile-avatar').innerHTML = `<span>${firstChar}</span>`;
+        document.getElementById('delete-avatar-btn').style.display = 'none';
+        document.getElementById('save-profile-btn').style.display = 'block';
+    };
+
+    tg.BackButton.onClick(() => {
+        if(isPlaying) {
+            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
+                if(confirmed) quitGame();
+            });
+        }
+    });
+
+    window.setRankLimit = (limit) => {
+        rankLimit = limit;
+        document.getElementById('limit-10').classList.toggle('active', limit === 10);
+        document.getElementById('limit-100').classList.toggle('active', limit === 100);
+        loadLeaderboard();
+    };
+
+    function quitGame() {
+        isPlaying = false;
+        isPaused = false;
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
+        clearInterval(timerInterval);
+        
+        stopAllSounds();
+        audio.src = "";
+        
+        if (animationId) cancelAnimationFrame(animationId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('pre-game').style.display = 'block';
+        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('resume-overlay').style.display = 'none';
+        document.getElementById('level-complete-modal').style.display = 'none';
+        
+        score = 0;
+        lives = 3;
+        comboCount = 0;
+        currentIdx = 0;
+        currentLevel = 1;
+        
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `BOSQICH: 1 | SAVOL: 1/5`;
+        updateLivesUI();
+        document.getElementById('result-modal').style.display = 'none';
+    }
+
+    window.closeResultModal = () => {
+        quitGame();
     };
 
     window.showPage = (pageId, el) => {
         if(isPlaying) return;
+        stopAllSounds();
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(`page-${pageId}`).classList.add('active-page');
@@ -607,135 +1041,454 @@
         if(pageId === 'profile') loadProfileData();
     };
 
-    window.startGame = async (cat) => {
+    window.startGame = async (category) => {
+        if (!navigator.onLine) {
+            tg.showAlert("O'yinni boshlash uchun internet kerak!");
+            return;
+        }
+
+        [optionsTickSound, timerTickSound, correctSound, wrongSound].forEach(s => {
+            if(s.src) s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+        });
+
         setupVisualizer();
-        currentCategory = cat; isPlaying = true; currentLevel = 1; score = 0; lives = 3;
+        if (audioContext.state === 'suspended') audioContext.resume();
+        
+        currentCategory = category || 'uzbek';
+        isPlaying = true;
+        isPaused = false;
+        
+        drawVisualizer();
+
+        try {
+            const setSnap = await get(ref(db, 'settings/timer'));
+            if(setSnap.exists()) adminTimerSettings = setSnap.val();
+        } catch(e) {}
+
+        try {
+            const userSnap = await get(ref(db, `leaderboard/${user.id}`));
+            if (userSnap.exists()) {
+                currentLevel = userSnap.val().level || 1;
+            } else {
+                currentLevel = 1;
+            }
+        } catch(e) { currentLevel = 1; }
+
+        currentIdx = 0;
+        score = 0;
+        lives = 3;
+        comboCount = 0;
+        isBossRound = false;
+        
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `BOSQICH: ${currentLevel} | SAVOL: 1/5`;
+        updateLivesUI();
+        
+        tg.BackButton.show();
         document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
-        tg.BackButton.show();
         initGame();
     };
 
+    window.restartGame = () => {
+        quitGame();
+    };
+
     async function initGame() {
-        const snap = await get(ref(db, `questions/${currentCategory}`));
-        if(snap.exists()) {
-            allQuestions = Object.values(snap.val());
-            loadLevelQuestions();
+        try {
+            const snap = await get(ref(db, `questions/${currentCategory}`));
+            if(snap.exists()) {
+                const data = snap.val();
+                allQuestions = Object.keys(data).map(key => ({
+                    ...data[key],
+                    firebaseId: key
+                }));
+                loadLevelQuestions();
+            } else {
+                tg.showAlert("Savollar topilmadi!");
+                quitGame();
+            }
+        } catch (e) {
+            tg.showAlert("Ma'lumot yuklashda xatolik!");
+            quitGame();
         }
     }
 
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
-        questions = levelData.filter(q => !q.is_boss).sort(() => Math.random() - 0.5).slice(0, 5);
-        bossQuestion = levelData.find(q => q.is_boss);
-        currentIdx = 0;
-        loadRound();
+        const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId));
+        const normalQuestions = levelData.filter(q => !q.is_boss);
+        const bosses = levelData.filter(q => q.is_boss);
+        
+        if(normalQuestions.length > 0) {
+            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
+            currentIdx = 0;
+            loadRound();
+        } else {
+            currentLevel++;
+            const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
+            if(nextLevelData.length > 0) loadLevelQuestions();
+            else endGame(false);
+        }
     }
 
     async function loadRound() {
+        if(!isPlaying) return;
         if(lives <= 0) { endGame(true); return; }
-        let q;
-        if(currentIdx >= questions.length) {
-            if(bossQuestion && !isBossRound) { isBossRound = true; q = bossQuestion; document.body.classList.add('boss-active'); }
-            else { showLevelCompleteAnimation(); return; }
-        } else { q = questions[currentIdx]; }
-
-        document.getElementById('options-box').innerHTML = "";
-        document.getElementById('options-box').classList.remove('show-options');
-        document.getElementById('status').innerText = "Yuklanmoqda...";
         
-        const url = await fetchMusic(q.search_term);
-        if(url) {
-            audio.src = url;
-            audio.onplay = () => {
-                document.getElementById('disc').classList.add('spinning');
-                startTimer(10);
-                drawVisualizer();
-            };
-            audio.play();
-            
-            q.options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn'; btn.innerText = opt;
-                btn.onclick = (e) => {
-                    clearInterval(timerInterval);
-                    if(opt === q.options[q.correct]) {
-                        btn.classList.add('correct'); score += (isBossRound ? 50 : 10);
-                        document.getElementById('score').innerText = "BALL: " + score;
-                    } else {
-                        btn.classList.add('wrong'); lives--; updateLivesUI();
-                    }
-                    setTimeout(() => { currentIdx++; loadRound(); }, 1500);
+        let q;
+        const status = document.getElementById('status');
+        const optionsBox = document.getElementById('options-box');
+        const disc = document.getElementById('disc');
+        const roundCounter = document.getElementById('round-counter');
+
+        if(currentIdx >= questions.length) { 
+            if(bossQuestion && !isBossRound) {
+                isBossRound = true;
+                q = bossQuestion;
+                document.getElementById('combo-badge').style.display = 'none';
+                document.getElementById('combo-flame').style.display = 'none';
+                document.body.classList.add('boss-active');
+                tg.HapticFeedback.notificationOccurred('warning');
+                roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
+            } else {
+                showLevelCompleteAnimation();
+                return;
+            }
+        } else {
+            q = questions[currentIdx];
+            roundCounter.innerText = `BOSQICH: ${currentLevel} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
+        }
+        
+        if(q) {
+            usedQuestions.add(q.firebaseId);
+            optionsBox.innerHTML = "";
+            optionsBox.classList.remove('show-options'); 
+            disc.classList.remove('spinning');
+            audio.pause();
+            status.innerText = "Musiqa qidirilmoqda...";
+            gamePhase = 'listening';
+
+            const musicUrl = await fetchMusic(q.search_term);
+            if(musicUrl) {
+                audio.src = musicUrl;
+                audio.playbackRate = isBossRound ? 1.05 : 1.0;
+                audio.onplay = () => {
+                    if (isPaused) { audio.pause(); return; }
+                    disc.classList.add('spinning'); 
+                    status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
+                    let dTime = isBossRound ? (adminTimerSettings.boss || 15) : (adminTimerSettings.levels && adminTimerSettings.levels[currentLevel] ? adminTimerSettings.levels[currentLevel] : 10);
+                    startTimer(dTime);
                 };
-                document.getElementById('options-box').appendChild(btn);
+                audio.play().catch(() => { skipRound(); });
+            } else { skipRound(); return; }
+
+            const correctText = q.options[q.correct];
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.disabled = true;
+                btn.onclick = (e) => {
+                    const btns = document.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.disabled = true);
+                    clearInterval(timerInterval);
+                    timerTickSound.pause();
+                    timerTickSound.currentTime = 0;
+
+                    if(opt === correctText) {
+                        btn.classList.add('correct'); 
+                        if(correctSound.src) { correctSound.currentTime = 0; correctSound.play().catch(()=>{}); }
+                        let pointsToAdd;
+                        if(isBossRound) {
+                            pointsToAdd = (q.score || 50) * (q.boss_combo || 1);
+                            showFloatingText(`BOSS COMBO x${q.boss_combo || 1} +${pointsToAdd}`, e.clientX, e.clientY);
+                            if(q.boss_gift && q.boss_gift.includes("+1 Jon")) lives = Math.min(3, lives + 1);
+                            updateLivesUI();
+                            tg.HapticFeedback.notificationOccurred('success');
+                        } else {
+                            comboCount++;
+                            pointsToAdd = (q.score || 10) * (Math.floor(comboCount / 3) + 1);
+                            showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                            updateComboUI();
+                            tg.HapticFeedback.impactOccurred('medium');
+                        }
+                        score += pointsToAdd;
+                        document.getElementById('score').innerText = "BALL: " + score;
+                    } else { handleWrongAnswer(btn, correctText); }
+                    setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
+                };
+                optionsBox.appendChild(btn);
             });
         }
     }
 
-    function startTimer(s) {
-        currentRemainingTime = s;
+    function showLevelCompleteAnimation() {
+        const modal = document.getElementById('level-complete-modal');
+        const bar = document.getElementById('lvl-progress-fill');
+        const info = document.getElementById('lvl-info-text');
+        stopAllSounds();
+        modal.style.display = 'flex';
+        bar.style.width = '0%';
+        info.innerText = `BOSQICH ${currentLevel} ➔ ${currentLevel + 1}`;
+        tg.HapticFeedback.notificationOccurred('success');
+        setTimeout(() => {
+            bar.style.width = '100%';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                currentLevel++;
+                saveScore(); 
+                loadLevelQuestions();
+            }, 2000); 
+        }, 100);
+    }
+
+    function handleWrongAnswer(clickedBtn, correctText) {
+        if(clickedBtn) clickedBtn.classList.add('wrong');
+        if(wrongSound.src) { wrongSound.currentTime = 0; wrongSound.play().catch(()=>{}); }
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => { 
+            b.disabled = true;
+            if(b.innerText === correctText) b.classList.add('correct'); 
+        });
+        comboCount = 0; updateComboUI(); lives--; updateLivesUI();
+        tg.HapticFeedback.notificationOccurred('error');
+    }
+
+    function skipRound() { currentIdx++; loadRound(); }
+    function nextStep() { if(isBossRound) showLevelCompleteAnimation(); else { currentIdx++; loadRound(); } }
+
+    function showFloatingText(text, x, y) {
+        const el = document.createElement('div');
+        el.className = 'floating-text';
+        if(isBossRound) el.style.color = 'var(--boss)';
+        el.innerText = text;
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+    }
+
+    function updateComboUI() {
+        const badge = document.getElementById('combo-badge');
+        const flame = document.getElementById('combo-flame');
+        if (isBossRound) { badge.style.display = 'none'; flame.style.display = 'none'; return; }
+        if (comboCount >= 3) {
+            badge.innerText = `COMBO x${Math.floor(comboCount / 3) + 1}`;
+            badge.style.display = 'block'; flame.style.display = 'block';
+            badge.style.animation = 'none'; badge.offsetHeight; 
+            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        } else { badge.style.display = 'none'; flame.style.display = 'none'; }
+    }
+
+    function updateLivesUI() {
+        const livesEl = document.getElementById('lives');
+        livesEl.innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
+    }
+
+    function endGame(isGameOver) {
+        isPlaying = false; isPaused = false; tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('level-complete-modal').style.display = 'none';
+        clearInterval(timerInterval);
+        if (animationId) cancelAnimationFrame(animationId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stopAllSounds(); audio.src = "";
+        saveScore();
+        const modal = document.getElementById('result-modal');
+        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-level').innerText = `ERISHILGAN BOSQICH: ${currentLevel}`;
+        modal.style.display = 'flex';
+        document.body.classList.remove('boss-active');
+    }
+
+    async function fetchMusic(term, isRetry = false) {
+        if (!navigator.onLine) return null;
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
+            const data = await res.json();
+            const f = data.results.filter(t => !["karaoke", "instrumental", "piano", "tribute"].some(m => (t.trackName || "").toLowerCase().includes(m)));
+            if (f.length > 0) return f[0].previewUrl;
+            if (!isRetry && term.includes(' - ')) return await fetchMusic(term.split(' - ')[1].trim(), true);
+            return data.results[0]?.previewUrl || null;
+        } catch (e) { return null; }
+    }
+
+    function startTimer(startTime) {
+        currentRemainingTime = startTime;
+        document.getElementById('timer').innerText = Math.floor(currentRemainingTime);
+        clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            currentRemainingTime--;
-            document.getElementById('timer').innerText = currentRemainingTime;
-            if(currentRemainingTime <= 0) {
-                clearInterval(timerInterval);
-                document.getElementById('options-box').classList.add('show-options');
-                document.querySelectorAll('.option-btn').forEach((b, i) => setTimeout(() => b.classList.add('reveal'), i * 200));
+            if (!navigator.onLine || isPaused) return;
+            currentRemainingTime--; 
+            document.getElementById('timer').innerText = Math.max(0, Math.floor(currentRemainingTime));
+            if(currentRemainingTime <= 0) { 
+                clearInterval(timerInterval); audio.pause(); 
+                document.getElementById('disc').classList.remove('spinning');
+                showOptionsPhase();
             }
         }, 1000);
     }
 
-    async function fetchMusic(term) {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
-        const data = await res.json();
-        return data.results[0]?.previewUrl;
+    function showOptionsPhase() {
+        gamePhase = 'choosing';
+        const optionsBox = document.getElementById('options-box');
+        optionsBox.classList.add('show-options');
+        const btns = document.querySelectorAll('.option-btn');
+        document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
+        let started = 0;
+        btns.forEach((btn, index) => {
+            setTimeout(() => {
+                if(!isPlaying || gamePhase !== 'choosing') return; 
+                btn.classList.add('reveal');
+                if(optionsTickSound.src && !isPaused) {
+                    const c = optionsTickSound.cloneNode(); c.play().catch(()=>{});
+                }
+                started++;
+                if(started === btns.length) {
+                    btns.forEach(b => b.disabled = false);
+                    setTimeout(() => {
+                        if(!isPlaying || gamePhase !== 'choosing') return;
+                        if(timerTickSound.src && !isPaused) { timerTickSound.loop = true; timerTickSound.play().catch(()=>{}); }
+                        startChoosingTimer(10); 
+                    }, 500);
+                }
+            }, index * 1000); 
+        });
     }
 
-    function updateLivesUI() { document.getElementById('lives').innerText = "🎵".repeat(lives) + "🔘".repeat(3-lives); }
-
-    function endGame(over) {
-        isPlaying = false; stopAllSounds();
-        document.getElementById('result-modal').style.display = 'flex';
-        document.getElementById('final-score').innerText = score;
-        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+    function startChoosingTimer(seconds) {
+        currentRemainingTime = seconds;
+        document.getElementById('timer').innerText = currentRemainingTime;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!navigator.onLine || isPaused) return;
+            currentRemainingTime--;
+            document.getElementById('timer').innerText = Math.max(0, currentRemainingTime);
+            if(currentRemainingTime <= 0) {
+                clearInterval(timerInterval); timerTickSound.pause(); timerTickSound.currentTime = 0;
+                let q = isBossRound ? bossQuestion : questions[currentIdx];
+                handleWrongAnswer(null, q.options[q.correct]);
+                setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
+            }
+        }, 1000);
     }
 
-    window.restartGame = () => location.reload();
-
-    function showLevelCompleteAnimation() {
-        document.getElementById('level-complete-modal').style.display = 'flex';
-        setTimeout(() => {
-            document.getElementById('level-complete-modal').style.display = 'none';
-            currentLevel++; loadLevelQuestions();
-        }, 3000);
+    async function saveScore() {
+        if (!navigator.onLine) return;
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        try {
+            const snap = await get(userRef);
+            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            await update(userRef, {
+                score: Math.max(score, data.score || 0),
+                level: Math.max(currentLevel, data.level || 1),
+                total_xp: increment(score > 0 ? score : 0),
+                id: user.id
+            });
+        } catch (e) {}
     }
 
     async function loadLeaderboard() {
-        const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10)));
-        const list = document.getElementById('rank-list');
-        list.innerHTML = "";
-        if(snap.exists()) {
-            Object.values(snap.val()).sort((a,b)=>b.score-a.score).forEach((u, i) => {
-                list.innerHTML += `<div class="rank-item"><div class="rank-num">#${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-score">${u.score}</div></div>`;
-            });
+        const listDiv = document.getElementById('rank-list');
+        const podiumDiv = document.getElementById('top-three-podium');
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:var(--subtext); margin-top:10px;'>Internet kerak</p></div>";
+            podiumDiv.innerHTML = ""; return;
         }
+        listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Yuklanmoqda...</p>";
+        try {
+            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
+            if(snap.exists()) {
+                listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
+                const rawData = []; snap.forEach(child => { 
+                    const userData = child.val();
+                    if(userData.score > 0) { rawData.push(userData); }
+                });
+                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+                
+                rawData.slice(0, 3).forEach((u, i) => {
+                    const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
+                    const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
+                    item.innerHTML = `
+                        <div class="podium-avatar">${av}</div>
+                        <div class="podium-step rank-${rank}">
+                             <span class="podium-rank-num">${rank}</span>
+                             <div class="podium-info">
+                                <div class="podium-name">${u.name}</div>
+                                <div class="podium-score">${u.score} PT</div>
+                             </div>
+                        </div>`;
+                    podiumDiv.appendChild(item);
+                });
+
+                rawData.forEach((u, index) => {
+                    if (index < 3 && rankLimit > 3) return; 
+                    const item = document.createElement('div');
+                    item.className = "rank-item";
+                    if(u.id == user.id) item.style.borderColor = "var(--primary)";
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name} ${u.surname || ''}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">${u.score}</span>
+                            <span class="rank-lvl">LVL: ${u.level || 1}</span>
+                        </div>`;
+                    listDiv.appendChild(item);
+                });
+                
+                if(rawData.length === 0) {
+                   listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>";
+                }
+            } else { listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
 
     async function loadProfileData() {
-        const snap = await get(ref(db, `leaderboard/${user.id}`));
-        if(snap.exists()) {
-            const d = snap.val();
-            document.getElementById('profile-input-name').value = d.name;
-            document.getElementById('best-score').innerText = d.score;
-            document.getElementById('best-level').innerText = d.level;
-        }
+        const nameInput = document.getElementById('profile-input-name');
+        const surnameInput = document.getElementById('profile-input-surname');
+        const ageInfo = document.getElementById('profile-age-info');
+        const bdayInfo = document.getElementById('profile-bday-countdown');
+        const profileId = document.getElementById('profile-id');
+        const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
+        const tX = document.getElementById('total-xp'); const pA = document.getElementById('profile-avatar');
+        const delBtn = document.getElementById('delete-avatar-btn');
+        
+        profileId.innerText = "ID: " + user.id;
+        try {
+            const snap = await get(ref(db, `leaderboard/${user.id}`));
+            if (snap.exists()) {
+                const d = snap.val();
+                nameInput.value = d.name || "";
+                surnameInput.value = d.surname || "";
+                bS.innerText = d.score || 0; bL.innerText = d.level || 1; tX.innerText = d.total_xp || 0;
+                
+                const age = calculateAge(d.birthdate);
+                if (age !== null) ageInfo.innerText = age + " yoshdasiz";
+                
+                const days = daysUntilBirthday(d.birthdate);
+                if (days !== null) {
+                    if (days === 365 || days === 0) bdayInfo.innerText = "BUGUN TUG'ILGAN KONINGIZ! 🎉";
+                    else bdayInfo.innerText = "Tug'ilgan kuningizga " + days + " kun qoldi";
+                }
+
+                if (d.photo) {
+                    pA.innerHTML = `<img src="${d.photo}" alt="P">`;
+                    delBtn.style.display = 'flex';
+                } else {
+                    pA.innerHTML = `<span>${nameInput.value.charAt(0).toUpperCase()}</span>`;
+                    delBtn.style.display = 'none';
+                }
+            }
+        } catch (e) {}
     }
-
-    tg.BackButton.onClick(() => location.reload());
-
 </script>
 </body>
 </html>
