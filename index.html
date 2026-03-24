@@ -141,7 +141,9 @@
             background: #222; margin-bottom: 8px; display: flex; align-items: center; 
             justify-content: center; font-weight: bold; font-size: 18px; color: #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
         }
+        .podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .podium-step {
             width: 100%; border-radius: 12px 12px 5px 5px; 
@@ -189,13 +191,29 @@
         .rank-lvl { font-size: 9px; color: #666; display: block; }
         .reset-info { font-size: 10px; color: #555; text-align: center; margin-top: 10px; font-style: italic; }
 
-        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; }
-        .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; }
+        /* PROFILE ENHANCEMENTS */
+        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid #222; text-align: center; position: relative; }
+        .avatar-circle { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #000; border: 4px solid #222; overflow: hidden; position: relative; cursor: pointer; }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 25px; }
-        .stat-item { background: #222; padding: 15px; border-radius: 15px; border: 1px solid #333; }
-        .stat-label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
+        .camera-icon { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid #222; }
+        
+        #profile-input-name { 
+            background: transparent; border: 1px solid transparent; color: #fff; font-size: 22px; 
+            font-weight: bold; text-align: center; width: 100%; padding: 5px; border-radius: 8px; 
+            margin-bottom: 5px; 
+        }
+        #profile-input-name:focus { border-color: var(--primary); outline: none; background: rgba(255,255,255,0.05); }
+        
+        .save-profile-btn { 
+            background: var(--primary); color: #000; border: none; padding: 8px 20px; 
+            border-radius: 20px; font-weight: bold; font-size: 12px; margin-top: 10px; 
+            display: none; cursor: pointer; margin-left: auto; margin-right: auto;
+        }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+        .stat-item { background: #222; padding: 12px; border-radius: 15px; border: 1px solid #333; }
+        .stat-label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 3px; }
+        .stat-value { font-size: 18px; font-weight: bold; color: var(--primary); }
 
         .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
         .nav-item { color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
@@ -340,9 +358,16 @@
 
     <div id="page-profile" class="page">
         <div class="profile-card">
-            <div class="avatar-circle" id="profile-avatar">👤</div>
-            <h2 id="profile-name" style="margin-bottom:5px;">Ism</h2>
-            <p id="profile-id" style="color:#666; font-size:12px; font-family:monospace; margin-bottom: 25px;"></p>
+            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+            <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">
+                <span>👤</span>
+                <div class="camera-icon">📷</div>
+            </div>
+            
+            <input type="text" id="profile-input-name" placeholder="Ismingizni kiriting" maxlength="20">
+            <p id="profile-id" style="color:#666; font-size:11px; font-family:monospace; margin-bottom: 10px;"></p>
+            
+            <button id="save-profile-btn" class="save-profile-btn">SAQLASH</button>
             
             <div class="stats-grid">
                 <div class="stat-item">
@@ -586,6 +611,58 @@
         window.addEventListener('offline', checkNetwork);
         window.addEventListener('online', checkNetwork);
         checkNetwork();
+
+        // Profile Editing Logic
+        const nameInput = document.getElementById('profile-input-name');
+        const saveBtn = document.getElementById('save-profile-btn');
+        const avatarUpload = document.getElementById('avatar-upload');
+
+        nameInput.addEventListener('input', () => { saveBtn.style.display = 'block'; });
+        
+        avatarUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if(file.size > 500000) { // 500KB limit for base64
+                    tg.showAlert("Rasm hajmi juda katta! Iltimos kichikroq rasm tanlang.");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById('profile-avatar').innerHTML = `<img src="${event.target.result}" alt="Preview"><div class="camera-icon">📷</div>`;
+                    saveBtn.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        saveBtn.onclick = async () => {
+            if(!navigator.onLine) return;
+            const newName = nameInput.value.trim();
+            const avatarImg = document.querySelector('#profile-avatar img');
+            const avatarBase64 = avatarImg ? avatarImg.src : (user.photo_url || "");
+
+            if(newName.length < 3) {
+                tg.showAlert("Ism kamida 3 ta harfdan iborat bo'lishi kerak!");
+                return;
+            }
+
+            saveBtn.innerText = "SAQLANMOQDA...";
+            saveBtn.disabled = true;
+
+            try {
+                await update(ref(db, `leaderboard/${user.id}`), {
+                    name: newName,
+                    photo: avatarBase64
+                });
+                tg.showAlert("Profil saqlandi!");
+                saveBtn.style.display = 'none';
+            } catch (e) {
+                tg.showAlert("Xatolik yuz berdi!");
+            } finally {
+                saveBtn.innerText = "SAQLASH";
+                saveBtn.disabled = false;
+            }
+        };
     };
 
     tg.BackButton.onClick(() => {
@@ -1103,8 +1180,9 @@
             const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
             const newBestScore = Math.max(score, data.score || 0);
             const newBestLevel = Math.max(currentLevel, data.level || 1);
+            
+            // Biz bu yerda rasm va ismni o'chirib yubormasligimiz kerak
             await update(userRef, {
-                name: user.first_name + (user.last_name ? " " + user.last_name : ""),
                 score: newBestScore,
                 level: newBestLevel,
                 total_xp: increment(score > 0 ? score : 0),
@@ -1136,7 +1214,6 @@
                 snap.forEach(child => { rawData.push(child.val()); });
                 rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
                 
-                // --- Top 3 Podium Construction ---
                 const topThree = rawData.slice(0, 3);
                 
                 topThree.forEach((u, i) => {
@@ -1144,10 +1221,10 @@
                     const item = document.createElement('div');
                     item.className = `podium-item`;
                     
-                    const initials = u.name.charAt(0).toUpperCase();
+                    const avatarContent = u.photo ? `<img src="${u.photo}">` : u.name.charAt(0).toUpperCase();
                     
                     item.innerHTML = `
-                        <div class="podium-avatar">${initials}</div>
+                        <div class="podium-avatar">${avatarContent}</div>
                         <div class="podium-step rank-${rank}">
                              <span class="podium-rank-num">${rank}</span>
                              <div class="podium-info">
@@ -1159,7 +1236,6 @@
                     podiumDiv.appendChild(item);
                 });
 
-                // --- Rest of the list (Below Top 3) ---
                 rawData.forEach((u, index) => {
                     if (index < 3 && rankLimit > 3) return; 
                     
@@ -1188,35 +1264,39 @@
     }
 
     async function loadProfileData() {
-        const profileName = document.getElementById('profile-name');
+        const nameInput = document.getElementById('profile-input-name');
         const profileId = document.getElementById('profile-id');
         const bestScoreEl = document.getElementById('best-score');
         const bestLevelEl = document.getElementById('best-level');
         const totalXpEl = document.getElementById('total-xp');
         const profileAvatar = document.getElementById('profile-avatar');
 
-        profileName.innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
         profileId.innerText = "ID: " + user.id;
-
-        if (user.photo_url) { profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile">`; } 
-        else { profileAvatar.innerText = user.first_name.charAt(0); }
 
         try {
             const snap = await get(ref(db, `leaderboard/${user.id}`));
             if (snap.exists()) {
                 const data = snap.val();
+                nameInput.value = data.name || (user.first_name + (user.last_name ? " " + user.last_name : ""));
                 bestScoreEl.innerText = data.score || 0;
                 bestLevelEl.innerText = data.level || 1;
                 totalXpEl.innerText = data.total_xp || 0;
+                
+                if (data.photo) { 
+                    profileAvatar.innerHTML = `<img src="${data.photo}" alt="User Profile"><div class="camera-icon">📷</div>`; 
+                } else if (user.photo_url) {
+                    profileAvatar.innerHTML = `<img src="${user.photo_url}" alt="User Profile"><div class="camera-icon">📷</div>`;
+                } else {
+                    profileAvatar.innerHTML = `<span>${user.first_name.charAt(0)}</span><div class="camera-icon">📷</div>`;
+                }
             } else {
+                nameInput.value = user.first_name + (user.last_name ? " " + user.last_name : "");
                 bestScoreEl.innerText = "0";
                 bestLevelEl.innerText = "1";
                 totalXpEl.innerText = "0";
             }
         } catch (e) { 
-            bestScoreEl.innerText = "0";
-            bestLevelEl.innerText = "1";
-            totalXpEl.innerText = "0";
+            nameInput.value = user.first_name;
         }
     }
 </script>
