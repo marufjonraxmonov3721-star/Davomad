@@ -1,137 +1,3 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LRC Caption Maker Pro</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --accent-color: #ff5722;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #0a0a0a; 
-            color: white; 
-            text-align: center; 
-            padding: 15px;
-            margin: 0;
-        }
-
-        .preview-area {
-            width: 100%; 
-            height: 250px; 
-            border-radius: 20px;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            margin-bottom: 20px; 
-            background: #1a1a1a; 
-            border: 2px solid #333;
-            overflow: hidden;
-            position: relative;
-        }
-
-        #caption-display { 
-            padding: 20px;
-            transition: all 0.3s ease;
-            max-width: 90%;
-            word-wrap: break-word;
-            z-index: 2;
-        }
-
-        /* Matn Stillari */
-        .style-classic { font-size: 24px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.8); }
-        .style-neon { font-size: 26px; color: #fff; text-shadow: 0 0 10px #fff, 0 0 20px #0088cc, 0 0 30px #0088cc; font-family: 'Courier New', monospace; }
-        .style-minimal { font-size: 18px; letter-spacing: 4px; text-transform: uppercase; font-weight: 300; border-bottom: 1px solid rgba(255,255,255,0.3); }
-        .style-bold { font-size: 32px; font-weight: 900; -webkit-text-stroke: 1px black; color: #ffcc00; font-style: italic; }
-        .style-glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); border-radius: 10px; padding: 10px 20px; font-size: 22px; }
-
-        .controls {
-            background: #181818;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: left;
-            margin-bottom: 50px;
-        }
-
-        .section-title { font-size: 16px; font-weight: bold; color: var(--accent-color); margin: 15px 0 10px; border-left: 3px solid var(--accent-color); padding-left: 10px; }
-        label { display: block; margin: 10px 0 5px; font-size: 13px; color: #aaa; }
-        
-        input, select { 
-            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; 
-            background: #252525; color: white; border: 1px solid #333; box-sizing: border-box;
-        }
-
-        .trim-box { display: flex; gap: 10px; align-items: center; }
-        .trim-box input { width: 50%; }
-
-        .btn-main { 
-            background: var(--accent-color); color: white; padding: 15px; border: none; 
-            width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold;
-            cursor: pointer; margin-top: 20px; text-transform: uppercase;
-        }
-
-        .btn-main:disabled { background: #555; cursor: not-allowed; }
-
-        audio { width: 100%; margin: 15px 0; filter: invert(100%); }
-        .status-info { font-size: 12px; color: #777; margin-top: 5px; text-align: center; }
-    </style>
-</head>
-<body>
-
-    <div class="preview-area" id="preview-box">
-        <div id="caption-display" class="style-classic">Caption Maker Pro</div>
-    </div>
-
-    <div class="controls">
-        <div class="section-title">FAYLLAR</div>
-        <label>Musiqa yuklash (MP3):</label>
-        <input type="file" id="audio-input" accept="audio/mp3">
-
-        <label>LRC faylni yuklash:</label>
-        <input type="file" id="lrc-input" accept=".lrc">
-
-        <div class="section-title">QIRQISH (TRIM)</div>
-        <div class="trim-box">
-            <div>
-                <label>Boshlanishi (sek):</label>
-                <input type="number" id="start-time" value="0" min="0">
-            </div>
-            <div>
-                <label>Tugashi (sek):</label>
-                <input type="number" id="end-time" value="0" min="0">
-            </div>
-        </div>
-
-        <div class="section-title">EKSPORT SOZLAMALARI</div>
-        <label>Sifat (Resolution):</label>
-        <select id="res-select">
-            <option value="480">480p</option>
-            <option value="720">720p</option>
-            <option value="1080" selected>1080p</option>
-        </select>
-
-        <div class="section-title">DIZAYN</div>
-        <label>Matn stili:</label>
-        <select id="style-select">
-            <option value="style-classic">Klassik</option>
-            <option value="style-neon">Neon Chiroq</option>
-            <option value="style-minimal">Minimalist</option>
-            <option value="style-bold">Qalin Italic</option>
-            <option value="style-glass">Oynasimon</option>
-        </select>
-
-        <label>Fon rangi:</label>
-        <input type="color" id="bg-color" value="#1a1a1a">
-
-        <audio id="audio-player" controls></audio>
-        
-        <button class="btn-main" id="save-btn" onclick="saveProject()">SAQLASH (SAVE)</button>
-        <div class="status-info" id="file-size-info">Taxminiy hajm: 0.0 MB</div>
-    </div>
-
 <script>
     let lyrics = [];
     let recorder;
@@ -214,23 +80,39 @@
         saveBtn.disabled = true;
         tg.MainButton.show();
         
-        // Haqiqiy yozib olish jarayoni
+        // MediaRecorder va stream tayyorlash
         audioPlayer.currentTime = start;
         const stream = previewBox.captureStream(30); // 30 FPS
-        const audioStream = audioPlayer.captureStream ? audioPlayer.captureStream() : audioPlayer.mozCaptureStream();
-        
-        audioStream.getAudioTracks().forEach(track => stream.addTrack(track));
-        
+
+        // Audio qo'shish (agar captureStream ishlasa)
+        let audioStream = null;
+        if (audioPlayer.captureStream) {
+            audioStream = audioPlayer.captureStream();
+        } else if (audioPlayer.mozCaptureStream) {
+            audioStream = audioPlayer.mozCaptureStream();
+        }
+
+        if (audioStream) {
+            audioStream.getAudioTracks().forEach(track => stream.addTrack(track));
+        }
+
+        // WebM formatida MediaRecorder
         recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
         chunks = [];
 
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const blob = new Blob(chunks, { type: 'video/webm' }); // WebM mobil bilan mos
             const url = URL.createObjectURL(blob);
+
+            // Mobil va Telegramda ishlash uchun
+            // 1. Brauzerda ochib foydalanuvchi saqlaydi
+            window.open(url, '_blank');
+
+            // 2. Klassik download fallback
             const a = document.createElement('a');
             a.href = url;
-            a.download = `caption_video_${new Date().getTime()}.mp4`;
+            a.download = `caption_video_${Date.now()}.webm`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -238,7 +120,7 @@
             saveBtn.disabled = false;
             saveBtn.innerText = "SAQLASH (SAVE)";
             tg.MainButton.hide();
-            tg.showAlert("Video yuklab olindi!");
+            tg.showAlert("Video tayyor! Brauzeringizda saqlang.");
             recorder = null;
         };
 
@@ -262,5 +144,3 @@
 
     tg.ready();
 </script>
-</body>
-</html>
