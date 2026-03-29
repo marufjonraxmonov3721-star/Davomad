@@ -3,29 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Songlyrics Pro - HD Bot System</title>
+    <title>Songlyrics Pro - HD Bot System (Captions Lite Edition)</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --accent: #00e676; }
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; margin: 0; padding: 15px; text-align: center; }
+        :root { --accent: #00e676; --bg: #0a0a0a; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 15px; text-align: center; }
         
         .preview-box { 
             width: 240px; height: 426px; background: #000; border-radius: 20px; 
             margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;
             border: 2px solid #333; position: relative; overflow: hidden;
-            transition: all 0.5s ease;
+            transition: all 0.5s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         #display-text { 
             font-size: 20px; font-weight: bold; color: var(--accent); 
             padding: 20px; line-height: 1.4; 
             text-shadow: 0 0 20px rgba(0,230,118,0.5); 
-            z-index: 5; transition: all 0.3s ease; 
+            z-index: 5; transition: all 0.3s ease;
+            position: absolute; width: 100%; box-sizing: border-box;
         }
         
         canvas { display: none; }
 
-        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 400px; overflow-y: auto; }
+        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 450px; overflow-y: auto; }
         
         .trim-group, .select-group { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
         .trim-group div, .select-group div { flex: 1; min-width: 140px; }
@@ -33,39 +34,43 @@
         input, button, select { 
             width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; 
             border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box; font-size: 15px;
+            outline: none; transition: 0.3s;
         }
+        input:focus { border-color: var(--accent); }
 
         input[type=range] { -webkit-appearance: none; background: #333; height: 8px; border: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
 
-        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; }
+        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; z-index: 10; }
         .btn-download:disabled { background: #333; color: #777; }
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
-        label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; }
+        label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; font-weight: 600; }
 
         .trim-info { display: flex; justify-content: space-between; font-family: monospace; color: var(--accent); font-size: 12px; margin-bottom: 5px; }
-        .range-slider { position: relative; height: 40px; margin: 10px 0; background: #222; border-radius: 10px; overflow: hidden; }
+        .range-slider { position: relative; height: 40px; margin: 10px 0; background: #222; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
         .range-fill { position: absolute; height: 100%; background: rgba(0, 230, 118, 0.2); border-left: 2px solid var(--accent); border-right: 2px solid var(--accent); }
 
-        .anim-fade { animation: fadeIn 0.5s ease forwards; }
-        .anim-zoom { animation: zoomIn 0.5s ease forwards; }
-        .anim-slideUp { animation: slideUp 0.5s ease forwards; }
-        .anim-rotate { animation: rotateIn 0.5s ease forwards; }
+        /* Animations */
+        .anim-fade { animation: fadeIn 0.4s ease forwards; }
+        .anim-zoom { animation: zoomIn 0.4s ease forwards; }
+        .anim-slideUp { animation: slideUp 0.4s ease forwards; }
+        .anim-rotate { animation: rotateIn 0.4s ease forwards; }
         .anim-bounce { animation: bounceIn 0.5s ease forwards; }
         .anim-pulse { animation: pulse 0.8s infinite; }
+        .anim-glitch { animation: glitch 0.3s infinite; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes rotateIn { from { transform: rotate(-180deg); opacity: 0; } to { transform: rotate(0); opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes rotateIn { from { transform: rotate(-10deg) scale(0.9); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
         @keyframes bounceIn { 
             0% { transform: scale(0.3); opacity: 0; } 
             50% { transform: scale(1.05); } 
-            70% { transform: scale(0.9); } 
             100% { transform: scale(1); opacity: 1; } 
         }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes glitch { 0% { text-shadow: 2px 0 red; } 50% { text-shadow: -2px 0 blue; } 100% { text-shadow: 2px 0 red; } }
     </style>
 </head>
 <body>
@@ -77,15 +82,28 @@
     <canvas id="video-canvas" width="1080" height="1920"></canvas>
 
     <div class="controls">
-        <label>Fayllarni yuklang:</label>
-        <input type="file" id="audio-input" accept="audio/mp3">
-        <input type="file" id="lrc-input" accept=".lrc">
+        <label>Media yuklash:</label>
+        <div class="select-group">
+            <input type="file" id="audio-input" accept="audio/mp3">
+            <input type="file" id="lrc-input" accept=".lrc">
+        </div>
 
         <div class="select-group">
             <div>
                 <label>Matn hajmi:</label>
-                <input type="range" id="font-size-slider" min="30" max="180" value="80" oninput="updateLivePreview()">
+                <input type="range" id="font-size-slider" min="30" max="180" value="85" oninput="updateLivePreview()">
             </div>
+            <div>
+                <label>Matn Joylashuvi:</label>
+                <select id="text-position" onchange="updateLivePreview()">
+                    <option value="center">Markazda</option>
+                    <option value="top">Yuqorida</option>
+                    <option value="bottom">Pastda</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="select-group">
             <div>
                 <label>Shrift Stili:</label>
                 <select id="font-style" onchange="updateLivePreview()">
@@ -101,49 +119,54 @@
                     <option value="Futura">Kosmik</option>
                 </select>
             </div>
+            <div>
+                <label>Matn Rangi:</label>
+                <input type="color" id="text-color" value="#00e676" oninput="updateLivePreview()">
+            </div>
         </div>
 
         <div class="select-group">
             <div>
-                <label>Animatsiya:</label>
+                <label>Animatsiya (Captions):</label>
                 <select id="anim-style" onchange="updateLivePreview()">
-                    <option value="none">Oddiy almashish</option>
-                    <option value="fade">Yumshoq paydo bo'lish</option>
-                    <option value="zoom">Kattalashish</option>
-                    <option value="slideUp">Yuqoriga surilish</option>
-                    <option value="rotate">Aylanish</option>
-                    <option value="bounce">Sakrash</option>
-                    <option value="pulse">Yurak urishi</option>
+                    <option value="none">Oddiy</option>
+                    <option value="fade">Fade In</option>
+                    <option value="zoom">Pop Up</option>
+                    <option value="slideUp">Slide Up</option>
+                    <option value="rotate">Tilt</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="pulse">Beat</option>
+                    <option value="glitch">Glitch</option>
                 </select>
             </div>
             <div>
-                <label>Fon Effekti:</label>
+                <label>Fon (Visualizer):</label>
                 <select id="effect-style" onchange="updateLivePreview()">
-                    <option value="black">Deep Black (AMOLED)</option>
-                    <option value="neon">Neon nurlar</option>
-                    <option value="gradient">Rivojlanuvchi rang</option>
-                    <option value="vignette">Vinyetka</option>
-                    <option value="scanline">TV chiziqlar</option>
+                    <option value="black">Amoled Black</option>
+                    <option value="neon">Neon Border</option>
+                    <option value="vignette">Cinematic Vignette</option>
+                    <option value="blur">Soft Glow</option>
+                    <option value="dynamic">Dynamic Color</option>
                 </select>
             </div>
         </div>
 
-        <label>Qirqish vaqtini belgilash:</label>
+        <label>Qirqish vaqti:</label>
         <div class="range-slider" id="trim-slider-container">
             <div class="range-fill" id="range-fill"></div>
         </div>
         <div class="trim-info">
             <span id="label-start">00:00.0</span>
-            <span id="label-duration">Davomiyligi: 0s</span>
+            <span id="label-duration">0s</span>
             <span id="label-end">00:30.0</span>
         </div>
 
         <div class="trim-group">
-            <div><label>Boshlanishi (s):</label><input type="number" id="trim-start" value="0" step="0.1" oninput="syncSliders()"></div>
-            <div><label>Tugashi (s):</label><input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()"></div>
+            <div><label>Boshlash:</label><input type="number" id="trim-start" value="0" step="0.1" oninput="syncSliders()"></div>
+            <div><label>Tugallash:</label><input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()"></div>
         </div>
 
-        <div id="status-text">Fayllarni tanlang</div>
+        <div id="status-text">Captions Lite tizimi tayyor</div>
         <button class="btn-download" id="start-btn" onclick="startHDProcess()">INSTAGRAM HD VIDEO YARATISH</button>
     </div>
 
@@ -179,29 +202,34 @@
         rangeFill.style.width = width + "%";
         document.getElementById('label-start').innerText = formatTime(start);
         document.getElementById('label-end').innerText = formatTime(end);
-        document.getElementById('label-duration').innerText = `Davomiyligi: ${(end - start).toFixed(1)}s`;
+        document.getElementById('label-duration').innerText = `Domiyligi: ${(end - start).toFixed(1)}s`;
     }
 
     function updateLivePreview() {
         const size = document.getElementById('font-size-slider').value;
         const font = document.getElementById('font-style').value;
-        const effect = document.getElementById('effect-style').value;
+        const color = document.getElementById('text-color').value;
+        const pos = document.getElementById('text-position').value;
         const anim = document.getElementById('anim-style').value;
+        const effect = document.getElementById('effect-style').value;
         
         displayText.style.fontSize = (size / 4) + "px";
         displayText.style.fontFamily = font;
+        displayText.style.color = color;
+        displayText.style.textShadow = `0 0 15px ${color}88`;
+
+        // Position adjustment
+        if(pos === 'top') { displayText.style.top = "10%"; displayText.style.bottom = "auto"; }
+        else if(pos === 'bottom') { displayText.style.bottom = "10%"; displayText.style.top = "auto"; }
+        else { displayText.style.top = "50%"; displayText.style.transform = "translateY(-50%)"; }
+
         displayText.className = "";
         void displayText.offsetWidth; 
         if(anim !== 'none') displayText.className = "anim-" + anim;
 
         previewBox.style.background = "#000";
-        previewBox.style.boxShadow = "none";
         previewBox.style.border = "2px solid #333";
-
-        if(effect === 'neon') {
-            previewBox.style.border = "2px solid #00e676";
-            previewBox.style.boxShadow = "inset 0 0 20px rgba(0,230,118,0.4)";
-        }
+        if(effect === 'neon') previewBox.style.border = `2px solid ${color}`;
     }
 
     document.getElementById('audio-input').onchange = (e) => { 
@@ -211,7 +239,7 @@
             fullDuration = tempAudio.duration;
             document.getElementById('trim-end').value = fullDuration.toFixed(1);
             syncSliders();
-            statusText.innerText = "Audio yuklandi.";
+            statusText.innerText = "Audio yuklandi: " + audioFile.name;
         };
     };
 
@@ -222,7 +250,7 @@
                 const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
                 return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
             }).filter(x => x);
-            statusText.innerText = "LRC yuklandi.";
+            statusText.innerText = "Subtitrlar (LRC) yuklandi.";
         };
         reader.readAsText(e.target.files[0]);
     };
@@ -247,7 +275,7 @@
     }
 
     async function startHDProcess() {
-        if (!audioFile || lyrics.length === 0) return alert("Fayllarni yuklang!");
+        if (!audioFile || lyrics.length === 0) return alert("Iltimos, avval media fayllarni yuklang!");
         const startT = parseFloat(document.getElementById('trim-start').value);
         const endT = parseFloat(document.getElementById('trim-end').value);
         const duration = endT - startT;
@@ -256,34 +284,37 @@
         const audioTag = new Audio(URL.createObjectURL(audioFile));
         audioTag.currentTime = startT;
 
-        const audioCtx = new AudioContext();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioCtx.createMediaElementSource(audioTag);
         const dest = audioCtx.createMediaStreamDestination();
         source.connect(dest); source.connect(audioCtx.destination);
 
-        const stream = canvas.captureStream(60); // 60 FPS
+        const stream = canvas.captureStream(60); 
         dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
         
         const recorder = new MediaRecorder(stream, { 
             mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 15000000 // 15 Mbps
+            videoBitsPerSecond: 18000000 
         });
 
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         
         recorder.onstop = async () => {
-            statusText.innerText = "YUBORILMOQDA...";
+            statusText.innerText = "TELEGRAMGA YUBORILMOQDA...";
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `Stories_HD_${Date.now()}.mp4`);
-            formData.append('caption', "✅ Instagram Stories HD (60 FPS, 15Mbps) tayyor!");
+            formData.append('video', videoBlob, `Captions_HD_${Date.now()}.mp4`);
+            formData.append('caption', "✨ Captions Lite Pro\n🚀 Sifat: HD 1080p (60 FPS)\n✅ Tayyor!");
 
             try {
                 const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
-                if (response.ok) { statusText.innerText = "✅ YUBORILDI!"; tg.showAlert("Video botga yuborildi!"); }
-            } catch (err) { alert("Xato: " + err.message); }
+                if (response.ok) { 
+                    statusText.innerText = "✅ VIDEO BOTGA YUBORILDI!"; 
+                    tg.showAlert("Tabriklaymiz! HD Video muvaffaqiyatli botga yuborildi."); 
+                }
+            } catch (err) { alert("Xato yuz berdi: " + err.message); }
             startBtn.disabled = false;
         };
 
@@ -297,26 +328,31 @@
             const now = audioTag.currentTime;
             const current = lyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
+            const color = document.getElementById('text-color').value;
+            const pos = document.getElementById('text-position').value;
             
             if (text !== lastText) { 
                 lastText = text; 
                 animStartTime = now; 
             }
             
-            let animProgress = Math.min((now - animStartTime) / 0.4, 1); 
+            let animProgress = Math.min((now - animStartTime) / 0.35, 1); 
 
-            // True Black Background
+            // Backgrounds
             ctx.fillStyle = "#000000"; 
             ctx.fillRect(0, 0, 1080, 1920);
 
             const effect = document.getElementById('effect-style').value;
             if(effect === 'neon') {
-                ctx.strokeStyle = `hsl(${now * 50 % 360}, 70%, 50%)`; 
-                ctx.lineWidth = 20; ctx.strokeRect(40, 40, 1000, 1840);
+                ctx.strokeStyle = color; 
+                ctx.lineWidth = 25; ctx.strokeRect(40, 40, 1000, 1840);
+                ctx.shadowBlur = 40; ctx.shadowColor = color;
             } else if (effect === 'vignette') {
-                let g = ctx.createRadialGradient(540, 960, 200, 540, 960, 1000);
-                g.addColorStop(0, "rgba(30,30,30,1)"); g.addColorStop(1, "black");
+                let g = ctx.createRadialGradient(540, 960, 200, 540, 960, 1100);
+                g.addColorStop(0, "rgba(25,25,25,1)"); g.addColorStop(1, "black");
                 ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
+            } else if (effect === 'blur') {
+                ctx.shadowBlur = 100; ctx.shadowColor = color + "44";
             }
 
             const font = document.getElementById('font-style').value;
@@ -327,25 +363,45 @@
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
 
             ctx.save();
-            ctx.translate(540, 960);
             
+            // Positioning Logic
+            let textY = 960;
+            if(pos === 'top') textY = 400;
+            if(pos === 'bottom') textY = 1520;
+
+            ctx.translate(540, textY);
+            
+            // Animation Engine
             if(anim === 'fade') ctx.globalAlpha = animProgress;
-            if(anim === 'zoom') ctx.scale(0.8 + animProgress * 0.2, 0.8 + animProgress * 0.2);
-            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*60);
-            if(anim === 'pulse') {
-                let s = 1 + Math.sin(Date.now()/150)*0.03;
+            if(anim === 'zoom') {
+                let s = 0.7 + animProgress * 0.3;
                 ctx.scale(s, s);
             }
+            if(anim === 'slideUp') ctx.translate(0, (1 - animProgress) * 70);
+            if(anim === 'rotate') ctx.rotate((1 - animProgress) * -0.1);
+            if(anim === 'pulse') {
+                let s = 1 + Math.sin(Date.now()/120) * 0.04;
+                ctx.scale(s, s);
+            }
+            if(anim === 'glitch' && text) {
+                ctx.translate(Math.random()*4, 0);
+                ctx.shadowColor = "red"; ctx.shadowBlur = 10;
+            }
 
-            ctx.fillStyle = "#00e676";
-            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 35;
+            ctx.fillStyle = color;
+            ctx.shadowColor = color + "AA"; ctx.shadowBlur = 30;
             
-            // Wrap Text function call
-            wrapText(ctx, text, 0, 0, 900, size * 1.2);
+            wrapText(ctx, text.toUpperCase(), 0, 0, 950, size * 1.3);
             
             ctx.restore();
 
-            statusText.innerText = `PROTSESS: ${Math.floor(((now - startT) / duration) * 100)}%`;
+            // Progress Bar at Bottom
+            ctx.fillStyle = "#222";
+            ctx.fillRect(100, 1880, 880, 10);
+            ctx.fillStyle = color;
+            ctx.fillRect(100, 1880, ((now - startT) / duration) * 880, 10);
+
+            statusText.innerText = `HD RENDER: ${Math.floor(((now - startT) / duration) * 100)}%`;
             if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
             else { audioTag.pause(); recorder.stop(); }
         }
