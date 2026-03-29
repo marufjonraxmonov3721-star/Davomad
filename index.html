@@ -9,6 +9,7 @@
         :root { --accent: #00e676; }
         body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; margin: 0; padding: 15px; text-align: center; }
         
+        /* Preview Box */
         .preview-box { 
             width: 240px; height: 426px; background: #000; border-radius: 20px; 
             margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;
@@ -25,8 +26,24 @@
         
         canvas { display: none; }
 
-        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 400px; overflow-y: auto; }
+        /* Controls Section */
+        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 500px; overflow-y: auto; }
         
+        /* Baza Bo'limi */
+        .database-section {
+            background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #444;
+        }
+        .track-list {
+            display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; max-height: 150px; overflow-y: auto;
+        }
+        .track-item {
+            background: #252525; padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+            font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .track-item:hover { border-color: var(--accent); background: #2a2a2a; }
+        .track-item.active { border-color: var(--accent); background: rgba(0, 230, 118, 0.1); }
+        .track-item i { color: var(--accent); font-size: 12px; }
+
         .trim-group, .select-group { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
         .trim-group div, .select-group div { flex: 1; min-width: 140px; }
 
@@ -38,16 +55,18 @@
         input[type=range] { -webkit-appearance: none; background: #333; height: 8px; border: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
 
-        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; }
+        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; z-index: 10; }
         .btn-download:disabled { background: #333; color: #777; }
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
-        label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; }
+        label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; font-weight: bold; }
 
+        /* Range Slider Custom */
         .trim-info { display: flex; justify-content: space-between; font-family: monospace; color: var(--accent); font-size: 12px; margin-bottom: 5px; }
         .range-slider { position: relative; height: 40px; margin: 10px 0; background: #222; border-radius: 10px; overflow: hidden; }
         .range-fill { position: absolute; height: 100%; background: rgba(0, 230, 118, 0.2); border-left: 2px solid var(--accent); border-right: 2px solid var(--accent); }
 
+        /* Animations */
         .anim-fade { animation: fadeIn 0.5s ease forwards; }
         .anim-zoom { animation: zoomIn 0.5s ease forwards; }
         .anim-slideUp { animation: slideUp 0.5s ease forwards; }
@@ -77,12 +96,15 @@
     <canvas id="video-canvas" width="1080" height="1920"></canvas>
 
     <div class="controls">
-        <label>1. Bazadan lirikani tanlang:</label>
-        <select id="lrc-select">
-            <option value="">Yuklanmoqda...</option>
-        </select>
+        
+        <div class="database-section">
+            <label>🎵 Qoshiqlar Bazasi:</label>
+            <div class="track-list" id="track-list-container">
+                <div style="padding: 10px; font-size: 12px; color: #666;">Yuklanmoqda...</div>
+            </div>
+        </div>
 
-        <label>2. MP3 faylni yuklang:</label>
+        <label>📁 MP3 faylni tanlang:</label>
         <input type="file" id="audio-input" accept="audio/mp3">
 
         <div class="select-group">
@@ -176,7 +198,7 @@
     const startBtn = document.getElementById('start-btn');
     const previewBox = document.getElementById('p-box');
     const rangeFill = document.getElementById('range-fill');
-    const lrcSelect = document.getElementById('lrc-select');
+    const trackContainer = document.getElementById('track-list-container');
 
     let lyrics = [];
     let audioFile = null;
@@ -186,36 +208,45 @@
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    // Bazadan lirikani yuklash
+    // Bazadan lirikani yuklash va Ro'yxatni chiqarish
     async function loadTracks() {
         try {
             const q = query(collection(db, "tracklist"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
-            lrcSelect.innerHTML = '<option value="">-- Qoshiqni tanlang --</option>';
+            trackContainer.innerHTML = '';
             dbTracks = [];
+            
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 dbTracks.push(data);
-                const opt = document.createElement('option');
-                opt.value = data.title;
-                opt.innerText = data.title;
-                lrcSelect.appendChild(opt);
+                
+                const item = document.createElement('div');
+                item.className = 'track-item';
+                item.innerHTML = `<span>${data.title}</span> <i>SELECT</i>`;
+                
+                item.onclick = () => {
+                    // Avvalgi aktivlikni o'chirish
+                    document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Lirikani parslash
+                    parseLyrics(data.lyricsBody);
+                    statusText.innerText = "Lirika yuklandi: " + data.title;
+                    tg.HapticFeedback.impactOccurred('light');
+                };
+                
+                trackContainer.appendChild(item);
             });
-            statusText.innerText = "Bazadan lirikalar yuklandi.";
+            
+            if(dbTracks.length === 0) trackContainer.innerHTML = '<div style="font-size:12px;color:#666;">Baza bo\'sh</div>';
+            else statusText.innerText = "Baza tayyor.";
+            
         } catch (e) {
             console.error(e);
-            statusText.innerText = "Bazaga ulanishda xato!";
+            statusText.innerText = "Baza yuklanmadi!";
         }
     }
     loadTracks();
-
-    lrcSelect.onchange = () => {
-        const selected = dbTracks.find(t => t.title === lrcSelect.value);
-        if (selected && selected.lyricsBody) {
-            parseLyrics(selected.lyricsBody);
-            statusText.innerText = "Lirika yuklandi: " + selected.title;
-        }
-    };
 
     function parseLyrics(data) {
         lyrics = data.split('\n').map(line => {
@@ -266,6 +297,7 @@
 
     document.getElementById('audio-input').onchange = (e) => { 
         audioFile = e.target.files[0]; 
+        if(!audioFile) return;
         const tempAudio = new Audio(URL.createObjectURL(audioFile));
         tempAudio.onloadedmetadata = () => {
             fullDuration = tempAudio.duration;
@@ -295,7 +327,7 @@
     }
 
     window.startHDProcess = async function() {
-        if (!audioFile || lyrics.length === 0) return alert("Bazadan lirikani tanlang va MP3 yuklang!");
+        if (!audioFile || lyrics.length === 0) return alert("Bazadan qoshiqni tanlang va MP3 faylni yuklang!");
         const startT = parseFloat(document.getElementById('trim-start').value);
         const endT = parseFloat(document.getElementById('trim-end').value);
         const duration = endT - startT;
