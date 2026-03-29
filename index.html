@@ -173,7 +173,7 @@
 <script>
     const tg = window.Telegram.WebApp;
     const canvas = document.getElementById('video-canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     const displayText = document.getElementById('display-text');
     const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
@@ -218,9 +218,8 @@
         displayText.style.color = color;
         displayText.style.textShadow = `0 0 15px ${color}88`;
 
-        // Position adjustment
-        if(pos === 'top') { displayText.style.top = "10%"; displayText.style.bottom = "auto"; }
-        else if(pos === 'bottom') { displayText.style.bottom = "10%"; displayText.style.top = "auto"; }
+        if(pos === 'top') { displayText.style.top = "10%"; displayText.style.bottom = "auto"; displayText.style.transform = "none"; }
+        else if(pos === 'bottom') { displayText.style.bottom = "10%"; displayText.style.top = "auto"; displayText.style.transform = "none"; }
         else { displayText.style.top = "50%"; displayText.style.transform = "translateY(-50%)"; }
 
         displayText.className = "";
@@ -294,7 +293,7 @@
         
         const recorder = new MediaRecorder(stream, { 
             mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 18000000 
+            videoBitsPerSecond: 25000000 // Ultra HD 25Mbps
         });
 
         const chunks = [];
@@ -305,14 +304,14 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `Captions_HD_${Date.now()}.mp4`);
-            formData.append('caption', "✨ Captions Lite Pro\n🚀 Sifat: HD 1080p (60 FPS)\n✅ Tayyor!");
+            formData.append('video', videoBlob, `Captions_UltraHD_${Date.now()}.mp4`);
+            formData.append('caption', "✨ Captions Lite Ultra HD\n🚀 Sifat: 60 FPS | 25Mbps\n✅ Tayyor!");
 
             try {
                 const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
                 if (response.ok) { 
                     statusText.innerText = "✅ VIDEO BOTGA YUBORILDI!"; 
-                    tg.showAlert("Tabriklaymiz! HD Video muvaffaqiyatli botga yuborildi."); 
+                    tg.showAlert("Ultra HD Video muvaffaqiyatli botga yuborildi."); 
                 }
             } catch (err) { alert("Xato yuz berdi: " + err.message); }
             startBtn.disabled = false;
@@ -325,6 +324,12 @@
         let animStartTime = 0;
 
         function drawFrame() {
+            if (audioTag.paused || audioTag.ended || audioTag.currentTime >= endT) {
+                recorder.stop();
+                audioTag.pause();
+                return;
+            }
+
             const now = audioTag.currentTime;
             const current = lyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
@@ -336,9 +341,8 @@
                 animStartTime = now; 
             }
             
-            let animProgress = Math.min((now - animStartTime) / 0.35, 1); 
+            let animProgress = Math.min((now - animStartTime) / 0.3, 1); // 300ms silliq animatsiya
 
-            // Backgrounds
             ctx.fillStyle = "#000000"; 
             ctx.fillRect(0, 0, 1080, 1920);
 
@@ -349,10 +353,10 @@
                 ctx.shadowBlur = 40; ctx.shadowColor = color;
             } else if (effect === 'vignette') {
                 let g = ctx.createRadialGradient(540, 960, 200, 540, 960, 1100);
-                g.addColorStop(0, "rgba(25,25,25,1)"); g.addColorStop(1, "black");
+                g.addColorStop(0, "rgba(30,30,30,1)"); g.addColorStop(1, "black");
                 ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
             } else if (effect === 'blur') {
-                ctx.shadowBlur = 100; ctx.shadowColor = color + "44";
+                ctx.shadowBlur = 100; ctx.shadowColor = color + "66";
             }
 
             const font = document.getElementById('font-style').value;
@@ -364,46 +368,44 @@
 
             ctx.save();
             
-            // Positioning Logic
             let textY = 960;
-            if(pos === 'top') textY = 400;
-            if(pos === 'bottom') textY = 1520;
+            if(pos === 'top') textY = 450;
+            if(pos === 'bottom') textY = 1470;
 
             ctx.translate(540, textY);
             
-            // Animation Engine
             if(anim === 'fade') ctx.globalAlpha = animProgress;
             if(anim === 'zoom') {
-                let s = 0.7 + animProgress * 0.3;
+                let s = 0.8 + animProgress * 0.2;
                 ctx.scale(s, s);
             }
-            if(anim === 'slideUp') ctx.translate(0, (1 - animProgress) * 70);
-            if(anim === 'rotate') ctx.rotate((1 - animProgress) * -0.1);
+            if(anim === 'slideUp') ctx.translate(0, (1 - animProgress) * 50);
+            if(anim === 'rotate') ctx.rotate((1 - animProgress) * -0.05);
             if(anim === 'pulse') {
-                let s = 1 + Math.sin(Date.now()/120) * 0.04;
+                let s = 1 + Math.sin(Date.now()/150) * 0.03;
                 ctx.scale(s, s);
             }
             if(anim === 'glitch' && text) {
-                ctx.translate(Math.random()*4, 0);
-                ctx.shadowColor = "red"; ctx.shadowBlur = 10;
+                ctx.translate((Math.random()-0.5)*10, 0);
+                ctx.shadowColor = "red"; ctx.shadowBlur = 15;
             }
 
             ctx.fillStyle = color;
-            ctx.shadowColor = color + "AA"; ctx.shadowBlur = 30;
+            ctx.shadowColor = color + "99"; ctx.shadowBlur = 35;
             
-            wrapText(ctx, text.toUpperCase(), 0, 0, 950, size * 1.3);
+            wrapText(ctx, text.toUpperCase(), 0, 0, 920, size * 1.25);
             
             ctx.restore();
 
-            // Progress Bar at Bottom
-            ctx.fillStyle = "#222";
-            ctx.fillRect(100, 1880, 880, 10);
+            // Progress Bar
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#1a1a1a";
+            ctx.fillRect(100, 1880, 880, 12);
             ctx.fillStyle = color;
-            ctx.fillRect(100, 1880, ((now - startT) / duration) * 880, 10);
+            ctx.fillRect(100, 1880, ((now - startT) / duration) * 880, 12);
 
             statusText.innerText = `HD RENDER: ${Math.floor(((now - startT) / duration) * 100)}%`;
-            if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
-            else { audioTag.pause(); recorder.stop(); }
+            requestAnimationFrame(drawFrame);
         }
         drawFrame();
     }
