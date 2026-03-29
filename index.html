@@ -15,24 +15,25 @@
             border: 2px solid #333; position: relative; overflow: hidden;
         }
 
-        #display-text { font-size: 30px; font-weight: bold; color: var(--accent); padding: 30px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); }
+        #display-text { font-size: 30px; font-weight: bold; color: var(--accent); padding: 30px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); z-index: 5; }
         
         canvas { display: none; }
 
-        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; }
+        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 400px; overflow-y: auto; }
         
-        .trim-group { display: flex; gap: 10px; margin: 10px 0; }
-        .trim-group div { flex: 1; }
+        .trim-group, .select-group { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+        .trim-group div, .select-group div { flex: 1; min-width: 140px; }
 
-        input, button { 
+        input, button, select { 
             width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; 
             border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box; font-size: 15px;
         }
 
-        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; }
+        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; }
         .btn-download:disabled { background: #333; color: #777; }
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
+        label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -44,21 +45,98 @@
     <canvas id="video-canvas" width="1080" height="1080"></canvas>
 
     <div class="controls">
-        <label style="font-size: 11px; color: #888;">MP3 va LRC fayllarni yuklang:</label>
+        <label>Fayllarni yuklang:</label>
         <input type="file" id="audio-input" accept="audio/mp3">
         <input type="file" id="lrc-input" accept=".lrc">
 
-        <label style="font-size: 11px; color: #888;">Qirqish oralig'i (soniyalarda):</label>
-        <div class="trim-group">
+        <div class="select-group">
             <div>
-                <input type="number" id="trim-start" value="0" step="0.1" placeholder="Boshi">
+                <label>Shrift Stili:</label>
+                <select id="font-style">
+                    <option value="sans-serif">Standart Sans</option>
+                    <option value="serif">Klassik Serif</option>
+                    <option value="monospace">Texno Mono</option>
+                    <option value="cursive">Qo'lyozma</option>
+                    <option value="Impact">Qalin Impact</option>
+                    <option value="Georgia">Elegant Georgia</option>
+                    <option value="Verdana">Aniq Verdana</option>
+                    <option value="Comic Sans MS">Quvnoq Comic</option>
+                    <option value="Trebuchet MS">Modern Trebuchet</option>
+                    <option value="Courier New">Mashinka</option>
+                    <option value="Arial Black">Og'ir Arial</option>
+                    <option value="Lucida Console">Terminal</option>
+                    <option value="Palatino">Aritokrat</option>
+                    <option value="Garamond">Kitobiy</option>
+                    <option value="Bookman">Qalin Bookman</option>
+                    <option value="Avant Garde">Geometrik</option>
+                    <option value="Helvetica">Minimalist</option>
+                    <option value="Copperplate">Rasmiy</option>
+                    <option value="Futura">Kosmik</option>
+                    <option value="Optima">Yumshoq Optima</option>
+                </select>
             </div>
             <div>
-                <input type="number" id="trim-end" value="30" step="0.1" placeholder="Oxiri">
+                <label>Animatsiya:</label>
+                <select id="anim-style">
+                    <option value="none">Oddiy almashish</option>
+                    <option value="fade">Yumshoq paydo bo'lish</option>
+                    <option value="zoom">Kattalashish</option>
+                    <option value="slideUp">Yuqoriga surilish</option>
+                    <option value="slideDown">Pastga surilish</option>
+                    <option value="rotate">Aylanish</option>
+                    <option value="bounce">Sakrash</option>
+                    <option value="glitch">Glich effekt</option>
+                    <option value="blur">Xiralikdan chiqish</option>
+                    <option value="shake">Titroq</option>
+                    <option value="flip">Aylana ag'darilish</option>
+                    <option value="swing">Tebranish</option>
+                    <option value="pulse">Yurak urishi</option>
+                    <option value="rubberBand">Rezinka</option>
+                    <option value="tada">Tada!</option>
+                    <option value="jello">Jele</option>
+                    <option value="flash">Chaqmoq</option>
+                    <option value="heartBeat">Yurak</option>
+                    <option value="wobble">Qimirlash</option>
+                    <option value="rollIn">Dumalab kirish</option>
+                </select>
             </div>
         </div>
 
-        <div id="status-text">Fayllarni tanlang va "YASASH"ni bosing</div>
+        <div class="select-group">
+            <div>
+                <label>Fon Effekti:</label>
+                <select id="effect-style">
+                    <option value="black">Toza qora</option>
+                    <option value="neon">Neon nurlar</option>
+                    <option value="particles">Zarrachalar</option>
+                    <option value="gradient">Rivojlanuvchi rang</option>
+                    <option value="stars">Yulduzli osmon</option>
+                    <option value="matrix">Matritsa</option>
+                    <option value="wave">To'lqinlar</option>
+                    <option value="fire">Olov uchqunlari</option>
+                    <option value="snow">Qor yog'ishi</option>
+                    <option value="rain">Yomg'ir</option>
+                    <option value="vignette">Vinyetka</option>
+                    <option value="scanline">TV chiziqlar</option>
+                    <option value="blur-bg">Xira fon</option>
+                    <option value="rgb-split">RGB ajralish</option>
+                    <option value="noise">Shovqin</option>
+                    <option value="bubbles">Pufakchalar</option>
+                    <option value="clouds">Bulutlar</option>
+                    <option value="laser">Lazer nurlari</option>
+                    <option value="heart-float">Uchuvchi yuraklar</option>
+                    <option value="gold-dust">Oltin changi</option>
+                </select>
+            </div>
+        </div>
+
+        <label>Qirqish oralig'i (soniyalarda):</label>
+        <div class="trim-group">
+            <div><input type="number" id="trim-start" value="0" step="0.1"></div>
+            <div><input type="number" id="trim-end" value="30" step="0.1"></div>
+        </div>
+
+        <div id="status-text">Fayllarni tanlang</div>
         <button class="btn-download" id="start-btn" onclick="startHDProcess()">HD VIDEONI YASASH VA BOTGA YUBORISH</button>
     </div>
 
@@ -73,15 +151,10 @@
     let lyrics = [];
     let audioFile = null;
 
-    // Sizning ma'lumotlaringiz
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    document.getElementById('audio-input').onchange = (e) => {
-        audioFile = e.target.files[0];
-        statusText.innerText = "Audio yuklandi.";
-    };
-
+    document.getElementById('audio-input').onchange = (e) => { audioFile = e.target.files[0]; statusText.innerText = "Audio yuklandi."; };
     document.getElementById('lrc-input').onchange = (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
@@ -95,101 +168,97 @@
     };
 
     async function startHDProcess() {
-        if (!audioFile || lyrics.length === 0) return alert("Avval hamma fayllarni yuklang!");
-
+        if (!audioFile || lyrics.length === 0) return alert("Hamma fayllarni yuklang!");
         const startT = parseFloat(document.getElementById('trim-start').value);
         const endT = parseFloat(document.getElementById('trim-end').value);
         const duration = endT - startT;
-
-        if (duration <= 0) return alert("Vaqt xato kiritildi!");
+        if (duration <= 0) return alert("Vaqt xato!");
 
         startBtn.disabled = true;
-        
-        // 1. Audio tizimi (Ovozni tiniq qilish)
         const audioTag = new Audio(URL.createObjectURL(audioFile));
         audioTag.currentTime = startT;
-        
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioCtx.createMediaElementSource(audioTag);
         const dest = audioCtx.createMediaStreamDestination();
-        source.connect(dest);
-        source.connect(audioCtx.destination);
+        source.connect(dest); source.connect(audioCtx.destination);
 
-        // 2. Video Recorder (10Mbps Bitrate)
         const stream = canvas.captureStream(30);
         dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-
-        const recorder = new MediaRecorder(stream, {
-            mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: 10000000 
-        });
-
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 10000000 });
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         
         recorder.onstop = async () => {
             statusText.innerText = "BOTGA YUBORILMOQDA...";
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
-            
-            // Telegram API orqali yuborish
             const formData = new FormData();
             formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `Lyric_HD_${Date.now()}.mp4`);
-            formData.append('caption', "✅ HD Lyric Video tayyor bo'ldi!\n\nID: " + MY_ID);
+            formData.append('video', videoBlob, `Lyric_Pro_${Date.now()}.mp4`);
+            formData.append('caption', "✅ Maxsus Effektli HD Video tayyor!");
 
             try {
-                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    statusText.innerText = "✅ BOTGA YUBORILDI!";
-                    tg.showAlert("Tayyor! Botga xabar yuborildi.");
-                } else {
-                    alert("Botga yuborishda xatolik yuz berdi.");
-                }
-            } catch (err) {
-                alert("Tarmoq xatosi: " + err.message);
-            }
-
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
+                if (response.ok) { statusText.innerText = "✅ YUBORILDI!"; tg.showAlert("Botga yuborildi!"); }
+                else { alert("Yuborishda xato!"); }
+            } catch (err) { alert("Xato: " + err.message); }
             startBtn.disabled = false;
         };
 
         recorder.start();
         audioTag.play();
 
-        // 3. Renderlash (Canvasga chizish)
+        let lastText = "";
+        let animProgress = 0;
+
         function drawFrame() {
             const now = audioTag.currentTime;
-            
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             const current = lyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
-            displayText.innerText = text;
+            
+            if (text !== lastText) { lastText = text; animProgress = 0; }
+            animProgress = Math.min(animProgress + 0.05, 1);
+
+            // Fon effekti chizish
+            const effect = document.getElementById('effect-style').value;
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if(effect === 'neon') {
+                ctx.strokeStyle = varColor(now); ctx.lineWidth = 5; ctx.strokeRect(50, 50, 980, 980);
+            } else if (effect === 'gradient') {
+                let g = ctx.createLinearGradient(0,0,1080,1080);
+                g.addColorStop(0, "#000"); g.addColorStop(1, varColor(now));
+                ctx.fillStyle = g; ctx.fillRect(0,0,1080,1080);
+            }
+
+            // Matn sozlamalari
+            const font = document.getElementById('font-style').value;
+            const anim = document.getElementById('anim-style').value;
+            ctx.font = `bold 70px ${font}`;
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            
+            // Animatsiya mantiqi
+            if(anim === 'fade') ctx.globalAlpha = animProgress;
+            if(anim === 'zoom') ctx.scale(animProgress, animProgress);
+            if(anim === 'rotate') ctx.rotate((1-animProgress)*Math.PI);
+            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*100);
 
             ctx.fillStyle = "#00e676";
-            ctx.font = "bold 60px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 20;
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
 
             statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
-
-            if (now < endT && !audioTag.paused) {
-                requestAnimationFrame(drawFrame);
-            } else {
-                audioTag.pause();
-                recorder.stop();
-            }
+            if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
+            else { audioTag.pause(); recorder.stop(); }
         }
+        
+        function varColor(t) { return `hsl(${t * 50 % 360}, 70%, 50%)`; }
         drawFrame();
     }
-
     tg.ready();
-    tg.expand();
 </script>
 </body>
 </html>
