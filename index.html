@@ -3,86 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LRC Caption Maker Pro</title>
+    <title>LRC Maker Final</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --accent-color: #ff5722; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; text-align: center; padding: 15px; margin: 0; }
-        
-        .preview-area {
-            width: 100%; height: 250px; border-radius: 20px;
-            display: flex; justify-content: center; align-items: center;
-            margin-bottom: 20px; background: #1a1a1a; border: 2px solid #333;
-            overflow: hidden; position: relative;
+        :root { --primary: #ff5722; }
+        body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 15px; text-align: center; }
+        .preview-box { 
+            width: 100%; height: 250px; background: #1a1a1a; border-radius: 15px; 
+            margin-bottom: 20px; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #333; position: relative; overflow: hidden;
         }
-
-        #caption-display { padding: 20px; font-size: 22px; font-weight: bold; z-index: 2; word-wrap: break-word; }
-
-        /* Matn Stillari */
-        .style-classic { color: white; text-shadow: 2px 2px 5px #000; }
-        .style-neon { color: #fff; text-shadow: 0 0 10px #0088cc, 0 0 20px #0088cc; }
-        .style-minimal { letter-spacing: 3px; text-transform: uppercase; font-weight: 300; }
-        .style-bold { font-size: 30px; font-weight: 900; color: #ffcc00; font-style: italic; }
-        .style-glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); border-radius: 10px; padding: 10px; }
-
-        .controls { background: #181818; padding: 20px; border-radius: 15px; text-align: left; margin-bottom: 50px; }
-        .section-title { font-size: 16px; font-weight: bold; color: var(--accent-color); margin: 15px 0 10px; border-left: 3px solid var(--accent-color); padding-left: 10px; }
-        
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; background: #252525; color: white; border: 1px solid #333; box-sizing: border-box; }
-        .btn-main { background: var(--accent-color); color: white; padding: 15px; border: none; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-main:disabled { background: #444; }
-        audio { width: 100%; margin: 15px 0; }
+        #text-render { font-size: 22px; font-weight: bold; padding: 20px; transition: 0.2s; }
+        .controls { background: #111; padding: 20px; border-radius: 15px; text-align: left; }
+        input, select, button { 
+            width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; 
+            border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box;
+        }
+        .btn-save { background: var(--primary); font-weight: bold; border: none; font-size: 16px; cursor: pointer; }
+        .btn-save:disabled { background: #555; }
+        #progress-bar { width: 0%; height: 5px; background: var(--primary); position: fixed; top: 0; left: 0; transition: 0.1s; }
     </style>
 </head>
 <body>
 
-    <div class="preview-area" id="preview-box">
-        <div id="caption-display" class="style-classic">Tayyor...</div>
+    <div id="progress-bar"></div>
+
+    <div class="preview-box" id="capture-zone">
+        <div id="text-render">Musiqa va LRC yuklang</div>
     </div>
 
     <div class="controls">
-        <div class="section-title">FAYLLAR</div>
+        <label>MP3 fayl:</label>
         <input type="file" id="audio-input" accept="audio/mp3">
+        
+        <label>LRC fayl:</label>
         <input type="file" id="lrc-input" accept=".lrc">
 
-        <div class="section-title">QIRQISH (SONIYA)</div>
-        <div style="display:flex; gap:10px;">
-            <input type="number" id="start-time" value="0">
-            <input type="number" id="end-time" value="0">
-        </div>
-
-        <div class="section-title">DIZAYN</div>
+        <label>Matn stili:</label>
         <select id="style-select">
-            <option value="style-classic">Klassik</option>
-            <option value="style-neon">Neon</option>
-            <option value="style-minimal">Minimal</option>
-            <option value="style-bold">Qalin</option>
-            <option value="style-glass">Oyna</option>
+            <option value="white">Klassik Oq</option>
+            <option value="#ffcc00">Oltin rang</option>
+            <option value="#00e676">Neon Yashil</option>
+            <option value="#ff4081">Pushti</option>
         </select>
-        <input type="color" id="bg-color" value="#1a1a1a">
 
-        <audio id="audio-player" controls crossorigin="anonymous"></audio>
-        
-        <button class="btn-main" id="save-btn" onclick="startExport()">SAQLASH (MP4)</button>
+        <audio id="player" controls style="width: 100%;"></audio>
+
+        <button class="btn-save" id="save-btn" onclick="startExport()">VIDEONI SAQLASH (MP4)</button>
+        <p style="font-size: 10px; color: #777; text-align: center;">Eksport tugaguncha sahifani yopmang!</p>
     </div>
 
 <script>
-    let lyrics = [];
-    let mediaRecorder;
-    let recordedChunks = [];
     const tg = window.Telegram.WebApp;
-    const audio = document.getElementById('audio-player');
-    const display = document.getElementById('caption-display');
+    const player = document.getElementById('player');
+    const textRender = document.getElementById('text-render');
     const saveBtn = document.getElementById('save-btn');
+    const progressBar = document.getElementById('progress-bar');
+    let lyrics = [];
 
-    document.getElementById('style-select').onchange = (e) => display.className = e.target.value;
-    document.getElementById('bg-color').oninput = (e) => document.getElementById('preview-box').style.backgroundColor = e.target.value;
+    // Stil o'zgarishi
+    document.getElementById('style-select').onchange = (e) => textRender.style.color = e.target.value;
 
-    document.getElementById('audio-input').onchange = (e) => {
-        audio.src = URL.createObjectURL(e.target.files[0]);
-        audio.onloadedmetadata = () => document.getElementById('end-time').value = Math.floor(audio.duration);
-    };
-
+    // LRC o'qish
     document.getElementById('lrc-input').onchange = (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
@@ -90,72 +72,75 @@
                 const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
                 return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
             }).filter(x => x && x.text);
-            display.innerText = "LRC Yuklandi!";
+            textRender.innerText = "LRC tayyor!";
         };
         reader.readAsText(e.target.files[0]);
     };
 
-    audio.ontimeupdate = () => {
-        const active = lyrics.findLast(l => audio.currentTime >= l.t);
-        if (active) display.innerText = active.text;
-        
-        if (audio.currentTime >= document.getElementById('end-time').value) {
-            audio.pause();
-            if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
-        }
+    document.getElementById('audio-input').onchange = (e) => {
+        player.src = URL.createObjectURL(e.target.files[0]);
+    };
+
+    // Sinxronizatsiya
+    player.ontimeupdate = () => {
+        const active = lyrics.findLast(l => player.currentTime >= l.t);
+        if (active) textRender.innerText = active.text;
     };
 
     async function startExport() {
-        if (!audio.src) return tg.showAlert("Musiqa yo'q!");
+        if (!player.src || lyrics.length === 0) return tg.showAlert("Fayllarni to'liq yuklang!");
+
+        saveBtn.disabled = true;
+        const duration = player.duration;
+        const chunks = [];
+        const stream = document.getElementById('capture-zone').captureStream(30);
         
-        recordedChunks = [];
-        const start = parseFloat(document.getElementById('start-time').value);
-        audio.currentTime = start;
-        
-        // Preview div-dan stream olish
-        const stream = document.getElementById('preview-box').captureStream(30);
-        
-        // Audio streamni qo'shish (Xavfsiz usul)
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaElementSource(audio);
+        // Audio qo'shish
+        const audioCtx = new AudioContext();
         const dest = audioCtx.createMediaStreamDestination();
-        source.connect(dest);
-        source.connect(audioCtx.destination);
-        dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+        audioCtx.createMediaElementSource(player).connect(dest);
+        dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
 
-        try {
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-        } catch (e) {
-            mediaRecorder = new MediaRecorder(stream); // iPhone uchun oddiy format
-        }
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
 
-        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-        
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/mp4' });
             const url = URL.createObjectURL(blob);
             
-            // Yuklab olishni majburiy qilish
+            // Yuklab olish uchun havola
             const a = document.createElement('a');
-            a.style.display = 'none';
             a.href = url;
-            a.download = `video_${Date.now()}.mp4`;
+            a.download = `lyric_video_${Date.now()}.mp4`;
             document.body.appendChild(a);
             a.click();
             
-            // Telegram orqali ham havola berish
-            tg.showAlert("Video tayyor! Agar yuklanish boshlanmasa, brauzerda qayta tekshiring.");
-            saveBtn.innerText = "SAQLASH (MP4)";
+            // Telegram bot orqali yuborishga urinish (Eng ishonchli yo'l)
+            tg.showAlert("Eksport tugadi! Agar yuklanish boshlanmasa, buni bosing.");
             saveBtn.disabled = false;
+            saveBtn.innerText = "YANA SAQLASH";
+            progressBar.style.width = "0%";
         };
 
-        mediaRecorder.start();
-        audio.play();
-        saveBtn.disabled = true;
-        saveBtn.innerText = "Yozilmoqda...";
+        player.currentTime = 0;
+        recorder.start();
+        player.play();
+
+        const trackProgress = setInterval(() => {
+            const p = (player.currentTime / duration) * 100;
+            progressBar.style.width = p + "%";
+            saveBtn.innerText = `YOZILMOQDA: ${Math.floor(p)}%`;
+
+            if (player.ended || player.currentTime >= duration) {
+                recorder.stop();
+                player.pause();
+                clearInterval(trackProgress);
+            }
+        }, 500);
     }
 
     tg.ready();
+    tg.expand();
 </script>
 </body>
 </html>
