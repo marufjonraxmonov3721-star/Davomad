@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -8,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --accent-color: #ff5722; /* Rasmga mosroq rang */
+            --accent-color: #ff5722;
         }
 
         body { 
@@ -20,7 +19,6 @@
             margin: 0;
         }
 
-        /* Preview Oynasi */
         .preview-area {
             width: 100%; 
             height: 250px; 
@@ -33,7 +31,6 @@
             border: 2px solid #333;
             overflow: hidden;
             position: relative;
-            transition: all 0.4s ease;
         }
 
         #caption-display { 
@@ -41,6 +38,7 @@
             transition: all 0.3s ease;
             max-width: 90%;
             word-wrap: break-word;
+            z-index: 2;
         }
 
         /* Matn Stillari */
@@ -50,7 +48,6 @@
         .style-bold { font-size: 32px; font-weight: 900; -webkit-text-stroke: 1px black; color: #ffcc00; font-style: italic; }
         .style-glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); border-radius: 10px; padding: 10px 20px; font-size: 22px; }
 
-        /* Boshqaruv elementlari */
         .controls {
             background: #181818;
             padding: 20px;
@@ -60,40 +57,25 @@
         }
 
         .section-title { font-size: 16px; font-weight: bold; color: var(--accent-color); margin: 15px 0 10px; border-left: 3px solid var(--accent-color); padding-left: 10px; }
-
         label { display: block; margin: 10px 0 5px; font-size: 13px; color: #aaa; }
         
         input, select { 
-            width: 100%; 
-            padding: 12px; 
-            margin-bottom: 10px; 
-            border-radius: 8px; 
-            background: #252525; 
-            color: white; 
-            border: 1px solid #333; 
-            box-sizing: border-box;
+            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; 
+            background: #252525; color: white; border: 1px solid #333; box-sizing: border-box;
         }
 
-        /* Trim (Qirqish) Slider */
         .trim-box { display: flex; gap: 10px; align-items: center; }
         .trim-box input { width: 50%; }
 
         .btn-main { 
-            background: var(--accent-color); 
-            color: white; 
-            padding: 15px; 
-            border: none; 
-            width: 100%; 
-            border-radius: 10px; 
-            font-size: 18px; 
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            text-transform: uppercase;
+            background: var(--accent-color); color: white; padding: 15px; border: none; 
+            width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold;
+            cursor: pointer; margin-top: 20px; text-transform: uppercase;
         }
 
-        audio { width: 100%; margin: 15px 0; filter: invert(100%); }
+        .btn-main:disabled { background: #555; cursor: not-allowed; }
 
+        audio { width: 100%; margin: 15px 0; filter: invert(100%); }
         .status-info { font-size: 12px; color: #777; margin-top: 5px; text-align: center; }
     </style>
 </head>
@@ -126,17 +108,9 @@
         <div class="section-title">EKSPORT SOZLAMALARI</div>
         <label>Sifat (Resolution):</label>
         <select id="res-select">
-            <option value="480">480p (Past)</option>
-            <option value="720">720p (O'rtacha)</option>
-            <option value="1080" selected>1080p (Tavsiya etiladi)</option>
-            <option value="4000">2k/4k (Ultra HD)</option>
-        </select>
-
-        <label>Kadr tezligi (Frame Rate):</label>
-        <select id="fps-select">
-            <option value="24">24 fps</option>
-            <option value="30" selected>30 fps</option>
-            <option value="60">60 fps</option>
+            <option value="480">480p</option>
+            <option value="720">720p</option>
+            <option value="1080" selected>1080p</option>
         </select>
 
         <div class="section-title">DIZAYN</div>
@@ -160,6 +134,8 @@
 
 <script>
     let lyrics = [];
+    let recorder;
+    let chunks = [];
     const tg = window.Telegram.WebApp;
     const audioPlayer = document.getElementById('audio-player');
     const captionDisplay = document.getElementById('caption-display');
@@ -170,15 +146,12 @@
     const fileSizeInfo = document.getElementById('file-size-info');
     const saveBtn = document.getElementById('save-btn');
 
-    // Stil va Rang o'zgarishi
     styleSelect.onchange = () => captionDisplay.className = styleSelect.value;
     document.getElementById('bg-color').oninput = (e) => previewBox.style.backgroundColor = e.target.value;
 
-    // MP3 yuklash va davomiylikni aniqlash
     document.getElementById('audio-input').onchange = function(e) {
         if(e.target.files[0]) {
-            const url = URL.createObjectURL(e.target.files[0]);
-            audioPlayer.src = url;
+            audioPlayer.src = URL.createObjectURL(e.target.files[0]);
             audioPlayer.onloadedmetadata = () => {
                 endTimeInput.value = Math.floor(audioPlayer.duration);
                 updateEstimatedSize();
@@ -186,12 +159,10 @@
         }
     };
 
-    // LRC o'qish
     document.getElementById('lrc-input').onchange = function(e) {
-        const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = (ev) => parseLRC(ev.target.result);
-        reader.readAsText(file);
+        reader.readAsText(e.target.files[0]);
     };
 
     function parseLRC(lrcText) {
@@ -209,14 +180,13 @@
         captionDisplay.innerText = "LRC yuklandi!";
     }
 
-    // Sinxronizatsiya va Trim tekshiruvi
     audioPlayer.ontimeupdate = function() {
         const current = audioPlayer.currentTime;
         const start = parseFloat(startTimeInput.value);
         const end = parseFloat(endTimeInput.value);
 
         if (current < start) audioPlayer.currentTime = start;
-        if (current > end) {
+        if (current > end && !recorder) {
             audioPlayer.pause();
             audioPlayer.currentTime = start;
         }
@@ -234,44 +204,60 @@
         fileSizeInfo.innerText = `Taxminiy hajm: ${size} MB`;
     }
 
-    [startTimeInput, endTimeInput, document.getElementById('res-select')].forEach(el => {
-        el.onchange = updateEstimatedSize;
-    });
+    async function saveProject() {
+        if (!audioPlayer.src) { tg.showAlert("Musiqa yuklang!"); return; }
 
-    function saveProject() {
-        if (!audioPlayer.src) {
-            tg.showAlert("Avval musiqa yuklang!");
-            return;
-        }
-
-        let progress = 0;
+        const start = parseFloat(startTimeInput.value);
+        const end = parseFloat(endTimeInput.value);
+        const duration = end - start;
+        
         saveBtn.disabled = true;
         tg.MainButton.show();
         
+        // Haqiqiy yozib olish jarayoni
+        audioPlayer.currentTime = start;
+        const stream = previewBox.captureStream(30); // 30 FPS
+        const audioStream = audioPlayer.captureStream ? audioPlayer.captureStream() : audioPlayer.mozCaptureStream();
+        
+        audioStream.getAudioTracks().forEach(track => stream.addTrack(track));
+        
+        recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
+        chunks = [];
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caption_video_${new Date().getTime()}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            saveBtn.disabled = false;
+            saveBtn.innerText = "SAQLASH (SAVE)";
+            tg.MainButton.hide();
+            tg.showAlert("Video yuklab olindi!");
+            recorder = null;
+        };
+
+        recorder.start();
+        audioPlayer.play();
+
         const interval = setInterval(() => {
-            progress += Math.floor(Math.random() * 10) + 1;
-            if (progress >= 100) {
-                progress = 100;
+            const currentPos = audioPlayer.currentTime - start;
+            const progress = Math.min(Math.floor((currentPos / duration) * 100), 100);
+            
+            saveBtn.innerText = `EKSPORT: ${progress}%`;
+            tg.MainButton.setText(`TAYYORLANMOQDA: ${progress}%`);
+
+            if (audioPlayer.currentTime >= end || audioPlayer.paused) {
                 clearInterval(interval);
-                finishExport();
+                recorder.stop();
+                audioPlayer.pause();
             }
-            saveBtn.innerText = `YUKLANMOQDA: ${progress}%`;
-            tg.MainButton.setText(`EKSPORT: ${progress}%`);
-        }, 200);
-    }
-
-    function finishExport() {
-        const res = document.getElementById('res-select').value;
-        tg.showAlert(`Muvaffaqiyatli yakunlandi! Video ${res}p sifatda tayyor.`);
-        saveBtn.disabled = false;
-        saveBtn.innerText = "SAQLASH (SAVE)";
-        tg.MainButton.hide();
-
-        // Haqiqiy faylni yuklab olish (Simulyatsiya uchun)
-        const link = document.createElement('a');
-        link.href = audioPlayer.src; // Bu yerda aslida video blob bo'ladi
-        link.download = `caption_video_${res}p.mp4`;
-        link.click();
+        }, 100);
     }
 
     tg.ready();
