@@ -25,18 +25,8 @@
         
         canvas { display: none; }
 
-        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 450px; overflow-y: auto; }
+        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 400px; overflow-y: auto; }
         
-        /* Qidiruv tizimi stili */
-        .search-section { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #444; }
-        .search-input { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: #fff; margin-bottom: 10px; box-sizing: border-box; outline: none; }
-        .search-input:focus { border-color: var(--accent); }
-        .track-results { max-height: 150px; overflow-y: auto; display: grid; gap: 8px; }
-        .track-card { background: #222; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 13px; border: 1px solid transparent; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .track-card:hover { border-color: var(--accent); }
-        .track-card.active { background: rgba(0, 230, 118, 0.1); border-color: var(--accent); }
-        .lyr-badge { font-size: 9px; background: var(--accent); color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
-
         .trim-group, .select-group { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
         .trim-group div, .select-group div { flex: 1; min-width: 140px; }
 
@@ -48,7 +38,7 @@
         input[type=range] { -webkit-appearance: none; background: #333; height: 8px; border: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
 
-        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; z-index: 100; }
+        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; }
         .btn-download:disabled { background: #333; color: #777; }
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
@@ -69,7 +59,12 @@
         @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes rotateIn { from { transform: rotate(-180deg); opacity: 0; } to { transform: rotate(0); opacity: 1; } }
-        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes bounceIn { 
+            0% { transform: scale(0.3); opacity: 0; } 
+            50% { transform: scale(1.05); } 
+            70% { transform: scale(0.9); } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
@@ -82,15 +77,12 @@
     <canvas id="video-canvas" width="1080" height="1920"></canvas>
 
     <div class="controls">
-        <div class="search-section">
-            <label>🔎 Bazadan lirikani tanlang:</label>
-            <input type="text" id="search-input" class="search-input" placeholder="Qo'shiqchi yoki nomini yozing..." oninput="filterDB()">
-            <div class="track-results" id="track-results">
-                <div style="font-size: 11px; color: #555; padding: 10px;">Baza yuklanmoqda...</div>
-            </div>
-        </div>
+        <label>1. Bazadan lirikani tanlang:</label>
+        <select id="lrc-select">
+            <option value="">Yuklanmoqda...</option>
+        </select>
 
-        <label>Endi mos MP3 faylni yuklang:</label>
+        <label>2. MP3 faylni yuklang:</label>
         <input type="file" id="audio-input" accept="audio/mp3">
 
         <div class="select-group">
@@ -106,6 +98,11 @@
                     <option value="monospace">Texno Mono</option>
                     <option value="cursive">Qo'lyozma</option>
                     <option value="Impact">Qalin Impact</option>
+                    <option value="Georgia">Elegant Georgia</option>
+                    <option value="Verdana">Aniq Verdana</option>
+                    <option value="Arial Black">Og'ir Arial</option>
+                    <option value="Helvetica">Minimalist</option>
+                    <option value="Futura">Kosmik</option>
                 </select>
             </div>
         </div>
@@ -128,7 +125,9 @@
                 <select id="effect-style" onchange="updateLivePreview()">
                     <option value="black">Deep Black (AMOLED)</option>
                     <option value="neon">Neon nurlar</option>
+                    <option value="gradient">Rivojlanuvchi rang</option>
                     <option value="vignette">Vinyetka</option>
+                    <option value="scanline">TV chiziqlar</option>
                 </select>
             </div>
         </div>
@@ -148,13 +147,13 @@
             <div><label>Tugashi (s):</label><input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()"></div>
         </div>
 
-        <div id="status-text">Bazadan lirikani tanlang</div>
+        <div id="status-text">Kuting...</div>
         <button class="btn-download" id="start-btn" onclick="startHDProcess()">HD VIDEONI YASASH VA BOTGA YUBORISH</button>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
@@ -162,7 +161,8 @@
       projectId: "songlyrics-caption",
       storageBucket: "songlyrics-caption.firebasestorage.app",
       messagingSenderId: "363615493684",
-      appId: "1:363615493684:web:35752e22517bfaedae7461"
+      appId: "1:363615493684:web:35752e22517bfaedae7461",
+      measurementId: "G-C7RRLG6ELQ"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -176,7 +176,7 @@
     const startBtn = document.getElementById('start-btn');
     const previewBox = document.getElementById('p-box');
     const rangeFill = document.getElementById('range-fill');
-    const resultsContainer = document.getElementById('track-results');
+    const lrcSelect = document.getElementById('lrc-select');
 
     let lyrics = [];
     let audioFile = null;
@@ -186,44 +186,39 @@
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    // BAZADAN MA'LUMOTLARNI YUKLASH
-    async function loadDB() {
+    // Bazadan lirikani yuklash
+    async function loadTracks() {
         try {
             const q = query(collection(db, "tracklist"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
-            dbTracks = querySnapshot.docs.map(doc => doc.data());
-            renderTracks(dbTracks);
-            statusText.innerText = "Baza tayyor.";
+            lrcSelect.innerHTML = '<option value="">-- Qoshiqni tanlang --</option>';
+            dbTracks = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                dbTracks.push(data);
+                const opt = document.createElement('option');
+                opt.value = data.title;
+                opt.innerText = data.title;
+                lrcSelect.appendChild(opt);
+            });
+            statusText.innerText = "Bazadan lirikalar yuklandi.";
         } catch (e) {
-            resultsContainer.innerHTML = "Xato!";
+            console.error(e);
+            statusText.innerText = "Bazaga ulanishda xato!";
         }
     }
+    loadTracks();
 
-    function renderTracks(data) {
-        resultsContainer.innerHTML = "";
-        data.forEach(track => {
-            const card = document.createElement('div');
-            card.className = 'track-card';
-            card.innerHTML = `<span>${track.title}</span><span class="lyr-badge">LYR</span>`;
-            card.onclick = () => {
-                document.querySelectorAll('.track-card').forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
-                parseLyrics(track.lyricsBody);
-                statusText.innerText = "Lirika tanlandi. Endi MP3 yuklang.";
-                tg.HapticFeedback.impactOccurred('medium');
-            };
-            resultsContainer.appendChild(card);
-        });
-    }
+    lrcSelect.onchange = () => {
+        const selected = dbTracks.find(t => t.title === lrcSelect.value);
+        if (selected && selected.lyricsBody) {
+            parseLyrics(selected.lyricsBody);
+            statusText.innerText = "Lirika yuklandi: " + selected.title;
+        }
+    };
 
-    window.filterDB = () => {
-        const val = document.getElementById('search-input').value.toLowerCase();
-        const filtered = dbTracks.filter(t => t.title.toLowerCase().includes(val));
-        renderTracks(filtered);
-    }
-
-    function parseLyrics(text) {
-        lyrics = text.split('\n').map(line => {
+    function parseLyrics(data) {
+        lyrics = data.split('\n').map(line => {
             const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
             return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
         }).filter(x => x);
@@ -235,7 +230,7 @@
         return `${m.toString().padStart(2, '0')}:${sec.padStart(4, '0')}`;
     }
 
-    window.syncSliders = () => {
+    function syncSliders() {
         const start = parseFloat(document.getElementById('trim-start').value) || 0;
         const end = parseFloat(document.getElementById('trim-end').value) || fullDuration;
         const left = (start / fullDuration) * 100;
@@ -247,11 +242,11 @@
         document.getElementById('label-duration').innerText = `Davomiyligi: ${(end - start).toFixed(1)}s`;
     }
 
-    window.updateLivePreview = () => {
+    window.updateLivePreview = function() {
         const size = document.getElementById('font-size-slider').value;
         const font = document.getElementById('font-style').value;
-        const anim = document.getElementById('anim-style').value;
         const effect = document.getElementById('effect-style').value;
+        const anim = document.getElementById('anim-style').value;
         
         displayText.style.fontSize = (size / 4) + "px";
         displayText.style.fontFamily = font;
@@ -259,7 +254,14 @@
         void displayText.offsetWidth; 
         if(anim !== 'none') displayText.className = "anim-" + anim;
 
-        previewBox.style.border = effect === 'neon' ? "2px solid #00e676" : "2px solid #333";
+        previewBox.style.background = "#000";
+        previewBox.style.boxShadow = "none";
+        previewBox.style.border = "2px solid #333";
+
+        if(effect === 'neon') {
+            previewBox.style.border = "2px solid #00e676";
+            previewBox.style.boxShadow = "inset 0 0 20px rgba(0,230,118,0.4)";
+        }
     }
 
     document.getElementById('audio-input').onchange = (e) => { 
@@ -269,22 +271,27 @@
             fullDuration = tempAudio.duration;
             document.getElementById('trim-end').value = fullDuration.toFixed(1);
             syncSliders();
-            statusText.innerText = "Audio tayyor.";
+            statusText.innerText = "Audio yuklandi.";
         };
     };
 
     function wrapText(context, text, x, y, maxWidth, lineHeight) {
         const words = text.split(' ');
-        let line = ''; let lines = [];
+        let line = '';
+        let lines = [];
         for(let n = 0; n < words.length; n++) {
             let testLine = line + words[n] + ' ';
-            if (context.measureText(testLine).width > maxWidth && n > 0) {
-                lines.push(line); line = words[n] + ' ';
+            let metrics = context.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
             } else { line = testLine; }
         }
         lines.push(line);
         let startY = y - ((lines.length - 1) * lineHeight) / 2;
-        lines.forEach((l, i) => context.fillText(l, x, startY + (i * lineHeight)));
+        for(let k = 0; k < lines.length; k++) {
+            context.fillText(lines[k], x, startY + (k * lineHeight));
+        }
     }
 
     window.startHDProcess = async function() {
@@ -297,7 +304,7 @@
         const audioTag = new Audio(URL.createObjectURL(audioFile));
         audioTag.currentTime = startT;
 
-        const audioCtx = new AudioContext();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioCtx.createMediaElementSource(audioTag);
         const dest = audioCtx.createMediaStreamDestination();
         source.connect(dest); source.connect(audioCtx.destination);
@@ -305,7 +312,11 @@
         const stream = canvas.captureStream(60); 
         dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
         
-        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 });
+        const recorder = new MediaRecorder(stream, { 
+            mimeType: 'video/webm;codecs=vp9', 
+            videoBitsPerSecond: 15000000 
+        });
+
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         
@@ -314,60 +325,86 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `Stories_HD.mp4`);
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
-            statusText.innerText = "✅ YUBORILDI!";
+            formData.append('video', videoBlob, `Stories_HD_${Date.now()}.mp4`);
+            formData.append('caption', "✅ Instagram Stories HD (60 FPS, 15Mbps) tayyor!");
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
+                if (response.ok) { statusText.innerText = "✅ YUBORILDI!"; tg.showAlert("Video botga yuborildi!"); }
+            } catch (err) { alert("Xato: " + err.message); }
             startBtn.disabled = false;
         };
 
         recorder.start();
         audioTag.play();
 
-        let lastText = ""; let animStartTime = 0;
+        let lastText = "";
+        let animStartTime = 0;
+
         function drawFrame() {
             const now = audioTag.currentTime;
             const current = lyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
-            if (text !== lastText) { lastText = text; animStartTime = now; }
+            
+            if (text !== lastText) { 
+                lastText = text; 
+                animStartTime = now; 
+            }
+            
             let animProgress = Math.min((now - animStartTime) / 0.4, 1); 
 
-            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 1080, 1920);
-            
+            ctx.fillStyle = "#000000"; 
+            ctx.fillRect(0, 0, 1080, 1920);
+
             const effect = document.getElementById('effect-style').value;
             if(effect === 'neon') {
-                ctx.strokeStyle = "#00e676"; ctx.lineWidth = 15; ctx.strokeRect(30,30,1020,1860);
-            } else if(effect === 'vignette') {
-                let g = ctx.createRadialGradient(540,960,100,540,960,1000);
-                g.addColorStop(0,"#111"); g.addColorStop(1,"black");
-                ctx.fillStyle = g; ctx.fillRect(0,0,1080,1920);
+                ctx.strokeStyle = `hsl(${now * 50 % 360}, 70%, 50%)`; 
+                ctx.lineWidth = 20; ctx.strokeRect(40, 40, 1000, 1840);
+            } else if (effect === 'vignette') {
+                let g = ctx.createRadialGradient(540, 960, 200, 540, 960, 1000);
+                g.addColorStop(0, "rgba(30,30,30,1)"); g.addColorStop(1, "black");
+                ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
             }
 
-            const size = parseInt(document.getElementById('font-size-slider').value);
-            ctx.font = `bold ${size}px ${document.getElementById('font-style').value}`;
-            ctx.textAlign = "center"; ctx.textBaseline = "middle";
-            ctx.save(); ctx.translate(540, 960);
-            
+            const font = document.getElementById('font-style').value;
             const anim = document.getElementById('anim-style').value;
-            if(anim === 'fade') ctx.globalAlpha = animProgress;
-            if(anim === 'zoom') ctx.scale(0.8 + animProgress*0.2, 0.8 + animProgress*0.2);
-            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*60);
-            if(anim === 'bounce') ctx.scale(animProgress, animProgress);
-            if(anim === 'pulse') { let s = 1 + Math.sin(Date.now()/150)*0.03; ctx.scale(s,s); }
+            const size = parseInt(document.getElementById('font-size-slider').value);
+            
+            ctx.font = `bold ${size}px ${font}`;
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
 
-            ctx.fillStyle = "#00e676"; ctx.shadowColor = "rgba(0,230,118,0.6)"; ctx.shadowBlur = 30;
+            ctx.save();
+            ctx.translate(540, 960);
+            
+            if(anim === 'fade') ctx.globalAlpha = animProgress;
+            if(anim === 'zoom') ctx.scale(0.8 + animProgress * 0.2, 0.8 + animProgress * 0.2);
+            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*60);
+            if(anim === 'rotate') ctx.rotate((1-animProgress)*0.5);
+            if(anim === 'bounce') ctx.scale(animProgress, animProgress);
+            if(anim === 'pulse') {
+                let s = 1 + Math.sin(Date.now()/150)*0.03;
+                ctx.scale(s, s);
+            }
+
+            ctx.fillStyle = "#00e676";
+            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 35;
+            
             wrapText(ctx, text, 0, 0, 900, size * 1.2);
+            
             ctx.restore();
 
             statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
+
             if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
             else { audioTag.pause(); recorder.stop(); }
         }
         drawFrame();
     }
     
-    loadDB();
+    window.syncSliders = syncSliders;
     tg.ready();
     tg.expand();
+    updateLivePreview();
 </script>
 </body>
 </html>
