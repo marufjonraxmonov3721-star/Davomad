@@ -173,7 +173,7 @@
 <script>
     const tg = window.Telegram.WebApp;
     const canvas = document.getElementById('video-canvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     const displayText = document.getElementById('display-text');
     const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
@@ -293,7 +293,7 @@
         
         const recorder = new MediaRecorder(stream, { 
             mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 25000000 // Ultra HD 25Mbps
+            videoBitsPerSecond: 25000000 
         });
 
         const chunks = [];
@@ -322,8 +322,9 @@
 
         let lastText = "";
         let animStartTime = 0;
+        let lastTimestamp = performance.now();
 
-        function drawFrame() {
+        function drawFrame(currentTimestamp) {
             if (audioTag.paused || audioTag.ended || audioTag.currentTime >= endT) {
                 recorder.stop();
                 audioTag.pause();
@@ -338,10 +339,12 @@
             
             if (text !== lastText) { 
                 lastText = text; 
-                animStartTime = now; 
+                animStartTime = performance.now(); 
             }
             
-            let animProgress = Math.min((now - animStartTime) / 0.3, 1); // 300ms silliq animatsiya
+            // Silliq animatsiya uchun Delta Time hisoblash
+            let animElapsed = (performance.now() - animStartTime) / 1000;
+            let animProgress = Math.min(animElapsed / 0.35, 1); // 350ms silliq o'tish
 
             ctx.fillStyle = "#000000"; 
             ctx.fillRect(0, 0, 1080, 1920);
@@ -353,10 +356,10 @@
                 ctx.shadowBlur = 40; ctx.shadowColor = color;
             } else if (effect === 'vignette') {
                 let g = ctx.createRadialGradient(540, 960, 200, 540, 960, 1100);
-                g.addColorStop(0, "rgba(30,30,30,1)"); g.addColorStop(1, "black");
+                g.addColorStop(0, "rgba(35,35,35,1)"); g.addColorStop(1, "black");
                 ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
             } else if (effect === 'blur') {
-                ctx.shadowBlur = 100; ctx.shadowColor = color + "66";
+                ctx.shadowBlur = 120; ctx.shadowColor = color + "66";
             }
 
             const font = document.getElementById('font-style').value;
@@ -376,38 +379,38 @@
             
             if(anim === 'fade') ctx.globalAlpha = animProgress;
             if(anim === 'zoom') {
-                let s = 0.8 + animProgress * 0.2;
+                let s = 0.75 + animProgress * 0.25;
                 ctx.scale(s, s);
             }
-            if(anim === 'slideUp') ctx.translate(0, (1 - animProgress) * 50);
-            if(anim === 'rotate') ctx.rotate((1 - animProgress) * -0.05);
+            if(anim === 'slideUp') ctx.translate(0, (1 - animProgress) * 60);
+            if(anim === 'rotate') ctx.rotate((1 - animProgress) * -0.08);
             if(anim === 'pulse') {
-                let s = 1 + Math.sin(Date.now()/150) * 0.03;
+                let s = 1 + Math.sin(performance.now()/150) * 0.04;
                 ctx.scale(s, s);
             }
             if(anim === 'glitch' && text) {
-                ctx.translate((Math.random()-0.5)*10, 0);
-                ctx.shadowColor = "red"; ctx.shadowBlur = 15;
+                ctx.translate((Math.random()-0.5)*12, 0);
+                ctx.shadowColor = "red"; ctx.shadowBlur = 20;
             }
 
             ctx.fillStyle = color;
-            ctx.shadowColor = color + "99"; ctx.shadowBlur = 35;
+            ctx.shadowColor = color + "AA"; ctx.shadowBlur = 40;
             
-            wrapText(ctx, text.toUpperCase(), 0, 0, 920, size * 1.25);
+            wrapText(ctx, text.toUpperCase(), 0, 0, 920, size * 1.3);
             
             ctx.restore();
 
-            // Progress Bar
+            // Progress Bar (Silliq)
             ctx.shadowBlur = 0;
-            ctx.fillStyle = "#1a1a1a";
-            ctx.fillRect(100, 1880, 880, 12);
+            ctx.fillStyle = "#111";
+            ctx.fillRect(100, 1880, 880, 14);
             ctx.fillStyle = color;
-            ctx.fillRect(100, 1880, ((now - startT) / duration) * 880, 12);
+            ctx.fillRect(100, 1880, ((now - startT) / duration) * 880, 14);
 
             statusText.innerText = `HD RENDER: ${Math.floor(((now - startT) / duration) * 100)}%`;
             requestAnimationFrame(drawFrame);
         }
-        drawFrame();
+        requestAnimationFrame(drawFrame);
     }
     tg.ready();
     tg.expand();
