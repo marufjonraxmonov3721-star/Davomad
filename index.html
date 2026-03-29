@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Songlyrics Pro - Cloud System</title>
+    <title>Songlyrics Pro - Cloud Sync</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #00e676; }
@@ -13,64 +13,47 @@
             width: 240px; height: 426px; background: #000; border-radius: 20px; 
             margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;
             border: 2px solid #333; position: relative; overflow: hidden;
-            transition: all 0.5s ease;
         }
 
         #display-text { 
             font-size: 20px; font-weight: bold; color: var(--accent); 
-            padding: 20px; line-height: 1.4; 
-            text-shadow: 0 0 20px rgba(0,230,118,0.5); 
-            z-index: 5; transition: all 0.3s ease; 
+            padding: 20px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); 
+            z-index: 5; 
         }
         
         canvas { display: none; }
 
-        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 500px; overflow-y: auto; }
+        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 550px; overflow-y: auto; }
         
-        /* Musiqalar Bazasi */
-        .database-section { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #444; }
-        .search-bar { width: 100%; padding: 10px; background: #222; border: 1px solid #333; border-radius: 10px; color: #fff; margin-bottom: 10px; box-sizing: border-box; }
-        .track-list { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 180px; overflow-y: auto; }
-        .track-item { 
-            background: #252525; padding: 12px; border-radius: 10px; cursor: pointer; 
-            border: 1px solid transparent; transition: 0.2s; font-size: 14px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .track-item:hover { border-color: var(--accent); }
-        .track-item.active { border-color: var(--accent); background: rgba(0, 230, 118, 0.1); }
-        .track-item .cloud-icon { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 2px 5px; border-radius: 4px; }
+        /* Qidiruv tizimi */
+        .search-section { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; }
+        .search-input { width: 100%; padding: 12px; background: #222; border: 1px solid #444; border-radius: 10px; color: #fff; margin-bottom: 10px; box-sizing: border-box; }
+        .track-results { max-height: 150px; overflow-y: auto; display: grid; gap: 8px; }
+        .track-card { background: #252525; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid transparent; transition: 0.2s; }
+        .track-card:hover { border-color: var(--accent); }
+        .track-card.active { background: rgba(0, 230, 118, 0.1); border-color: var(--accent); }
 
-        .trim-group, .select-group { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
-        .trim-group div, .select-group div { flex: 1; min-width: 140px; }
+        .select-group { display: flex; gap: 10px; margin: 10px 0; }
+        .select-group div { flex: 1; }
 
-        input, button, select { 
-            width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; 
-            border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box; font-size: 15px;
+        input[type="range"], select, input[type="file"], input[type="number"] { 
+            width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; 
+            border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box;
         }
 
-        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; z-index: 10; }
-        .btn-download:disabled { background: #333; color: #777; }
+        .btn-main { background: var(--accent); color: #000; font-weight: 800; border: none; padding: 15px; cursor: pointer; width: 100%; border-radius: 12px; margin-top: 10px; }
         
-        #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
-        label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; }
+        #status-text { font-size: 12px; color: var(--accent); margin: 10px 0; text-align: center; font-weight: bold; }
+        label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: bold; }
 
-        .trim-info { display: flex; justify-content: space-between; font-family: monospace; color: var(--accent); font-size: 12px; margin-bottom: 5px; }
-        .range-slider { position: relative; height: 40px; margin: 10px 0; background: #222; border-radius: 10px; overflow: hidden; }
+        .range-slider { position: relative; height: 35px; background: #222; border-radius: 8px; margin: 10px 0; overflow: hidden; }
         .range-fill { position: absolute; height: 100%; background: rgba(0, 230, 118, 0.2); border-left: 2px solid var(--accent); border-right: 2px solid var(--accent); }
 
         /* Animatsiyalar */
-        .anim-fade { animation: fadeIn 0.5s ease forwards; }
-        .anim-zoom { animation: zoomIn 0.5s ease forwards; }
-        .anim-slideUp { animation: slideUp 0.5s ease forwards; }
-        .anim-rotate { animation: rotateIn 0.5s ease forwards; }
-        .anim-bounce { animation: bounceIn 0.5s ease forwards; }
-        .anim-pulse { animation: pulse 0.8s infinite; }
+        .anim-fade { animation: fadeIn 0.4s ease; }
+        .anim-zoom { animation: zoomIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes rotateIn { from { transform: rotate(-180deg); opacity: 0; } to { transform: rotate(0); opacity: 1; } }
-        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes zoomIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -83,69 +66,48 @@
 
     <div class="controls">
         
-        <div class="database-section">
-            <label>🔎 Musiqalar Bazasi (Online):</label>
-            <input type="text" id="search-bar" class="search-bar" placeholder="Qo'shiq qidirish..." oninput="filterTracks()">
-            <div class="track-list" id="track-list-container">
-                <div style="padding: 10px; font-size: 12px; color: #666;">Yuklanmoqda...</div>
+        <div class="search-section">
+            <label>🔎 Bazadan lirikani toping:</label>
+            <input type="text" id="search-input" class="search-input" placeholder="Qo'shiqchi yoki qo'shiq nomi..." oninput="searchFromDB()">
+            <div class="track-results" id="results-container">
+                <div style="font-size: 11px; color: #555;">Qidirishni boshlang...</div>
             </div>
         </div>
+
+        <label>📁 Telefotingizdan MP3 tanlang:</label>
+        <input type="file" id="audio-input" accept="audio/mp3">
 
         <div class="select-group">
             <div>
                 <label>Matn hajmi:</label>
-                <input type="range" id="font-size-slider" min="30" max="180" value="80" oninput="updateLivePreview()">
+                <input type="range" id="font-size" min="40" max="150" value="80" oninput="updatePreview()">
             </div>
-            <div>
-                <label>Shrift Stili:</label>
-                <select id="font-style" onchange="updateLivePreview()">
-                    <option value="sans-serif">Standart Sans</option>
-                    <option value="serif">Klassik Serif</option>
-                    <option value="monospace">Texno Mono</option>
-                    <option value="Impact">Impact</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="select-group">
             <div>
                 <label>Animatsiya:</label>
-                <select id="anim-style" onchange="updateLivePreview()">
+                <select id="anim-style" onchange="updatePreview()">
                     <option value="none">Yo'q</option>
                     <option value="fade">Fade</option>
                     <option value="zoom">Zoom</option>
-                    <option value="slideUp">SlideUp</option>
-                    <option value="rotate">Rotate</option>
-                    <option value="bounce">Bounce</option>
-                    <option value="pulse">Pulse</option>
-                </select>
-            </div>
-            <div>
-                <label>Fon Effekti:</label>
-                <select id="effect-style" onchange="updateLivePreview()">
-                    <option value="black">Deep Black</option>
-                    <option value="neon">Neon</option>
-                    <option value="vignette">Vignette</option>
                 </select>
             </div>
         </div>
 
-        <label>Qirqish:</label>
+        <label>Vaqtni qirqish (sekund):</label>
         <div class="range-slider">
             <div class="range-fill" id="range-fill"></div>
         </div>
-        <div class="trim-group">
-            <input type="number" id="trim-start" value="0" step="0.1" oninput="syncSliders()">
-            <input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()">
+        <div class="select-group">
+            <input type="number" id="t-start" value="0" step="0.1" oninput="syncRange()">
+            <input type="number" id="t-end" value="30" step="0.1" oninput="syncRange()">
         </div>
 
-        <div id="status-text">Qo'shiqni tanlang</div>
-        <button class="btn-download" id="start-btn" onclick="startHDProcess()">HD VIDEONI YASASH</button>
+        <div id="status-text">Kutilmoqda...</div>
+        <button class="btn-main" id="start-btn" onclick="generateHDVideo()">HD VIDEO YASASH</button>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
@@ -158,153 +120,140 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     const tg = window.Telegram.WebApp;
-    const canvas = document.getElementById('video-canvas');
-    const ctx = canvas.getContext('2d');
-    const displayText = document.getElementById('display-text');
-    const statusText = document.getElementById('status-text');
-    const startBtn = document.getElementById('start-btn');
-    const trackContainer = document.getElementById('track-list-container');
 
-    let lyrics = [];
-    let audioUrl = null;
-    let fullDuration = 30;
     let dbTracks = [];
+    let selectedLyrics = [];
+    let audioFile = null;
+    let fullDuration = 30;
 
-    const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
-    const MY_ID = '8533456947';
-
-    async function loadTracks() {
-        try {
-            const q = query(collection(db, "tracklist"), orderBy("createdAt", "desc"));
-            const querySnapshot = await getDocs(q);
-            trackContainer.innerHTML = '';
-            dbTracks = [];
-            
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                dbTracks.push(data);
-                renderTrack(data);
-            });
-            statusText.innerText = "Baza yuklandi.";
-        } catch (e) { statusText.innerText = "Xato!"; }
+    // BAZANI YUKLASH
+    async function initDB() {
+        const q = query(collection(db, "tracklist"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        dbTracks = snap.docs.map(doc => doc.data());
     }
+    initDB();
 
-    function renderTrack(data) {
-        const item = document.createElement('div');
-        item.className = 'track-item';
-        item.innerHTML = `<span>${data.title}</span> <span class="cloud-icon">CLOUD</span>`;
-        item.onclick = () => {
-            document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            
-            // AVTOMATIK YUKLASH (MP3 va LRC)
-            audioUrl = data.audioUrl; // Firebase Storage linki
-            parseLyrics(data.lyricsBody);
-            
-            const tempAudio = new Audio(audioUrl);
-            tempAudio.onloadedmetadata = () => {
-                fullDuration = tempAudio.duration;
-                document.getElementById('trim-end').value = Math.min(fullDuration, 30).toFixed(1);
-                syncSliders();
-                statusText.innerText = "Tayyor: " + data.title;
+    window.searchFromDB = () => {
+        const val = document.getElementById('search-input').value.toLowerCase();
+        const container = document.getElementById('results-container');
+        container.innerHTML = "";
+        
+        const filtered = dbTracks.filter(t => t.title.toLowerCase().includes(val));
+        
+        filtered.forEach(track => {
+            const card = document.createElement('div');
+            card.className = 'track-card';
+            card.innerText = track.title;
+            card.onclick = () => {
+                document.querySelectorAll('.track-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                parseLRC(track.lyricsBody);
+                document.getElementById('status-text').innerText = "Lirika yuklandi: " + track.title;
+                tg.HapticFeedback.impactOccurred('light');
             };
-            tg.HapticFeedback.impactOccurred('medium');
-        };
-        trackContainer.appendChild(item);
-    }
-
-    window.filterTracks = () => {
-        const val = document.getElementById('search-bar').value.toLowerCase();
-        trackContainer.innerHTML = '';
-        dbTracks.filter(t => t.title.toLowerCase().includes(val)).forEach(renderTrack);
+            container.appendChild(card);
+        });
     };
 
-    function parseLyrics(data) {
-        lyrics = data.split('\n').map(line => {
+    function parseLRC(data) {
+        selectedLyrics = data.split('\n').map(line => {
             const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
             return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
         }).filter(x => x);
     }
 
-    window.syncSliders = () => {
-        const start = parseFloat(document.getElementById('trim-start').value) || 0;
-        const end = parseFloat(document.getElementById('trim-end').value) || 30;
-        document.getElementById('range-fill').style.left = (start / fullDuration) * 100 + "%";
-        document.getElementById('range-fill').style.width = ((end - start) / fullDuration) * 100 + "%";
-    }
+    document.getElementById('audio-input').onchange = (e) => {
+        audioFile = e.target.files[0];
+        const audio = new Audio(URL.createObjectURL(audioFile));
+        audio.onloadedmetadata = () => {
+            fullDuration = audio.duration;
+            document.getElementById('t-end').value = Math.min(fullDuration, 30).toFixed(1);
+            syncRange();
+        };
+    };
 
-    window.updateLivePreview = function() {
-        const size = document.getElementById('font-size-slider').value;
+    window.syncRange = () => {
+        const s = document.getElementById('t-start').value;
+        const e = document.getElementById('t-end').value;
+        document.getElementById('range-fill').style.left = (s / fullDuration * 100) + "%";
+        document.getElementById('range-fill').style.width = ((e - s) / fullDuration * 100) + "%";
+    };
+
+    window.updatePreview = () => {
+        const size = document.getElementById('font-size').value;
         displayText.style.fontSize = (size / 4) + "px";
-        displayText.style.fontFamily = document.getElementById('font-style').value;
         const anim = document.getElementById('anim-style').value;
         displayText.className = anim !== 'none' ? "anim-" + anim : "";
-    }
+    };
 
-    window.startHDProcess = async function() {
-        if (!audioUrl || lyrics.length === 0) return alert("Qo'shiqni tanlang!");
-        const startT = parseFloat(document.getElementById('trim-start').value);
-        const endT = parseFloat(document.getElementById('trim-end').value);
+    window.generateHDVideo = async function() {
+        if(!audioFile || selectedLyrics.length === 0) return alert("Lirikani tanlang va MP3 yuklang!");
+        
+        const startT = parseFloat(document.getElementById('t-start').value);
+        const endT = parseFloat(document.getElementById('t-end').value);
         const duration = endT - startT;
 
-        startBtn.disabled = true;
-        const audioTag = new Audio(audioUrl);
-        audioTag.crossOrigin = "anonymous";
-        audioTag.currentTime = startT;
+        document.getElementById('start-btn').disabled = true;
+        const audio = new Audio(URL.createObjectURL(audioFile));
+        audio.currentTime = startT;
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaElementSource(audioTag);
+        const canvas = document.getElementById('video-canvas');
+        const ctx = canvas.getContext('2d');
+        const stream = canvas.captureStream(60);
+        
+        // Audio qo'shish
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaElementSource(audio);
         const dest = audioCtx.createMediaStreamDestination();
         source.connect(dest); source.connect(audioCtx.destination);
+        dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
 
-        const stream = canvas.captureStream(60); 
-        dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-        
         const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 });
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         
         recorder.onstop = async () => {
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
-            const formData = new FormData();
-            formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `Stories.mp4`);
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
-            statusText.innerText = "✅ YUBORILDI!";
-            startBtn.disabled = false;
+            const fd = new FormData();
+            fd.append('chat_id', '8533456947');
+            fd.append('video', videoBlob, 'HD_Lyrics.mp4');
+            await fetch(`https://api.telegram.org/bot8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw/sendVideo`, { method: 'POST', body: fd });
+            document.getElementById('status-text').innerText = "✅ TAYYOR!";
+            document.getElementById('start-btn').disabled = false;
         };
 
         recorder.start();
-        audioTag.play();
+        audio.play();
 
-        function drawFrame() {
-            const now = audioTag.currentTime;
-            const current = lyrics.findLast(l => now >= l.t);
+        function render() {
+            const now = audio.currentTime;
+            const current = selectedLyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
-            
+
             ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 1080, 1920);
-            ctx.font = `bold ${document.getElementById('font-size-slider').value}px ${document.getElementById('font-style').value}`;
-            ctx.textAlign = "center"; ctx.fillStyle = "#00e676";
+            ctx.fillStyle = "#00e676";
+            ctx.font = `bold ${document.getElementById('font-size').value}px sans-serif`;
+            ctx.textAlign = "center";
             
-            // Matnni o'rtaga yozish
+            // Matnni wrap qilish (ko'p qatorli)
             const words = text.split(' ');
             let line = '', y = 960;
             words.forEach(w => {
-                if(ctx.measureText(line + w).width > 900) { ctx.fillText(line, 540, y); line = w + ' '; y += 100; }
+                if(ctx.measureText(line + w).width > 900) { ctx.fillText(line, 540, y); line = w + ' '; y += 110; }
                 else line += w + ' ';
             });
             ctx.fillText(line, 540, y);
 
-            statusText.innerText = `JARAYON: ${Math.floor(((now - startT)/duration)*100)}%`;
-            if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
-            else { recorder.stop(); audioTag.pause(); }
+            document.getElementById('status-text').innerText = `ISHLANMOQDA: ${Math.floor((now-startT)/duration*100)}%`;
+            if(now < endT && !audio.paused) requestAnimationFrame(render);
+            else { audio.pause(); recorder.stop(); }
         }
-        drawFrame();
-    }
+        render();
+    };
 
-    loadTracks();
+    const displayText = document.getElementById('display-text');
     tg.ready();
     tg.expand();
 </script>
