@@ -407,13 +407,6 @@
             
             ctx.restore();
 
-            // Progress Bar
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = "#111";
-            ctx.fillRect(100, 1880, 880, 15);
-            ctx.fillStyle = color;
-            ctx.fillRect(100, 1880, ((now - startT) / duration) * 880, 15);
-
             statusText.innerText = `HD SYNC RENDER: ${Math.floor(((now - startT) / duration) * 100)}%`;
             requestAnimationFrame(drawFrame);
         }
