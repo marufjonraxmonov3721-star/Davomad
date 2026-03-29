@@ -15,7 +15,7 @@
             border: 2px solid #333; position: relative; overflow: hidden;
         }
 
-        #display-text { font-size: 30px; font-weight: bold; color: var(--accent); padding: 30px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); z-index: 5; }
+        #display-text { font-size: 30px; font-weight: bold; color: var(--accent); padding: 30px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); z-index: 5; transition: all 0.3s ease; }
         
         canvas { display: none; }
 
@@ -34,12 +34,15 @@
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
         label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; }
+        
+        /* Preview uchun maxsus stil */
+        .preview-active { border-color: var(--accent); box-shadow: 0 0 15px rgba(0,230,118,0.2); }
     </style>
 </head>
 <body>
 
-    <div class="preview-box">
-        <div id="display-text">Tayyor...</div>
+    <div class="preview-box" id="p-box">
+        <div id="display-text">Preview matni...</div>
     </div>
 
     <canvas id="video-canvas" width="1080" height="1080"></canvas>
@@ -51,8 +54,12 @@
 
         <div class="select-group">
             <div>
+                <label>Matn hajmi (px):</label>
+                <input type="number" id="font-size-input" value="60" min="10" max="200" oninput="updatePreview()">
+            </div>
+            <div>
                 <label>Shrift Stili:</label>
-                <select id="font-style">
+                <select id="font-style" onchange="updatePreview()">
                     <option value="sans-serif">Standart Sans</option>
                     <option value="serif">Klassik Serif</option>
                     <option value="monospace">Texno Mono</option>
@@ -75,6 +82,9 @@
                     <option value="Optima">Yumshoq Optima</option>
                 </select>
             </div>
+        </div>
+
+        <div class="select-group">
             <div>
                 <label>Animatsiya:</label>
                 <select id="anim-style">
@@ -100,12 +110,9 @@
                     <option value="rollIn">Dumalab kirish</option>
                 </select>
             </div>
-        </div>
-
-        <div class="select-group">
             <div>
                 <label>Fon Effekti:</label>
-                <select id="effect-style">
+                <select id="effect-style" onchange="updatePreview()">
                     <option value="black">Toza qora</option>
                     <option value="neon">Neon nurlar</option>
                     <option value="particles">Zarrachalar</option>
@@ -147,12 +154,33 @@
     const displayText = document.getElementById('display-text');
     const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
+    const previewBox = document.getElementById('p-box');
 
     let lyrics = [];
     let audioFile = null;
 
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
+
+    // Live Preview funksiyasi
+    function updatePreview() {
+        const size = document.getElementById('font-size-input').value;
+        const font = document.getElementById('font-style').value;
+        const effect = document.getElementById('effect-style').value;
+        
+        displayText.style.fontSize = size + "px";
+        displayText.style.fontFamily = font;
+        
+        if (effect === 'gradient') {
+            previewBox.style.background = "linear-gradient(45deg, #000, #00e676)";
+        } else if (effect === 'neon') {
+            previewBox.style.border = "2px solid #00e676";
+            previewBox.style.background = "#000";
+        } else {
+            previewBox.style.background = "#0a0a0a";
+            previewBox.style.border = "2px solid #333";
+        }
+    }
 
     document.getElementById('audio-input').onchange = (e) => { audioFile = e.target.files[0]; statusText.innerText = "Audio yuklandi."; };
     document.getElementById('lrc-input').onchange = (e) => {
@@ -218,36 +246,44 @@
             if (text !== lastText) { lastText = text; animProgress = 0; }
             animProgress = Math.min(animProgress + 0.05, 1);
 
-            // Fon effekti chizish
             const effect = document.getElementById('effect-style').value;
             ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             if(effect === 'neon') {
-                ctx.strokeStyle = varColor(now); ctx.lineWidth = 5; ctx.strokeRect(50, 50, 980, 980);
+                ctx.strokeStyle = varColor(now); ctx.lineWidth = 10; ctx.strokeRect(50, 50, 980, 980);
             } else if (effect === 'gradient') {
                 let g = ctx.createLinearGradient(0,0,1080,1080);
                 g.addColorStop(0, "#000"); g.addColorStop(1, varColor(now));
                 ctx.fillStyle = g; ctx.fillRect(0,0,1080,1080);
             }
 
-            // Matn sozlamalari
             const font = document.getElementById('font-style').value;
             const anim = document.getElementById('anim-style').value;
-            ctx.font = `bold 70px ${font}`;
+            const fontSize = document.getElementById('font-size-input').value;
+            
+            ctx.font = `bold ${fontSize}px ${font}`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
 
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
             
-            // Animatsiya mantiqi
             if(anim === 'fade') ctx.globalAlpha = animProgress;
             if(anim === 'zoom') ctx.scale(animProgress, animProgress);
             if(anim === 'rotate') ctx.rotate((1-animProgress)*Math.PI);
-            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*100);
+            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*150);
 
             ctx.fillStyle = "#00e676";
-            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 20;
-            ctx.fillText(text, 0, 0);
+            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 30;
+            
+            // Matnni bir necha qatorga bo'lish (katta matnlar uchun)
+            const words = text.split(' ');
+            if (words.length > 5) {
+                ctx.fillText(words.slice(0, words.length/2).join(' '), 0, -fontSize/2);
+                ctx.fillText(words.slice(words.length/2).join(' '), 0, fontSize/2);
+            } else {
+                ctx.fillText(text, 0, 0);
+            }
+            
             ctx.restore();
 
             statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
@@ -255,10 +291,14 @@
             else { audioTag.pause(); recorder.stop(); }
         }
         
-        function varColor(t) { return `hsl(${t * 50 % 360}, 70%, 50%)`; }
+        function varColor(t) { return `hsl(${t * 60 % 360}, 80%, 50%)`; }
         drawFrame();
     }
+    
+    // Boshlang'ich previewni sozlash
+    updatePreview();
     tg.ready();
+    tg.expand();
 </script>
 </body>
 </html>
