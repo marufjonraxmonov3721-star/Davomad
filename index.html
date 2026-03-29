@@ -3,33 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LRC Maker Final</title>
+    <title>Songlyrics Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #ff5722; }
-        body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 15px; text-align: center; }
+        :root { --accent: #00e676; }
+        body { font-family: sans-serif; background: #0a0a0a; color: white; margin: 0; padding: 15px; text-align: center; }
+        
         .preview-box { 
-            width: 100%; height: 250px; background: #1a1a1a; border-radius: 15px; 
+            width: 100%; height: 280px; background: #121212; border-radius: 20px; 
             margin-bottom: 20px; display: flex; align-items: center; justify-content: center;
-            border: 2px solid #333; position: relative; overflow: hidden;
+            border: 1px solid #333; position: relative;
         }
-        #text-render { font-size: 22px; font-weight: bold; padding: 20px; transition: 0.2s; }
-        .controls { background: #111; padding: 20px; border-radius: 15px; text-align: left; }
+
+        #text-render { font-size: 24px; font-weight: bold; color: var(--accent); text-shadow: 0 0 10px var(--accent); padding: 20px; }
+
+        .controls { background: #181818; padding: 20px; border-radius: 20px; text-align: left; }
+        label { font-size: 12px; color: #888; margin-left: 5px; }
+        
         input, select, button { 
-            width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; 
-            border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box;
+            width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; 
+            border: 1px solid #333; background: #252525; color: #fff; box-sizing: border-box; font-size: 16px;
         }
-        .btn-save { background: var(--primary); font-weight: bold; border: none; font-size: 16px; cursor: pointer; }
-        .btn-save:disabled { background: #555; }
-        #progress-bar { width: 0%; height: 5px; background: var(--primary); position: fixed; top: 0; left: 0; transition: 0.1s; }
+
+        .btn-save { background: var(--accent); color: #000; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-save:active { transform: scale(0.98); }
+        
+        #progress-container { width: 100%; height: 6px; background: #333; border-radius: 3px; margin-bottom: 15px; display: none; }
+        #progress-bar { width: 0%; height: 100%; background: var(--accent); border-radius: 3px; transition: 0.1s; }
     </style>
 </head>
 <body>
 
-    <div id="progress-bar"></div>
-
     <div class="preview-box" id="capture-zone">
-        <div id="text-render">Musiqa va LRC yuklang</div>
+        <div id="text-render">Matn topilmadi</div>
+    </div>
+
+    <div id="progress-container">
+        <div id="progress-bar"></div>
     </div>
 
     <div class="controls">
@@ -39,18 +49,10 @@
         <label>LRC fayl:</label>
         <input type="file" id="lrc-input" accept=".lrc">
 
-        <label>Matn stili:</label>
-        <select id="style-select">
-            <option value="white">Klassik Oq</option>
-            <option value="#ffcc00">Oltin rang</option>
-            <option value="#00e676">Neon Yashil</option>
-            <option value="#ff4081">Pushti</option>
-        </select>
+        <audio id="player" controls style="width: 100%; margin: 10px 0;"></audio>
 
-        <audio id="player" controls style="width: 100%;"></audio>
-
-        <button class="btn-save" id="save-btn" onclick="startExport()">VIDEONI SAQLASH (MP4)</button>
-        <p style="font-size: 10px; color: #777; text-align: center;">Eksport tugaguncha sahifani yopmang!</p>
+        <button class="btn-save" id="save-btn" onclick="startExport()">VIDEONI SAQLASH (Tashqi Brauzer)</button>
+        <p style="font-size: 11px; color: #666; text-align: center;">Eksport tugagach, video yangi oynada ochiladi. Uni "Yuklab olish" tugmasi orqali saqlang.</p>
     </div>
 
 <script>
@@ -59,12 +61,13 @@
     const textRender = document.getElementById('text-render');
     const saveBtn = document.getElementById('save-btn');
     const progressBar = document.getElementById('progress-bar');
+    const progressContainer = document.getElementById('progress-container');
     let lyrics = [];
 
-    // Stil o'zgarishi
-    document.getElementById('style-select').onchange = (e) => textRender.style.color = e.target.value;
+    document.getElementById('audio-input').onchange = (e) => {
+        player.src = URL.createObjectURL(e.target.files[0]);
+    };
 
-    // LRC o'qish
     document.getElementById('lrc-input').onchange = (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
@@ -72,30 +75,25 @@
                 const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
                 return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
             }).filter(x => x && x.text);
-            textRender.innerText = "LRC tayyor!";
+            textRender.innerText = "LRC Tayyor!";
         };
         reader.readAsText(e.target.files[0]);
     };
 
-    document.getElementById('audio-input').onchange = (e) => {
-        player.src = URL.createObjectURL(e.target.files[0]);
-    };
-
-    // Sinxronizatsiya
     player.ontimeupdate = () => {
         const active = lyrics.findLast(l => player.currentTime >= l.t);
         if (active) textRender.innerText = active.text;
     };
 
     async function startExport() {
-        if (!player.src || lyrics.length === 0) return tg.showAlert("Fayllarni to'liq yuklang!");
+        if (!player.src || lyrics.length === 0) return tg.showAlert("Avval fayllarni tanlang!");
 
         saveBtn.disabled = true;
+        progressContainer.style.display = "block";
         const duration = player.duration;
         const chunks = [];
-        const stream = document.getElementById('capture-zone').captureStream(30);
         
-        // Audio qo'shish
+        const stream = document.getElementById('capture-zone').captureStream(30);
         const audioCtx = new AudioContext();
         const dest = audioCtx.createMediaStreamDestination();
         audioCtx.createMediaElementSource(player).connect(dest);
@@ -106,20 +104,25 @@
         recorder.ondataavailable = (e) => chunks.push(e.data);
         recorder.onstop = () => {
             const blob = new Blob(chunks, { type: 'video/mp4' });
-            const url = URL.createObjectURL(blob);
+            const videoUrl = URL.createObjectURL(blob);
             
-            // Yuklab olish uchun havola
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `lyric_video_${Date.now()}.mp4`;
-            document.body.appendChild(a);
-            a.click();
+            // AQLLI YECHIM: Videoni yangi oynada (Chrome/Safari) ochish
+            // Bu Telegram cheklovini chetlab o'tadi
+            const newWindow = window.open(videoUrl, '_blank');
             
-            // Telegram bot orqali yuborishga urinish (Eng ishonchli yo'l)
-            tg.showAlert("Eksport tugadi! Agar yuklanish boshlanmasa, buni bosing.");
+            if (!newWindow) {
+                // Agar brauzer popupni bloklasa, havola ko'rsatamiz
+                tg.showAlert("Brauzer oynani blokladi. Iltimos, Chrome'da oching.");
+                const a = document.createElement('a');
+                a.href = videoUrl;
+                a.download = "video.mp4";
+                a.click();
+            }
+
             saveBtn.disabled = false;
-            saveBtn.innerText = "YANA SAQLASH";
-            progressBar.style.width = "0%";
+            saveBtn.innerText = "QAYTA SAQLASH";
+            progressContainer.style.display = "none";
+            tg.showAlert("Video tayyor! Yangi oynada 'Yuklab olish'ni bosing.");
         };
 
         player.currentTime = 0;
@@ -129,14 +132,14 @@
         const trackProgress = setInterval(() => {
             const p = (player.currentTime / duration) * 100;
             progressBar.style.width = p + "%";
-            saveBtn.innerText = `YOZILMOQDA: ${Math.floor(p)}%`;
+            saveBtn.innerText = `EKSPORT: ${Math.floor(p)}%`;
 
             if (player.ended || player.currentTime >= duration) {
                 recorder.stop();
                 player.pause();
                 clearInterval(trackProgress);
             }
-        }, 500);
+        }, 100);
     }
 
     tg.ready();
