@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Songlyrics Pro - HD Bot System</title>
+    <title>Songlyrics Pro - HD System (Offline)</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --accent: #00e676; }
@@ -25,7 +25,7 @@
         
         canvas { display: none; }
 
-        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 400px; overflow-y: auto; }
+        .controls { background: #141414; padding: 20px; border-radius: 20px; text-align: left; border: 1px solid #222; max-height: 450px; overflow-y: auto; }
         
         .trim-group, .select-group { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
         .trim-group div, .select-group div { flex: 1; min-width: 140px; }
@@ -38,7 +38,7 @@
         input[type=range] { -webkit-appearance: none; background: #333; height: 8px; border: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
 
-        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; }
+        .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; z-index: 10; }
         .btn-download:disabled { background: #333; color: #777; }
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
@@ -59,12 +59,7 @@
         @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes rotateIn { from { transform: rotate(-180deg); opacity: 0; } to { transform: rotate(0); opacity: 1; } }
-        @keyframes bounceIn { 
-            0% { transform: scale(0.3); opacity: 0; } 
-            50% { transform: scale(1.05); } 
-            70% { transform: scale(0.9); } 
-            100% { transform: scale(1); opacity: 1; } 
-        }
+        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
@@ -94,11 +89,6 @@
                     <option value="monospace">Texno Mono</option>
                     <option value="cursive">Qo'lyozma</option>
                     <option value="Impact">Qalin Impact</option>
-                    <option value="Georgia">Elegant Georgia</option>
-                    <option value="Verdana">Aniq Verdana</option>
-                    <option value="Arial Black">Og'ir Arial</option>
-                    <option value="Helvetica">Minimalist</option>
-                    <option value="Futura">Kosmik</option>
                 </select>
             </div>
         </div>
@@ -121,9 +111,7 @@
                 <select id="effect-style" onchange="updateLivePreview()">
                     <option value="black">Deep Black (AMOLED)</option>
                     <option value="neon">Neon nurlar</option>
-                    <option value="gradient">Rivojlanuvchi rang</option>
                     <option value="vignette">Vinyetka</option>
-                    <option value="scanline">TV chiziqlar</option>
                 </select>
             </div>
         </div>
@@ -185,8 +173,8 @@
     function updateLivePreview() {
         const size = document.getElementById('font-size-slider').value;
         const font = document.getElementById('font-style').value;
-        const effect = document.getElementById('effect-style').value;
         const anim = document.getElementById('anim-style').value;
+        const effect = document.getElementById('effect-style').value;
         
         displayText.style.fontSize = (size / 4) + "px";
         displayText.style.fontFamily = font;
@@ -194,14 +182,7 @@
         void displayText.offsetWidth; 
         if(anim !== 'none') displayText.className = "anim-" + anim;
 
-        previewBox.style.background = "#000";
-        previewBox.style.boxShadow = "none";
-        previewBox.style.border = "2px solid #333";
-
-        if(effect === 'neon') {
-            previewBox.style.border = "2px solid #00e676";
-            previewBox.style.boxShadow = "inset 0 0 20px rgba(0,230,118,0.4)";
-        }
+        previewBox.style.border = effect === 'neon' ? "2px solid #00e676" : "2px solid #333";
     }
 
     document.getElementById('audio-input').onchange = (e) => { 
@@ -229,21 +210,16 @@
 
     function wrapText(context, text, x, y, maxWidth, lineHeight) {
         const words = text.split(' ');
-        let line = '';
-        let lines = [];
+        let line = ''; let lines = [];
         for(let n = 0; n < words.length; n++) {
             let testLine = line + words[n] + ' ';
-            let metrics = context.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-                lines.push(line);
-                line = words[n] + ' ';
+            if (context.measureText(testLine).width > maxWidth && n > 0) {
+                lines.push(line); line = words[n] + ' ';
             } else { line = testLine; }
         }
         lines.push(line);
         let startY = y - ((lines.length - 1) * lineHeight) / 2;
-        for(let k = 0; k < lines.length; k++) {
-            context.fillText(lines[k], x, startY + (k * lineHeight));
-        }
+        lines.forEach((l, i) => context.fillText(l, x, startY + (i * lineHeight)));
     }
 
     async function startHDProcess() {
@@ -264,11 +240,7 @@
         const stream = canvas.captureStream(60); 
         dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
         
-        const recorder = new MediaRecorder(stream, { 
-            mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 15000000 
-        });
-
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 });
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         
@@ -277,77 +249,51 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `Stories_HD_${Date.now()}.mp4`);
-            formData.append('caption', "✅ Instagram Stories HD (60 FPS, 15Mbps) tayyor!");
-
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
-                if (response.ok) { statusText.innerText = "✅ YUBORILDI!"; tg.showAlert("Video botga yuborildi!"); }
-            } catch (err) { alert("Xato: " + err.message); }
+            formData.append('video', videoBlob, `Stories_HD.mp4`);
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
+            statusText.innerText = "✅ YUBORILDI!";
             startBtn.disabled = false;
         };
 
         recorder.start();
         audioTag.play();
 
-        let lastText = "";
-        let animStartTime = 0;
-
+        let lastText = ""; let animStartTime = 0;
         function drawFrame() {
             const now = audioTag.currentTime;
             const current = lyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
-            
-            if (text !== lastText) { 
-                lastText = text; 
-                animStartTime = now; 
-            }
-            
+            if (text !== lastText) { lastText = text; animStartTime = now; }
             let animProgress = Math.min((now - animStartTime) / 0.4, 1); 
 
-            ctx.fillStyle = "#000000"; 
-            ctx.fillRect(0, 0, 1080, 1920);
-
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 1080, 1920);
+            
             const effect = document.getElementById('effect-style').value;
             if(effect === 'neon') {
-                ctx.strokeStyle = `hsl(${now * 50 % 360}, 70%, 50%)`; 
-                ctx.lineWidth = 20; ctx.strokeRect(40, 40, 1000, 1840);
-            } else if (effect === 'vignette') {
-                let g = ctx.createRadialGradient(540, 960, 200, 540, 960, 1000);
-                g.addColorStop(0, "rgba(30,30,30,1)"); g.addColorStop(1, "black");
-                ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
+                ctx.strokeStyle = "#00e676"; ctx.lineWidth = 15; ctx.strokeRect(30,30,1020,1860);
+            } else if(effect === 'vignette') {
+                let g = ctx.createRadialGradient(540,960,100,540,960,1000);
+                g.addColorStop(0,"#111"); g.addColorStop(1,"black");
+                ctx.fillStyle = g; ctx.fillRect(0,0,1080,1920);
             }
 
-            const font = document.getElementById('font-style').value;
-            const anim = document.getElementById('anim-style').value;
             const size = parseInt(document.getElementById('font-size-slider').value);
-            
-            ctx.font = `bold ${size}px ${font}`;
+            ctx.font = `bold ${size}px ${document.getElementById('font-style').value}`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
-
-            ctx.save();
-            ctx.translate(540, 960);
+            ctx.save(); ctx.translate(540, 960);
             
+            const anim = document.getElementById('anim-style').value;
             if(anim === 'fade') ctx.globalAlpha = animProgress;
-            if(anim === 'zoom') ctx.scale(0.8 + animProgress * 0.2, 0.8 + animProgress * 0.2);
+            if(anim === 'zoom') ctx.scale(0.8 + animProgress*0.2, 0.8 + animProgress*0.2);
             if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*60);
-            if(anim === 'rotate') ctx.rotate((1-animProgress)*0.5);
             if(anim === 'bounce') ctx.scale(animProgress, animProgress);
-            if(anim === 'pulse') {
-                let s = 1 + Math.sin(Date.now()/150)*0.03;
-                ctx.scale(s, s);
-            }
+            if(anim === 'pulse') { let s = 1 + Math.sin(Date.now()/150)*0.03; ctx.scale(s,s); }
 
-            ctx.fillStyle = "#00e676";
-            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 35;
-            
+            ctx.fillStyle = "#00e676"; ctx.shadowColor = "rgba(0,230,118,0.6)"; ctx.shadowBlur = 30;
             wrapText(ctx, text, 0, 0, 900, size * 1.2);
-            
             ctx.restore();
 
-            // FOIZ (%) KO'RSATKICHI SHU YERDA:
             statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
-
             if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
             else { audioTag.pause(); recorder.stop(); }
         }
@@ -355,7 +301,6 @@
     }
     tg.ready();
     tg.expand();
-    updateLivePreview();
 </script>
 </body>
 </html>
