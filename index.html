@@ -77,13 +77,9 @@
     <canvas id="video-canvas" width="1080" height="1920"></canvas>
 
     <div class="controls">
-        <label>1. Bazadan lirikani tanlang:</label>
-        <select id="lrc-select">
-            <option value="">Yuklanmoqda...</option>
-        </select>
-
-        <label>2. MP3 faylni yuklang:</label>
+        <label>Fayllarni yuklang:</label>
         <input type="file" id="audio-input" accept="audio/mp3">
+        <input type="file" id="lrc-input" accept=".lrc">
 
         <div class="select-group">
             <div>
@@ -147,27 +143,11 @@
             <div><label>Tugashi (s):</label><input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()"></div>
         </div>
 
-        <div id="status-text">Kuting...</div>
+        <div id="status-text">Fayllarni tanlang</div>
         <button class="btn-download" id="start-btn" onclick="startHDProcess()">HD VIDEONI YASASH VA BOTGA YUBORISH</button>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
-      authDomain: "songlyrics-caption.firebaseapp.com",
-      projectId: "songlyrics-caption",
-      storageBucket: "songlyrics-caption.firebasestorage.app",
-      messagingSenderId: "363615493684",
-      appId: "1:363615493684:web:35752e22517bfaedae7461",
-      measurementId: "G-C7RRLG6ELQ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
+<script>
     const tg = window.Telegram.WebApp;
     const canvas = document.getElementById('video-canvas');
     const ctx = canvas.getContext('2d');
@@ -176,53 +156,13 @@
     const startBtn = document.getElementById('start-btn');
     const previewBox = document.getElementById('p-box');
     const rangeFill = document.getElementById('range-fill');
-    const lrcSelect = document.getElementById('lrc-select');
 
     let lyrics = [];
     let audioFile = null;
     let fullDuration = 30;
-    let dbTracks = [];
 
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
-
-    // Bazadan lirikani yuklash
-    async function loadTracks() {
-        try {
-            const q = query(collection(db, "tracklist"), orderBy("createdAt", "desc"));
-            const querySnapshot = await getDocs(q);
-            lrcSelect.innerHTML = '<option value="">-- Qoshiqni tanlang --</option>';
-            dbTracks = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                dbTracks.push(data);
-                const opt = document.createElement('option');
-                opt.value = data.title;
-                opt.innerText = data.title;
-                lrcSelect.appendChild(opt);
-            });
-            statusText.innerText = "Bazadan lirikalar yuklandi.";
-        } catch (e) {
-            console.error(e);
-            statusText.innerText = "Bazaga ulanishda xato!";
-        }
-    }
-    loadTracks();
-
-    lrcSelect.onchange = () => {
-        const selected = dbTracks.find(t => t.title === lrcSelect.value);
-        if (selected && selected.lyricsBody) {
-            parseLyrics(selected.lyricsBody);
-            statusText.innerText = "Lirika yuklandi: " + selected.title;
-        }
-    };
-
-    function parseLyrics(data) {
-        lyrics = data.split('\n').map(line => {
-            const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
-            return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
-        }).filter(x => x);
-    }
 
     function formatTime(s) {
         const m = Math.floor(s / 60);
@@ -242,7 +182,7 @@
         document.getElementById('label-duration').innerText = `Davomiyligi: ${(end - start).toFixed(1)}s`;
     }
 
-    window.updateLivePreview = function() {
+    function updateLivePreview() {
         const size = document.getElementById('font-size-slider').value;
         const font = document.getElementById('font-style').value;
         const effect = document.getElementById('effect-style').value;
@@ -275,6 +215,18 @@
         };
     };
 
+    document.getElementById('lrc-input').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            lyrics = ev.target.result.split('\n').map(line => {
+                const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
+                return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
+            }).filter(x => x);
+            statusText.innerText = "LRC yuklandi.";
+        };
+        reader.readAsText(e.target.files[0]);
+    };
+
     function wrapText(context, text, x, y, maxWidth, lineHeight) {
         const words = text.split(' ');
         let line = '';
@@ -294,8 +246,8 @@
         }
     }
 
-    window.startHDProcess = async function() {
-        if (!audioFile || lyrics.length === 0) return alert("Bazadan lirikani tanlang va MP3 yuklang!");
+    async function startHDProcess() {
+        if (!audioFile || lyrics.length === 0) return alert("Fayllarni yuklang!");
         const startT = parseFloat(document.getElementById('trim-start').value);
         const endT = parseFloat(document.getElementById('trim-end').value);
         const duration = endT - startT;
@@ -304,7 +256,7 @@
         const audioTag = new Audio(URL.createObjectURL(audioFile));
         audioTag.currentTime = startT;
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx = new AudioContext();
         const source = audioCtx.createMediaElementSource(audioTag);
         const dest = audioCtx.createMediaStreamDestination();
         source.connect(dest); source.connect(audioCtx.destination);
@@ -393,6 +345,7 @@
             
             ctx.restore();
 
+            // FOIZ (%) KO'RSATKICHI SHU YERDA:
             statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
 
             if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
@@ -400,8 +353,6 @@
         }
         drawFrame();
     }
-    
-    window.syncSliders = syncSliders;
     tg.ready();
     tg.expand();
     updateLivePreview();
