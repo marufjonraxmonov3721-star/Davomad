@@ -15,7 +15,7 @@
             border: 2px solid #333; position: relative; overflow: hidden;
         }
 
-        #display-text { font-size: 30px; font-weight: bold; color: var(--accent); padding: 30px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); z-index: 5; transition: all 0.3s ease; }
+        #display-text { font-size: 30px; font-weight: bold; color: var(--accent); padding: 30px; line-height: 1.4; text-shadow: 0 0 20px rgba(0,230,118,0.5); z-index: 5; transition: all 0.2s ease; }
         
         canvas { display: none; }
 
@@ -29,20 +29,21 @@
             border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box; font-size: 15px;
         }
 
+        /* Hajm sozlagichi uchun maxsus stil */
+        input[type=range] { -webkit-appearance: none; background: #333; height: 8px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+
         .btn-download { background: var(--accent); color: #000; font-weight: 800; border: none; cursor: pointer; text-transform: uppercase; position: sticky; bottom: 0; }
         .btn-download:disabled { background: #333; color: #777; }
         
         #status-text { font-size: 13px; color: var(--accent); margin: 10px 0; font-weight: bold; text-align: center; }
         label { font-size: 11px; color: #888; text-transform: uppercase; margin-left: 5px; }
-        
-        /* Preview uchun maxsus stil */
-        .preview-active { border-color: var(--accent); box-shadow: 0 0 15px rgba(0,230,118,0.2); }
     </style>
 </head>
 <body>
 
     <div class="preview-box" id="p-box">
-        <div id="display-text">Preview matni...</div>
+        <div id="display-text">Tayyor...</div>
     </div>
 
     <canvas id="video-canvas" width="1080" height="1080"></canvas>
@@ -54,12 +55,12 @@
 
         <div class="select-group">
             <div>
-                <label>Matn hajmi (px):</label>
-                <input type="number" id="font-size-input" value="60" min="10" max="200" oninput="updatePreview()">
+                <label>Matn hajmi:</label>
+                <input type="range" id="font-size-slider" min="20" max="150" value="60" oninput="updateLivePreview()">
             </div>
             <div>
                 <label>Shrift Stili:</label>
-                <select id="font-style" onchange="updatePreview()">
+                <select id="font-style" onchange="updateLivePreview()">
                     <option value="sans-serif">Standart Sans</option>
                     <option value="serif">Klassik Serif</option>
                     <option value="monospace">Texno Mono</option>
@@ -112,7 +113,7 @@
             </div>
             <div>
                 <label>Fon Effekti:</label>
-                <select id="effect-style" onchange="updatePreview()">
+                <select id="effect-style" onchange="updateLivePreview()">
                     <option value="black">Toza qora</option>
                     <option value="neon">Neon nurlar</option>
                     <option value="particles">Zarrachalar</option>
@@ -162,23 +163,25 @@
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    // Live Preview funksiyasi
-    function updatePreview() {
-        const size = document.getElementById('font-size-input').value;
+    // Jonli Preview funksiyasi
+    function updateLivePreview() {
+        const size = document.getElementById('font-size-slider').value;
         const font = document.getElementById('font-style').value;
         const effect = document.getElementById('effect-style').value;
         
         displayText.style.fontSize = size + "px";
         displayText.style.fontFamily = font;
         
-        if (effect === 'gradient') {
-            previewBox.style.background = "linear-gradient(45deg, #000, #00e676)";
-        } else if (effect === 'neon') {
+        // Effektlarni previewda ko'rsatish
+        if(effect === 'neon') {
             previewBox.style.border = "2px solid #00e676";
-            previewBox.style.background = "#000";
-        } else {
-            previewBox.style.background = "#0a0a0a";
+            previewBox.style.boxShadow = "0 0 20px rgba(0,230,118,0.3)";
+        } else if(effect === 'gradient') {
+            previewBox.style.background = "linear-gradient(45deg, #000, #111)";
             previewBox.style.border = "2px solid #333";
+        } else {
+            previewBox.style.border = "2px solid #333";
+            previewBox.style.background = "#0a0a0a";
         }
     }
 
@@ -191,6 +194,7 @@
                 return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100, text: line.replace(/\[.*\]/, '').trim() } : null;
             }).filter(x => x);
             statusText.innerText = "LRC yuklandi.";
+            if(lyrics.length > 0) displayText.innerText = lyrics[0].text;
         };
         reader.readAsText(e.target.files[0]);
     };
@@ -259,9 +263,9 @@
 
             const font = document.getElementById('font-style').value;
             const anim = document.getElementById('anim-style').value;
-            const fontSize = document.getElementById('font-size-input').value;
+            const customFontSize = document.getElementById('font-size-slider').value;
             
-            ctx.font = `bold ${fontSize}px ${font}`;
+            ctx.font = `bold ${customFontSize * 2}px ${font}`; // HD uchun 2 baravar
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
 
             ctx.save();
@@ -270,20 +274,13 @@
             if(anim === 'fade') ctx.globalAlpha = animProgress;
             if(anim === 'zoom') ctx.scale(animProgress, animProgress);
             if(anim === 'rotate') ctx.rotate((1-animProgress)*Math.PI);
-            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*150);
+            if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*100);
 
             ctx.fillStyle = "#00e676";
-            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 30;
+            ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 20;
             
-            // Matnni bir necha qatorga bo'lish (katta matnlar uchun)
-            const words = text.split(' ');
-            if (words.length > 5) {
-                ctx.fillText(words.slice(0, words.length/2).join(' '), 0, -fontSize/2);
-                ctx.fillText(words.slice(words.length/2).join(' '), 0, fontSize/2);
-            } else {
-                ctx.fillText(text, 0, 0);
-            }
-            
+            // Matnni o'lchamiga qarab chizish
+            ctx.fillText(text, 0, 0);
             ctx.restore();
 
             statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
@@ -291,14 +288,11 @@
             else { audioTag.pause(); recorder.stop(); }
         }
         
-        function varColor(t) { return `hsl(${t * 60 % 360}, 80%, 50%)`; }
+        function varColor(t) { return `hsl(${t * 50 % 360}, 70%, 50%)`; }
         drawFrame();
     }
-    
-    // Boshlang'ich previewni sozlash
-    updatePreview();
     tg.ready();
-    tg.expand();
+    updateLivePreview(); // Boshlang'ich previewni yuklash
 </script>
 </body>
 </html>
