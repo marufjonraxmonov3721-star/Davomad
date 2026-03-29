@@ -166,16 +166,13 @@
         const effect = document.getElementById('effect-style').value;
         const anim = document.getElementById('anim-style').value;
         
-        // Matn sozlamalari
         displayText.style.fontSize = size + "px";
         displayText.style.fontFamily = font;
         
-        // Animatsiyani qayta ishga tushirish
         displayText.className = "";
-        void displayText.offsetWidth; // Reflow
+        void displayText.offsetWidth; 
         if(anim !== 'none') displayText.className = "anim-" + anim;
 
-        // Fon effektlari preview uchun
         previewBox.style.boxShadow = "none";
         previewBox.style.background = "#0a0a0a";
         previewBox.style.border = "2px solid #333";
@@ -251,15 +248,19 @@
         audioTag.play();
 
         let lastText = "";
-        let animProgress = 0;
+        let animStartTime = 0;
 
         function drawFrame() {
             const now = audioTag.currentTime;
             const current = lyrics.findLast(l => now >= l.t);
             const text = current ? current.text : "";
             
-            if (text !== lastText) { lastText = text; animProgress = 0; }
-            animProgress = Math.min(animProgress + 0.05, 1);
+            if (text !== lastText) { 
+                lastText = text; 
+                animStartTime = now; 
+            }
+            
+            let animProgress = Math.min((now - animStartTime) / 0.5, 1); 
 
             const effect = document.getElementById('effect-style').value;
             ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
