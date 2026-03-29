@@ -144,7 +144,7 @@
         </div>
 
         <div id="status-text">Fayllarni tanlang</div>
-        <button class="btn-download" id="start-btn" onclick="startHDProcess()">INSTAGRAM HD VIDEO YARATISH</button>
+        <button class="btn-download" id="start-btn" onclick="startHDProcess()">HD VIDEONI YASASH VA BOTGA YUBORISH</button>
     </div>
 
 <script>
@@ -261,12 +261,12 @@
         const dest = audioCtx.createMediaStreamDestination();
         source.connect(dest); source.connect(audioCtx.destination);
 
-        const stream = canvas.captureStream(60); // 60 FPS
+        const stream = canvas.captureStream(60); 
         dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
         
         const recorder = new MediaRecorder(stream, { 
             mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 15000000 // 15 Mbps
+            videoBitsPerSecond: 15000000 
         });
 
         const chunks = [];
@@ -305,7 +305,6 @@
             
             let animProgress = Math.min((now - animStartTime) / 0.4, 1); 
 
-            // True Black Background
             ctx.fillStyle = "#000000"; 
             ctx.fillRect(0, 0, 1080, 1920);
 
@@ -332,6 +331,8 @@
             if(anim === 'fade') ctx.globalAlpha = animProgress;
             if(anim === 'zoom') ctx.scale(0.8 + animProgress * 0.2, 0.8 + animProgress * 0.2);
             if(anim === 'slideUp') ctx.translate(0, (1-animProgress)*60);
+            if(anim === 'rotate') ctx.rotate((1-animProgress)*0.5);
+            if(anim === 'bounce') ctx.scale(animProgress, animProgress);
             if(anim === 'pulse') {
                 let s = 1 + Math.sin(Date.now()/150)*0.03;
                 ctx.scale(s, s);
@@ -340,12 +341,13 @@
             ctx.fillStyle = "#00e676";
             ctx.shadowColor = "rgba(0,230,118,0.8)"; ctx.shadowBlur = 35;
             
-            // Wrap Text function call
             wrapText(ctx, text, 0, 0, 900, size * 1.2);
             
             ctx.restore();
 
-            statusText.innerText = `PROTSESS: ${Math.floor(((now - startT) / duration) * 100)}%`;
+            // FOIZ (%) KO'RSATKICHI SHU YERDA:
+            statusText.innerText = `JARAYON: ${Math.floor(((now - startT) / duration) * 100)}%`;
+
             if (now < endT && !audioTag.paused) requestAnimationFrame(drawFrame);
             else { audioTag.pause(); recorder.stop(); }
         }
