@@ -10,25 +10,27 @@ bot.on("message", async (ctx) => {
         await ctx.reply("Video yuklanmoqda... ⏳");
 
         try {
-            // Cobalt API - Mutlaqo tekin va kalit talab qilmaydi
-            const response = await axios.post('https://api.cobalt.tools/api/json', {
-                url: url,
-                vQuality: '720'
-            }, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
+            // Instagram yuklovchi mutlaqo boshqa bepul manba
+            const res = await axios.get(`https://instasave.org/api/instagram?url=${url}`);
+            
+            // Video silkasini topish
+            const videoUrl = res.data.video || (res.data.media && res.data.media[0].url);
 
-            if (response.data && response.data.url) {
-                await ctx.replyWithVideo(response.data.url, { caption: "Marhamat! ✅" });
+            if (videoUrl) {
+                await ctx.replyWithVideo(videoUrl, { caption: "Marhamat! ✅" });
             } else {
-                await ctx.reply("Xatolik: Videoni olib bo'lmadi. Linkni tekshiring.");
+                // Agar u usul ishlamasa, zaxira varianti
+                const backupUrl = url.replace("instagram.com", "ddinstagram.com");
+                await ctx.replyWithVideo(backupUrl, { caption: "Zaxira usulida yuklandi ✅" });
             }
         } catch (e) {
-            console.error(e);
-            await ctx.reply("Hozirda yuklashda muammo bor yoki link xato. Keyinroq urinib ko'ring.");
+            // Eng oxirgi chora: shunchaki silkasini o'zgartirib yuborish
+            try {
+                const finalTry = url.replace("instagram.com", "ddinstagram.com");
+                await ctx.replyWithVideo(finalTry, { caption: "Tayyor! ✅" });
+            } catch (err) {
+                await ctx.reply("Kechirasiz, Instagram bu videoni bloklab qo'ydi. Boshqa link bilan urinib ko'ring.");
+            }
         }
     }
 });
