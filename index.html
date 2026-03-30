@@ -1,25 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insta App</title>
+    <title>Insta Downloader</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #111; color: #fff; padding: 50px 20px; }
-        input { width: 100%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; }
-        button { width: 100%; padding: 15px; background: #0088cc; color: #fff; border: none; border-radius: 10px; font-weight: bold; }
+        body { font-family: sans-serif; background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #1a1a1a; padding: 30px; border-radius: 20px; width: 85%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #333; background: #222; color: #fff; margin-bottom: 20px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #0088cc; color: #fff; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
-    <h2>Linkni kiriting</h2>
-    <input type="text" id="inp" placeholder="https://instagram.com/...">
-    <button onclick="send()">Yuborish</button>
+    <div class="card">
+        <h3>Instagram Video Link</h3>
+        <input type="text" id="linkInput" placeholder="Havolani kiriting...">
+        <button onclick="sendUrl()">Botga yuborish</button>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
-        function send() {
-            const val = document.getElementById('inp').value;
-            if(val) { tg.sendData(val); tg.close(); }
+        tg.expand();
+        function sendUrl() {
+            const url = document.getElementById('linkInput').value;
+            if (url.includes("instagram.com")) {
+                tg.sendData(url); // Botga ma'lumotni uzatadi
+                tg.close();
+            } else {
+                alert("Iltimos, to'g'ri link kiriting!");
+            }
         }
     </script>
 </body>
