@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Songlyrics Pro - 2K Precision Sync</title>
+    <title>Songlyrics Pro - Precision Trimmer & Sync</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,7 @@
             --accent: #00e676; --bg: #050505; --surface: #121212;
             --gradient: linear-gradient(135deg, #00e676 0%, #00c853 100%);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; overflow-x: hidden; user-select: none; }
         .app-header { padding: 15px; background: var(--surface); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 1000; }
         .app-icon { width: 45px; height: 45px; background: var(--gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; }
         
@@ -19,26 +19,28 @@
             width: 260px; height: 460px; background: #000; border-radius: 30px; 
             margin: 20px auto; display: flex; align-items: center; justify-content: center;
             border: 6px solid #1a1a1a; position: relative; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
-        #display-text { font-size: 22px; font-weight: 900; color: var(--accent); padding: 25px; text-transform: uppercase; z-index: 5; position: absolute; width: 100%; box-sizing: border-box; }
+        #display-text { font-size: 22px; font-weight: 900; color: var(--accent); padding: 25px; text-transform: uppercase; z-index: 5; position: absolute; width: 100%; box-sizing: border-box; text-shadow: 0 0 15px var(--accent); }
         #preview-bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
-        .main-container { padding: 0 15px 130px 15px; max-width: 500px; margin: 0 auto; }
+        .main-container { padding: 0 15px 140px 15px; max-width: 500px; margin: 0 auto; }
         .controls { background: var(--surface); padding: 20px; border-radius: 25px; text-align: left; border: 1px solid #252525; margin-bottom: 15px; }
         .section-title { font-size: 12px; color: #888; margin: 20px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; text-align: left; }
 
         input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border-radius: 15px; border: 1px solid #2a2a2a; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 14px; outline: none; }
         
-        /* Sync Button Style */
-        .sync-btn { background: #ff9800; color: black; font-weight: 800; border: none; padding: 15px; border-radius: 15px; width: 100%; margin: 10px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .sync-active { background: #f44336; color: white; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .trim-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .trim-inputs div { flex: 1; }
+
+        .sync-btn { background: #ff9800; color: black; font-weight: 800; border: none; padding: 18px; border-radius: 15px; width: 100%; margin: 10px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .sync-active { background: #f44336; color: white; box-shadow: 0 0 20px rgba(244, 67, 54, 0.4); }
 
         .file-group { display: flex; gap: 10px; margin-bottom: 10px; }
-        .file-card { flex: 1; background: #1a1a1a; padding: 15px; border-radius: 15px; border: 1px dashed #444; cursor: pointer; font-size: 12px; }
+        .file-card { flex: 1; background: #1a1a1a; padding: 15px; border-radius: 15px; border: 1px dashed #444; cursor: pointer; font-size: 12px; text-align: center; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(10px); padding: 20px; border-top: 1px solid #222; z-index: 1000; }
-        .btn-download { background: var(--gradient); color: #000; font-weight: 800; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; box-shadow: 0 10px 20px rgba(0, 230, 118, 0.2); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(15px); padding: 20px; border-top: 1px solid #222; z-index: 1000; }
+        .btn-download { background: var(--gradient); color: #000; font-weight: 800; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; box-shadow: 0 10px 20px rgba(0, 230, 118, 0.3); cursor: pointer; }
         
         #status-text { font-size: 12px; color: var(--accent); margin-top: 10px; font-weight: 700; }
         canvas { display: none; }
@@ -50,7 +52,7 @@
         <div class="app-icon">S</div>
         <div class="app-info" style="text-align: left;">
             <h1 style="font-size: 18px; margin: 0;">Songlyrics Pro</h1>
-            <p style="font-size: 10px; color: var(--accent); margin: 0;">PRECISION SYNC • 2K • 120 FPS</p>
+            <p style="font-size: 10px; color: var(--accent); margin: 0;">2K • 120 FPS • SMART TRIMMER</p>
         </div>
     </div>
 
@@ -62,37 +64,51 @@
 
         <canvas id="video-canvas"></canvas>
 
-        <div class="section-title">1. Resurslar</div>
+        <div class="section-title">1. Resurslarni yuklash</div>
         <div class="controls">
             <div class="file-group">
-                <div class="file-card" onclick="document.getElementById('audio-input').click()">🎵 Audio<input type="file" id="audio-input" accept="audio/*" hidden></div>
-                <div class="file-card" onclick="document.getElementById('bg-input').click()">🖼 Fon<input type="file" id="bg-input" accept="image/*" hidden></div>
+                <div class="file-card" onclick="document.getElementById('audio-input').click()">🎵 Audio Yuklash<input type="file" id="audio-input" accept="audio/*" hidden></div>
+                <div class="file-card" onclick="document.getElementById('bg-input').click()">🖼 Fon Rasmi<input type="file" id="bg-input" accept="image/*" hidden></div>
             </div>
-            <textarea id="lyrics-input" rows="4" placeholder="Matnni satrma-satr kiriting..."></textarea>
+            <textarea id="lyrics-input" rows="3" placeholder="Qo'shiq matnini bu yerga yozing (Har bir qatorni yangi satrdan)..."></textarea>
         </div>
 
-        <div class="section-title">2. Sinxronizatsiya (100% Aniq)</div>
+        <div class="section-title">2. Audio qirqish (Soniya)</div>
         <div class="controls">
-            <p style="font-size: 11px; color: #888; margin-top: 0;">Qo'shiqni qo'ying va matn chiqishi kerak bo'lgan vaqtda "TAP" tugmasini bosing:</p>
-            <button id="sync-trigger" class="sync-btn" onclick="startSync()">
-                <span>STRELKANI BOSING ➜</span>
+            <div class="trim-inputs">
+                <div>
+                    <label style="font-size: 11px;">Boshlanish vaqti</label>
+                    <input type="number" id="start-time" value="0" step="0.1" min="0">
+                </div>
+                <div>
+                    <label style="font-size: 11px;">Tugash vaqti</label>
+                    <input type="number" id="end-time" value="30" step="0.1" min="1">
+                </div>
+            </div>
+            <p id="duration-info" style="font-size: 11px; color: #888; margin: 0;">Audio uzunligi: 0.0s</p>
+        </div>
+
+        <div class="section-title">3. Matnni sinxronlash (TAP)</div>
+        <div class="controls">
+            <button id="sync-trigger" class="sync-btn" onclick="handleSync()">
+                <span id="sync-instruction">STRELKANI BOSING ➜</span>
                 <span id="sync-label">TAP</span>
             </button>
-            <div id="sync-status" style="font-size: 12px; color: #ff9800;">Hali boshlanmadi</div>
+            <div id="sync-status" style="font-size: 12px; color: #ff9800; font-weight: 600;">Tayyorlanmoqda...</div>
         </div>
 
-        <div class="section-title">3. Sozlamalar</div>
+        <div class="section-title">4. Video Sifati</div>
         <div class="controls">
             <div style="display: flex; gap: 10px;">
                 <div style="flex:1">
-                    <label style="font-size: 11px;">Sifat</label>
+                    <label style="font-size: 11px;">Rezolyutsiya</label>
                     <select id="quality">
-                        <option value="2K">2K (1440p)</option>
-                        <option value="FHD" selected>FHD (1080p)</option>
+                        <option value="2K">2K Cinema (1440p)</option>
+                        <option value="FHD" selected>Full HD (1080p)</option>
                     </select>
                 </div>
                 <div style="flex:1">
-                    <label style="font-size: 11px;">FPS</label>
+                    <label style="font-size: 11px;">Kadr (FPS)</label>
                     <select id="fps">
                         <option value="120">120 FPS</option>
                         <option value="60" selected>60 FPS</option>
@@ -100,40 +116,38 @@
                     </select>
                 </div>
             </div>
-            <label style="font-size: 11px; margin-top: 10px; display: block;">Suv belgisi</label>
-            <input type="text" id="watermark" placeholder="@username">
-            <label style="font-size: 11px; display: block;">Matn rangi</label>
-            <input type="color" id="text-color" value="#00e676" oninput="updatePreview()">
+            <input type="text" id="watermark" placeholder="Suv belgisi: @username" style="margin-top: 15px;">
         </div>
 
         <div id="status-text">Tizim tayyor</div>
     </div>
 
     <div class="bottom-nav">
-        <button class="btn-download" id="export-btn" onclick="exportVideo()">EKSPORT QILISH</button>
+        <button class="btn-download" id="export-btn" onclick="exportFinalVideo()">VIDEONI TAYYORLASH</button>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     const canvas = document.getElementById('video-canvas');
     const ctx = canvas.getContext('2d');
-    const audioInput = document.getElementById('audio-input');
-    const syncBtn = document.getElementById('sync-trigger');
-    const lyricsInput = document.getElementById('lyrics-input');
+    const audio = new Audio();
     
-    let audio = new Audio();
     let lyricsArray = [];
-    let syncedLyrics = [];
-    let currentSyncIndex = 0;
+    let syncedData = [];
     let isSyncing = false;
+    let currentIdx = 0;
     let bgImg = new Image();
 
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    audioInput.onchange = (e) => {
-        audio.src = URL.createObjectURL(e.target.files[0]);
-        document.getElementById('status-text').innerText = "🎵 Audio yuklandi";
+    document.getElementById('audio-input').onchange = (e) => {
+        const file = e.target.files[0];
+        audio.src = URL.createObjectURL(file);
+        audio.onloadedmetadata = () => {
+            document.getElementById('duration-info').innerText = `Audio uzunligi: ${audio.duration.toFixed(1)}s`;
+            document.getElementById('end-time').value = audio.duration.toFixed(1);
+        };
     };
 
     document.getElementById('bg-input').onchange = (e) => {
@@ -145,66 +159,63 @@
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    function startSync() {
-        if(!audio.src) return alert("Avval audioni yuklang!");
-        const rawText = lyricsInput.value.split('\n').filter(l => l.trim() !== "");
-        if(rawText.length === 0) return alert("Matn kiriting!");
+    function handleSync() {
+        if(!audio.src) return alert("Audioni yuklang!");
+        const lines = document.getElementById('lyrics-input').value.split('\n').filter(l => l.trim() !== "");
+        if(lines.length === 0) return alert("Matn kiriting!");
+
+        const startTime = parseFloat(document.getElementById('start-time').value);
+        const endTime = parseFloat(document.getElementById('end-time').value);
 
         if(!isSyncing) {
-            // Sinxronizatsiyani boshlash
+            // Boshlash
             isSyncing = true;
-            lyricsArray = rawText;
-            syncedLyrics = [];
-            currentSyncIndex = 0;
-            audio.currentTime = 0;
+            lyricsArray = lines;
+            syncedData = [];
+            currentIdx = 0;
+            audio.currentTime = startTime;
             audio.play();
-            syncBtn.classList.add('sync-active');
-            updateSyncLabel();
-        } else {
-            // Har bir "TAP" bosilganda
-            syncedLyrics.push({
-                t: audio.currentTime,
-                text: lyricsArray[currentSyncIndex]
-            });
-            currentSyncIndex++;
             
-            if(currentSyncIndex >= lyricsArray.length) {
-                stopSync();
+            document.getElementById('sync-trigger').classList.add('sync-active');
+            document.getElementById('sync-instruction').innerText = "HOZIR BOSING ➜";
+            updateSyncUI();
+        } else {
+            // Har bir TAP
+            syncedData.push({ t: audio.currentTime, text: lyricsArray[currentIdx] });
+            currentIdx++;
+
+            if(currentIdx >= lyricsArray.length || audio.currentTime >= endTime) {
+                finishSync();
             } else {
-                updateSyncLabel();
+                updateSyncUI();
             }
         }
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
     }
 
-    function updateSyncLabel() {
-        document.getElementById('sync-status').innerText = `Keyingi: "${lyricsArray[currentSyncIndex]}"`;
-        document.getElementById('sync-label').innerText = "TAP!";
+    function updateSyncUI() {
+        document.getElementById('sync-status').innerText = `Keyingi qator: "${lyricsArray[currentIdx]}"`;
+        document.getElementById('display-text').innerText = lyricsArray[currentIdx] || "Tamom";
     }
 
-    function stopSync() {
+    function finishSync() {
         isSyncing = false;
         audio.pause();
-        syncBtn.classList.remove('sync-active');
-        document.getElementById('sync-label').innerText = "TAYYOR!";
-        document.getElementById('sync-status').innerText = "✅ Sinxronizatsiya yakunlandi!";
-        document.getElementById('status-text').innerText = "✨ Endi eksport qilishingiz mumkin";
+        document.getElementById('sync-trigger').classList.remove('sync-active');
+        document.getElementById('sync-instruction').innerText = "Sinxronlandi!";
+        document.getElementById('sync-status').innerText = "✅ Tayyor! Endi Eksport tugmasini bosing.";
     }
 
-    function updatePreview() {
-        document.getElementById('display-text').style.color = document.getElementById('text-color').value;
-    }
-
-    async function exportVideo() {
-        if(syncedLyrics.length === 0) return alert("Avval matnni sinxron qiling (TAP orqali)!");
+    async function exportFinalVideo() {
+        if(syncedData.length === 0) return alert("Avval sinxronlashni bajaring!");
         
+        const startTime = parseFloat(document.getElementById('start-time').value);
+        const endTime = parseFloat(document.getElementById('end-time').value);
         const qual = document.getElementById('quality').value;
+        const fps = parseInt(document.getElementById('fps').value);
+
         canvas.width = (qual === '2K') ? 1440 : 1080;
         canvas.height = (qual === '2K') ? 2560 : 1920;
-        
-        const fps = parseInt(document.getElementById('fps').value);
-        const exportBtn = document.getElementById('export-btn');
-        exportBtn.disabled = true;
 
         const stream = canvas.captureStream(fps);
         const audioCtx = new AudioContext();
@@ -214,38 +225,32 @@
         source.connect(audioCtx.destination);
         stream.addTrack(dest.stream.getAudioTracks()[0]);
 
-        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 50000000 });
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 60000000 });
         const chunks = [];
         
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            document.getElementById('status-text').innerText = "🚀 Botga yuborilmoqda...";
+            document.getElementById('status-text').innerText = "📤 Botga yuborilmoqda...";
             const blob = new Blob(chunks, { type: 'video/mp4' });
             
             const formData = new FormData();
             formData.append('chat_id', MY_ID);
-            formData.append('video', blob, 'video.mp4');
-            formData.append('caption', `🎬 Songlyrics Pro HD\n💎 Sifat: ${qual}\n⚡ FPS: ${fps}\n👤 User: ${document.getElementById('watermark').value}`);
-
-            const audioData = new FormData();
-            audioData.append('chat_id', MY_ID);
-            audioData.append('audio', audioInput.files[0]);
+            formData.append('video', blob, 'final_video.mp4');
+            formData.append('caption', `🔥 Songlyrics Pro HD\n🎬 Qirqilgan: ${startTime}s - ${endTime}s\n💎 Sifat: ${qual} | ${fps} FPS\n👤 User: ${document.getElementById('watermark').value}`);
 
             try {
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
-                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, { method: 'POST', body: audioData });
-                document.getElementById('status-text').innerText = "✅ TAYYOR!";
-                tg.showConfirm("Video va Audio botga yuborildi!");
-            } catch (e) { alert("Xato yuz berdi!"); }
-            exportBtn.disabled = false;
+                document.getElementById('status-text').innerText = "✅ MUVAFFAQIYATLI YUBORILDI!";
+                tg.showConfirm("Video botga yuborildi!");
+            } catch (e) { alert("Yuborishda xatolik!"); }
         };
 
-        audio.currentTime = 0;
+        audio.currentTime = startTime;
         recorder.start();
         audio.play();
 
-        function render() {
-            if(audio.paused || audio.ended) { recorder.stop(); return; }
+        function renderFrame() {
+            if(audio.currentTime >= endTime || audio.ended) { recorder.stop(); audio.pause(); return; }
             
             ctx.fillStyle = "black";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -256,26 +261,26 @@
                 ctx.globalAlpha = 1;
             }
 
-            let active = syncedLyrics.filter(l => audio.currentTime >= l.t).pop();
-            if(active) {
-                ctx.font = `900 ${canvas.width * 0.08}px Inter`;
-                ctx.fillStyle = document.getElementById('text-color').value;
+            let activeLine = syncedData.filter(l => audio.currentTime >= l.t).pop();
+            if(activeLine) {
+                ctx.font = `900 ${canvas.width * 0.085}px Inter`;
+                ctx.fillStyle = "#00e676";
                 ctx.textAlign = "center";
-                ctx.shadowBlur = 30;
-                ctx.shadowColor = ctx.fillStyle;
-                ctx.fillText(active.text.toUpperCase(), canvas.width / 2, canvas.height / 2);
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = "#00e676";
+                ctx.fillText(activeLine.text.toUpperCase(), canvas.width / 2, canvas.height / 2);
             }
 
             const wm = document.getElementById('watermark').value;
             if(wm) {
                 ctx.shadowBlur = 0;
                 ctx.font = "40px Inter"; ctx.fillStyle = "rgba(255,255,255,0.4)";
-                ctx.fillText(wm, canvas.width / 2, canvas.height - 80);
+                ctx.fillText(wm, canvas.width / 2, canvas.height - 100);
             }
 
-            requestAnimationFrame(render);
+            requestAnimationFrame(renderFrame);
         }
-        render();
+        renderFrame();
     }
 
     tg.ready();
