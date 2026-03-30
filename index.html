@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insta App</title>
+    <title>Insta Downloader</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #000; color: #fff; padding: 50px 20px; margin: 0; }
-        .box { background: #1a1a1a; padding: 25px; border-radius: 15px; }
-        input { width: 100%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; box-sizing: border-box; background: #333; color: #fff; }
-        button { width: 100%; padding: 15px; background: #0088cc; color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        body { font-family: sans-serif; text-align: center; background: #000; color: #fff; padding: 40px 20px; margin: 0; }
+        .container { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid #333; }
+        input { width: 100%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; box-sizing: border-box; background: #222; color: #fff; font-size: 16px; }
+        button { width: 100%; padding: 15px; background: #0088cc; color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>Instagram Link</h2>
-        <input type="text" id="inp" placeholder="Havolani shu yerga qo'ying...">
-        <button onclick="send()">Videonini olish</button>
+    <div class="container">
+        <h2>Insta Saver</h2>
+        <input type="text" id="url" placeholder="Instagram linkini kiriting...">
+        <button onclick="send()">Videonini Botga yuborish</button>
     </div>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
         function send() {
-            const val = document.getElementById('inp').value;
-            if(val.includes('instagram.com')) { 
-                tg.sendData(val); 
+            const link = document.getElementById('url').value;
+            if(link.includes('instagram.com')) { 
+                tg.sendData(link); 
                 tg.close(); 
             } else {
-                alert("Link xato!");
+                alert("Iltimos, to'g'ri Instagram linkini kiriting!");
             }
         }
     </script>
