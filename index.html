@@ -3,688 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Songlyrics Pro - HD Bot System (Captions Lite Edition)</title>
+    <title>Songlyrics Pro - 2K LRC & Video System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
-        /* 1-10: Ranglar va Global Stil (Modern Palette) */
         :root { 
-            --accent: #00e676; 
-            --accent-glow: rgba(0, 230, 118, 0.4);
-            --bg: #050505; 
-            --surface: #121212;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --text-main: #ffffff;
-            --text-dim: #a0a0a0;
+            --accent: #00e676; --bg: #050505; --surface: #121212;
             --gradient: linear-gradient(135deg, #00e676 0%, #00c853 100%);
-            --error: #ff5252;
-            --glass: rgba(255, 255, 255, 0.05);
         }
-
-        /* 11-20: Layout va Scroll (Play Market Style) */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            color: var(--text-main); 
-            margin: 0; padding: 0; 
-            text-align: center;
-            overflow-x: hidden;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-
-        /* 21-30: App Header & Branding */
-        .app-header {
-            padding: 20px;
-            background: var(--surface);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            border-bottom: 1px solid #222;
-            text-align: left;
-            position: sticky; top: 0; z-index: 1000;
-            backdrop-filter: blur(15px);
-        }
-        .app-icon {
-            width: 52px; height: 52px;
-            background: var(--gradient);
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 26px; color: #000;
-            box-shadow: 0 5px 20px var(--accent-glow);
-            animation: appIconPulse 3s infinite ease-in-out;
-        }
-        @keyframes appIconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-
-        .app-info h1 { font-size: 19px; margin: 0; font-weight: 800; }
-        .app-info p { font-size: 11px; color: var(--accent); margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* 31-40: Preview Box (The Phone Screen) */
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; overflow-x: hidden; user-select: none; }
+        .app-header { padding: 15px; background: var(--surface); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 1000; }
+        .app-icon { width: 45px; height: 45px; background: var(--gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; }
+        
         .preview-box { 
-            width: 270px; height: 480px; background: #000; border-radius: 36px; 
+            width: 260px; height: 460px; background: #000; border-radius: 30px; 
             margin: 20px auto; display: flex; align-items: center; justify-content: center;
-            border: 8px solid #1a1a1a; position: relative; overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 20px rgba(255,255,255,0.05);
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 6px solid #1a1a1a; position: relative; overflow: hidden;
         }
-        .preview-box:hover { transform: scale(1.02) rotate(1deg); }
+        #display-text { font-size: 22px; font-weight: 900; color: var(--accent); padding: 25px; text-transform: uppercase; z-index: 5; position: absolute; width: 100%; box-sizing: border-box; text-shadow: 0 0 20px rgba(0,230,118,0.5); }
+        #preview-bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
 
-        #display-text { 
-            font-size: 20px; font-weight: 900; color: var(--accent); 
-            padding: 30px; line-height: 1.2; 
-            text-shadow: 0 0 20px var(--accent-glow); 
-            z-index: 5; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: absolute; width: 100%; box-sizing: border-box;
-            letter-spacing: -1px; text-transform: uppercase;
-        }
+        .main-container { padding: 0 15px 140px 15px; max-width: 500px; margin: 0 auto; }
+        .controls { background: var(--surface); padding: 20px; border-radius: 25px; text-align: left; border: 1px solid #252525; margin-bottom: 15px; }
+        .section-title { font-size: 12px; color: #888; margin: 20px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; text-align: left; }
+
+        input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border-radius: 15px; border: 1px solid #2a2a2a; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 14px; outline: none; }
         
-        #preview-bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; z-index: 1; pointer-events: none; }
-        .viz-bars { position: absolute; bottom: 30px; display: flex; gap: 3px; align-items: flex-end; height: 40px; z-index: 4; }
-        .v-bar { width: 4px; background: var(--accent); border-radius: 2px; height: 10px; }
+        .trim-inputs { display: flex; gap: 10px; }
+        .trim-inputs div { flex: 1; }
 
+        .sync-btn { background: #ff9800; color: black; font-weight: 800; border: none; padding: 18px; border-radius: 15px; width: 100%; margin: 10px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .sync-active { background: #f44336; color: white; box-shadow: 0 0 20px rgba(244, 67, 54, 0.4); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
+        .file-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .file-card { flex: 1; background: #1a1a1a; padding: 15px; border-radius: 15px; border: 1px dashed #444; cursor: pointer; font-size: 12px; text-align: center; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(15px); padding: 20px; border-top: 1px solid #222; z-index: 1000; }
+        .btn-download { background: var(--gradient); color: #000; font-weight: 800; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; box-shadow: 0 10px 20px rgba(0, 230, 118, 0.3); cursor: pointer; }
+        
+        #status-text { font-size: 12px; color: var(--accent); margin-top: 10px; font-weight: 700; }
         canvas { display: none; }
-
-        /* 41-50: Main Container & Sections */
-        .main-container {
-            padding: 0 16px 120px 16px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: left;
-            font-size: 13px;
-            color: var(--text-dim);
-            margin: 25px 0 12px 6px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 800;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .section-title::after { content: ""; flex: 1; height: 1px; background: #222; }
-
-        /* 51-60: Controls & Cards (Neumorphism-lite) */
-        .controls { 
-            background: var(--surface); 
-            padding: 22px; 
-            border-radius: 28px; 
-            text-align: left; 
-            border: 1px solid #252525;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            margin-bottom: 15px;
-        }
-        
-        .trim-group, .select-group { display: flex; gap: 15px; margin: 12px 0; flex-wrap: wrap; }
-        .trim-group div, .select-group div { flex: 1; min-width: 130px; }
-
-        input, select { 
-            width: 100%; padding: 16px; margin: 8px 0; border-radius: 18px; 
-            border: 1.5px solid #2a2a2a; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 14px;
-            outline: none; transition: all 0.25s ease;
-        }
-        input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 230, 118, 0.1); }
-
-        /* 61-70: File Uploaders */
-        .file-card {
-            background: var(--glass);
-            border: 2px dashed #333;
-            border-radius: 20px;
-            padding: 18px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative; overflow: hidden;
-        }
-        .file-card:active { transform: scale(0.95); }
-        .file-card:hover { border-color: var(--accent); background: rgba(0, 230, 118, 0.08); }
-
-        /* 71-80: Custom Range Sliders */
-        input[type=range] { -webkit-appearance: none; background: #252525; height: 8px; border-radius: 10px; }
-        input[type=range]::-webkit-slider-thumb { 
-            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; 
-            background: var(--text-main); cursor: pointer; border: 6px solid var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        /* 81-90: Bottom Nav & Buttons */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(20px);
-            padding: 20px 24px 30px 24px;
-            border-top: 1px solid #222;
-            z-index: 1000;
-        }
-
-        .btn-download { 
-            background: var(--gradient); 
-            color: #000; font-weight: 800; border: none; cursor: pointer; 
-            width: 100%; max-width: 420px;
-            padding: 20px; border-radius: 22px; font-size: 17px;
-            letter-spacing: 0.5px; box-shadow: 0 12px 30px rgba(0, 230, 118, 0.25);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-download:active { transform: scale(0.97) translateY(2px); }
-        .btn-download:disabled { background: #222; color: #555; box-shadow: none; cursor: not-allowed; }
-        
-        #status-text { font-size: 13px; color: var(--accent); margin: 15px 0; font-weight: 700; text-align: center; letter-spacing: 0.5px; }
-
-        /* 91-100: Animations & UX Effects */
-        .chip-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-        .chip { background: #1a1a1a; padding: 8px 18px; border-radius: 25px; font-size: 12px; white-space: nowrap; border: 1px solid #2a2a2a; color: var(--text-dim); font-weight: 600; }
-        .chip.active { background: rgba(0, 230, 118, 0.12); border-color: var(--accent); color: var(--accent); }
-
-        .anim-fade { animation: fadeIn 0.4s ease forwards; }
-        .anim-zoom { animation: zoomIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        .anim-slideUp { animation: slideUp 0.4s ease-out forwards; }
-        .anim-bounce { animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
-        .anim-pulse { animation: pulse 0.8s infinite; }
-        .anim-glitch { animation: glitch 0.2s infinite; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes bounceIn { 0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-        @keyframes glitch { 0% { clip: rect(44px, 450px, 56px, 0); transform: skew(0.3deg); } 50% { clip: rect(12px, 450px, 29px, 0); transform: skew(-0.3deg); } 100% { clip: rect(44px, 450px, 56px, 0); } }
-
-        .range-slider { position: relative; height: 10px; background: #222; border-radius: 20px; margin: 20px 0; overflow: hidden; }
-        .range-fill { position: absolute; height: 100%; background: var(--gradient); transition: width 0.3s ease; }
     </style>
 </head>
 <body>
 
     <div class="app-header">
         <div class="app-icon">S</div>
-        <div class="app-info">
-            <h1>Songlyrics Pro</h1>
-            <p id="engine-status">v4.0 Ultra HD • 60 FPS Rendering</p>
+        <div class="app-info" style="text-align: left;">
+            <h1 style="font-size: 18px; margin: 0;">Songlyrics Pro</h1>
+            <p style="font-size: 10px; color: var(--accent); margin: 0;">2K • 120 FPS • LRC GENERATOR</p>
         </div>
     </div>
 
     <div class="main-container">
-        <div class="chip-container">
-            <div class="chip active">4K Quality</div>
-            <div class="chip">Real-time Sync</div>
-            <div class="chip">LRC Support</div>
-            <div class="chip">No Watermark</div>
-            <div class="chip">Fast Export</div>
-        </div>
-
-        <div class="preview-box" id="p-box">
-            <img id="preview-bg-img" src="" style="display:none">
+        <div class="preview-box">
+            <img id="preview-bg-img" src="">
             <div id="display-text">Tayyor...</div>
-            <div class="viz-bars" id="v-bars"></div>
         </div>
 
-        <canvas id="video-canvas" width="1080" height="1920"></canvas>
+        <canvas id="video-canvas"></canvas>
 
-        <div class="section-title">📂 Resurslar</div>
+        <div class="section-title">1. Resurslar</div>
         <div class="controls">
-            <div class="select-group">
-                <div class="file-card" onclick="document.getElementById('audio-input').click()">
-                    <span style="font-size: 24px;">🎵</span><br><label style="cursor:pointer">Audio (MP3)</label>
-                    <input type="file" id="audio-input" accept="audio/mp3" style="display:none">
-                </div>
-                <div class="file-card" onclick="document.getElementById('lrc-input').click()">
-                    <span style="font-size: 24px;">📄</span><br><label style="cursor:pointer">Lyrics (LRC)</label>
-                    <input type="file" id="lrc-input" accept=".lrc" style="display:none">
-                </div>
-                <div class="file-card" onclick="document.getElementById('bg-input').click()">
-                    <span style="font-size: 24px;">🖼</span><br><label style="cursor:pointer">Fon (Rasm)</label>
-                    <input type="file" id="bg-input" accept="image/*" style="display:none">
-                </div>
+            <div class="file-group">
+                <div class="file-card" onclick="document.getElementById('audio-input').click()">🎵 Audio<input type="file" id="audio-input" accept="audio/*" hidden></div>
+                <div class="file-card" onclick="document.getElementById('bg-input').click()">🖼 Fon<input type="file" id="bg-input" accept="image/*" hidden></div>
             </div>
+            <textarea id="lyrics-input" rows="3" placeholder="Matnni qatorma-qator yozing..."></textarea>
         </div>
 
-        <div class="section-title">🎨 Dizayn & Effektlar</div>
+        <div class="section-title">2. Qirqish va Sinxronlash</div>
         <div class="controls">
-            <label>Suv belgisi (Watermark)</label>
-            <input type="text" id="watermark-input" placeholder="@username" oninput="updateLivePreview()">
-            
-            <label>Matn o'lchami</label>
-            <input type="range" id="font-size-slider" min="30" max="180" value="90" oninput="updateLivePreview()">
-            
-            <label>Fon xiraligi (Blur)</label>
-            <input type="range" id="bg-blur-slider" min="0" max="20" value="5" oninput="updateLivePreview()">
-            
-            <label>Fon qorong'uligi (Overlay)</label>
-            <input type="range" id="bg-opacity" min="0" max="100" value="50" oninput="updateLivePreview()">
-
-            <div class="select-group">
-                <div>
-                    <label>Shrift turi</label>
-                    <select id="font-style" onchange="updateLivePreview()">
-                        <option value="Inter">Modern Inter</option>
-                        <option value="Impact">Heavy Impact</option>
-                        <option value="'JetBrains Mono'">Developer Mono</option>
-                        <option value="serif">Elegant Serif</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Matn uslubi</label>
-                    <select id="text-mode" onchange="updateLivePreview()">
-                        <option value="fill">To'liq (Fill)</option>
-                        <option value="stroke">Chiziqli (Stroke)</option>
-                        <option value="rainbow">RGB Rainbow</option>
-                    </select>
-                </div>
+            <div class="trim-inputs">
+                <div><label style="font-size: 11px;">Start (s)</label><input type="number" id="start-time" value="0" step="0.1"></div>
+                <div><label style="font-size: 11px;">Stop (s)</label><input type="number" id="end-time" value="30" step="0.1"></div>
             </div>
-            
-            <label>Asosiy rang</label>
-            <input type="color" id="text-color" value="#00e676" oninput="updateLivePreview()" style="height: 52px; padding: 5px;">
+            <button id="sync-trigger" class="sync-btn" onclick="handleSync()">
+                <span id="sync-instruction">BOSHLASH ➜</span>
+                <span id="sync-label">TAP</span>
+            </button>
+            <div id="sync-status" style="font-size: 12px; color: #ff9800; font-weight: 600;">Navbat: ...</div>
         </div>
 
-        <div class="section-title">🎬 Vizualizatsiya</div>
+        <div class="section-title">3. Video & Export</div>
         <div class="controls">
-            <div class="select-group">
-                <div>
-                    <label>Matn animatsiyasi</label>
-                    <select id="anim-style" onchange="updateLivePreview()">
-                        <option value="none">Turg'un</option>
-                        <option value="fade">Mayin (Fade)</option>
-                        <option value="zoom">Pop-up</option>
-                        <option value="slideUp">Yuqoriga (Slide)</option>
-                        <option value="bounce">Bounce</option>
-                        <option value="pulse">Beat</option>
-                        <option value="glitch">Glitch</option>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex:1">
+                    <select id="quality">
+                        <option value="2K">2K Cinema</option>
+                        <option value="FHD" selected>Full HD</option>
                     </select>
                 </div>
-                <div>
-                    <label>Kadr effekti</label>
-                    <select id="effect-style" onchange="updateLivePreview()">
-                        <option value="black">Toza qora</option>
-                        <option value="neon">Neon ramka</option>
-                        <option value="vignette">Kino (Vignette)</option>
-                        <option value="particles">Zarralar (FX)</option>
-                        <option value="retro">Retro Scanlines</option>
-                        <option value="mirror">Mirror Mode</option>
+                <div style="flex:1">
+                    <select id="fps">
+                        <option value="120">120 FPS</option>
+                        <option value="60" selected>60 FPS</option>
                     </select>
                 </div>
             </div>
-            <div class="select-group">
-                <div>
-                    <label>Matn pozitsiyasi</label>
-                    <select id="text-position" onchange="updateLivePreview()">
-                        <option value="center">Markazda</option>
-                        <option value="top">Yuqorida</option>
-                        <option value="bottom">Pastda</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Render FPS</label>
-                    <select id="render-fps">
-                        <option value="60">60 FPS (Silliq)</option>
-                        <option value="30">30 FPS (Tez)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-title">⏳ Vaqtni sozlash</div>
-        <div class="controls">
-            <div class="trim-info">
-                <span id="label-start">00:00.0</span>
-                <span id="label-duration" style="color: #666">0.0s</span>
-                <span id="label-end">00:30.0</span>
-            </div>
-            <div class="range-slider">
-                <div class="range-fill" id="range-fill" style="width: 100%"></div>
-            </div>
-            <div class="trim-group">
-                <div><label>Start (s)</label><input type="number" id="trim-start" value="0" step="0.1" oninput="syncSliders()"></div>
-                <div><label>Stop (s)</label><input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()"></div>
-            </div>
-            <label>Lyrics Offset (ms)</label>
-            <input type="number" id="lrc-offset" value="0" step="50" oninput="updateLivePreview()">
+            <input type="text" id="watermark" placeholder="Suv belgisi @username" style="margin-top: 10px;">
         </div>
 
         <div id="status-text">Tizim tayyor</div>
     </div>
 
     <div class="bottom-nav">
-        <button class="btn-download" id="start-btn" onclick="startHDProcess()">Eksport qilish (MP4)</button>
+        <button class="btn-download" id="export-btn" onclick="exportEverything()">HAMMASINI BOTGA YUBORISH</button>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     const canvas = document.getElementById('video-canvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
-    const displayText = document.getElementById('display-text');
-    const statusText = document.getElementById('status-text');
-    const startBtn = document.getElementById('start-btn');
-    const previewBox = document.getElementById('p-box');
-    const rangeFill = document.getElementById('range-fill');
-    const previewBgImg = document.getElementById('preview-bg-img');
-
-    let lyrics = [];
-    let audioFile = null;
-    let fullDuration = 30;
-    let bgImage = null;
-    let particles = [];
-    let audioContext, analyser, dataArray;
+    const ctx = canvas.getContext('2d');
+    const audio = new Audio();
+    
+    let lyricsArray = [];
+    let syncedData = [];
+    let isSyncing = false;
+    let currentIdx = 0;
+    let bgImg = new Image();
 
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    const vBarsContainer = document.getElementById('v-bars');
-    for(let i=0; i<12; i++){
-        let bar = document.createElement('div');
-        bar.className = 'v-bar';
-        vBarsContainer.appendChild(bar);
-    }
-
-    function formatTime(s) {
-        const m = Math.floor(s / 60);
-        const sec = (s % 60).toFixed(1);
-        return `${m.toString().padStart(2, '0')}:${sec.padStart(4, '0')}`;
-    }
-
-    function syncSliders() {
-        const start = parseFloat(document.getElementById('trim-start').value) || 0;
-        const end = parseFloat(document.getElementById('trim-end').value) || fullDuration;
-        const left = (start / fullDuration) * 100;
-        const width = ((end - start) / fullDuration) * 100;
-        rangeFill.style.left = left + "%";
-        rangeFill.style.width = width + "%";
-        document.getElementById('label-start').innerText = formatTime(start);
-        document.getElementById('label-end').innerText = formatTime(end);
-        document.getElementById('label-duration').innerText = `${(end - start).toFixed(1)}s`;
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-    }
-
-    function updateLivePreview() {
-        const size = document.getElementById('font-size-slider').value;
-        const font = document.getElementById('font-style').value;
-        const color = document.getElementById('text-color').value;
-        const pos = document.getElementById('text-position').value;
-        const anim = document.getElementById('anim-style').value;
-        const effect = document.getElementById('effect-style').value;
-        const blur = document.getElementById('bg-blur-slider').value;
-        const opacity = document.getElementById('bg-opacity').value / 100;
-        const mode = document.getElementById('text-mode').value;
-        
-        displayText.style.fontSize = (size / 4.8) + "px";
-        displayText.style.fontFamily = font;
-        
-        if(mode === 'rainbow') {
-            displayText.style.color = "white";
-            displayText.style.filter = "hue-rotate(" + (Date.now()/10 % 360) + "deg)";
-        } else if(mode === 'stroke') {
-            displayText.style.color = "transparent";
-            displayText.style.webkitTextStroke = "1px " + color;
-        } else {
-            displayText.style.color = color;
-            displayText.style.webkitTextStroke = "0px";
-        }
-
-        displayText.style.textShadow = `0 0 20px ${color}66`;
-        previewBgImg.style.filter = `blur(${blur}px)`;
-        previewBgImg.style.opacity = opacity;
-        document.querySelectorAll('.v-bar').forEach(b => b.style.background = color);
-
-        if(pos === 'top') { displayText.style.top = "15%"; displayText.style.bottom = "auto"; displayText.style.transform = "none"; }
-        else if(pos === 'bottom') { displayText.style.bottom = "15%"; displayText.style.top = "auto"; displayText.style.transform = "none"; }
-        else { displayText.style.top = "50%"; displayText.style.transform = "translateY(-50%)"; }
-
-        displayText.className = "";
-        void displayText.offsetWidth; 
-        if(anim !== 'none') displayText.className = "anim-" + anim;
-
-        previewBox.style.boxShadow = (effect === 'neon') ? `0 0 30px ${color}44` : "0 30px 60px rgba(0,0,0,0.9)";
-        previewBox.style.borderColor = (effect === 'neon') ? color : "#1a1a1a";
-        if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-    }
-
-    document.getElementById('audio-input').onchange = (e) => { 
-        audioFile = e.target.files[0]; 
-        const tempAudio = new Audio(URL.createObjectURL(audioFile));
-        tempAudio.onloadedmetadata = () => {
-            fullDuration = tempAudio.duration;
-            document.getElementById('trim-end').value = fullDuration.toFixed(1);
-            syncSliders();
-            statusText.innerText = "🎵 Audio yuklandi";
-            initAudioAnalyser(tempAudio);
-        };
+    document.getElementById('audio-input').onchange = (e) => {
+        audio.src = URL.createObjectURL(e.target.files[0]);
+        audio.onloadedmetadata = () => { document.getElementById('end-time').value = audio.duration.toFixed(1); };
     };
-
-    function initAudioAnalyser(audio) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 64;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-    }
 
     document.getElementById('bg-input').onchange = (e) => {
-        const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = (ev) => {
-            bgImage = new Image();
-            bgImage.src = ev.target.result;
-            previewBgImg.src = ev.target.result;
-            previewBgImg.style.display = 'block';
-            statusText.innerText = "🖼 Fon yuklandi";
+            bgImg.src = ev.target.result;
+            document.getElementById('preview-bg-img').src = ev.target.result;
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(e.target.files[0]);
     };
 
-    document.getElementById('lrc-input').onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            let raw = ev.target.result;
-            if(!raw.includes('[')) {
-                let lines = raw.split('\n').filter(l => l.trim());
-                let step = fullDuration / lines.length;
-                lyrics = lines.map((l, i) => ({ t: i * step, text: l.trim() }));
-            } else {
-                lyrics = raw.split('\n').map(line => {
-                    const m = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
-                    return m ? { t: parseInt(m[1])*60 + parseInt(m[2]) + parseFloat("0." + m[3]), text: line.replace(/\[.*\]/, '').trim() } : null;
-                }).filter(x => x);
-            }
-            statusText.innerText = `✅ Matn tayyor: ${lyrics.length} qator`;
-        };
-        reader.readAsText(e.target.files[0]);
-    };
+    function handleSync() {
+        if(!audio.src) return alert("Audioni yuklang!");
+        const lines = document.getElementById('lyrics-input').value.split('\n').filter(l => l.trim() !== "");
+        if(lines.length === 0) return alert("Matn kiriting!");
 
-    function wrapText(context, text, x, y, maxWidth, lineHeight, mode, color) {
-        const words = text.split(' ');
-        let line = '';
-        let lines = [];
-        for(let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            if (context.measureText(testLine).width > maxWidth && n > 0) {
-                lines.push(line);
-                line = words[n] + ' ';
-            } else { line = testLine; }
+        const startTime = parseFloat(document.getElementById('start-time').value);
+
+        if(!isSyncing) {
+            isSyncing = true;
+            lyricsArray = lines;
+            syncedData = [];
+            currentIdx = 0;
+            audio.currentTime = startTime;
+            audio.play();
+            document.getElementById('sync-trigger').classList.add('sync-active');
+            updateUI();
+        } else {
+            syncedData.push({ t: audio.currentTime, text: lyricsArray[currentIdx] });
+            currentIdx++;
+            if(currentIdx >= lyricsArray.length) { finishSync(); } else { updateUI(); }
         }
-        lines.push(line);
-        let startY = y - ((lines.length - 1) * lineHeight) / 2;
-        lines.forEach((l, i) => {
-            if(mode === 'stroke') {
-                context.strokeStyle = color;
-                context.lineWidth = 4;
-                context.strokeText(l, x, startY + (i * lineHeight));
-            } else if(mode === 'rainbow') {
-                context.fillStyle = `hsl(${(Date.now()/10)%360}, 70%, 60%)`;
-                context.fillText(l, x, startY + (i * lineHeight));
-            } else {
-                context.fillStyle = color;
-                context.fillText(l, x, startY + (i * lineHeight));
-            }
-        });
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    async function startHDProcess() {
-        if (!audioFile || lyrics.length === 0) return alert("Fayllar yetishmayapti!");
-        const startT = parseFloat(document.getElementById('trim-start').value);
-        const endT = parseFloat(document.getElementById('trim-end').value);
-        const offset = parseFloat(document.getElementById('lrc-offset').value) / 1000;
-        const fps = parseInt(document.getElementById('render-fps').value);
-        const duration = endT - startT;
+    function updateUI() {
+        document.getElementById('sync-status').innerText = `Keyingi: "${lyricsArray[currentIdx]}"`;
+        document.getElementById('display-text').innerText = lyricsArray[currentIdx] || "";
+    }
 
-        startBtn.disabled = true;
-        const audioTag = new Audio(URL.createObjectURL(audioFile));
-        audioTag.currentTime = startT;
-        
-        const stream = canvas.captureStream(fps); 
-        const renderAudioCtx = new AudioContext();
-        const source = renderAudioCtx.createMediaElementSource(audioTag);
-        const dest = renderAudioCtx.createMediaStreamDestination();
-        
-        // Analyser for bars during render
-        const renderAnalyser = renderAudioCtx.createAnalyser();
-        renderAnalyser.fftSize = 64;
-        source.connect(renderAnalyser);
-        source.connect(dest);
-        source.connect(renderAudioCtx.destination);
-        dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-        
-        const recorder = new MediaRecorder(stream, { 
-            mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 25000000 
+    function finishSync() {
+        isSyncing = false;
+        audio.pause();
+        document.getElementById('sync-trigger').classList.remove('sync-active');
+        document.getElementById('sync-status').innerText = "✅ Sinxronlash tugadi!";
+    }
+
+    // LRC Fayl yaratish funksiyasi
+    function generateLRC() {
+        let lrcContent = "[ti:Songlyrics Pro Generated]\n[ar:User]\n";
+        syncedData.forEach(item => {
+            let m = Math.floor(item.t / 60);
+            let s = (item.t % 60).toFixed(2);
+            lrcContent += `[${m.toString().padStart(2, '0')}:${s.toString().padStart(5, '0')}]${item.text}\n`;
         });
+        return new Blob([lrcContent], { type: 'text/plain' });
+    }
 
+    async function exportEverything() {
+        if(syncedData.length === 0) return alert("Avval TAP orqali sinxronlang!");
+        
+        const startTime = parseFloat(document.getElementById('start-time').value);
+        const endTime = parseFloat(document.getElementById('end-time').value);
+        const qual = document.getElementById('quality').value;
+        const fps = parseInt(document.getElementById('fps').value);
+
+        canvas.width = (qual === '2K') ? 1440 : 1080;
+        canvas.height = (qual === '2K') ? 2560 : 1920;
+
+        const stream = canvas.captureStream(fps);
+        const audioCtx = new AudioContext();
+        const dest = audioCtx.createMediaStreamDestination();
+        const source = audioCtx.createMediaElementSource(audio);
+        source.connect(dest);
+        source.connect(audioCtx.destination);
+        stream.addTrack(dest.stream.getAudioTracks()[0]);
+
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 60000000 });
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         
         recorder.onstop = async () => {
-            statusText.innerText = "🚀 BOTGA YUBORILMOQDA...";
+            document.getElementById('status-text').innerText = "🚀 Botga yuborilmoqda (Video + LRC + Audio)...";
+            
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
-            const formData = new FormData();
-            formData.append('chat_id', MY_ID);
-            formData.append('video', videoBlob, `render_${Date.now()}.mp4`);
-            formData.append('caption', `✨ Songlyrics Pro HD\n🔥 Effect: ${document.getElementById('effect-style').value.toUpperCase()}\n👤 User: ${document.getElementById('watermark-input').value}`);
+            const lrcBlob = generateLRC();
+
+            const send = async (type, blob, name, cap = "") => {
+                const fd = new FormData();
+                fd.append('chat_id', MY_ID);
+                fd.append(type, blob, name);
+                if(cap) fd.append('caption', cap);
+                return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type.charAt(0).toUpperCase() + type.slice(1)}`, { method: 'POST', body: fd });
+            };
 
             try {
-                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
-                if (response.ok) { 
-                    statusText.innerText = "✅ TAYYOR!"; 
-                    tg.showConfirm("Video botga yuborildi!");
-                }
-            } catch (err) { alert("Error: " + err.message); }
-            startBtn.disabled = false;
+                // 1. Videoni yuborish
+                await send('video', videoBlob, 'video.mp4', `🎬 2K Video Tayyor!\n👤 @${document.getElementById('watermark').value}`);
+                // 2. LRC Faylni yuborish
+                await send('document', lrcBlob, 'lyrics.lrc', `📄 Sinxronlangan LRC fayl`);
+                // 3. Audioni yuborish
+                await send('audio', document.getElementById('audio-input').files[0], 'music.mp3');
+
+                document.getElementById('status-text').innerText = "✅ HAMMASI YUBORILDI!";
+                tg.showConfirm("Video, LRC va Audio botga yuborildi!");
+            } catch (e) { alert("Xatolik!"); }
         };
 
+        audio.currentTime = startTime;
         recorder.start();
-        audioTag.play();
+        audio.play();
 
-        let lastText = "";
-        let animStartTime = 0;
-        particles = [];
-        for(let i=0; i<50; i++) particles.push({x: Math.random()*1080, y: Math.random()*1920, s: Math.random()*3+1, v: Math.random()*2+1});
+        function render() {
+            if(audio.currentTime >= endTime || audio.ended) { recorder.stop(); audio.pause(); return; }
+            ctx.fillStyle = "black"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if(bgImg.src) { ctx.globalAlpha = 0.5; ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; }
 
-        const renderFreqData = new Uint8Array(renderAnalyser.frequencyBinCount);
-
-        function drawFrame() {
-            if (audioTag.paused || audioTag.ended || audioTag.currentTime >= endT) {
-                recorder.stop();
-                audioTag.pause();
-                return;
+            let active = syncedData.filter(l => audio.currentTime >= l.t).pop();
+            if(active) {
+                ctx.font = `900 ${canvas.width * 0.08}px Inter`;
+                ctx.fillStyle = "#00e676"; ctx.textAlign = "center"; ctx.shadowBlur = 30; ctx.shadowColor = "#00e676";
+                ctx.fillText(active.text.toUpperCase(), canvas.width / 2, canvas.height / 2);
             }
-
-            const now = audioTag.currentTime;
-            let current = lyrics.filter(l => (now + offset) >= l.t).pop();
-            const text = current ? current.text : "";
-            const color = document.getElementById('text-color').value;
-            const pos = document.getElementById('text-position').value;
-            const blur = document.getElementById('bg-blur-slider').value;
-            const opacity = document.getElementById('bg-opacity').value / 100;
-            const mode = document.getElementById('text-mode').value;
-            const effect = document.getElementById('effect-style').value;
-            
-            if (text !== lastText) { lastText = text; animStartTime = performance.now(); }
-            let animProgress = Math.min((performance.now() - animStartTime) / 300, 1);
-
-            ctx.fillStyle = "#000000"; 
-            ctx.fillRect(0, 0, 1080, 1920);
-
-            if(bgImage) {
-                ctx.save();
-                ctx.globalAlpha = opacity;
-                ctx.filter = `blur(${blur * 2}px) brightness(0.6)`;
-                ctx.drawImage(bgImage, 0, 0, 1080, 1920);
-                ctx.restore();
-            }
-
-            // Spectrum Bars
-            renderAnalyser.getByteFrequencyData(renderFreqData);
-            ctx.fillStyle = color;
-            for(let i=0; i<12; i++) {
-                let h = (renderFreqData[i] / 255) * 150;
-                ctx.fillRect(300 + (i * 45), 1800 - h, 30, h);
-            }
-
-            if(effect === 'neon') {
-                ctx.strokeStyle = color; ctx.lineWidth = 30;
-                ctx.strokeRect(50, 50, 980, 1820);
-                ctx.shadowBlur = 60; ctx.shadowColor = color;
-            } else if (effect === 'retro') {
-                ctx.fillStyle = "rgba(255,255,255,0.05)";
-                for(let i=0; i<1920; i+=10) ctx.fillRect(0, i, 1080, 2);
-            } else if (effect === 'particles') {
-                ctx.fillStyle = "rgba(255,255,255,0.5)";
-                particles.forEach(p => {
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
-                    p.y -= p.v; if(p.y < 0) p.y = 1920;
-                });
-            }
-
-            const font = document.getElementById('font-style').value;
-            const anim = document.getElementById('anim-style').value;
-            const size = parseInt(document.getElementById('font-size-slider').value);
-            
-            ctx.save();
-            let y = 960;
-            if(pos === 'top') y = 450;
-            if(pos === 'bottom') y = 1470;
-            ctx.translate(540, y);
-            
-            if(anim === 'fade') ctx.globalAlpha = animProgress;
-            if(anim === 'zoom') { let s = 0.5 + animProgress * 0.5; ctx.scale(s, s); }
-            if(anim === 'slideUp') ctx.translate(0, (1 - animProgress) * 120);
-            if(anim === 'bounce') { let s = 1 + Math.sin(animProgress * Math.PI) * 0.15; ctx.scale(s, s); }
-            if(anim === 'pulse') { let s = 1 + Math.sin(performance.now()/100) * 0.05; ctx.scale(s, s); }
-            if(anim === 'glitch' && text) { ctx.translate((Math.random()-0.5)*20, (Math.random()-0.5)*20); }
-
-            ctx.shadowColor = color; ctx.shadowBlur = 45;
-            ctx.font = `900 ${size}px ${font}`;
-            ctx.textAlign = "center"; ctx.textBaseline = "middle";
-            
-            if(text) wrapText(ctx, text.toUpperCase(), 0, 0, 960, size * 1.3, mode, color);
-            ctx.restore();
-
-            if(effect === 'mirror') {
-                ctx.save();
-                ctx.scale(-1, 1);
-                ctx.drawImage(canvas, -1080, 0, 540, 1920, -1080, 0, 540, 1920);
-                ctx.restore();
-            }
-
-            const wm = document.getElementById('watermark-input').value;
-            if(wm) {
-                ctx.fillStyle = "rgba(255,255,255,0.4)";
-                ctx.font = "500 35px Inter";
-                ctx.fillText(wm, 540, 1880);
-            }
-
-            const prog = (now - startT) / duration;
-            ctx.fillStyle = color;
-            ctx.fillRect(0, 1912, 1080 * prog, 8);
-
-            statusText.innerText = `RENDER: ${Math.floor(((now-startT)/duration)*100)}%`;
-            requestAnimationFrame(drawFrame);
+            const wm = document.getElementById('watermark').value;
+            if(wm) { ctx.shadowBlur = 0; ctx.font = "40px Inter"; ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.fillText(wm, canvas.width / 2, canvas.height - 100); }
+            requestAnimationFrame(render);
         }
-        drawFrame();
+        render();
     }
-    
-    tg.ready();
-    tg.expand();
-    updateLivePreview();
-    setInterval(() => { if(analyser) updateLivePreview(); }, 50);
+    tg.ready(); tg.expand();
 </script>
 </body>
 </html>
