@@ -1,7 +1,0 @@
-{
-  "name": "insta-web-bot",
-  "version": "1.0.0",
-  "dependencies": {
-    "grammy": "^1.20.3"
-  }
-}
