@@ -1,33 +1,33 @@
 const { Bot, webhookCallback } = require("grammy");
 
-// @BotFather dan yangi token oling (bu safar hech kimga ko'rsatmang!)
+// Bot tokeningizni Vercel Settings -> Environment Variables qismiga qo'shasiz
 const bot = new Bot(process.env.BOT_TOKEN);
 
 bot.command("start", (ctx) => {
-  return ctx.reply("Instagram video linkini yuboring yoki Web App-ni oching!", {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "Ilovani ochish", web_app: { url: `https://${process.env.VERCEL_URL}` } }]
-      ]
-    }
-  });
+    return ctx.reply("Salom! Instagramdan video yuklash uchun ilovani oching:", {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: "Ilovani ochish", web_app: { url: `https://${process.env.VERCEL_URL}` } }]
+            ]
+        }
+    });
 });
 
-// Web App yoki oddiy xabar orqali kelgan linkni qayta ishlash
-const handleVideo = async (ctx, url) => {
-  if (url.includes("instagram.com")) {
-    await ctx.reply("Video tayyorlanmoqda...");
-    const videoLink = url.replace("instagram.com", "ddinstagram.com");
+// Web App-dan kelgan linkni tutish
+bot.on("message:web_app_data", async (ctx) => {
+    const url = ctx.message.web_app_data.data;
+    await ctx.reply("Yuklanmoqda...");
+
     try {
-      await ctx.replyWithVideo(videoLink, { caption: "Tayyor! ✅" });
+        // ddinstagram xizmati orqali videoni yuklash
+        const videoUrl = url.replace("instagram.com", "ddinstagram.com");
+        await ctx.replyWithVideo(videoUrl, {
+            caption: "Video tayyor! ✅"
+        });
     } catch (e) {
-      await ctx.reply("Xatolik! Video yopiq profildan bo'lishi mumkin.");
+        await ctx.reply("Xatolik: Videoni yuklab bo'lmadi. Profil yopiq bo'lishi mumkin.");
     }
-  }
-};
+});
 
-bot.on("message:text", (ctx) => handleVideo(ctx, ctx.message.text));
-bot.on("message:web_app_data", (ctx) => handleVideo(ctx, ctx.message.web_app_data.data));
-
-// Vercel uchun eksport
+// Vercel webhook xizmati uchun eksport
 module.exports = webhookCallback(bot, "http");
