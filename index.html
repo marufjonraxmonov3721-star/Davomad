@@ -2,146 +2,109 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LRC Flow Precision</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fully Auto LRC</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00e676; --bg: #000000; }
-        body { 
-            font-family: 'Montserrat', sans-serif; background: var(--bg); color: white; 
-            margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column;
-        }
-        
-        /* Sozlamalar oynasi (boshida ko'rinadi) */
-        #setup-screen { 
-            padding: 20px; position: absolute; inset: 0; background: #0a0a0a; z-index: 100;
-            display: flex; flex-direction: column; justify-content: center;
-        }
-        textarea, input { 
-            width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; 
-            padding: 15px; border-radius: 12px; margin: 10px 0; box-sizing: border-box;
-        }
-
-        /* Sinxronizatsiya maydoni */
-        #sync-screen { 
-            flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; cursor: pointer;
-        }
-        .lyrics-container { width: 100%; text-align: center; }
-        .line { opacity: 0.3; transition: 0.3s; padding: 10px 20px; font-weight: 700; }
-        .line.active { 
-            opacity: 1; color: var(--accent); font-size: 28px; font-weight: 900; 
-            transform: scale(1.1); text-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
-        }
-        .line.past { transform: translateY(-20px); opacity: 0.1; }
-        .line.future { transform: translateY(20px); }
-
-        .start-btn { 
-            background: var(--accent); color: #000; font-weight: 900; border: none; 
-            padding: 20px; border-radius: 15px; font-size: 18px; cursor: pointer; 
-        }
-        
-        #progress-bar { 
-            position: absolute; bottom: 0; left: 0; height: 4px; background: var(--accent); width: 0%;
-            box-shadow: 0 0 10px var(--accent);
-        }
-        .info-label { position: absolute; top: 20px; font-size: 10px; color: #555; text-transform: uppercase; }
+        body { font-family: sans-serif; background: #000; color: #00e676; text-align: center; padding: 20px; }
+        .card { background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
+        textarea, input { width: 100%; padding: 12px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #444; border-radius: 10px; }
+        #visualizer { height: 60px; background: #000; margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 2px; }
+        .bar { width: 4px; height: 10px; background: #00e676; transition: 0.1s; }
+        .status { font-size: 14px; color: #888; margin-top: 10px; }
+        #current-line { font-size: 20px; font-weight: bold; margin: 20px 0; min-height: 30px; }
+        button { background: #00e676; color: #000; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="setup-screen">
-        <h2 style="text-align: center; color: var(--accent);">LRC FLOW</h2>
-        <input type="file" id="audio-input" accept="audio/*">
-        <textarea id="lyrics-input" rows="8" placeholder="Matnni bu yerga qatorma-qator tashlang..."></textarea>
-        <button class="start-btn" onclick="initSync()">BOSHLASH</button>
-    </div>
+<div class="card">
+    <h3>AUTO LYRIC DETECTOR</h3>
+    <input type="file" id="audio-input" accept="audio/*">
+    <textarea id="lyrics-input" rows="5" placeholder="Matnni tashlang..."></textarea>
+    <button onclick="startAutoProcess()">AVTOMAT BOSHLASH</button>
+</div>
 
-    <div id="sync-screen" onclick="nextStep()">
-        <div class="info-label">Har bir so'z aytilganda ekranga bosing</div>
-        <div class="lyrics-container" id="lyrics-box">
-            </div>
-        <div id="progress-bar"></div>
-    </div>
+<div id="visualizer"></div>
+<div id="current-line">KUTILMOQDA...</div>
+<div class="status" id="status">Musiqa va matnni yuklab, tugmani bosing.</div>
 
 <script>
     const tg = window.Telegram.WebApp;
     const audio = new Audio();
-    let lyricsArray = [];
-    let syncedData = [];
-    let currentIdx = 0;
-    let isStarted = false;
+    let lyrics = [];
+    let synced = [];
+    let idx = 0;
+    let isProcessing = false;
 
-    const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
-    const MY_ID = '8533456947';
+    // Visualizer uchun barlar yaratish
+    const viz = document.getElementById('visualizer');
+    for(let i=0; i<30; i++) {
+        let bar = document.createElement('div');
+        bar.className = 'bar';
+        viz.appendChild(bar);
+    }
 
-    document.getElementById('audio-input').onchange = (e) => {
-        audio.src = URL.createObjectURL(e.target.files[0]);
-    };
-
-    function initSync() {
+    function startAutoProcess() {
         const text = document.getElementById('lyrics-input').value.trim();
-        if(!audio.src || !text) return alert("Musiqa va matnni yuklang!");
+        if(!audio.src || !text) return alert("Hamma narsani yuklang!");
 
-        lyricsArray = text.split('\n').filter(l => l.trim() !== "");
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('sync-screen').style.display = 'flex';
-        
-        renderLyrics();
+        lyrics = text.split('\n').filter(l => l.trim() !== "");
+        idx = 0;
+        synced = [];
+        isProcessing = true;
+
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = ctx.createMediaElementSource(audio);
+        const analyzer = ctx.createAnalyser();
+        analyzer.fftSize = 256;
+        source.connect(analyzer);
+        analyzer.connect(ctx.destination);
+
+        const bufferLength = analyzer.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
         audio.play();
-        isStarted = true;
+        document.getElementById('status').innerText = "AI ovozni eshityapti...";
+
+        function checkAudio() {
+            if(!isProcessing || audio.ended) {
+                if(audio.ended) finish();
+                return;
+            }
+
+            analyzer.getByteFrequencyData(dataArray);
+            
+            // Ovoz balandligini o'rtacha hisoblash (Vokal borligini aniqlash)
+            let sum = 0;
+            for(let i=0; i<bufferLength; i++) sum += dataArray[i];
+            let average = sum / bufferLength;
+
+            // Vizualizatsiya
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(b => b.style.height = (average * 2) + 'px');
+
+            // Agar ovoz balandligi ma'lum darajadan oshsa (Gapirilgan lahza)
+            if(average > 35 && idx < lyrics.length) { 
+                // Bir qatorni muhrlash (Kamida 1.5 sekund farq bilan)
+                const lastTime = synced.length > 0 ? synced[synced.length-1].t : -2;
+                if(audio.currentTime - lastTime > 1.8) {
+                    synced.push({ t: audio.currentTime, text: lyrics[idx] });
+                    document.getElementById('current-line').innerText = lyrics[idx];
+                    idx++;
+                }
+            }
+            requestAnimationFrame(checkAudio);
+        }
+        checkAudio();
     }
 
-    function renderLyrics() {
-        const box = document.getElementById('lyrics-box');
-        box.innerHTML = '';
-        lyricsArray.forEach((text, i) => {
-            const div = document.createElement('div');
-            div.className = 'line ' + (i === 0 ? 'active' : 'future');
-            div.id = 'line-' + i;
-            div.innerText = text.toUpperCase();
-            box.appendChild(div);
-        });
-    }
-
-    function nextStep() {
-        if(!isStarted || currentIdx >= lyricsArray.length) return;
-
-        // Vaqtni saqlash
-        syncedData.push({
-            t: audio.currentTime,
-            text: lyricsArray[currentIdx]
-        });
-
-        // UI yangilash
-        const currentLine = document.getElementById('line-' + currentIdx);
-        if(currentLine) {
-            currentLine.className = 'line past';
-        }
-
-        currentIdx++;
-        const nextLine = document.getElementById('line-' + currentIdx);
-        if(nextLine) {
-            nextLine.className = 'line active';
-        }
-
-        // Progress bar
-        document.getElementById('progress-bar').style.width = (currentIdx / lyricsArray.length * 100) + '%';
+    async function finish() {
+        isProcessing = false;
+        document.getElementById('status').innerText = "Tugadi! Botga yuborilmoqda...";
         
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-
-        if(currentIdx >= lyricsArray.length) {
-            finishAndSend();
-        }
-    }
-
-    async function finishAndSend() {
-        isStarted = false;
-        audio.pause();
-        
-        let lrc = "[ti:LRC Flow Result]\n";
-        syncedData.forEach(item => {
+        let lrc = "[ti:Full Auto LRC]\n";
+        synced.forEach(item => {
             let m = Math.floor(item.t / 60);
             let s = (item.t % 60).toFixed(2);
             lrc += `[${m.toString().padStart(2, '0')}:${s.toString().padStart(5, '0')}]${item.text}\n`;
@@ -149,18 +112,21 @@
 
         const blob = new Blob([lrc], { type: 'text/plain' });
         const fd = new FormData();
-        fd.append('chat_id', MY_ID);
-        fd.append('document', blob, "lyrics.lrc");
+        fd.append('chat_id', '8533456947');
+        fd.append('document', blob, "auto.lrc");
 
-        try {
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: 'POST', body: fd });
-            tg.showConfirm("LRC fayl botingizga yuborildi!");
-            location.reload(); // Qayta yuklash
-        } catch(e) { alert("Xato!"); }
+        await fetch(`https://api.telegram.org/bot8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw/sendDocument`, {
+            method: 'POST', body: fd
+        });
+        
+        tg.showConfirm("LRC tayyor va botga yuborildi!");
     }
 
+    document.getElementById('audio-input').onchange = (e) => {
+        audio.src = URL.createObjectURL(e.target.files[0]);
+    };
+
     tg.ready();
-    tg.expand();
 </script>
 </body>
 </html>
