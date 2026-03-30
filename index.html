@@ -3,195 +3,475 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LRC Maker Pro - Precision Sync</title>
+    <title>Songlyrics Pro - 2K Ultra HD System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
+        /* 1-10: Ranglar va Global Stil (Modern Palette) */
         :root { 
-            --accent: #00e676; --bg: #0a0a0a; --surface: #1a1a1a;
+            --accent: #00e676; 
+            --accent-glow: rgba(0, 230, 118, 0.4);
+            --bg: #050505; 
+            --surface: #121212;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
             --gradient: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+            --error: #ff5252;
+            --glass: rgba(255, 255, 255, 0.05);
         }
+
+        /* 11-20: Layout va Scroll (Play Market Style) */
         body { 
-            font-family: 'Inter', sans-serif; background: var(--bg); color: white; 
-            margin: 0; padding: 0; text-align: center; user-select: none; 
-        }
-        .header { padding: 20px; background: var(--surface); border-bottom: 1px solid #333; }
-        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
-        
-        .card { background: var(--surface); padding: 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 15px; text-align: left; }
-        label { font-size: 12px; color: #888; text-transform: uppercase; font-weight: 800; }
-        
-        input, textarea { 
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; 
-            border: 1px solid #333; background: #000; color: #fff; font-size: 14px; outline: none; 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; padding: 0; 
+            text-align: center;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .sync-area { 
-            height: 120px; display: flex; align-items: center; justify-content: center; 
-            background: #000; border-radius: 15px; margin: 15px 0; border: 2px solid var(--accent);
-            font-size: 18px; font-weight: 700; color: var(--accent); padding: 10px;
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* 21-30: App Header & Branding */
+        .app-header {
+            padding: 20px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #222;
+            text-align: left;
+            position: sticky; top: 0; z-index: 1000;
+            backdrop-filter: blur(15px);
+        }
+        .app-icon {
+            width: 52px; height: 52px;
+            background: var(--gradient);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 26px; color: #000;
+            box-shadow: 0 5px 20px var(--accent-glow);
+            animation: appIconPulse 3s infinite ease-in-out;
+        }
+        @keyframes appIconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .app-info h1 { font-size: 19px; margin: 0; font-weight: 800; }
+        .app-info p { font-size: 11px; color: var(--accent); margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* 31-40: Preview Box (The Phone Screen) */
+        .preview-box { 
+            width: 270px; height: 480px; background: #000; border-radius: 36px; 
+            margin: 20px auto; display: flex; align-items: center; justify-content: center;
+            border: 8px solid #1a1a1a; position: relative; overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 20px rgba(255,255,255,0.05);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .preview-box:hover { transform: scale(1.02) rotate(1deg); }
+
+        #display-text { 
+            font-size: 20px; font-weight: 900; color: var(--accent); 
+            padding: 30px; line-height: 1.2; 
+            text-shadow: 0 0 20px var(--accent-glow); 
+            z-index: 5; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; width: 100%; box-sizing: border-box;
+            letter-spacing: -1px; text-transform: uppercase;
+        }
+        
+        #preview-bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; z-index: 1; pointer-events: none; }
+        .viz-bars { position: absolute; bottom: 30px; display: flex; gap: 3px; align-items: flex-end; height: 40px; z-index: 4; }
+        .v-bar { width: 4px; background: var(--accent); border-radius: 2px; height: 10px; }
+
+        canvas { display: none; }
+
+        /* 41-50: Main Container & Sections */
+        .main-container {
+            padding: 0 16px 120px 16px;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        .tap-btn { 
-            background: var(--gradient); color: #000; font-weight: 900; border: none; 
-            width: 100%; padding: 25px; border-radius: 20px; font-size: 20px; 
-            cursor: pointer; box-shadow: 0 10px 20px rgba(0, 230, 118, 0.3);
-            transition: 0.2s; margin: 10px 0;
+        .section-title {
+            text-align: left;
+            font-size: 13px;
+            color: var(--text-dim);
+            margin: 25px 0 12px 6px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
         }
-        .tap-btn:active { transform: scale(0.95); opacity: 0.8; }
-        .tap-btn:disabled { background: #333; color: #666; box-shadow: none; }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: #222; }
 
-        .control-btns { display: flex; gap: 10px; }
-        .btn-sub { flex: 1; background: #333; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        /* 51-60: Controls & Cards (Neumorphism-lite) */
+        .controls { 
+            background: var(--surface); 
+            padding: 22px; 
+            border-radius: 28px; 
+            text-align: left; 
+            border: 1px solid #252525;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            margin-bottom: 15px;
+        }
         
-        #status { font-size: 13px; color: var(--accent); margin-top: 15px; font-weight: 700; }
+        .trim-group, .select-group { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+        .trim-group div, .select-group div { flex: 1; min-width: 100px; }
+
+        input, select, textarea { 
+            width: 100%; padding: 16px; margin: 8px 0; border-radius: 18px; 
+            border: 1.5px solid #2a2a2a; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 14px;
+            outline: none; transition: all 0.25s ease;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 230, 118, 0.1); }
+
+        /* 61-70: File Uploaders */
+        .file-card {
+            background: var(--glass);
+            border: 2px dashed #333;
+            border-radius: 20px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .file-card:active { transform: scale(0.95); }
+        .file-card:hover { border-color: var(--accent); background: rgba(0, 230, 118, 0.08); }
+
+        /* 71-80: Custom Range Sliders */
+        input[type=range] { -webkit-appearance: none; background: #252525; height: 8px; border-radius: 10px; }
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; 
+            background: var(--text-main); cursor: pointer; border: 6px solid var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* 81-90: Bottom Nav & Buttons */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            padding: 20px 24px 30px 24px;
+            border-top: 1px solid #222;
+            z-index: 1000;
+        }
+
+        .btn-download { 
+            background: var(--gradient); 
+            color: #000; font-weight: 800; border: none; cursor: pointer; 
+            width: 100%; max-width: 420px;
+            padding: 20px; border-radius: 22px; font-size: 17px;
+            letter-spacing: 0.5px; box-shadow: 0 12px 30px rgba(0, 230, 118, 0.25);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-download:active { transform: scale(0.97) translateY(2px); }
+        .btn-download:disabled { background: #222; color: #555; box-shadow: none; cursor: not-allowed; }
         
-        .playing { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(0, 230, 118, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(0, 230, 118, 0); } }
+        #status-text { font-size: 13px; color: var(--accent); margin: 15px 0; font-weight: 700; text-align: center; letter-spacing: 0.5px; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-fade { animation: fadeIn 0.4s ease forwards; }
+
+        .range-slider { position: relative; height: 10px; background: #222; border-radius: 20px; margin: 20px 0; overflow: hidden; }
+        .range-fill { position: absolute; height: 100%; background: var(--gradient); transition: width 0.3s ease; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1 style="margin:0; font-size: 20px;">LRC Maker Pro</h1>
-        <p style="margin:5px 0 0; font-size: 10px; color: var(--accent);">ANIQ SINXRONLASH TIZIMI</p>
+    <div class="app-header">
+        <div class="app-icon">S</div>
+        <div class="app-info">
+            <h1>Songlyrics Pro</h1>
+            <p id="engine-status">v5.0 2K Cinema • 120 FPS Rendering</p>
+        </div>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <label>1. Musiqa tanlang</label>
-            <input type="file" id="audio-file" accept="audio/*">
-            
-            <div class="control-btns">
-                <div style="flex:1">
-                    <label>Start (s)</label>
-                    <input type="number" id="start-time" value="0" step="0.1">
+    <div class="main-container">
+        <div class="preview-box" id="p-box">
+            <img id="preview-bg-img" src="" style="display:none">
+            <div id="display-text">Tayyor...</div>
+            <div class="viz-bars" id="v-bars"></div>
+        </div>
+
+        <canvas id="video-canvas" width="1440" height="2560"></canvas>
+
+        <div class="section-title">📂 Resurslar & Audio</div>
+        <div class="controls">
+            <div class="select-group">
+                <div class="file-card" onclick="document.getElementById('audio-input').click()">
+                    <span>🎵</span><br><label>Audio (MP3)</label>
+                    <input type="file" id="audio-input" accept="audio/*" style="display:none">
                 </div>
-                <button class="btn-sub" style="margin-top:25px;" onclick="audio.play()">Eshitish</button>
-                <button class="btn-sub" style="margin-top:25px; background:#cc3300;" onclick="audio.pause()">To'xtatish</button>
+                <div class="file-card" onclick="document.getElementById('bg-input').click()">
+                    <span>🖼</span><br><label>Fon (Rasm)</label>
+                    <input type="file" id="bg-input" accept="image/*" style="display:none">
+                </div>
+            </div>
+            <label>Matnni qo'lda kiritish (Qatorma-qator)</label>
+            <textarea id="manual-lyrics" rows="4" placeholder="Har bir qatorni yangi satrdan yozing..."></textarea>
+            <button onclick="parseManualLyrics()" style="width:100%; padding:10px; border-radius:10px; background:#333; color:white; border:none; margin-top:5px;">Matnni avto-tayyorlash</button>
+        </div>
+
+        <div class="section-title">🎨 Dizayn & Sifat</div>
+        <div class="controls">
+            <div class="select-group">
+                <div>
+                    <label>Video Sifati</label>
+                    <select id="render-quality">
+                        <option value="2K">2K (1440p) Cinema</option>
+                        <option value="FHD" selected>FHD (1080p) Pro</option>
+                        <option value="HD">HD (720p) Lite</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Render FPS</label>
+                    <select id="render-fps">
+                        <option value="120">120 FPS (Ultra)</option>
+                        <option value="60" selected>60 FPS (Silliq)</option>
+                        <option value="30">30 FPS (Tez)</option>
+                    </select>
+                </div>
+            </div>
+
+            <label>Suv belgisi (Watermark)</label>
+            <input type="text" id="watermark-input" placeholder="@username" oninput="updateLivePreview()">
+            
+            <label>Matn o'lchami</label>
+            <input type="range" id="font-size-slider" min="30" max="220" value="100" oninput="updateLivePreview()">
+            
+            <div class="select-group">
+                <div>
+                    <label>Shrift</label>
+                    <select id="font-style" onchange="updateLivePreview()">
+                        <option value="Inter">Modern Inter</option>
+                        <option value="Impact">Heavy Impact</option>
+                        <option value="'JetBrains Mono'">Developer Mono</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Rang</label>
+                    <input type="color" id="text-color" value="#00e676" oninput="updateLivePreview()">
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <label>2. Matnni kiriting</label>
-            <textarea id="lyrics-text" rows="5" placeholder="Har bir qatorni yangi satrdan yozing..."></textarea>
+        <div class="section-title">🎬 Effektlar & Pozitsiya</div>
+        <div class="controls">
+            <div class="select-group">
+                <div>
+                    <label>Animatsiya</label>
+                    <select id="anim-style" onchange="updateLivePreview()">
+                        <option value="fade">Mayin (Fade)</option>
+                        <option value="zoom">Pop-up</option>
+                        <option value="glitch">Glitch</option>
+                        <option value="none">Yo'q</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Pozitsiya</label>
+                    <select id="text-position" onchange="updateLivePreview()">
+                        <option value="center" selected>Markazda</option>
+                        <option value="top">Yuqorida</option>
+                        <option value="bottom">Pastda</option>
+                    </select>
+                </div>
+            </div>
+            <label>Fon xiraligi (Blur)</label>
+            <input type="range" id="bg-blur-slider" min="0" max="20" value="5" oninput="updateLivePreview()">
         </div>
 
-        <div class="sync-area" id="display-line">Navbatdagi qator...</div>
+        <div class="section-title">⏳ Vaqtni sozlash</div>
+        <div class="controls">
+            <div class="trim-group">
+                <div><label>Start (s)</label><input type="number" id="trim-start" value="0" step="0.1" oninput="syncSliders()"></div>
+                <div><label>Stop (s)</label><input type="number" id="trim-end" value="30" step="0.1" oninput="syncSliders()"></div>
+            </div>
+            <div class="range-slider"><div class="range-fill" id="range-fill" style="width: 100%"></div></div>
+        </div>
 
-        <button id="tap-btn" class="tap-btn" onclick="handleTap()" disabled>TAP (BOSING)</button>
-        
-        <div id="status">Audio yuklanishini kuting...</div>
+        <div id="status-text">Tizim tayyor</div>
+    </div>
 
-        <button class="btn-sub" style="width:100%; margin-top:20px; background:white; color:black; padding:18px; border-radius:15px;" onclick="sendToBot()">LRC FAYLNI BOTGA YUBORISH</button>
+    <div class="bottom-nav">
+        <button class="btn-download" id="start-btn" onclick="startHDProcess()">Eksport (Video + Audio)</button>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const audio = new Audio();
-    let lyricsArray = [];
-    let syncedResults = [];
-    let currentIndex = 0;
-    let isRunning = false;
+    const canvas = document.getElementById('video-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const displayText = document.getElementById('display-text');
+    const statusText = document.getElementById('status-text');
+    const startBtn = document.getElementById('start-btn');
+    const previewBox = document.getElementById('p-box');
+    const rangeFill = document.getElementById('range-fill');
+    const previewBgImg = document.getElementById('preview-bg-img');
+
+    let lyrics = [];
+    let audioFile = null;
+    let fullDuration = 30;
+    let bgImage = null;
 
     const BOT_TOKEN = '8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw';
     const MY_ID = '8533456947';
 
-    document.getElementById('audio-file').onchange = (e) => {
-        const file = e.target.files[0];
-        audio.src = URL.createObjectURL(file);
-        document.getElementById('tap-btn').disabled = false;
-        document.getElementById('status').innerText = "✅ Audio tayyor. Matnni yozib TAPni bosing.";
+    function parseManualLyrics() {
+        const text = document.getElementById('manual-lyrics').value;
+        const lines = text.split('\n').filter(l => l.trim());
+        const step = (parseFloat(document.getElementById('trim-end').value) - parseFloat(document.getElementById('trim-start').value)) / lines.length;
+        const start = parseFloat(document.getElementById('trim-start').value);
+        
+        lyrics = lines.map((l, i) => ({
+            t: start + (i * step),
+            text: l.trim()
+        }));
+        statusText.innerText = "✅ Matnlar vaqtga taqsimlandi!";
+    }
+
+    function syncSliders() {
+        const start = parseFloat(document.getElementById('trim-start').value) || 0;
+        const end = parseFloat(document.getElementById('trim-end').value) || fullDuration;
+        rangeFill.style.width = ((end - start) / fullDuration * 100) + "%";
+        rangeFill.style.left = (start / fullDuration * 100) + "%";
+    }
+
+    function updateLivePreview() {
+        const size = document.getElementById('font-size-slider').value;
+        const color = document.getElementById('text-color').value;
+        const blur = document.getElementById('bg-blur-slider').value;
+        
+        displayText.style.fontSize = (size / 5) + "px";
+        displayText.style.color = color;
+        previewBgImg.style.filter = `blur(${blur}px)`;
+        
+        const pos = document.getElementById('text-position').value;
+        if(pos === 'top') { displayText.style.top = "15%"; displayText.style.transform = "none"; }
+        else if(pos === 'bottom') { displayText.style.bottom = "15%"; displayText.style.top = "auto"; }
+        else { displayText.style.top = "50%"; displayText.style.transform = "translateY(-50%)"; }
+    }
+
+    document.getElementById('audio-input').onchange = (e) => { 
+        audioFile = e.target.files[0]; 
+        const url = URL.createObjectURL(audioFile);
+        const a = new Audio(url);
+        a.onloadedmetadata = () => {
+            fullDuration = a.duration;
+            document.getElementById('trim-end').value = a.duration.toFixed(1);
+            syncSliders();
+            statusText.innerText = "🎵 Audio tayyor";
+        };
     };
 
-    function handleTap() {
-        const text = document.getElementById('lyrics-text').value;
-        const lines = text.split('\n').filter(l => l.trim() !== "");
-        
-        if (lines.length === 0) return alert("Avval matn kiriting!");
+    document.getElementById('bg-input').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            bgImage = new Image();
+            bgImage.src = ev.target.result;
+            previewBgImg.src = ev.target.result;
+            previewBgImg.style.display = 'block';
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
 
-        if (!isRunning) {
-            // Boshlash
-            isRunning = true;
-            lyricsArray = lines;
-            syncedResults = [];
-            currentIndex = 0;
-            audio.currentTime = parseFloat(document.getElementById('start-time').value) || 0;
-            audio.play();
-            document.getElementById('tap-btn').classList.add('playing');
-            updateDisplay();
-            document.getElementById('status').innerText = "⏱ Sinxronlash ketyapti...";
-        } else {
-            // Vaqtni muhrlash
-            syncedResults.push({
-                time: audio.currentTime,
-                text: lyricsArray[currentIndex]
-            });
+    async function startHDProcess() {
+        if (!audioFile) return alert("Audioni yuklang!");
+        if (lyrics.length === 0) parseManualLyrics();
+
+        const quality = document.getElementById('render-quality').value;
+        if(quality === '2K') { canvas.width = 1440; canvas.height = 2560; }
+        else if(quality === 'FHD') { canvas.width = 1080; canvas.height = 1920; }
+        else { canvas.width = 720; canvas.height = 1280; }
+
+        const fps = parseInt(document.getElementById('render-fps').value);
+        const startT = parseFloat(document.getElementById('trim-start').value);
+        const endT = parseFloat(document.getElementById('trim-end').value);
+
+        startBtn.disabled = true;
+        const audioTag = new Audio(URL.createObjectURL(audioFile));
+        audioTag.currentTime = startT;
+        
+        const stream = canvas.captureStream(fps);
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaElementSource(audioTag);
+        const dest = audioCtx.createMediaStreamDestination();
+        source.connect(dest);
+        source.connect(audioCtx.destination);
+        stream.addTrack(dest.stream.getAudioTracks()[0]);
+
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 50000000 });
+        const chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        
+        recorder.onstop = async () => {
+            statusText.innerText = "📤 BOTGA YUBORILMOQDA...";
+            const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             
-            currentIndex++;
+            // 1. Videoni yuborish
+            const vidData = new FormData();
+            vidData.append('chat_id', MY_ID);
+            vidData.append('video', videoBlob, 'video_2k.mp4');
+            vidData.append('caption', `🎬 Songlyrics Pro\n💎 Sifat: ${quality}\n⚡ FPS: ${fps}\n👤 Watermark: ${document.getElementById('watermark-input').value}`);
 
-            if (currentIndex >= lyricsArray.length) {
-                completeSync();
-            } else {
-                updateDisplay();
+            // 2. Audioni yuborish
+            const audData = new FormData();
+            audData.append('chat_id', MY_ID);
+            audData.append('audio', audioFile, 'music.mp3');
+
+            try {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: vidData });
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, { method: 'POST', body: audData });
+                statusText.innerText = "✅ HAMMASI YUBORILDI!";
+                tg.showConfirm("Fayllar botga muvaffaqiyatli yuborildi!");
+            } catch (err) { alert("Xatolik!"); }
+            startBtn.disabled = false;
+        };
+
+        recorder.start();
+        audioTag.play();
+
+        function draw() {
+            if (audioTag.currentTime >= endT || audioTag.ended) { recorder.stop(); audioTag.pause(); return; }
+            
+            const now = audioTag.currentTime;
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if(bgImage) {
+                ctx.globalAlpha = 0.6;
+                ctx.filter = `blur(${document.getElementById('bg-blur-slider').value * 2}px)`;
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+                ctx.filter = "none"; ctx.globalAlpha = 1;
             }
-        }
-        
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-    }
 
-    function updateDisplay() {
-        document.getElementById('display-line').innerText = lyricsArray[currentIndex];
-    }
-
-    function completeSync() {
-        isRunning = false;
-        audio.pause();
-        document.getElementById('tap-btn').classList.remove('playing');
-        document.getElementById('display-line').innerText = "TAMOM!";
-        document.getElementById('status').innerText = "✅ Sinxronlash tugadi. Endi yuboring!";
-    }
-
-    function formatLRC() {
-        let content = "[ti:LRC Maker Pro]\n[ar:User]\n";
-        syncedResults.forEach(item => {
-            let m = Math.floor(item.time / 60);
-            let s = (item.time % 60).toFixed(2);
-            let timeStr = `[${m.toString().padStart(2, '0')}:${s.toString().padStart(5, '0')}]`;
-            content += timeStr + item.text + "\n";
-        });
-        return content;
-    }
-
-    async function sendToBot() {
-        if (syncedResults.length === 0) return alert("Avval sinxronlashni bajaring!");
-        
-        document.getElementById('status').innerText = "📤 Botga yuborilmoqda...";
-        
-        const lrcText = formatLRC();
-        const blob = new Blob([lrcText], { type: 'text/plain' });
-        const fileName = "lyrics_" + Date.now() + ".lrc";
-
-        const formData = new FormData();
-        formData.append('chat_id', MY_ID);
-        formData.append('document', blob, fileName);
-        formData.append('caption', "📄 Yangi LRC fayl tayyor!\n✅ Barcha vaqtlar aniqlandi.");
-
-        try {
-            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
-                document.getElementById('status').innerText = "🚀 BOTGA YUBORILDI!";
-                tg.showConfirm("LRC fayl botingizga yuborildi!");
-            } else {
-                alert("Yuborishda xatolik yuz berdi.");
+            let current = lyrics.filter(l => now >= l.t).pop();
+            if(current) {
+                const size = parseInt(document.getElementById('font-size-slider').value);
+                ctx.font = `900 ${size}px ${document.getElementById('font-style').value}`;
+                ctx.fillStyle = document.getElementById('text-color').value;
+                ctx.textAlign = "center";
+                
+                let yPos = canvas.height / 2;
+                const pos = document.getElementById('text-position').value;
+                if(pos === 'top') yPos = canvas.height * 0.2;
+                if(pos === 'bottom') yPos = canvas.height * 0.8;
+                
+                ctx.fillText(current.text.toUpperCase(), canvas.width / 2, yPos);
             }
-        } catch (e) {
-            alert("Aloqa xatosi!");
+
+            const wm = document.getElementById('watermark-input').value;
+            if(wm) {
+                ctx.font = "40px Inter"; ctx.fillStyle = "rgba(255,255,255,0.5)";
+                ctx.fillText(wm, canvas.width / 2, canvas.height - 100);
+            }
+
+            statusText.innerText = `RENDER: ${Math.floor(((now-startT)/(endT-startT))*100)}%`;
+            requestAnimationFrame(draw);
         }
+        draw();
     }
 
     tg.ready();
