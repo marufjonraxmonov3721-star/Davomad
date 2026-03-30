@@ -231,7 +231,7 @@
         .reset-info { font-size: 10px; color: var(--subtext); text-align: center; margin-top: 8px; font-style: italic; letter-spacing: 0.5px; }
 
         /* PROFILE & SETTINGS ENHANCEMENTS */
-        .profile-card, .settings-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid var(--border); text-align: center; position: relative; }
+        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid var(--border); text-align: center; position: relative; }
         
         .avatar-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
         .avatar-circle { 
@@ -281,16 +281,6 @@
         .stat-item::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary); opacity: 0.5; }
         .stat-label { font-size: 11px; color: var(--subtext); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
         .stat-value { font-size: 20px; font-weight: bold; color: var(--text); }
-
-        /* Settings specific styles */
-        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
-        .setting-info { text-align: left; }
-        .setting-title { font-weight: bold; color: var(--text); font-size: 15px; }
-        .setting-desc { font-size: 12px; color: var(--subtext); }
-        
-        .theme-switch { display: flex; background: var(--bg); padding: 4px; border-radius: 12px; gap: 5px; }
-        .theme-btn { border: none; background: transparent; padding: 8px 12px; border-radius: 10px; cursor: pointer; color: var(--subtext); transition: 0.3s; font-size: 14px; }
-        .theme-btn.active { background: var(--primary); color: #000; font-weight: bold; }
 
         /* Crop Modal */
         #crop-modal { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
@@ -498,23 +488,6 @@
         </div>
     </div>
 
-    <div id="page-settings" class="page">
-        <div class="settings-card">
-            <h2 style="color:var(--primary); margin-bottom:20px;">Sozlamalar</h2>
-            
-            <div class="setting-row" style="border-bottom: none;">
-                <div class="setting-info">
-                    <div class="setting-title">O'yin Mavzusi</div>
-                    <div class="setting-desc" id="theme-status">Avtomatik (System)</div>
-                </div>
-                <div class="theme-switch">
-                    <button class="theme-btn" id="theme-light" onclick="setTheme('light')">☀️</button>
-                    <button class="theme-btn" id="theme-dark" onclick="setTheme('dark')">🌙</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <nav class="nav-bar" id="bottom-nav">
         <div class="nav-item active" onclick="showPage('game', this)">
             <span class="nav-icon">🎮</span>
@@ -527,10 +500,6 @@
         <div class="nav-item" onclick="showPage('profile', this)">
             <span class="nav-icon">👤</span>
             <span>Profil</span>
-        </div>
-        <div class="nav-item" onclick="showPage('settings', this)">
-            <span class="nav-icon">⚙️</span>
-            <span>Sozlamalar</span>
         </div>
     </nav>
 </div>
@@ -585,45 +554,6 @@
     let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
-
-    // Theme Logic
-    window.setTheme = (mode) => {
-        const body = document.body;
-        const lightBtn = document.getElementById('theme-light');
-        const darkBtn = document.getElementById('theme-dark');
-        const statusText = document.getElementById('theme-status');
-
-        if(mode === 'light') {
-            body.classList.add('light-mode');
-            lightBtn.classList.add('active');
-            darkBtn.classList.remove('active');
-            statusText.innerText = "Kunduzgi rejim";
-            localStorage.setItem('gameTheme', 'light');
-        } else {
-            body.classList.remove('light-mode');
-            darkBtn.classList.add('active');
-            lightBtn.classList.remove('active');
-            statusText.innerText = "Tungi rejim";
-            localStorage.setItem('gameTheme', 'dark');
-        }
-    };
-
-    function initTheme() {
-        const savedTheme = localStorage.getItem('gameTheme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if(savedTheme) {
-            setTheme(savedTheme);
-        } else {
-            setTheme(prefersDark ? 'dark' : 'light');
-        }
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if(!localStorage.getItem('gameTheme')) {
-                setTheme(event.matches ? 'dark' : 'light');
-            }
-        });
-    }
 
     function setupVisualizer() {
         if (audioContext) return;
@@ -768,7 +698,6 @@
     }
 
     window.onload = () => {
-        initTheme();
         loadGameSounds(); 
         setTimeout(async () => {
             document.getElementById('loading-screen').style.display = 'none';
