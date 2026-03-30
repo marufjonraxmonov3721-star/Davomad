@@ -1,36 +1,25 @@
 const { Bot, webhookCallback } = require("grammy");
-const axios = require("axios");
 
 const bot = new Bot("8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw");
 
 bot.on("message", async (ctx) => {
-    const url = ctx.message.text || (ctx.message.web_app_data ? ctx.message.web_app_data.data : "");
+    let url = ctx.message.text || (ctx.message.web_app_data ? ctx.message.web_app_data.data : "");
 
     if (url.includes("instagram.com")) {
-        await ctx.reply("Video yuklanmoqda... ⏳");
+        // Linkni Telegram "hazm" qila oladigan ko'rinishga keltiramiz
+        // Bu usulda Telegram serveri videoni o'zi tortib oladi
+        let downloadLink = url.replace("www.", "").replace("instagram.com", "ddinstagram.com");
 
         try {
-            // Instagram yuklovchi mutlaqo boshqa bepul manba
-            const res = await axios.get(`https://instasave.org/api/instagram?url=${url}`);
-            
-            // Video silkasini topish
-            const videoUrl = res.data.video || (res.data.media && res.data.media[0].url);
-
-            if (videoUrl) {
-                await ctx.replyWithVideo(videoUrl, { caption: "Marhamat! ✅" });
-            } else {
-                // Agar u usul ishlamasa, zaxira varianti
-                const backupUrl = url.replace("instagram.com", "ddinstagram.com");
-                await ctx.replyWithVideo(backupUrl, { caption: "Zaxira usulida yuklandi ✅" });
-            }
+            await ctx.replyWithVideo(downloadLink, {
+                caption: "Mana videongiz! ✅",
+                reply_markup: {
+                    inline_keyboard: [[{ text: "Qayta yuklash", url: downloadLink }]]
+                }
+            });
         } catch (e) {
-            // Eng oxirgi chora: shunchaki silkasini o'zgartirib yuborish
-            try {
-                const finalTry = url.replace("instagram.com", "ddinstagram.com");
-                await ctx.replyWithVideo(finalTry, { caption: "Tayyor! ✅" });
-            } catch (err) {
-                await ctx.reply("Kechirasiz, Instagram bu videoni bloklab qo'ydi. Boshqa link bilan urinib ko'ring.");
-            }
+            // Agar video sifatida keta olmasa, shunchaki linkni o'zini chiroyli qilib beramiz
+            await ctx.reply(`Videoni to'g'ridan-to'g'ri yuborib bo'lmadi.\n\nMana bu link ustiga bosing, u o'zi ochiladi:\n${downloadLink}`);
         }
     }
 });
