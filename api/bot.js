@@ -1,13 +1,13 @@
 const { Bot, webhookCallback } = require("grammy");
 
-// Sizning tokeningiz joylandi
+// Tokeningiz kod ichiga joylandi
 const bot = new Bot("8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw");
 
 bot.command("start", (ctx) => {
   return ctx.reply("Instagram video linkini yuboring yoki Web App-ni oching!", {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "Ilovani ochish", web_app: { url: `https://${process.env.VERCEL_URL}` } }]
+        [{ text: "Ilovani ochish", web_app: { url: "https://davomad.vercel.app/" } }]
       ]
     }
   });
@@ -15,8 +15,8 @@ bot.command("start", (ctx) => {
 
 const handleVideo = async (ctx, url) => {
   if (url.includes("instagram.com")) {
-    await ctx.reply("Video tayyorlanmoqda...");
-    // ddinstagram orqali yuklash
+    await ctx.reply("Video yuklanmoqda...");
+    // ddinstagram orqali videoni sug'urib olish
     const videoLink = url.replace("instagram.com", "ddinstagram.com");
     try {
       await ctx.replyWithVideo(videoLink, { caption: "Tayyor! ✅" });
