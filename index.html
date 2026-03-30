@@ -1,33 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insta Downloader</title>
+    <title>Insta Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #000; color: #fff; padding: 40px 20px; margin: 0; }
-        .container { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid #333; }
-        input { width: 100%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; box-sizing: border-box; background: #222; color: #fff; font-size: 16px; }
-        button { width: 100%; padding: 15px; background: #0088cc; color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid #333; text-align: center; }
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #444; background: #222; color: #fff; margin-bottom: 20px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #0088cc; color: white; font-weight: bold; cursor: pointer; }
+        #status { margin-top: 15px; font-size: 14px; color: #aaa; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Insta Saver</h2>
-        <input type="text" id="url" placeholder="Instagram linkini kiriting...">
-        <button onclick="send()">Videonini Botga yuborish</button>
+        <h2>Instagram Video</h2>
+        <input type="text" id="url" placeholder="Havolani bering...">
+        <button class="btn" onclick="fetchVideo()">Videoni olish</button>
+        <div id="status"></div>
     </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        function send() {
-            const link = document.getElementById('url').value;
-            if(link.includes('instagram.com')) { 
-                tg.sendData(link); 
-                tg.close(); 
-            } else {
-                alert("Iltimos, to'g'ri Instagram linkini kiriting!");
+
+        async function fetchVideo() {
+            const url = document.getElementById('url').value;
+            const status = document.getElementById('status');
+
+            if (!url.includes("instagram.com")) {
+                alert("Xato link!");
+                return;
+            }
+
+            status.innerText = "Video qidirilmoqda... 🔍";
+
+            try {
+                // Bu yerda biz ochiq manbali "worker" xizmatidan foydalanamiz
+                // U linkni video faylga aylantirib beradi
+                const apiUrl = `https://api.vkr.com.ru/api/main.php?url=${encodeURIComponent(url)}`;
+                
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.url || data.mp4) {
+                    const finalLink = data.url || data.mp4;
+                    status.innerText = "Tayyor! Botga yuborilmoqda...";
+                    // Botga tayyor video linkini uzatamiz
+                    tg.sendData(finalLink);
+                    tg.close();
+                } else {
+                    // Agar maxsus servis ishlamasa, ddinstagram-ga o'tadi (zaxira)
+                    const backup = url.replace("instagram.com", "ddinstagram.com");
+                    tg.sendData(backup);
+                    tg.close();
+                }
+            } catch (e) {
+                // Xatolik bo'lsa ham botni to'xtatmaymiz
+                const backup = url.replace("instagram.com", "ddinstagram.com");
+                tg.sendData(backup);
+                tg.close();
             }
         }
     </script>
