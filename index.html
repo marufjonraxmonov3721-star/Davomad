@@ -2,31 +2,24 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Insta Downloader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insta App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #fafafa; }
-        input { width: 90%; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
-        button { background: #0088cc; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; width: 90%; }
+        body { font-family: sans-serif; text-align: center; background: #111; color: #fff; padding: 50px 20px; }
+        input { width: 100%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; }
+        button { width: 100%; padding: 15px; background: #0088cc; color: #fff; border: none; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>Instagram Video Link</h2>
-    <input type="text" id="link" placeholder="Havolani shu yerga qo'ying...">
-    <button onclick="sendLink()">Botga yuborish</button>
-
+    <h2>Linkni kiriting</h2>
+    <input type="text" id="inp" placeholder="https://instagram.com/...">
+    <button onclick="send()">Yuborish</button>
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        function sendLink() {
-            const val = document.getElementById('link').value;
-            if (val.includes('instagram.com')) {
-                // Linkni botga yuborish
-                tg.sendData(val);
-            } else {
-                alert("Iltimos, haqiqiy Instagram linkini kiriting!");
-            }
+        function send() {
+            const val = document.getElementById('inp').value;
+            if(val) { tg.sendData(val); tg.close(); }
         }
     </script>
 </body>
