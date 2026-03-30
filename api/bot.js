@@ -1,7 +1,6 @@
 const { Bot, webhookCallback } = require("grammy");
 const axios = require("axios");
 
-// Bot tokeningiz
 const bot = new Bot("8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw");
 
 bot.on("message", async (ctx) => {
@@ -11,29 +10,25 @@ bot.on("message", async (ctx) => {
         await ctx.reply("Video yuklanmoqda... ⏳");
 
         try {
-            const options = {
-                method: 'GET',
-                url: 'https://social-media-video-downloader.p.rapidapi.com/smvd/get/all',
-                params: { url: url },
+            // Cobalt API - Mutlaqo tekin va kalit talab qilmaydi
+            const response = await axios.post('https://api.cobalt.tools/api/json', {
+                url: url,
+                vQuality: '720'
+            }, {
                 headers: {
-                    // Skrinshotingizdagi kalitni bu yerga to'liq qo'ydim
-                    'X-RapidAPI-Key': '7c5c5333b3mshe85b38ff410ef591p18d45ajsn7c5c5333b3m', 
-                    'X-RapidAPI-Host': 'social-media-video-downloader.p.rapidapi.com'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 }
-            };
+            });
 
-            const response = await axios.request(options);
-            
-            // API javobidan videoni sug'urib olish logikasi
-            if (response.data && response.data.contents && response.data.contents[0].videos) {
-                const videoUrl = response.data.contents[0].videos[0].url;
-                await ctx.replyWithVideo(videoUrl, { caption: "Marhamat! ✅" });
+            if (response.data && response.data.url) {
+                await ctx.replyWithVideo(response.data.url, { caption: "Marhamat! ✅" });
             } else {
-                await ctx.reply("Videoni topib bo'lmadi. Linkni tekshiring.");
+                await ctx.reply("Xatolik: Videoni olib bo'lmadi. Linkni tekshiring.");
             }
         } catch (e) {
             console.error(e);
-            await ctx.reply("Xatolik: API limit tugagan bo'lishi mumkin.");
+            await ctx.reply("Hozirda yuklashda muammo bor yoki link xato. Keyinroq urinib ko'ring.");
         }
     }
 });
