@@ -24,6 +24,7 @@
             --division-gold: #ffd700;
         }
 
+        /* Light Mode Styles */
         body.light-mode {
             --bg: #f0f2f5;
             --card: #ffffff;
@@ -36,8 +37,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; position: relative; transition: background 0.3s, color 0.3s; }
         
+        /* Visualizer Canvas */
         #visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; z-index: 1; pointer-events: none; opacity: 0.8; }
 
+        /* Loading Animation */
         #loading-screen { 
             position: fixed; inset: 0; background: var(--bg); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -49,6 +52,7 @@
         .bar:nth-child(4) { animation-delay: 0.3s; }
         @keyframes scaleY { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(2.5); } }
 
+        /* Registration Screen */
         #reg-screen {
             position: fixed; inset: 0; background: var(--bg); z-index: 900;
             display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
@@ -61,6 +65,7 @@
         .page { flex: 1; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         .active-page { display: flex; }
 
+        /* Start Button Styles */
         .start-container { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
         .main-play-btn { 
@@ -73,15 +78,24 @@
             position: relative; overflow: hidden;
             width: 80%;
         }
-        .main-play-btn:active { transform: scale(0.92); }
+        .main-play-btn i { font-size: 20px; }
+        .main-play-btn:active { transform: scale(0.92); box-shadow: 0 4px 10px rgba(0, 255, 136, 0.2); }
+        .main-play-btn::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: rgba(255,255,255,0.2); transform: rotate(45deg);
+            transition: 0.5s; opacity: 0;
+        }
+        .main-play-btn:hover::after { left: 100%; opacity: 1; }
 
-        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 40px; border: 1px solid var(--border); text-align: center; position: relative; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        /* Game UI */
+        .game-card { width: 100%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 40px; border: 1px solid var(--border); text-align: center; position: relative; transition: 0.3s; z-index: 5; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         
         .vinyl { 
             width: 180px; height: 180px; margin: 20px auto; 
             background: radial-gradient(circle, #222 0%, #111 40%, #000 100%); 
             border-radius: 50%; border: 8px solid #1a1a1a; 
             position: relative; z-index: 6;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.05);
         }
         .spinning { animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -92,6 +106,7 @@
         .options-grid.show-options { opacity: 1; pointer-events: auto; }
         
         .option-btn, .start-btn { background: var(--nav); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; width: 100%; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        
         .option-btn { opacity: 0; transform: translateY(20px); }
         .option-btn.reveal { opacity: 1; transform: translateY(0); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
@@ -114,6 +129,7 @@
             display: none;
         }
         @keyframes flamePulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.8; transform: scale(1.05); } }
+
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
         .floating-text {
@@ -122,106 +138,272 @@
         }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
-        #result-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .result-card { background: var(--card); border: 1px solid var(--border); width: 100%; max-width: 350px; border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out; position: relative; }
+        #result-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .result-card {
+            background: var(--card); border: 1px solid var(--border); width: 100%; max-width: 350px;
+            border-radius: 30px; padding: 40px 20px; text-align: center; animation: slideUp 0.4s ease-out;
+            position: relative;
+        }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; color: var(--subtext); cursor: pointer; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        #level-complete-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .level-card { background: #111; border: 2px solid var(--division-gold); width: 100%; max-width: 320px; border-radius: 35px; padding: 30px 20px; text-align: center; }
-        .progress-container { width: 100%; height: 12px; background: #222; border-radius: 10px; margin: 25px 0; overflow: hidden; border: 1px solid #333; }
-        .progress-fill-anim { width: 0%; height: 100%; background: linear-gradient(90deg, var(--division-gold), #fff); transition: width 1.5s ease-in-out; }
+        #level-complete-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .level-card {
+            background: #111; border: 2px solid var(--division-gold); width: 100%; max-width: 320px;
+            border-radius: 35px; padding: 30px 20px; text-align: center;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .progress-container {
+            width: 100%; height: 12px; background: #222; border-radius: 10px; 
+            margin: 25px 0; overflow: hidden; border: 1px solid #333;
+        }
+        .progress-fill-anim {
+            width: 0%; height: 100%; background: linear-gradient(90deg, var(--division-gold), #fff);
+            box-shadow: 0 0 10px var(--division-gold); transition: width 1.5s ease-in-out;
+        }
         .star-anim { font-size: 40px; color: var(--accent); margin: 10px 0; display: block; animation: starPop 0.6s infinite alternate; }
+        @keyframes starPop { from { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent)); } to { transform: scale(1.2); filter: drop-shadow(0 0 15px var(--accent)); } }
 
+        /* LEADERBOARD ENHANCEMENTS */
         .leaderboard-card { width: 100%; max-width: 400px; height: 85vh; background: var(--card); border-radius: 25px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin-bottom: 25px; height: 190px; position: relative; }
+        
+        .podium-container { 
+            display: flex; justify-content: center; align-items: flex-end; 
+            gap: 8px; margin-bottom: 25px; padding-top: 5px;
+            height: 190px; position: relative;
+        }
         .podium-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; text-align: center; }
-        .podium-avatar { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333; background: #222; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .podium-avatar {
+            width: 40px; height: 40px; border-radius: 50%; border: 3px solid #333;
+            background: #222; margin-bottom: 8px; display: flex; align-items: center; 
+            justify-content: center; font-weight: bold; font-size: 16px; color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
         .podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .podium-step { width: 100%; border-radius: 10px 10px 5px 5px; display: flex; flex-direction: column; align-items: center; padding-top: 10px; position: relative; }
+        
+        .podium-step {
+            width: 100%; border-radius: 10px 10px 5px 5px; 
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            padding-top: 10px; position: relative;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.1);
+        }
+        
+        .podium-info { position: absolute; bottom: -22px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .podium-name { 
+            font-size: 10px; font-weight: 900; color: #fff; 
+            background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px;
+            width: 85%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 1px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .podium-score { font-size: 9px; color: var(--primary); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,136,0.5); }
+
         .rank-1 { height: 100px; background: linear-gradient(180deg, #ffd700, #b8860b); order: 2; z-index: 3; }
+        .rank-1 .podium-avatar { border-color: #ffd700; width: 55px; height: 55px; font-size: 22px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); margin-bottom: 10px; }
+        .rank-1 .podium-rank-num { font-size: 28px; color: rgba(0,0,0,0.3); position: absolute; top: 10px; font-weight: 900; }
+        .rank-1 .podium-name { background: #ffd700; color: #000; border-color: #b8860b; }
+
         .rank-2 { height: 75px; background: linear-gradient(180deg, #e0e0e0, #708090); order: 1; z-index: 2; }
+        .rank-2 .podium-avatar { border-color: #e0e0e0; }
+        .rank-2 .podium-rank-num { font-size: 22px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
+
         .rank-3 { height: 60px; background: linear-gradient(180deg, #cd7f32, #8b4513); order: 3; z-index: 1; }
+        .rank-3 .podium-avatar { border-color: #cd7f32; }
+        .rank-3 .podium-rank-num { font-size: 18px; color: rgba(0,0,0,0.2); position: absolute; top: 10px; font-weight: 900; }
 
-        .rank-list-container { flex: 1; overflow-y: auto; }
-        .rank-item { display: flex; align-items: center; background: var(--nav); padding: 10px 15px; border-radius: 15px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .rank-num { width: 30px; font-weight: 900; color: var(--subtext); }
-        .rank-name { flex: 1; padding: 0 10px; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+        .rank-tabs { display: flex; gap: 5px; margin-bottom: 10px; background: var(--bg); padding: 4px; border-radius: 12px; }
+        .rank-tab { flex: 1; background: transparent; border: none; padding: 10px; border-radius: 10px; color: var(--subtext); font-size: 13px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.3s; }
+        .rank-tab.active { background: var(--primary); color: #000; box-shadow: 0 2px 10px rgba(0,255,136,0.2); }
+        
+        .rank-list-container { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .rank-item { display: flex; align-items: center; background: var(--nav); padding: 10px 15px; border-radius: 15px; margin-bottom: 8px; border: 1px solid var(--border); transition: 0.3s; }
+        
+        .rank-num { width: 30px; font-weight: 900; color: var(--subtext); font-size: 14px; }
+        .rank-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; font-weight: 500; color: var(--text); }
+        .rank-score-box { text-align: right; }
+        .rank-score { font-weight: bold; color: var(--primary); font-size: 13px; display: block; }
+        .rank-lvl { font-size: 9px; color: var(--subtext); display: block; }
+        .reset-info { font-size: 10px; color: var(--subtext); text-align: center; margin-top: 8px; font-style: italic; letter-spacing: 0.5px; }
 
-        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; text-align: center; }
+        /* PROFILE & SETTINGS ENHANCEMENTS */
+        .profile-card { width: 100%; max-width: 400px; background: var(--card); border-radius: 30px; padding: 30px; border: 1px solid var(--border); text-align: center; position: relative; }
+        
         .avatar-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
-        .avatar-circle { width: 100%; height: 100%; background: var(--nav); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; border: 3px solid var(--primary); overflow: hidden; }
+        .avatar-circle { 
+            width: 100%; height: 100%; background: var(--nav); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 40px; 
+            color: var(--text); border: 3px solid var(--primary); overflow: hidden; position: relative; 
+            cursor: pointer; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); 
+        }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .edit-avatar-badge { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; border: 3px solid var(--card); }
+        
+        .edit-avatar-badge { 
+            position: absolute; bottom: 0; right: 0; background: var(--primary); 
+            width: 34px; height: 34px; border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; font-size: 14px; 
+            border: 3px solid var(--card); color: #000; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: 0.2s;
+        }
+        .edit-avatar-badge:active { transform: scale(0.9); }
+        
+        .delete-avatar-badge {
+            position: absolute; top: 0; left: 0; background: var(--danger);
+            width: 30px; height: 30px; border-radius: 50%; display: none;
+            align-items: center; justify-content: center; font-size: 14px;
+            border: 3px solid var(--card); color: #fff; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: 0.2s; z-index: 10;
+        }
 
+        .name-edit-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 5px; max-width: 250px; margin-left: auto; margin-right: auto; }
+        #profile-input-name, #profile-input-surname { 
+            background: transparent; border: 1px solid transparent; color: var(--text); font-size: 20px; 
+            font-weight: bold; text-align: center; width: 100%; padding: 4px; border-radius: 8px; 
+            transition: 0.3s;
+        }
+        #profile-input-name:focus, #profile-input-surname:focus { border-color: var(--primary); outline: none; background: rgba(128,128,128,0.1); }
+        
+        .save-profile-btn { 
+            background: var(--primary); color: #000; border: none; padding: 12px 30px; 
+            border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 15px; 
+            display: none; cursor: pointer; margin-left: auto; margin-right: auto;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3); animation: pop 0.3s ease;
+        }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 25px; }
+        .stat-item { background: var(--nav); padding: 14px; border-radius: 18px; border: 1px solid var(--border); text-align: left; position: relative; overflow: hidden; }
+        .stat-item::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary); opacity: 0.5; }
+        .stat-label { font-size: 11px; color: var(--subtext); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
+        .stat-value { font-size: 20px; font-weight: bold; color: var(--text); }
+
+        /* Crop Modal */
         #crop-modal { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .crop-container { width: 100%; max-width: 350px; height: 350px; margin-bottom: 30px; }
         .crop-btns { display: flex; gap: 15px; width: 100%; max-width: 350px; }
-        .crop-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; }
+        .crop-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #333; color: #fff; }
+        .btn-confirm { background: var(--primary); color: #000; }
 
-        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
-        .nav-item { color: var(--subtext); font-size: 12px; display: flex; flex-direction: column; align-items: center; }
+        .nav-bar { height: 70px; background: var(--nav); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; transition: 0.3s; }
+        .nav-item { color: var(--subtext); font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--primary); }
-        .hidden-nav { display: none; }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        
+        .hidden-nav { transform: translateY(100%); height: 0; padding: 0; border: none; overflow: hidden; }
 
-        #offline-notice { position: fixed; top: -100px; left: 0; right: 0; background: var(--danger); color: white; padding: 15px; text-align: center; z-index: 5000; transition: 0.5s; }
+        #offline-notice {
+            position: fixed; top: -100px; left: 0; right: 0;
+            background: rgba(255, 62, 62, 0.95); color: white; 
+            padding: 15px; text-align: center; font-weight: bold; 
+            z-index: 5000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
         #offline-notice.show { top: 0; }
+        .offline-icon { font-size: 20px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
+        /* BOSS STYLES */
         .boss-active #main-game-card { border-color: var(--boss); box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
-        #resume-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .boss-active .vinyl { border-color: var(--boss); }
+        .boss-active #disc-center { background: var(--boss) !important; }
+        .boss-active #round-counter { color: var(--boss) !important; }
+        .boss-active .option-btn { border-color: #441122; }
+        .boss-active::before { 
+            content: ''; position: fixed; inset: 0; border: 8px solid var(--boss); 
+            z-index: 999; pointer-events: none; animation: bossPulse 1s infinite;
+        }
+        @keyframes bossPulse { 0% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } 50% { opacity: 0.6; box-shadow: inset 0 0 50px var(--boss); } 100% { opacity: 0.2; box-shadow: inset 0 0 20px var(--boss); } }
+        
+        .boss-title { color: var(--boss); font-weight: 900; animation: blink 0.8s infinite; text-shadow: 0 0 10px var(--boss); }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        #resume-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
         #resume-countdown { font-size: 100px; font-weight: 900; color: var(--primary); }
+
+        /* DIVISION SPECIFIC UI */
+        .division-badge { 
+            background: linear-gradient(135deg, #333, #000); 
+            padding: 2px 10px; border-radius: 5px; color: var(--division-gold);
+            font-size: 12px; font-weight: 900; border: 1px solid var(--division-gold);
+            display: inline-block; margin-bottom: 5px;
+        }
+        .division-1 { background: linear-gradient(135deg, #ffd700, #b8860b); color: #000; }
     </style>
 </head>
 <body>
 
 <canvas id="visualizer"></canvas>
 
-<div id="offline-notice">⚠️ Internet aloqasi yo'q!</div>
+<div id="offline-notice">
+    <span class="offline-icon">⚠️</span>
+    <span>Internet aloqasi yo'q!</span>
+</div>
 
 <div id="loading-screen">
     <div class="loader">
         <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
-    <h1 style="color:var(--primary); margin-top:20px;">SongLyrics</h1>
+    <h1 style="color:var(--primary); margin-top:20px; letter-spacing: 2px;">SongLyrics</h1>
 </div>
 
 <div id="reg-screen">
     <div class="reg-card">
         <h2 style="color:var(--primary); margin-bottom:20px; text-align:center;">Ro'yxatdan o'tish</h2>
-        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz">
-        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz">
+        <input type="text" id="reg-name" class="reg-input" placeholder="Ismingiz (Majburiy)">
+        <input type="text" id="reg-surname" class="reg-input" placeholder="Familiyangiz (Ixtiyoriy)">
+        <p style="font-size:12px; color:var(--subtext); margin-bottom:5px;">Tug'ilgan sanangiz (Majburiy):</p>
         <input type="date" id="reg-birthdate" class="reg-input">
-        <button class="start-btn" onclick="completeRegistration()">TAYYOR</button>
+        <button class="start-btn" onclick="completeRegistration()" style="width: 100%;">TAYYOR</button>
     </div>
 </div>
 
 <div id="resume-overlay">
     <div id="resume-countdown">3</div>
+    <p style="color:#fff; margin-top:20px; font-weight:bold;">O'YIN DAVOM ETMOQDA...</p>
 </div>
 
 <div id="level-complete-modal">
     <div class="level-card">
         <span class="star-anim">🏆</span>
-        <h2 id="lvl-complete-title" style="color:var(--division-gold);">DIVISION UP!</h2>
-        <div class="progress-container"><div id="lvl-progress-fill" class="progress-fill-anim"></div></div>
-        <p id="lvl-info-text"></p>
+        <h2 id="lvl-complete-title" style="color:var(--division-gold); font-size: 24px;">DIVISION UP!</h2>
+        <p id="lvl-complete-text" style="color:#888; margin-top:10px;">Yangi ligaga ko'tarildingiz!</p>
+        <div class="progress-container">
+            <div id="lvl-progress-fill" class="progress-fill-anim"></div>
+        </div>
+        <p id="lvl-info-text" style="font-weight: bold; color: #fff;">DIVISION 10 ➔ DIVISION 9</p>
     </div>
 </div>
 
 <div id="result-modal">
     <div class="result-card">
         <span class="close-modal" onclick="closeResultModal()">✕</span>
-        <h1 id="result-title">O'yin tugadi!</h1>
-        <div id="final-score" style="font-size: 48px; font-weight: 800; margin-bottom: 5px;">0</div>
-        <p id="final-level" style="color:var(--division-gold); margin-bottom: 25px;">DIVISION: 10</p>
-        <button class="start-btn" onclick="restartGame()">QAYTA O'YNASH</button>
+        <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
+        <p style="color:var(--subtext); margin-bottom:5px;">Sizning natijangiz:</p>
+        <div id="final-score" style="font-size: 48px; font-weight: 800; color: var(--text); margin-bottom: 5px;">0</div>
+        <p id="final-level" style="color:var(--division-gold); font-weight: bold; margin-bottom: 25px;">DIVISION: 10</p>
+        <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
     </div>
 </div>
 
 <div id="crop-modal">
-    <div class="crop-container"><div id="crop-area"></div></div>
+    <h2 style="color:var(--primary); margin-bottom:20px;">Rasmni to'g'irlang</h2>
+    <div class="crop-container">
+        <div id="crop-area"></div>
+    </div>
     <div class="crop-btns">
-        <button class="crop-btn" onclick="cancelCrop()">BEKOR</button>
-        <button class="crop-btn" onclick="confirmCrop()" style="background:var(--primary)">TAYYOR</button>
+        <button class="crop-btn btn-cancel" onclick="cancelCrop()">BEKOR QILISH</button>
+        <button class="crop-btn btn-confirm" onclick="confirmCrop()">TAYYOR</button>
     </div>
 </div>
 
@@ -230,57 +412,112 @@
         <div class="game-card" id="main-game-card">
             <div id="combo-flame" class="combo-flame"></div>
             <div id="combo-badge">COMBO x1</div>
+            
             <div id="game-ui" style="display:none;">
-                <div style="display:flex; justify-content:space-between; margin-bottom: 25px;">
-                    <div id="game-stats-left"><span id="score">BALL: 0</span><br><span id="round-counter"></span></div>
-                    <div style="text-align: right;"><div id="lives" class="lives-container">🎵🎵🎵</div><span id="timer">--</span></div>
+                <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 25px;">
+                    <div id="game-stats-left" style="text-align: left;">
+                        <span id="score" style="font-size: 18px;">BALL: 0</span><br>
+                        <span id="round-counter" style="font-size: 11px; color: var(--subtext);">DIVISION: 10 | SAVOL: 1/5</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <div id="lives" class="lives-container">🎵🎵🎵</div>
+                        <span id="timer" style="font-size: 18px; display: block; margin-top: 4px;">--</span>
+                    </div>
                 </div>
-                <div class="vinyl" id="disc"><div id="disc-center"></div></div>
-                <p id="status" style="margin: 15px 0; font-weight: bold;"></p>
+                
+                <div class="vinyl" id="disc">
+                    <div id="disc-center"></div>
+                </div>
+                
+                <p id="status" style="color:var(--subtext); font-size:13px; margin: 15px 0; height: 18px; font-weight: bold; letter-spacing: 1px;"></p>
                 <div id="options-box" class="options-grid"></div>
             </div>
+            
             <div id="pre-game">
                 <div id="pre-division-badge" class="division-badge">DIVISION 10</div>
-                <h2>SongLyrics League</h2>
-                <button class="main-play-btn" onclick="startGame('uzbek')">O'yinni boshlash</button>
+                <h2 style="margin-bottom:10px; color: var(--text);">SongLyrics League</h2>
+                <p style="color:var(--subtext); margin-bottom:30px;">Musiqalarni toping, ochko yig'ing va 1-divizionga ko'tariling!</p>
+                
+                <div class="start-container">
+                    <button class="main-play-btn" onclick="startGame('uzbek')">
+                        <i class="fas fa-play"></i> O'yinni boshlash
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="text-align:center; margin-bottom:10px;">LEADERBOARD</h2>
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size: 16px; font-weight: 900;">DIVISION LEADERBOARD</h2>
             <div class="podium-container" id="top-three-podium"></div>
+            <div class="rank-tabs">
+                <button class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</button>
+                <button class="rank-tab" id="limit-100" onclick="setRankLimit(100)">TOP 100</button>
+            </div>
             <div class="rank-list-container" id="rank-list"></div>
+            <p class="reset-info">Natijalar har Yakshanba kuni yangilanadi.</p>
         </div>
     </div>
 
     <div id="page-profile" class="page">
         <div class="profile-card">
-            <input type="file" id="avatar-upload" style="display: none;">
+            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
             <div class="avatar-container">
-                <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">👤</div>
+                <div class="delete-avatar-badge" id="delete-avatar-btn" onclick="deleteAvatar()">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="avatar-circle" id="profile-avatar" onclick="document.getElementById('avatar-upload').click()">
+                    <span>👤</span>
+                </div>
+                <div class="edit-avatar-badge" onclick="document.getElementById('avatar-upload').click()">
+                    <i class="fas fa-camera"></i>
+                </div>
             </div>
-            <input type="text" id="profile-input-name" style="background:none; border:none; color:#fff; text-align:center; font-size:20px; font-weight:bold; width:100%;">
-            <p id="profile-age-info"></p>
-            <button id="save-profile-btn" class="start-btn" style="display:none;">SAQLASH</button>
-            <div style="margin-top:20px;">
-                <p>DIVISION: <span id="best-level">10</span></p>
-                <p>XP: <span id="total-xp">0</span></p>
+            <div class="name-edit-wrapper">
+                <input type="text" id="profile-input-name" placeholder="Ism" maxlength="20">
+                <input type="text" id="profile-input-surname" placeholder="Familiya" maxlength="20">
+            </div>
+            <p id="profile-age-info" style="color:var(--primary); font-size:13px; font-weight:bold; margin: 10px 0;"></p>
+            <p id="profile-bday-countdown" style="color:#ffcc00; font-size:12px; margin-bottom:10px;"></p>
+            <p id="profile-id" style="color:var(--subtext); font-size:11px; font-family:monospace; margin-bottom: 15px;"></p>
+            <button id="save-profile-btn" class="save-profile-btn">SAQLASH</button>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Hozirgi Division</div>
+                    <div class="stat-value" id="best-level" style="color:var(--division-gold)">10</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Eng yuqori natija</div>
+                    <div class="stat-value" id="best-score">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Umumiy Tajriba (XP)</div>
+                    <div class="stat-value" id="total-xp">0</div>
+                </div>
             </div>
         </div>
     </div>
 
     <nav class="nav-bar" id="bottom-nav">
-        <div class="nav-item active" onclick="showPage('game', this)"><span>🎮</span><span>O'yin</span></div>
-        <div class="nav-item" onclick="showPage('rank', this)"><span>🏆</span><span>Liga</span></div>
-        <div class="nav-item" onclick="showPage('profile', this)"><span>👤</span><span>Profil</span></div>
+        <div class="nav-item active" onclick="showPage('game', this)">
+            <span class="nav-icon">🎮</span>
+            <span>O'yin</span>
+        </div>
+        <div class="nav-item" onclick="showPage('rank', this)">
+            <span class="nav-icon">🏆</span>
+            <span>Liga</span>
+        </div>
+        <div class="nav-item" onclick="showPage('profile', this)">
+            <span class="nav-icon">👤</span>
+            <span>Profil</span>
+        </div>
     </nav>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, update, query, orderByChild, limitToLast, increment, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
@@ -295,26 +532,293 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
+    tg.disableClosingConfirmation(); 
 
-    const user = tg.initDataUnsafe?.user || { id: "guest_" + Math.floor(Math.random()*1000), first_name: "Mehmon" };
+    const user = tg.initDataUnsafe?.user || { id: "guest", first_name: "Mehmon" };
     let allQuestions = [], questions = [], currentIdx = 0, score = 0, lives = 3, timerInterval, audio = new Audio();
-    let isPlaying = false, isPaused = false, comboCount = 0, currentDivision = 10, totalXp = 0;
-    let isBossRound = false, bossQuestion = null, adminTimerSettings = {}, usedQuestions = new Set();
-    let audioContext, analyser, dataArray, canvas, ctx, animationId, croppieInstance = null;
+    audio.crossOrigin = "anonymous";
+    let isPlaying = false;
+    let isPaused = false;
+    let comboCount = 0;
+    let currentCategory = 'uzbek';
+    
+    // Division Logic: 10 down to 1
+    let currentDivision = 10; 
+    let totalXp = 0;
 
-    const XP_REQS = { 10: 0, 9: 500, 8: 1500, 7: 3000, 6: 5000, 5: 8000, 4: 12000, 3: 18000, 2: 25000, 1: 40000 };
+    let isBossRound = false;
+    let bossQuestion = null;
+    let adminTimerSettings = {};
+    const QUESTIONS_PER_LEVEL = 5;
+    
+    let optionsTickSound = new Audio();
+    let timerTickSound = new Audio();
+    let correctSound = new Audio();
+    let wrongSound = new Audio();
+    
+    optionsTickSound.volume = 0.5;
+    timerTickSound.volume = 0.6;
+    correctSound.volume = 0.8;
+    wrongSound.volume = 0.8;
 
-    function getDivFromXp(xp) {
+    let usedQuestions = new Set();
+    let rankLimit = 10;
+    let currentRemainingTime = 0;
+    let gamePhase = 'listening'; 
+
+    let croppieInstance = null;
+
+    let audioContext, analyser, dataArray, canvas, ctx, animationId;
+
+    // XP Requirements for each division (from 10 up to 1)
+    const DIVISION_XP_REQUIREMENTS = {
+        10: 0,
+        9: 500,
+        8: 1500,
+        7: 3000,
+        6: 5000,
+        5: 8000,
+        4: 12000,
+        3: 18000,
+        2: 25000,
+        1: 40000
+    };
+
+    function getDivisionFromXp(xp) {
         let div = 10;
-        for (let d = 10; d >= 1; d--) { if (xp >= XP_REQS[d]) div = d; }
+        for (let d = 10; d >= 1; d--) {
+            if (xp >= DIVISION_XP_REQUIREMENTS[d]) {
+                div = d;
+            }
+        }
         return div;
     }
 
+    function setupVisualizer() {
+        if (audioContext) return;
+        canvas = document.getElementById('visualizer');
+        ctx = canvas.getContext('2d');
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 64; 
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+    }
+
+    function resizeCanvas() {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function drawVisualizer() {
+        if (!isPlaying || isPaused) {
+            if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+        animationId = requestAnimationFrame(drawVisualizer);
+        analyser.getByteFrequencyData(dataArray);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / dataArray.length) * 1.5;
+        let x = 0;
+        
+        const isLight = document.body.classList.contains('light-mode');
+
+        for (let i = 0; i < dataArray.length; i++) {
+            const barHeight = (dataArray[i] / 255) * canvas.height * 0.7;
+            
+            const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+            if(isBossRound) {
+                gradient.addColorStop(0, 'rgba(255, 0, 85, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 0, 85, 0.2)');
+            } else {
+                gradient.addColorStop(0, isLight ? '#00cc6e' : '#00ff88'); 
+                gradient.addColorStop(1, isLight ? 'rgba(0, 204, 110, 0.1)' : 'rgba(0, 255, 136, 0.1)');
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
+            x += barWidth;
+        }
+    }
+
+    async function loadGameSounds() {
+        try {
+            const snap = await get(ref(db, 'settings/audio'));
+            if(snap.exists()) {
+                const settings = snap.val();
+                if(settings.optionsAudio) {
+                    optionsTickSound.src = settings.optionsAudio;
+                    optionsTickSound.load();
+                }
+                if(settings.timerAudio) {
+                    timerTickSound.src = settings.timerAudio;
+                    timerTickSound.load();
+                }
+                if(settings.correct) {
+                    correctSound.src = settings.correct;
+                    correctSound.load();
+                }
+                if(settings.wrong) {
+                    wrongSound.src = settings.wrong;
+                    wrongSound.load();
+                }
+            }
+        } catch(e) { console.log("Audio load error"); }
+    }
+
+    const stopAllSounds = () => {
+        audio.pause();
+        optionsTickSound.pause();
+        timerTickSound.pause();
+        correctSound.pause();
+        wrongSound.pause();
+        optionsTickSound.currentTime = 0;
+        timerTickSound.currentTime = 0;
+        correctSound.currentTime = 0;
+        wrongSound.currentTime = 0;
+        if(isPlaying) {
+            clearInterval(timerInterval);
+            document.getElementById('disc').classList.remove('spinning');
+        }
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            pauseGame();
+        } else {
+            resumeGameWithCountdown();
+        }
+    });
+
+    function pauseGame() {
+        if (!isPlaying || isPaused) return;
+        isPaused = true;
+        stopAllSounds();
+        if (animationId) cancelAnimationFrame(animationId);
+    }
+
+    function resumeGameWithCountdown() {
+        if (!isPlaying || !isPaused) return;
+        
+        const overlay = document.getElementById('resume-overlay');
+        const countText = document.getElementById('resume-countdown');
+        overlay.style.display = 'flex';
+        
+        let count = 3;
+        countText.innerText = count;
+        
+        const countInt = setInterval(() => {
+            count--;
+            if (count > 0) {
+                countText.innerText = count;
+            } else {
+                clearInterval(countInt);
+                overlay.style.display = 'none';
+                isPaused = false;
+                
+                if (gamePhase === 'listening') {
+                    audio.play();
+                    document.getElementById('disc').classList.add('spinning');
+                    startTimer(currentRemainingTime);
+                    drawVisualizer();
+                } else if (gamePhase === 'choosing') {
+                    if(timerTickSound.src) timerTickSound.play();
+                    startChoosingTimer(currentRemainingTime);
+                    drawVisualizer();
+                }
+            }
+        }, 1000);
+    }
+
     window.onload = () => {
-        setTimeout(() => {
-            document.getElementById('loading-screen').style.display = 'none';
-            checkRegistration();
+        loadGameSounds(); 
+        
+        // Network status handler
+        const checkNetwork = () => {
+            const notice = document.getElementById('offline-notice');
+            if(!navigator.onLine) {
+                notice.classList.add('show');
+                pauseGame();
+            } else {
+                notice.classList.remove('show');
+            }
+        };
+
+        window.addEventListener('offline', checkNetwork);
+        window.addEventListener('online', checkNetwork);
+        checkNetwork();
+
+        // Start initialization sequence
+        setTimeout(async () => {
+            // Force hide loading screen regardless of errors after 5 seconds
+            const hideLoading = () => {
+                document.getElementById('loading-screen').style.display = 'none';
+            };
+            
+            try {
+                await checkRegistration();
+            } catch(e) {
+                console.error("Registration check failed", e);
+            } finally {
+                hideLoading();
+            }
         }, 2000);
+
+        const nameInput = document.getElementById('profile-input-name');
+        const surnameInput = document.getElementById('profile-input-surname');
+        const saveBtn = document.getElementById('save-profile-btn');
+        const avatarUpload = document.getElementById('avatar-upload');
+
+        const profileWatchers = [nameInput, surnameInput];
+        profileWatchers.forEach(el => el.addEventListener('input', () => { saveBtn.style.display = 'block'; }));
+        
+        avatarUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    openCropModal(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        saveBtn.onclick = async () => {
+            if(!navigator.onLine) return;
+            const newName = nameInput.value.trim();
+            const newSurname = surnameInput.value.trim();
+            const avatarImg = document.querySelector('#profile-avatar img');
+            const avatarBase64 = avatarImg ? avatarImg.src : "";
+
+            if(newName.length < 3) {
+                tg.showAlert("Iltimos ismingizni kiriting!");
+                return;
+            }
+
+            saveBtn.innerText = "SAQLANMOQDA...";
+            saveBtn.disabled = true;
+
+            try {
+                await update(ref(db, `leaderboard/${user.id}`), {
+                    name: newName,
+                    surname: newSurname,
+                    photo: avatarBase64
+                });
+                tg.showAlert("Profil saqlandi!");
+                saveBtn.style.display = 'none';
+            } catch (e) {
+                tg.showAlert("Xatolik yuz berdi!");
+            } finally {
+                saveBtn.innerText = "SAQLASH";
+                saveBtn.disabled = false;
+            }
+        };
     };
 
     async function checkRegistration() {
@@ -326,138 +830,612 @@
             } else {
                 document.getElementById('reg-screen').style.display = 'flex';
             }
-        } catch (e) { document.getElementById('reg-screen').style.display = 'flex'; }
+        } catch (e) {
+            console.error("Firebase Error:", e);
+            // If firebase fails, still allow user to see reg screen or app container to prevent stuck loading
+            document.getElementById('reg-screen').style.display = 'flex';
+        }
     }
 
     window.completeRegistration = async () => {
         const name = document.getElementById('reg-name').value.trim();
-        const bday = document.getElementById('reg-birthdate').value;
-        if (name.length < 3 || !bday) return tg.showAlert("Ma'lumotlarni to'ldiring!");
-        await set(ref(db, `leaderboard/${user.id}`), { id: user.id, name, birthdate: bday, score: 0, level: 10, total_xp: 0, registered: true });
-        location.reload();
+        const surname = document.getElementById('reg-surname').value.trim();
+        const birthdate = document.getElementById('reg-birthdate').value;
+
+        if (name.length < 3) {
+            tg.showAlert("Iltimos, ismingizni kiriting")
+            return;
+        }
+        
+        if (!birthdate) {
+            tg.showAlert("Iltimos, tug'ilgan sanangizni tanlang!");
+            return;
+        }
+
+        try {
+            await set(ref(db, `leaderboard/${user.id}`), {
+                id: user.id,
+                name: name,
+                surname: surname,
+                birthdate: birthdate,
+                score: 0,
+                level: 10, // Default Division 10
+                total_xp: 0,
+                registered: true,
+                photo: ""
+            });
+            document.getElementById('reg-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            loadProfileData();
+        } catch (e) {
+            tg.showAlert("Xatolik yuz berdi, qaytadan uruning.");
+        }
     };
 
-    window.startGame = async (cat) => {
+    function calculateAge(birthDateString) {
+        if (!birthDateString) return null;
+        const today = new Date();
+        const birthDate = new Date(birthDateString);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        return age;
+    }
+
+    function daysUntilBirthday(birthDateString) {
+        if (!birthDateString) return null;
+        const today = new Date();
+        const birthDate = new Date(birthDateString);
+        const nextBday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+        if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
+        const diff = nextBday - today;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    function openCropModal(imgSrc) {
+        const modal = document.getElementById('crop-modal');
+        modal.style.display = 'flex';
+        const el = document.getElementById('crop-area');
+        
+        if (croppieInstance) {
+            croppieInstance.destroy();
+        }
+
+        croppieInstance = new Croppie(el, {
+            viewport: { width: 250, height: 250, type: 'circle' },
+            boundary: { width: 300, height: 300 },
+            showZoomer: true,
+            enableOrientation: true
+        });
+
+        croppieInstance.bind({
+            url: imgSrc
+        });
+    }
+
+    window.cancelCrop = () => {
+        document.getElementById('crop-modal').style.display = 'none';
+        document.getElementById('avatar-upload').value = "";
+    };
+
+    window.confirmCrop = () => {
+        croppieInstance.result({
+            type: 'base64',
+            size: { width: 300, height: 300 },
+            format: 'jpeg',
+            quality: 0.8,
+            circle: false
+        }).then(function(base64) {
+            document.getElementById('profile-avatar').innerHTML = `<img src="${base64}" alt="Profile">`;
+            document.getElementById('delete-avatar-btn').style.display = 'flex';
+            document.getElementById('save-profile-btn').style.display = 'block';
+            document.getElementById('crop-modal').style.display = 'none';
+        });
+    };
+
+    window.deleteAvatar = () => {
+        const nameInput = document.getElementById('profile-input-name');
+        const firstChar = nameInput.value.trim().charAt(0).toUpperCase() || user.first_name.charAt(0);
+        document.getElementById('profile-avatar').innerHTML = `<span>${firstChar}</span>`;
+        document.getElementById('delete-avatar-btn').style.display = 'none';
+        document.getElementById('save-profile-btn').style.display = 'block';
+    };
+
+    tg.BackButton.onClick(() => {
+        if(isPlaying) {
+            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
+                if(confirmed) quitGame();
+            });
+        }
+    });
+
+    window.setRankLimit = (limit) => {
+        rankLimit = limit;
+        document.getElementById('limit-10').classList.toggle('active', limit === 10);
+        document.getElementById('limit-100').classList.toggle('active', limit === 100);
+        loadLeaderboard();
+    };
+
+    function quitGame() {
+        isPlaying = false;
+        isPaused = false;
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
+        clearInterval(timerInterval);
+        
+        stopAllSounds();
+        audio.src = "";
+        
+        if (animationId) cancelAnimationFrame(animationId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('pre-game').style.display = 'block';
+        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('resume-overlay').style.display = 'none';
+        document.getElementById('level-complete-modal').style.display = 'none';
+        
+        score = 0;
+        lives = 3;
+        comboCount = 0;
+        currentIdx = 0;
+        
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `DIVISION: ${currentDivision} | SAVOL: 1/5`;
+        updateLivesUI();
+        document.getElementById('result-modal').style.display = 'none';
+        loadProfileData(); 
+    }
+
+    window.closeResultModal = () => {
+        quitGame();
+    };
+
+    window.showPage = (pageId, el) => {
+        if(isPlaying) return;
+        stopAllSounds();
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`page-${pageId}`).classList.add('active-page');
+        el.classList.add('active');
+        if(pageId === 'rank') loadLeaderboard();
+        if(pageId === 'profile') loadProfileData();
+    };
+
+    window.startGame = async (category) => {
+        if (!navigator.onLine) {
+            tg.showAlert("O'yinni boshlash uchun internet kerak!");
+            return;
+        }
+
+        [optionsTickSound, timerTickSound, correctSound, wrongSound].forEach(s => {
+            if(s.src) s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+        });
+
+        setupVisualizer();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        
+        currentCategory = category || 'uzbek';
         isPlaying = true;
+        isPaused = false;
+        
+        drawVisualizer();
+
+        try {
+            const setSnap = await get(ref(db, 'settings/timer'));
+            if(setSnap.exists()) adminTimerSettings = setSnap.val();
+        } catch(e) {}
+
+        try {
+            const userSnap = await get(ref(db, `leaderboard/${user.id}`));
+            if (userSnap.exists()) {
+                totalXp = userSnap.val().total_xp || 0;
+                currentDivision = getDivisionFromXp(totalXp);
+            }
+        } catch(e) {}
+
+        currentIdx = 0;
+        score = 0;
+        lives = 3;
+        comboCount = 0;
+        isBossRound = false;
+        
+        document.getElementById('score').innerText = "BALL: 0";
+        document.getElementById('round-counter').innerText = `DIVISION: ${currentDivision} | SAVOL: 1/5`;
+        updateLivesUI();
+        
+        tg.BackButton.show();
+        document.getElementById('bottom-nav').classList.add('hidden-nav');
         document.getElementById('pre-game').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
-        document.getElementById('bottom-nav').classList.add('hidden-nav');
         initGame();
     };
 
+    window.restartGame = () => {
+        quitGame();
+    };
+
     async function initGame() {
-        const snap = await get(ref(db, `questions/uzbek`));
-        if(snap.exists()) {
-            allQuestions = Object.values(snap.val());
-            loadLevelQuestions();
+        try {
+            const snap = await get(ref(db, `questions/${currentCategory}`));
+            if(snap.exists()) {
+                const data = snap.val();
+                allQuestions = Object.keys(data).map(key => ({
+                    ...data[key],
+                    firebaseId: key
+                }));
+                loadLevelQuestions();
+            } else {
+                tg.showAlert("Savollar topilmadi!");
+                quitGame();
+            }
+        } catch (e) {
+            tg.showAlert("Ma'lumot yuklashda xatolik!");
+            quitGame();
         }
     }
 
     function loadLevelQuestions() {
-        let diff = 11 - currentDivision;
-        questions = allQuestions.filter(q => (q.level || 1) == diff).sort(() => 0.5 - Math.random()).slice(0, 5);
-        currentIdx = 0;
-        loadRound();
+        isBossRound = false;
+        document.body.classList.remove('boss-active');
+        
+        let levelDifficulty = 11 - currentDivision;
+        
+        const levelData = allQuestions.filter(q => (q.level || 1) == levelDifficulty && !usedQuestions.has(q.firebaseId));
+        const normalQuestions = levelData.filter(q => !q.is_boss);
+        const bosses = levelData.filter(q => q.is_boss);
+        
+        if(normalQuestions.length > 0) {
+            questions = normalQuestions.sort(() => Math.random() - 0.5).slice(0, QUESTIONS_PER_LEVEL);
+            bossQuestion = bosses.length > 0 ? bosses[Math.floor(Math.random() * bosses.length)] : null;
+            currentIdx = 0;
+            loadRound();
+        } else {
+            levelDifficulty--;
+            if(levelDifficulty > 0) loadLevelQuestions();
+            else endGame(false);
+        }
     }
 
     async function loadRound() {
-        if (currentIdx >= questions.length || lives <= 0) return endGame();
-        const q = questions[currentIdx];
-        document.getElementById('round-counter').innerText = `SAVOL: ${currentIdx + 1}/5`;
-        const url = await fetchMusic(q.search_term);
-        if (url) {
-            audio.src = url;
-            audio.play();
-            startTimer(10);
-            renderOptions(q);
-        } else { currentIdx++; loadRound(); }
+        if(!isPlaying) return;
+        if(lives <= 0) { endGame(true); return; }
+        
+        let q;
+        const status = document.getElementById('status');
+        const optionsBox = document.getElementById('options-box');
+        const disc = document.getElementById('disc');
+        const roundCounter = document.getElementById('round-counter');
+
+        if(currentIdx >= questions.length) { 
+            if(bossQuestion && !isBossRound) {
+                isBossRound = true;
+                q = bossQuestion;
+                document.getElementById('combo-badge').style.display = 'none';
+                document.getElementById('combo-flame').style.display = 'none';
+                document.body.classList.add('boss-active');
+                tg.HapticFeedback.notificationOccurred('warning');
+                roundCounter.innerHTML = `<span class="boss-title">BOSS ROUND</span>`;
+            } else {
+                handleDivisionCheck();
+                return;
+            }
+        } else {
+            q = questions[currentIdx];
+            roundCounter.innerText = `DIVISION: ${currentDivision} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
+        }
+        
+        if(q) {
+            usedQuestions.add(q.firebaseId);
+            optionsBox.innerHTML = "";
+            optionsBox.classList.remove('show-options'); 
+            disc.classList.remove('spinning');
+            audio.pause();
+            status.innerText = "Musiqa qidirilmoqda...";
+            gamePhase = 'listening';
+
+            const musicUrl = await fetchMusic(q.search_term);
+            if(musicUrl) {
+                audio.src = musicUrl;
+                audio.playbackRate = isBossRound ? 1.05 : 1.0;
+                audio.onplay = () => {
+                    if (isPaused) { audio.pause(); return; }
+                    disc.classList.add('spinning'); 
+                    status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
+                    let diffLevel = 11 - currentDivision;
+                    let dTime = isBossRound ? (adminTimerSettings.boss || 15) : (adminTimerSettings.levels && adminTimerSettings.levels[diffLevel] ? adminTimerSettings.levels[diffLevel] : 10);
+                    startTimer(dTime);
+                };
+                audio.play().catch(() => { skipRound(); });
+            } else { skipRound(); return; }
+
+            const correctText = q.options[q.correct];
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.disabled = true;
+                btn.onclick = (e) => {
+                    const btns = document.querySelectorAll('.option-btn');
+                    btns.forEach(b => b.disabled = true);
+                    clearInterval(timerInterval);
+                    timerTickSound.pause();
+                    timerTickSound.currentTime = 0;
+
+                    if(opt === correctText) {
+                        btn.classList.add('correct'); 
+                        if(correctSound.src) { correctSound.currentTime = 0; correctSound.play().catch(()=>{}); }
+                        let pointsToAdd;
+                        if(isBossRound) {
+                            pointsToAdd = (q.score || 50) * (q.boss_combo || 1);
+                            showFloatingText(`BOSS COMBO x${q.boss_combo || 1} +${pointsToAdd}`, e.clientX, e.clientY);
+                            if(q.boss_gift && q.boss_gift.includes("+1 Jon")) lives = Math.min(3, lives + 1);
+                            updateLivesUI();
+                            tg.HapticFeedback.notificationOccurred('success');
+                        } else {
+                            comboCount++;
+                            pointsToAdd = (q.score || 10) * (Math.floor(comboCount / 3) + 1);
+                            showFloatingText(`+${pointsToAdd}`, e.clientX, e.clientY);
+                            updateComboUI();
+                            tg.HapticFeedback.impactOccurred('medium');
+                        }
+                        score += pointsToAdd;
+                        document.getElementById('score').innerText = "BALL: " + score;
+                    } else { handleWrongAnswer(btn, correctText); }
+                    setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
+                };
+                optionsBox.appendChild(btn);
+            });
+        }
     }
 
-    function renderOptions(q) {
-        const box = document.getElementById('options-box');
-        box.innerHTML = "";
-        box.classList.add('show-options');
-        q.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn reveal';
-            btn.innerText = opt;
-            btn.onclick = () => {
-                if (opt === q.options[q.correct]) {
-                    score += 10;
-                    btn.classList.add('correct');
-                } else {
-                    lives--;
-                    btn.classList.add('wrong');
-                    updateLivesUI();
-                }
-                setTimeout(() => { currentIdx++; loadRound(); }, 1000);
-            };
-            box.appendChild(btn);
+    async function handleDivisionCheck() {
+        const oldDivision = currentDivision;
+        const newTotalXp = totalXp + score;
+        const newDivision = getDivisionFromXp(newTotalXp);
+
+        if (newDivision < oldDivision) {
+            currentDivision = newDivision;
+            showDivisionUpAnimation(oldDivision, newDivision);
+        } else {
+            saveScore();
+            loadLevelQuestions();
+        }
+    }
+
+    function showDivisionUpAnimation(oldDiv, newDiv) {
+        const modal = document.getElementById('level-complete-modal');
+        const bar = document.getElementById('lvl-progress-fill');
+        const info = document.getElementById('lvl-info-text');
+        stopAllSounds();
+        modal.style.display = 'flex';
+        bar.style.width = '0%';
+        info.innerText = `DIVISION ${oldDiv} ➔ DIVISION ${newDiv}`;
+        tg.HapticFeedback.notificationOccurred('success');
+        setTimeout(() => {
+            bar.style.width = '100%';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                saveScore(); 
+                loadLevelQuestions();
+            }, 2000); 
+        }, 100);
+    }
+
+    function handleWrongAnswer(clickedBtn, correctText) {
+        if(clickedBtn) clickedBtn.classList.add('wrong');
+        if(wrongSound.src) { wrongSound.currentTime = 0; wrongSound.play().catch(()=>{}); }
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => { 
+            b.disabled = true;
+            if(b.innerText === correctText) b.classList.add('correct'); 
         });
+        comboCount = 0; updateComboUI(); lives--; updateLivesUI();
+        tg.HapticFeedback.notificationOccurred('error');
     }
 
-    function startTimer(s) {
-        let t = s;
+    function skipRound() { currentIdx++; loadRound(); }
+    function nextStep() { if(isBossRound) handleDivisionCheck(); else { currentIdx++; loadRound(); } }
+
+    function showFloatingText(text, x, y) {
+        const el = document.createElement('div');
+        el.className = 'floating-text';
+        if(isBossRound) el.style.color = 'var(--boss)';
+        el.innerText = text;
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+    }
+
+    function updateComboUI() {
+        const badge = document.getElementById('combo-badge');
+        const flame = document.getElementById('combo-flame');
+        if (isBossRound) { badge.style.display = 'none'; flame.style.display = 'none'; return; }
+        if (comboCount >= 3) {
+            badge.innerText = `COMBO x${Math.floor(comboCount / 3) + 1}`;
+            badge.style.display = 'block'; flame.style.display = 'block';
+            badge.style.animation = 'none'; badge.offsetHeight; 
+            badge.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        } else { badge.style.display = 'none'; flame.style.display = 'none'; }
+    }
+
+    function updateLivesUI() {
+        const livesEl = document.getElementById('lives');
+        livesEl.innerText = "🎵".repeat(Math.max(0, lives)) + "🔘".repeat(Math.max(0, 3 - lives));
+    }
+
+    function endGame(isGameOver) {
+        isPlaying = false; isPaused = false; tg.BackButton.hide();
+        document.getElementById('bottom-nav').classList.remove('hidden-nav');
+        document.getElementById('combo-badge').style.display = 'none';
+        document.getElementById('combo-flame').style.display = 'none';
+        document.getElementById('level-complete-modal').style.display = 'none';
+        clearInterval(timerInterval);
+        if (animationId) cancelAnimationFrame(animationId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stopAllSounds(); audio.src = "";
+        
+        saveScore();
+
+        const modal = document.getElementById('result-modal');
+        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-level').innerText = `DIVISION: ${currentDivision}`;
+        modal.style.display = 'flex';
+        document.body.classList.remove('boss-active');
+    }
+
+    async function fetchMusic(term, isRetry = false) {
+        if (!navigator.onLine) return null;
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=15&entity=song`);
+            const data = await res.json();
+            const f = data.results.filter(t => !["karaoke", "instrumental", "piano", "tribute"].some(m => (t.trackName || "").toLowerCase().includes(m)));
+            if (f.length > 0) return f[0].previewUrl;
+            if (!isRetry && term.includes(' - ')) return await fetchMusic(term.split(' - ')[1].trim(), true);
+            return data.results[0]?.previewUrl || null;
+        } catch (e) { return null; }
+    }
+
+    function startTimer(startTime) {
+        currentRemainingTime = startTime;
+        document.getElementById('timer').innerText = Math.floor(currentRemainingTime);
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            t--;
-            document.getElementById('timer').innerText = t;
-            if (t <= 0) { clearInterval(timerInterval); currentIdx++; loadRound(); }
+            if (!navigator.onLine || isPaused) return;
+            currentRemainingTime--; 
+            document.getElementById('timer').innerText = Math.max(0, Math.floor(currentRemainingTime));
+            if(currentRemainingTime <= 0) { 
+                clearInterval(timerInterval); audio.pause(); 
+                document.getElementById('disc').classList.remove('spinning');
+                showOptionsPhase();
+            }
         }, 1000);
     }
 
-    async function fetchMusic(term) {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&entity=song`);
-        const data = await res.json();
-        return data.results[0]?.previewUrl;
+    function showOptionsPhase() {
+        gamePhase = 'choosing';
+        const optionsBox = document.getElementById('options-box');
+        optionsBox.classList.add('show-options');
+        const btns = document.querySelectorAll('.option-btn');
+        document.getElementById('status').innerText = isBossRound ? "🔥 Kim aytgan? 🔥" : "Kim aytgan?";
+        let started = 0;
+        btns.forEach((btn, index) => {
+            setTimeout(() => {
+                if(!isPlaying || gamePhase !== 'choosing') return; 
+                btn.classList.add('reveal');
+                if(optionsTickSound.src && !isPaused) {
+                    const c = optionsTickSound.cloneNode(); c.play().catch(()=>{});
+                }
+                started++;
+                if(started === btns.length) {
+                    btns.forEach(b => b.disabled = false);
+                    setTimeout(() => {
+                        if(!isPlaying || gamePhase !== 'choosing') return;
+                        if(timerTickSound.src && !isPaused) { timerTickSound.loop = true; timerTickSound.play().catch(()=>{}); }
+                        startChoosingTimer(10); 
+                    }, 500);
+                }
+            }, index * 1000); 
+        });
     }
 
-    function updateLivesUI() { document.getElementById('lives').innerText = "🎵".repeat(lives); }
-
-    function endGame() {
-        isPlaying = false;
-        audio.pause();
-        document.getElementById('result-modal').style.display = 'flex';
-        document.getElementById('final-score').innerText = score;
-        saveScore();
+    function startChoosingTimer(seconds) {
+        currentRemainingTime = seconds;
+        document.getElementById('timer').innerText = currentRemainingTime;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!navigator.onLine || isPaused) return;
+            currentRemainingTime--;
+            document.getElementById('timer').innerText = Math.max(0, currentRemainingTime);
+            if(currentRemainingTime <= 0) {
+                clearInterval(timerInterval); timerTickSound.pause(); timerTickSound.currentTime = 0;
+                let q = isBossRound ? bossQuestion : questions[currentIdx];
+                handleWrongAnswer(null, q.options[q.correct]);
+                setTimeout(() => { if(isPlaying) nextStep(); }, 1500);
+            }
+        }, 1000);
     }
 
     async function saveScore() {
-        const snap = await get(ref(db, `leaderboard/${user.id}`));
-        const d = snap.val();
-        const newXp = (d.total_xp || 0) + score;
-        await update(ref(db, `leaderboard/${user.id}`), { total_xp: newXp, level: getDivFromXp(newXp) });
+        if (!navigator.onLine) return;
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        try {
+            const snap = await get(userRef);
+            const data = snap.exists() ? snap.val() : { score: 0, level: 10, total_xp: 0 };
+            
+            let updatedXp = (data.total_xp || 0) + (score > 0 ? score : 0);
+            let updatedDivision = getDivisionFromXp(updatedXp);
+            
+            await update(userRef, {
+                score: Math.max(score, data.score || 0),
+                level: updatedDivision,
+                total_xp: updatedXp,
+                id: user.id
+            });
+            totalXp = updatedXp;
+            currentDivision = updatedDivision;
+        } catch (e) {}
     }
-
-    window.showPage = (id, el) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById('page-' + id).classList.add('active-page');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        el.classList.add('active');
-        if (id === 'rank') loadLeaderboard();
-    };
 
     async function loadLeaderboard() {
-        const snap = await get(query(ref(db, 'leaderboard'), orderByChild('total_xp'), limitToLast(10)));
-        const list = document.getElementById('rank-list');
-        list.innerHTML = "";
-        Object.values(snap.val() || {}).sort((a,b) => b.total_xp - a.total_xp).forEach((u, i) => {
-            list.innerHTML += `<div class="rank-item"><span>#${i+1}</span><span>${u.name}</span><span>${u.total_xp} XP</span></div>`;
-        });
+        const listDiv = document.getElementById('rank-list');
+        const podiumDiv = document.getElementById('top-three-podium');
+        if (!navigator.onLine) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:var(--subtext); margin-top:10px;'>Internet kerak</p></div>";
+            podiumDiv.innerHTML = ""; return;
+        }
+        listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Yuklanmoqda...</p>";
+        try {
+            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('total_xp'), limitToLast(rankLimit)));
+            if(snap.exists()) {
+                listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
+                const rawData = []; snap.forEach(child => { 
+                    const userData = child.val();
+                    if(userData.total_xp > 0) { rawData.push(userData); }
+                });
+                rawData.sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
+                
+                rawData.slice(0, 3).forEach((u, i) => {
+                    const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
+                    const av = u.photo ? `<img src="${u.photo}">` : (u.name ? u.name.charAt(0).toUpperCase() : "?");
+                    item.innerHTML = `
+                        <div class="podium-avatar">${av}</div>
+                        <div class="podium-step rank-${rank}">
+                             <span class="podium-rank-num">${rank}</span>
+                             <div class="podium-info">
+                                <div class="podium-name">${u.name}</div>
+                                <div class="podium-score">D${u.level || 10}</div>
+                             </div>
+                        </div>`;
+                    podiumDiv.appendChild(item);
+                });
+
+                rawData.forEach((u, index) => {
+                    if (index < 3 && rankLimit > 3) return; 
+                    const item = document.createElement('div');
+                    item.className = "rank-item";
+                    if(u.id == user.id) item.style.borderColor = "var(--primary)";
+                    item.innerHTML = `
+                        <div class="rank-num">#${index + 1}</div>
+                        <div class="rank-name">${u.name} ${u.surname || ''}</div>
+                        <div class="rank-score-box">
+                            <span class="rank-score">XP: ${u.total_xp || 0}</span>
+                            <span class="rank-lvl" style="color:var(--division-gold)">DIV: ${u.level || 10}</span>
+                        </div>`;
+                    listDiv.appendChild(item);
+                });
+            } else { listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
+        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
     }
 
-    function loadProfileData() {
-        get(ref(db, `leaderboard/${user.id}`)).then(snap => {
-            const d = snap.val();
-            document.getElementById('profile-input-name').value = d.name;
-            document.getElementById('total-xp').innerText = d.total_xp;
-            document.getElementById('best-level').innerText = d.level;
-        });
-    }
-
-    window.restartGame = () => location.reload();
-    window.closeResultModal = () => location.reload();
-
-</script>
-</body>
-</html>
+    async function loadProfileData() {
+        const nameInput = document.getElementById('profile-input-name');
+        const surnameInput = document.getElementById('profile-input-surname');
+        const ageInfo = document.getElementById('profile-age-info');
+        const
