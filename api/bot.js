@@ -1,33 +1,32 @@
 const { Bot, webhookCallback } = require("grammy");
 
-// Bot tokeningizni Vercel Settings -> Environment Variables qismiga qo'shasiz
-const bot = new Bot(process.env.BOT_TOKEN);
+// Sizning tokeningiz joylandi
+const bot = new Bot("8034357680:AAHiJgpdI5kcnHDxK2jqHXtSZyAz1gAzMOw");
 
 bot.command("start", (ctx) => {
-    return ctx.reply("Salom! Instagramdan video yuklash uchun ilovani oching:", {
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: "Ilovani ochish", web_app: { url: `https://${process.env.VERCEL_URL}` } }]
-            ]
-        }
-    });
-});
-
-// Web App-dan kelgan linkni tutish
-bot.on("message:web_app_data", async (ctx) => {
-    const url = ctx.message.web_app_data.data;
-    await ctx.reply("Yuklanmoqda...");
-
-    try {
-        // ddinstagram xizmati orqali videoni yuklash
-        const videoUrl = url.replace("instagram.com", "ddinstagram.com");
-        await ctx.replyWithVideo(videoUrl, {
-            caption: "Video tayyor! ✅"
-        });
-    } catch (e) {
-        await ctx.reply("Xatolik: Videoni yuklab bo'lmadi. Profil yopiq bo'lishi mumkin.");
+  return ctx.reply("Instagram video linkini yuboring yoki Web App-ni oching!", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "Ilovani ochish", web_app: { url: `https://${process.env.VERCEL_URL}` } }]
+      ]
     }
+  });
 });
 
-// Vercel webhook xizmati uchun eksport
+const handleVideo = async (ctx, url) => {
+  if (url.includes("instagram.com")) {
+    await ctx.reply("Video tayyorlanmoqda...");
+    // ddinstagram orqali yuklash
+    const videoLink = url.replace("instagram.com", "ddinstagram.com");
+    try {
+      await ctx.replyWithVideo(videoLink, { caption: "Tayyor! ✅" });
+    } catch (e) {
+      await ctx.reply("Xatolik! Video yopiq profildan bo'lishi mumkin.");
+    }
+  }
+};
+
+bot.on("message:text", (ctx) => handleVideo(ctx, ctx.message.text));
+bot.on("message:web_app_data", (ctx) => handleVideo(ctx, ctx.message.web_app_data.data));
+
 module.exports = webhookCallback(bot, "http");
