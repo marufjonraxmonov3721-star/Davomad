@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Pro</title>
+    <title>SongLyrics Pro - Division Season</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
@@ -21,7 +21,7 @@
             --text: #ffffff;
             --subtext: #888888;
             --border: #333333;
-            --division-gold: linear-gradient(135deg, #ffd700, #ff8c00);
+            --div-gold: linear-gradient(135deg, #ffd700, #b8860b);
         }
 
         /* Light Mode Styles */
@@ -158,11 +158,6 @@
             background: #111; border: 2px solid var(--primary); width: 100%; max-width: 320px;
             border-radius: 35px; padding: 30px 20px; text-align: center;
             box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .division-badge {
-            background: var(--division-gold); color: #000; padding: 5px 15px;
-            border-radius: 8px; font-weight: 900; display: inline-block; margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
         .progress-container {
             width: 100%; height: 12px; background: #222; border-radius: 10px; 
@@ -335,6 +330,12 @@
             display: none; flex-direction: column; align-items: center; justify-content: center;
         }
         #resume-countdown { font-size: 100px; font-weight: 900; color: var(--primary); }
+        
+        /* Division Badge Style */
+        .division-badge { 
+            background: var(--div-gold); color: #000; padding: 2px 8px; 
+            border-radius: 4px; font-weight: 900; font-size: 10px; margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -371,14 +372,13 @@
 
 <div id="level-complete-modal">
     <div class="level-card">
-        <div class="division-badge" id="lvl-division-badge">DIVISION 10</div>
         <span class="star-anim">🏆</span>
-        <h2 id="lvl-complete-title" style="color:var(--primary); font-size: 24px;">XUSH HABAR!</h2>
-        <p id="lvl-complete-text" style="color:#888; margin-top:10px;">Siz yangi divizionga yaqinlashyapsiz...</p>
+        <h2 id="lvl-complete-title" style="color:var(--primary); font-size: 24px;">YANGI DIVIZION!</h2>
+        <p id="lvl-complete-text" style="color:#888; margin-top:10px;">Sizning mahoratingiz oshmoqda!</p>
         <div class="progress-container">
             <div id="lvl-progress-fill" class="progress-fill-anim"></div>
         </div>
-        <p id="lvl-info-text" style="font-weight: bold; color: #fff;">DIV 10 ➔ DIV 9</p>
+        <p id="lvl-info-text" style="font-weight: bold; color: #fff;">DIVISION 10 ➔ DIVISION 9</p>
     </div>
 </div>
 
@@ -388,7 +388,7 @@
         <h1 id="result-title" style="color:var(--primary); margin-bottom:10px;">O'yin tugadi!</h1>
         <p style="color:var(--subtext); margin-bottom:5px;">Sizning natijangiz:</p>
         <div id="final-score" style="font-size: 48px; font-weight: 800; color: var(--text); margin-bottom: 5px;">0</div>
-        <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">DIVISION: 10</p>
+        <p id="final-level" style="color:var(--primary); font-weight: bold; margin-bottom: 25px;">DIVIZION: 10</p>
         <button class="start-btn" onclick="restartGame()" style="width: 100%;">QAYTA O'YNASH</button>
     </div>
 </div>
@@ -414,7 +414,7 @@
                 <div style="display:flex; justify-content:space-between; align-items: center; font-size:14px; color:var(--primary); font-weight:bold; margin-bottom: 25px;">
                     <div id="game-stats-left" style="text-align: left;">
                         <span id="score" style="font-size: 18px;">BALL: 0</span><br>
-                        <span id="round-counter" style="font-size: 11px; color: var(--subtext);">DIV 10 | SAVOL: 1/5</span>
+                        <span id="round-counter" style="font-size: 11px; color: var(--subtext);">DIVIZION: 10 | SAVOL: 1/5</span>
                     </div>
                     <div style="text-align: right;">
                         <div id="lives" class="lives-container">🎵🎵🎵</div>
@@ -431,12 +431,12 @@
             </div>
             
             <div id="pre-game">
-                <h2 style="margin-bottom:10px; color: var(--text);">Xush kelibsiz!</h2>
-                <p style="color:var(--subtext); margin-bottom:30px;">Division 1 sari yo'l oling. Musiqalarni toping va reytingingizni oshiring!</p>
+                <h2 style="margin-bottom:10px; color: var(--text);">Mavsum boshlandi!</h2>
+                <p style="color:var(--subtext); margin-bottom:30px;">Divizionlarda ko'tarilib, 1-o'ringa chiqing. Har bir g'alaba sizni yuqoriga yetaklaydi!</p>
                 
                 <div class="start-container">
                     <button class="main-play-btn" onclick="startGame('uzbek')">
-                        <i class="fas fa-play"></i> O'yinni boshlash
+                        <i class="fas fa-play"></i> Division Match
                     </button>
                 </div>
             </div>
@@ -445,7 +445,7 @@
 
     <div id="page-rank" class="page">
         <div class="leaderboard-card">
-            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size: 16px; font-weight: 900;">ENG YAXSHI UCHLIK</h2>
+            <h2 style="color:var(--primary); text-align:center; margin-bottom:10px; font-size: 16px; font-weight: 900;">DUNYO REYTINGI</h2>
             <div class="podium-container" id="top-three-podium"></div>
             <div class="rank-tabs">
                 <button class="rank-tab active" id="limit-10" onclick="setRankLimit(10)">TOP 10</button>
@@ -480,8 +480,8 @@
             <button id="save-profile-btn" class="save-profile-btn">SAQLASH</button>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Joriy Divizion</div>
-                    <div class="stat-value" id="best-level">Division 10</div>
+                    <div class="stat-label">Hozirgi Divizion</div>
+                    <div class="stat-value" id="best-level">10</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">Eng yuqori natija</div>
@@ -497,8 +497,8 @@
 
     <nav class="nav-bar" id="bottom-nav">
         <div class="nav-item active" onclick="showPage('game', this)">
-            <span class="nav-icon">🎮</span>
-            <span>O'yin</span>
+            <span class="nav-icon">⚽</span>
+            <span>Match</span>
         </div>
         <div class="nav-item" onclick="showPage('rank', this)">
             <span class="nav-icon">🏆</span>
@@ -537,17 +537,17 @@
     let isPaused = false;
     let comboCount = 0;
     let currentCategory = 'uzbek';
-    
-    // Division System: Foydalanuvchi Division 10 dan boshlaydi (Level 1 degani)
-    // 1-Divisionga chiqish uchun Level 10 gacha borish kerak (Har bir level 1 div)
-    let currentLevel = 1; 
-    let currentDivision = 10; 
-
+    let currentDivision = 10; // eFootball style starts from Div 10
     let isBossRound = false;
     let bossQuestion = null;
     let adminTimerSettings = {};
     const QUESTIONS_PER_LEVEL = 5;
     
+    // Division Promotion XP thresholds (Example: to reach Div 9 you need 1000 XP)
+    const DIVISION_XP_THRESHOLDS = {
+        10: 0, 9: 500, 8: 1200, 7: 2500, 6: 5000, 5: 9000, 4: 15000, 3: 25000, 2: 40000, 1: 70000
+    };
+
     let optionsTickSound = new Audio();
     let timerTickSound = new Audio();
     let correctSound = new Audio();
@@ -566,12 +566,6 @@
     let croppieInstance = null;
 
     let audioContext, analyser, dataArray, canvas, ctx, animationId;
-
-    function getDivisionName(level) {
-        // eFootball mantiqi: Level 1 -> Div 10, Level 10 -> Div 1
-        let div = 11 - level;
-        return div > 0 ? "DIVISION " + div : "DIVISION 1 Elite";
-    }
 
     function setupVisualizer() {
         if (audioContext) return;
@@ -823,7 +817,7 @@
                 surname: surname,
                 birthdate: birthdate,
                 score: 0,
-                level: 1,
+                level: 10, // Starting division
                 total_xp: 0,
                 registered: true,
                 photo: ""
@@ -907,7 +901,7 @@
 
     tg.BackButton.onClick(() => {
         if(isPlaying) {
-            tg.showConfirm("O'yinni tark etmoqchimisiz? To'plangan ballar saqlanmaydi!", (confirmed) => {
+            tg.showConfirm("Matchni tark etmoqchimisiz? Natija saqlanmaydi!", (confirmed) => {
                 if(confirmed) quitGame();
             });
         }
@@ -946,10 +940,9 @@
         lives = 3;
         comboCount = 0;
         currentIdx = 0;
-        // currentLevel o'zgarmasligi kerak chunki u profil ma'lumoti
         
         document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `${getDivisionName(currentLevel)} | SAVOL: 1/5`;
+        document.getElementById('round-counter').innerText = `DIVIZION: ${currentDivision} | SAVOL: 1/5`;
         updateLivesUI();
         document.getElementById('result-modal').style.display = 'none';
     }
@@ -971,7 +964,7 @@
 
     window.startGame = async (category) => {
         if (!navigator.onLine) {
-            tg.showAlert("O'yinni boshlash uchun internet kerak!");
+            tg.showAlert("Matchni boshlash uchun internet kerak!");
             return;
         }
 
@@ -996,11 +989,11 @@
         try {
             const userSnap = await get(ref(db, `leaderboard/${user.id}`));
             if (userSnap.exists()) {
-                currentLevel = userSnap.val().level || 1;
+                currentDivision = userSnap.val().level || 10;
             } else {
-                currentLevel = 1;
+                currentDivision = 10;
             }
-        } catch(e) { currentLevel = 1; }
+        } catch(e) { currentDivision = 10; }
 
         currentIdx = 0;
         score = 0;
@@ -1009,7 +1002,7 @@
         isBossRound = false;
         
         document.getElementById('score').innerText = "BALL: 0";
-        document.getElementById('round-counter').innerText = `${getDivisionName(currentLevel)} | SAVOL: 1/5`;
+        document.getElementById('round-counter').innerText = `DIVIZION: ${currentDivision} | SAVOL: 1/5`;
         updateLivesUI();
         
         tg.BackButton.show();
@@ -1034,7 +1027,7 @@
                 }));
                 loadLevelQuestions();
             } else {
-                tg.showAlert("Savollar topilmadi!");
+                tg.showAlert("Match savollari topilmadi!");
                 quitGame();
             }
         } catch (e) {
@@ -1046,7 +1039,9 @@
     function loadLevelQuestions() {
         isBossRound = false;
         document.body.classList.remove('boss-active');
-        const levelData = allQuestions.filter(q => (q.level || 1) == currentLevel && !usedQuestions.has(q.firebaseId));
+        // Filter based on division logic (e.g. Div 10 uses level 1 questions)
+        const mappedLevel = Math.max(1, 11 - currentDivision);
+        const levelData = allQuestions.filter(q => (q.level || 1) == mappedLevel && !usedQuestions.has(q.firebaseId));
         const normalQuestions = levelData.filter(q => !q.is_boss);
         const bosses = levelData.filter(q => q.is_boss);
         
@@ -1056,11 +1051,12 @@
             currentIdx = 0;
             loadRound();
         } else {
-            // Agar savol qolmagan bo'lsa (Level tugasa)
-            currentLevel++;
-            const nextLevelData = allQuestions.filter(q => (q.level || 1) == currentLevel);
-            if(nextLevelData.length > 0) loadLevelQuestions();
-            else endGame(false);
+            // If no more questions for this "level", move up difficulty
+            const nextLevelData = allQuestions.filter(q => (q.level || 1) == (mappedLevel + 1));
+            if(nextLevelData.length > 0) {
+                // We keep division but increase internal difficulty if needed
+                loadRound(); 
+            } else endGame(false);
         }
     }
 
@@ -1082,14 +1078,14 @@
                 document.getElementById('combo-flame').style.display = 'none';
                 document.body.classList.add('boss-active');
                 tg.HapticFeedback.notificationOccurred('warning');
-                roundCounter.innerHTML = `<span class="boss-title">BOSS CHALLENGE</span>`;
+                roundCounter.innerHTML = `<span class="boss-title">PROMOTION MATCH</span>`;
             } else {
-                showLevelCompleteAnimation();
+                checkDivisionPromotion();
                 return;
             }
         } else {
             q = questions[currentIdx];
-            roundCounter.innerText = `${getDivisionName(currentLevel)} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
+            roundCounter.innerText = `DIVIZION: ${currentDivision} | SAVOL: ${currentIdx + 1}/${QUESTIONS_PER_LEVEL}`;
         }
         
         if(q) {
@@ -1098,7 +1094,7 @@
             optionsBox.classList.remove('show-options'); 
             disc.classList.remove('spinning');
             audio.pause();
-            status.innerText = "Musiqa qidirilmoqda...";
+            status.innerText = "Musiqa yuklanmoqda...";
             gamePhase = 'listening';
 
             const musicUrl = await fetchMusic(q.search_term);
@@ -1108,8 +1104,8 @@
                 audio.onplay = () => {
                     if (isPaused) { audio.pause(); return; }
                     disc.classList.add('spinning'); 
-                    status.innerText = isBossRound ? "🔥 BOSS: Diqqat bilan eshiting! 🔥" : "Diqqat bilan eshiting...";
-                    let dTime = isBossRound ? (adminTimerSettings.boss || 15) : (adminTimerSettings.levels && adminTimerSettings.levels[currentLevel] ? adminTimerSettings.levels[currentLevel] : 10);
+                    status.innerText = isBossRound ? "🔥 FINAL MATCH: Diqqat qiling! 🔥" : "Diqqat bilan eshiting...";
+                    let dTime = isBossRound ? (adminTimerSettings.boss || 15) : (adminTimerSettings.levels && adminTimerSettings.levels[Math.max(1, 11-currentDivision)] ? adminTimerSettings.levels[Math.max(1, 11-currentDivision)] : 10);
                     startTimer(dTime);
                 };
                 audio.play().catch(() => { skipRound(); });
@@ -1136,7 +1132,7 @@
                         let pointsToAdd;
                         if(isBossRound) {
                             pointsToAdd = (q.score || 50) * (q.boss_combo || 1);
-                            showFloatingText(`BOSS COMBO x${q.boss_combo || 1} +${pointsToAdd}`, e.clientX, e.clientY);
+                            showFloatingText(`MATCH COMBO x${q.boss_combo || 1} +${pointsToAdd}`, e.clientX, e.clientY);
                             if(q.boss_gift && q.boss_gift.includes("+1 Jon")) lives = Math.min(3, lives + 1);
                             updateLivesUI();
                             tg.HapticFeedback.notificationOccurred('success');
@@ -1157,26 +1153,44 @@
         }
     }
 
-    function showLevelCompleteAnimation() {
+    async function checkDivisionPromotion() {
+        const userRef = ref(db, `leaderboard/${user.id}`);
+        const snap = await get(userRef);
+        const userData = snap.val();
+        const totalXp = (userData.total_xp || 0) + score;
+        
+        let nextDiv = currentDivision;
+        // Check if total XP qualifies for a higher division (lower number)
+        for (let div = 1; div < currentDivision; div++) {
+            if (totalXp >= DIVISION_XP_THRESHOLDS[div]) {
+                nextDiv = div;
+                break;
+            }
+        }
+
+        if (nextDiv < currentDivision) {
+            showLevelCompleteAnimation(currentDivision, nextDiv);
+            currentDivision = nextDiv;
+        } else {
+            // Just finished match without promotion
+            endGame(false);
+        }
+        saveScore();
+    }
+
+    function showLevelCompleteAnimation(oldDiv, newDiv) {
         const modal = document.getElementById('level-complete-modal');
         const bar = document.getElementById('lvl-progress-fill');
         const info = document.getElementById('lvl-info-text');
-        const badge = document.getElementById('lvl-division-badge');
-        
         stopAllSounds();
         modal.style.display = 'flex';
         bar.style.width = '0%';
-        
-        badge.innerText = getDivisionName(currentLevel);
-        info.innerText = `${getDivisionName(currentLevel)} ➔ ${getDivisionName(currentLevel + 1)}`;
-        
+        info.innerText = `DIVISION ${oldDiv} ➔ DIVISION ${newDiv}`;
         tg.HapticFeedback.notificationOccurred('success');
         setTimeout(() => {
             bar.style.width = '100%';
             setTimeout(() => {
                 modal.style.display = 'none';
-                currentLevel++;
-                saveScore(); 
                 loadLevelQuestions();
             }, 2000); 
         }, 100);
@@ -1195,7 +1209,7 @@
     }
 
     function skipRound() { currentIdx++; loadRound(); }
-    function nextStep() { if(isBossRound) showLevelCompleteAnimation(); else { currentIdx++; loadRound(); } }
+    function nextStep() { if(isBossRound) checkDivisionPromotion(); else { currentIdx++; loadRound(); } }
 
     function showFloatingText(text, x, y) {
         const el = document.createElement('div');
@@ -1236,9 +1250,9 @@
         stopAllSounds(); audio.src = "";
         saveScore();
         const modal = document.getElementById('result-modal');
-        document.getElementById('result-title').innerText = isGameOver ? "O'yin tugadi!" : "G'alaba!";
+        document.getElementById('result-title').innerText = isGameOver ? "Match tugadi!" : "G'alaba!";
         document.getElementById('final-score').innerText = score;
-        document.getElementById('final-level').innerText = `JORIY REYTING: ${getDivisionName(currentLevel)}`;
+        document.getElementById('final-level').innerText = `Hozirgi Divizion: ${currentDivision}`;
         modal.style.display = 'flex';
         document.body.classList.remove('boss-active');
     }
@@ -1320,10 +1334,10 @@
         const userRef = ref(db, `leaderboard/${user.id}`);
         try {
             const snap = await get(userRef);
-            const data = snap.exists() ? snap.val() : { score: 0, level: 1, total_xp: 0 };
+            const data = snap.exists() ? snap.val() : { score: 0, level: 10, total_xp: 0 };
             await update(userRef, {
                 score: Math.max(score, data.score || 0),
-                level: Math.max(currentLevel, data.level || 1),
+                level: currentDivision, // We store current division here
                 total_xp: increment(score > 0 ? score : 0),
                 id: user.id
             });
@@ -1337,16 +1351,17 @@
             listDiv.innerHTML = "<div style='text-align:center; padding:20px;'><span style='font-size:40px;'>🌐</span><p style='color:var(--subtext); margin-top:10px;'>Internet kerak</p></div>";
             podiumDiv.innerHTML = ""; return;
         }
-        listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Yuklanmoqda...</p>";
+        listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Mavsum natijalari...</p>";
         try {
-            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(rankLimit)));
+            // Rank by Total XP for global leaderboards
+            const snap = await get(query(ref(db, 'leaderboard'), orderByChild('total_xp'), limitToLast(rankLimit)));
             if(snap.exists()) {
                 listDiv.innerHTML = ""; podiumDiv.innerHTML = "";
                 const rawData = []; snap.forEach(child => { 
                     const userData = child.val();
-                    if(userData.score > 0) { rawData.push(userData); }
+                    if(userData.total_xp > 0) { rawData.push(userData); }
                 });
-                rawData.sort((a, b) => (b.score || 0) - (a.score || 0));
+                rawData.sort((a, b) => (b.total_xp || 0) - (a.total_xp || 0));
                 
                 rawData.slice(0, 3).forEach((u, i) => {
                     const rank = i + 1; const item = document.createElement('div'); item.className = `podium-item`;
@@ -1356,8 +1371,8 @@
                         <div class="podium-step rank-${rank}">
                              <span class="podium-rank-num">${rank}</span>
                              <div class="podium-info">
-                                <div class="podium-name">${u.name}</div>
-                                <div class="podium-score">${u.score} PT</div>
+                                <div class="podium-name">${u.name} <span class="division-badge">DIV ${u.level || 10}</span></div>
+                                <div class="podium-score">${u.total_xp} XP</div>
                              </div>
                         </div>`;
                     podiumDiv.appendChild(item);
@@ -1372,20 +1387,5 @@
                         <div class="rank-num">#${index + 1}</div>
                         <div class="rank-name">${u.name} ${u.surname || ''}</div>
                         <div class="rank-score-box">
-                            <span class="rank-score">${u.score}</span>
-                            <span class="rank-lvl">${getDivisionName(u.level || 1)}</span>
-                        </div>`;
-                    listDiv.appendChild(item);
-                });
-            } else { listDiv.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Hali natijalar yo'q</p>"; podiumDiv.innerHTML = ""; }
-        } catch (e) { listDiv.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Tarmoq xatosi!</p>"; }
-    }
-
-    async function loadProfileData() {
-        const nameInput = document.getElementById('profile-input-name');
-        const surnameInput = document.getElementById('profile-input-surname');
-        const ageInfo = document.getElementById('profile-age-info');
-        const bdayInfo = document.getElementById('profile-bday-countdown');
-        const profileId = document.getElementById('profile-id');
-        const bS = document.getElementById('best-score'); const bL = document.getElementById('best-level');
-        const tX = document.getElementById('total-xp'); const pA
+                            <span class="rank-score">${u.total_xp} XP</span>
+                            <span class="
