@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insta-Tracker Maruf</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: #000; color: #fff; padding: 20px; }
+        .card { background: #111; border: 1px solid #222; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: #fff; border-radius: 8px; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-insta { background: linear-gradient(45deg, #f09433, #bc1888); color: #fff; }
+        .loading { display: none; color: #E1306C; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align: center; margin-bottom: 20px;">marufraxmonov_ Tracker</h2>
+
+    <div id="login-form" class="card">
+        <input type="text" id="insta-user" placeholder="Instagram Username">
+        <input type="password" id="insta-pass" placeholder="Password">
+        <p id="loader" class="loading">Instagramga ulanmoqda...</p>
+        <button class="btn-insta" onclick="runTracker()">REFRESH STATS</button>
+    </div>
+
+    <div class="grid">
+        <div class="card"> <h2 id="f-count">0</h2> <p>Followers</p> </div>
+        <div class="card"> <h2 id="fg-count">0</h2> <p>Following</p> </div>
+        <div class="card"> <h2 id="dfb-count" style="color: #ff3131;">0</h2> <p>Not Back</p> </div>
+        <div class="card"> <h2 id="m-count" style="color: #4cd137;">0</h2> <p>Mutual</p> </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
+            authDomain: "songlyrics-caption.firebaseapp.com",
+            projectId: "songlyrics-caption",
+            appId: "1:363615493684:web:35752e22517bfaedae7461"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.runTracker = async function() {
+            const u = document.getElementById('insta-user').value;
+            const p = document.getElementById('insta-pass').value;
+            const loader = document.getElementById('loader');
+
+            if(!u || !p) return alert("Login va parolni yozing!");
+
+            loader.style.display = "block";
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+
+                const data = await response.json();
+
+                if(data.success) {
+                    document.getElementById('f-count').innerText = data.followers;
+                    document.getElementById('fg-count').innerText = data.following;
+                    document.getElementById('dfb-count').innerText = data.dontFollowBack;
+                    document.getElementById('m-count').innerText = data.mutual;
+
+                    // Firebase-ga ham saqlab qo'yamiz
+                    await setDoc(doc(db, "users", u), {
+                        followers: data.followers,
+                        following: data.following,
+                        lastSync: new Date().toISOString()
+                    });
+                } else {
+                    alert("Xato: " + data.error);
+                }
+            } catch (e) {
+                alert("Server bilan ulanishda xato!");
+            } finally {
+                loader.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
