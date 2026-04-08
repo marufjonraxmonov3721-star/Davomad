@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Sekund Battle</title>
+    <title>10 Sekund Battle - Division Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -81,17 +81,27 @@
             border-radius: 15px; display: flex; justify-content: space-between;
         }
         .diff { font-size: 12px; color: #e74c3c; } /* Xatolik ko'rsatkichi */
+
+        /* User Info Stats */
+        .user-stats {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; font-size: 14px;
+        }
+        .stat-badge { background: #333; padding: 5px 12px; border-radius: 20px; color: #f1c40f; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="page-game" class="page active-page">
         <div style="text-align: center;">
-            <p id="user-name" style="color: #aaa; margin: 0;">Yuklanmoqda...</p>
+            <p id="user-name" style="color: #aaa; margin: 0; margin-bottom: 5px;">Yuklanmoqda...</p>
+            <div class="user-stats">
+                <span class="stat-badge" id="user-div">Div: 1</span>
+                <span class="stat-badge" id="user-pts">Ball: 0</span>
+            </div>
         </div>
 
         <div id="timer-container">
-            <div class="target-text">Maqsad: 10.000s</div>
+            <div class="target-text" id="target-label">Maqsad: 10.000s</div>
             <div id="display">0.000</div>
         </div>
 
@@ -100,7 +110,7 @@
     </div>
 
     <div id="page-rating" class="page">
-        <h2 style="text-align: center;">Eng Aniq O'yinchilar</h2>
+        <h2 style="text-align: center;">Division Reytingi</h2>
         <div id="leaderboard"></div>
     </div>
 
@@ -143,13 +153,39 @@
         let startTime;
         let timerInterval;
         let isRunning = false;
+        let divSettings = {};
+        let myCurrentData = { points: 0, division: 1 };
+
+        // 1. Sozlamalarni yuklash
+        onValue(ref(db, 'settings/divisions'), (snapshot) => {
+            divSettings = snapshot.val();
+            updateGameUI();
+        });
+
+        // 2. Foydalanuvchi ma'lumotlarini yuklash
+        onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
+            if (snapshot.exists()) {
+                myCurrentData = snapshot.val();
+                document.getElementById('user-div').innerText = `Div: ${myCurrentData.division || 1}`;
+                document.getElementById('user-pts').innerText = `Ball: ${myCurrentData.points || 0}`;
+                updateGameUI();
+            }
+        });
+
+        function updateGameUI() {
+            const d = myCurrentData.division || 1;
+            if (divSettings && divSettings[d]) {
+                document.getElementById('target-label').innerText = `Maqsad: ${divSettings[d].target.toFixed(3)}s`;
+            }
+        }
 
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
+            const currentDiv = myCurrentData.division || 1;
+            const rules = divSettings && divSettings[currentDiv] ? divSettings[currentDiv] : { target: 10, nearLimit: 0.05, plusPoints: 30, minusPoints: 30 };
 
             if (!isRunning) {
-                // START
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP";
@@ -161,7 +197,6 @@
                     display.innerText = elapsed.toFixed(3);
                 }, 10);
             } else {
-                // STOP
                 isRunning = false;
                 clearInterval(timerInterval);
                 const finalTime = (Date.now() - startTime) / 1000;
@@ -169,22 +204,36 @@
                 btn.innerText = "START";
                 btn.className = "btn-main start";
 
-                const diff = Math.abs(10.000 - finalTime).toFixed(3);
-                document.getElementById('last-result').innerText = `Farq: ${diff}s`;
+                const diff = Math.abs(rules.target - finalTime);
+                let pointChange = 0;
 
-                // Bazaga saqlash
+                if (diff <= rules.nearLimit) {
+                    pointChange = parseInt(rules.plusPoints);
+                    document.getElementById('last-result').style.color = "#2ecc71";
+                    document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
+                    tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    pointChange = -parseInt(rules.minusPoints);
+                    document.getElementById('last-result').style.color = "#e74c3c";
+                    document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
+                    tg.HapticFeedback.notificationOccurred('error');
+                }
+
+                let newPoints = (myCurrentData.points || 0) + pointChange;
+                if (newPoints < 0) newPoints = 0;
+
+                // Division hisoblash: Har 100 ball bitta division
+                let newDivision = Math.floor(newPoints / 100) + 1;
+                if (newDivision > 10) newDivision = 10;
+
+                // Bazaga yangilash
                 update(ref(db, 'leaderboard/' + myId), {
                     name: myName,
-                    bestDiff: diff,
-                    time: finalTime.toFixed(3)
+                    points: newPoints,
+                    division: newDivision,
+                    bestDiff: diff.toFixed(3),
+                    lastTime: finalTime.toFixed(3)
                 });
-
-                if(diff == 0.000) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                    alert("DAHSHAT! ROSTIDANHAM 10 SEKUND!");
-                } else {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
             }
         };
 
@@ -199,17 +248,17 @@
             const data = snapshot.val();
             if (!data) return;
 
-            const list = Object.values(data).sort((a, b) => a.bestDiff - b.bestDiff).slice(0, 20);
+            const list = Object.values(data).sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 30);
             const container = document.getElementById('leaderboard');
             container.innerHTML = '';
 
             list.forEach((p, i) => {
                 container.innerHTML += `
                     <div class="rank-item">
-                        <span><b>#${i+1}</b> ${p.name}</span>
+                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div: ${p.division || 1})</small></span>
                         <div style="text-align: right">
-                            <div>${p.time}s</div>
-                            <div class="diff">Farq: ${p.bestDiff}s</div>
+                            <div style="color:#f1c40f; font-weight:bold;">${p.points || 0} pts</div>
+                            <div class="diff">Farq: ${p.bestDiff || '0'}s</div>
                         </div>
                     </div>
                 `;
