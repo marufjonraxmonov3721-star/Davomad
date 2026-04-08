@@ -170,7 +170,6 @@
                 document.getElementById('user-pts').innerText = `Ball: ${myCurrentData.points || 0}`;
                 updateGameUI();
             } else {
-                // Yangi o'yinchi bo'lsa, 10-diviziondan boshlaydi
                 update(ref(db, 'leaderboard/' + myId), {
                     name: myName,
                     points: 0,
@@ -211,34 +210,50 @@
                 btn.innerText = "START";
                 btn.className = "btn-main start";
 
-                const diff = Math.abs(rules.target - finalTime);
+                const diffVal = Math.abs(rules.target - finalTime);
+                const diffStr = diffVal.toFixed(3);
                 let pointChange = 0;
+                let newDivision = currentDiv;
+                let newPoints = myCurrentData.points || 0;
 
-                if (diff <= rules.nearLimit) {
+                if (diffStr === "0.000" && currentDiv > 1) {
+                    // 100% ANIQLIK - Keyingi divizionga sakrash!
+                    newDivision = currentDiv - 1;
+                    // Ballni yangi divizion boshlanish chegarasiga o'tkazish
+                    newPoints = (10 - newDivision) * 100;
+                    
+                    document.getElementById('last-result').style.color = "#f1c40f";
+                    document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH!`;
+                    tg.HapticFeedback.notificationOccurred('success');
+                } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints);
+                    newPoints += pointChange;
                     document.getElementById('last-result').style.color = "#2ecc71";
                     document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('success');
+                    
+                    // Ball orqali divizionni hisoblash
+                    newDivision = 10 - Math.floor(newPoints / 100);
                 } else {
                     pointChange = -parseInt(rules.minusPoints);
+                    newPoints += pointChange;
+                    if (newPoints < 0) newPoints = 0;
                     document.getElementById('last-result').style.color = "#e74c3c";
                     document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('error');
+                    
+                    // Ball orqali divizionni hisoblash
+                    newDivision = 10 - Math.floor(newPoints / 100);
                 }
 
-                let newPoints = (myCurrentData.points || 0) + pointChange;
-                if (newPoints < 0) newPoints = 0;
-
-                // Division hisoblash: 10 dan 1 ga qarab (Har 100 ball bitta division ko'tariladi)
-                let newDivision = 10 - Math.floor(newPoints / 100);
                 if (newDivision < 1) newDivision = 1;
+                if (newDivision > 10) newDivision = 10;
 
-                // Bazaga yangilash
                 update(ref(db, 'leaderboard/' + myId), {
                     name: myName,
                     points: newPoints,
                     division: newDivision,
-                    bestDiff: diff.toFixed(3),
+                    bestDiff: diffStr,
                     lastTime: finalTime.toFixed(3)
                 });
             }
