@@ -2,39 +2,161 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reaction Battle TWA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; margin: 0; text-align: center; color: white; background: #222; }
-        #game-area { width: 100vw; height: 70vh; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; font-size: 24px; font-weight: bold; margin-top: 20px; border-radius: 20px;}
-        .waiting { background-color: #f39c12; }
-        .ready { background-color: #e74c3c; }
-        .go { background-color: #2ecc71; }
-        #results { padding: 20px; text-align: left; background: #333; margin: 10px; border-radius: 10px; }
-        .player-row { display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding: 5px 0; }
-        button { padding: 10px 20px; font-size: 16px; border-radius: 10px; border: none; cursor: pointer; background: #3498db; color: white; margin: 10px; }
+        :root {
+            --tg-theme-bg-color: #1c1c1c;
+            --tg-theme-button-color: #3498db;
+            --accent-color: #2ecc71;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--tg-theme-bg-color);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Sahifalar boshqaruvi */
+        .page {
+            display: none;
+            height: calc(100vh - 70px);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .active-page { display: block; }
+
+        /* O'yin maydoni */
+        #game-area {
+            width: 100%;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+
+        .waiting { background-color: #34495e; border: 4px solid #2c3e50; }
+        .ready { background-color: #e74c3c; border: 4px solid #c0392b; animation: pulse 1s infinite; }
+        .go { background-color: #2ecc71; border: 4px solid #27ae60; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Navigatsiya paneli */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #2c2c2c;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #444;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--tg-theme-button-color);
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        /* Reyting stili */
+        .rank-item {
+            background: #333;
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rank-number {
+            font-weight: bold;
+            color: var(--tg-theme-button-color);
+            margin-right: 10px;
+        }
+
+        button {
+            background: var(--tg-theme-button-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>Reaction Battle</h2>
-    <div id="setup">
-        <input type="text" id="playerName" placeholder="Ismingizni yozing" style="padding: 10px; border-radius: 5px;">
-        <button onclick="joinGame()">O'yinga kirish</button>
+    <div id="page-games" class="page active-page">
+        <h2 style="margin-top:0">Reaction Battle</h2>
+        
+        <div id="setup-area">
+            <input type="text" id="playerName" placeholder="Ismingizni yozing..." 
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: none; box-sizing: border-box;">
+            <button onclick="joinGame()">O'yinga qo'shilish</button>
+        </div>
+
+        <div id="main-game" style="display: none;">
+            <div id="game-area" class="waiting" onclick="handleClick()">
+                Tayyor turing
+            </div>
+            <button id="startBtn" onclick="startGame()">Boshlash (Hamma uchun)</button>
+            <p id="my-last-score" style="text-align: center; color: #aaa; margin-top: 15px;"></p>
+        </div>
     </div>
 
-    <div id="game-ui" style="display: none;">
-        <div id="game-area" class="waiting" onclick="handleClick()">
-            Tayyor turing...
-        </div>
-        <button id="startBtn" onclick="startGame()">O'yinni boshlash</button>
-        
-        <div id="results">
-            <h3>Natijalar:</h3>
-            <div id="leaderboard"></div>
-        </div>
+    <div id="page-rating" class="page">
+        <h2 style="margin-top:0">Global Reyting</h2>
+        <div id="leaderboard-list">
+            </div>
     </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="showPage('games', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5Z"/></svg>
+            <span>O'yinlar</span>
+        </div>
+        <div class="nav-item" onclick="showPage('rating', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16,11V3H8V11H2V21H22V11H16M10,5H14V11H10V5M4,13H8V19H4V13M20,19H16V13H20V19Z"/></svg>
+            <span>Reyting</span>
+        </div>
+    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -44,9 +166,7 @@
             apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
             authDomain: "songlyrics-caption.firebaseapp.com",
             projectId: "songlyrics-caption",
-            databaseURL: "https://songlyrics-caption-default-rtdb.firebaseio.com", // O'zgartirishingiz kerak bo'lishi mumkin
-            storageBucket: "songlyrics-caption.firebasestorage.app",
-            messagingSenderId: "363615493684",
+            databaseURL: "https://songlyrics-caption-default-rtdb.firebaseio.com",
             appId: "1:363615493684:web:35752e22517bfaedae7461"
         };
 
@@ -54,95 +174,103 @@
         const db = getDatabase(app);
         const roomRef = ref(db, 'rooms/global_room');
 
-        let myId = Math.random().toString(36).substring(7);
-        let myName = "";
+        let myId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || Math.random().toString(36).substring(7);
         let currentStatus = "waiting";
         let startTime = 0;
 
+        // Sahifani almashtirish funksiyasi
+        window.showPage = (pageId, el) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById('page-' + pageId).classList.add('active-page');
+            el.classList.add('active');
+        };
+
+        // O'yinga kirish
         window.joinGame = () => {
-            myName = document.getElementById('playerName').value;
-            if(!myName) return alert("Ism kiriting!");
-            document.getElementById('setup').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
+            const name = document.getElementById('playerName').value;
+            if(!name) return alert("Ismingizni yozing!");
+            
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('main-game').style.display = 'block';
             
             set(ref(db, 'rooms/global_room/players/' + myId), {
-                name: myName,
-                score: null
+                name: name,
+                score: null,
+                lastSeen: serverTimestamp()
             });
         };
 
+        // O'yinni boshlash
         window.startGame = () => {
-            const delay = Math.floor(Math.random() * 3000) + 2000; // 2-5 soniya
+            const delay = Math.floor(Math.random() * 3000) + 2000;
             update(roomRef, { status: 'ready', startTime: null });
             
             setTimeout(() => {
                 update(roomRef, { 
                     status: 'go', 
-                    startTime: serverTimestamp() 
+                    startTime: Date.now() 
                 });
             }, delay);
         };
 
+        // Bosish logikasi
         window.handleClick = () => {
-            if (currentStatus === 'go') {
-                const now = Date.now();
-                // Bu yerda serverTimestamp bilan hisoblash aniqroq bo'ladi
-                // Oddiyroq variant uchun hozirgi vaqtni yuboramiz
-                update(ref(db, 'rooms/global_room/players/' + myId), {
-                    score: "Hisoblanmoqda..."
-                });
-                
-                // Natijani aniqlash (oddiyroq usulda)
+            if (currentStatus === 'go' && startTime) {
                 const reaction = (Date.now() - startTime) / 1000;
                 update(ref(db, 'rooms/global_room/players/' + myId), {
                     score: reaction.toFixed(3)
                 });
+                document.getElementById('my-last-score').innerText = "Sizning natijangiz: " + reaction.toFixed(3) + "s";
+                startTime = null; // Qayta bosishni oldini olish
             } else if (currentStatus === 'ready') {
-                alert("Juda erta!");
+                alert("Foul! Barvaqt bosdingiz!");
             }
         };
 
-        // Bazani kuzatish
+        // Real-time yangilanishlar
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
             currentStatus = data.status;
+            startTime = data.startTime;
             const area = document.getElementById('game-area');
-            
+
             if (currentStatus === 'ready') {
                 area.className = 'ready';
-                area.innerText = 'KUTING...';
+                area.innerText = 'Tayyor turing...';
             } else if (currentStatus === 'go') {
                 area.className = 'go';
                 area.innerText = 'BOSING!!!';
-                if(!startTime) startTime = Date.now();
             } else {
                 area.className = 'waiting';
-                area.innerText = 'Tayyor turing...';
-                startTime = null;
+                area.innerText = 'O\'yin kutilmoqda';
             }
 
-            // Leaderboardni yangilash
+            // Reytingni yangilash
             const players = data.players || {};
-            const leaderboard = document.getElementById('leaderboard');
+            const leaderboard = document.getElementById('leaderboard-list');
             leaderboard.innerHTML = '';
             
             const sorted = Object.values(players)
                 .filter(p => p.score !== null)
-                .sort((a, b) => a.score - b.score);
+                .sort((a, b) => parseFloat(a.score) - parseFloat(b.score));
 
             sorted.forEach((p, index) => {
-                leaderboard.innerHTML += `
-                    <div class="player-row">
-                        <span>${index + 1}. ${p.name}</span>
-                        <span>${p.score}s</span>
-                    </div>`;
+                const item = document.createElement('div');
+                item.className = 'rank-item';
+                item.innerHTML = `
+                    <div><span class="rank-number">#${index+1}</span> ${p.name}</div>
+                    <div style="font-weight:bold">${p.score}s</div>
+                `;
+                leaderboard.appendChild(item);
             });
         });
 
-        // Telegram Web App rangini moslashtirish
         window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
     </script>
 </body>
 </html>
