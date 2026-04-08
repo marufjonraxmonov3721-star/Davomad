@@ -95,7 +95,7 @@
         <div style="text-align: center;">
             <p id="user-name" style="color: #aaa; margin: 0; margin-bottom: 5px;">Yuklanmoqda...</p>
             <div class="user-stats">
-                <span class="stat-badge" id="user-div">Div: 1</span>
+                <span class="stat-badge" id="user-div">Div: 10</span>
                 <span class="stat-badge" id="user-pts">Ball: 0</span>
             </div>
         </div>
@@ -154,7 +154,7 @@
         let timerInterval;
         let isRunning = false;
         let divSettings = {};
-        let myCurrentData = { points: 0, division: 1 };
+        let myCurrentData = { points: 0, division: 10 };
 
         // 1. Sozlamalarni yuklash
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
@@ -166,14 +166,21 @@
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = snapshot.val();
-                document.getElementById('user-div').innerText = `Div: ${myCurrentData.division || 1}`;
+                document.getElementById('user-div').innerText = `Div: ${myCurrentData.division || 10}`;
                 document.getElementById('user-pts').innerText = `Ball: ${myCurrentData.points || 0}`;
                 updateGameUI();
+            } else {
+                // Yangi o'yinchi bo'lsa, 10-diviziondan boshlaydi
+                update(ref(db, 'leaderboard/' + myId), {
+                    name: myName,
+                    points: 0,
+                    division: 10
+                });
             }
         });
 
         function updateGameUI() {
-            const d = myCurrentData.division || 1;
+            const d = myCurrentData.division || 10;
             if (divSettings && divSettings[d]) {
                 document.getElementById('target-label').innerText = `Maqsad: ${divSettings[d].target.toFixed(3)}s`;
             }
@@ -182,7 +189,7 @@
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
-            const currentDiv = myCurrentData.division || 1;
+            const currentDiv = myCurrentData.division || 10;
             const rules = divSettings && divSettings[currentDiv] ? divSettings[currentDiv] : { target: 10, nearLimit: 0.05, plusPoints: 30, minusPoints: 30 };
 
             if (!isRunning) {
@@ -222,9 +229,9 @@
                 let newPoints = (myCurrentData.points || 0) + pointChange;
                 if (newPoints < 0) newPoints = 0;
 
-                // Division hisoblash: Har 100 ball bitta division
-                let newDivision = Math.floor(newPoints / 100) + 1;
-                if (newDivision > 10) newDivision = 10;
+                // Division hisoblash: 10 dan 1 ga qarab (Har 100 ball bitta division ko'tariladi)
+                let newDivision = 10 - Math.floor(newPoints / 100);
+                if (newDivision < 1) newDivision = 1;
 
                 // Bazaga yangilash
                 update(ref(db, 'leaderboard/' + myId), {
@@ -255,7 +262,7 @@
             list.forEach((p, i) => {
                 container.innerHTML += `
                     <div class="rank-item">
-                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div: ${p.division || 1})</small></span>
+                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div: ${p.division || 10})</small></span>
                         <div style="text-align: right">
                             <div style="color:#f1c40f; font-weight:bold;">${p.points || 0} pts</div>
                             <div class="diff">Farq: ${p.bestDiff || '0'}s</div>
