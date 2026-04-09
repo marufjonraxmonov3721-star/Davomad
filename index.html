@@ -3,182 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Sekund Battle - Division Edition</title>
+    <title>10 Sekund Battle - Premium Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg-color: #000000;
-            --card-bg: #ffffff;
-            --accent-blue: #007aff;
-            --accent-yellow: #f1c40f;
-            --text-dark: #333333;
-            --text-gray: #777777;
+            --bg-deep: #0a0a0c;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-blue: #00d2ff;
+            --neon-gold: #f1c40f;
+            --neon-green: #2ecc71;
+            --neon-red: #ff4757;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             margin: 0;
-            background-color: var(--tg-theme-bg-color);
-            background-image: radial-gradient(circle at top right, #001f3f, #000000);
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(241, 196, 15, 0.05) 0%, transparent 20%);
             color: white;
             height: 100vh;
             overflow: hidden;
             -webkit-user-select: none;
         }
 
-        /* Top Bar Stats */
-        .top-stats {
+        /* Top Bar - Minimalist */
+        .header {
             display: flex;
-            padding: 10px 20px;
-            gap: 15px;
-            background: rgba(0,0,0,0.5);
+            justify-content: space-between;
             align-items: center;
+            padding: 15px 20px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
         }
-        .stat-item { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; }
-        .coin-icon { color: var(--accent-yellow); font-size: 18px; }
-        .gp-icon { color: #5dade2; font-size: 18px; }
 
-        .page { display: none; height: calc(100vh - 120px); padding: 15px; box-sizing: border-box; overflow-y: auto; }
-        .active-page { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-
-        /* Menu Cards (eFootball Style) */
-        .menu-container {
+        .user-pill {
             display: flex;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-            perspective: 1000px;
-        }
-
-        .menu-card {
-            flex: 1;
-            background: var(--card-bg);
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 12px;
             border-radius: 20px;
-            padding: 20px;
-            min-height: 250px;
-            display: flex;
-            flex-direction: column;
+            border: 1px solid var(--glass-border);
+        }
+
+        .header-stats { display: flex; gap: 15px; }
+        .stat-v { color: var(--neon-gold); font-weight: 800; }
+
+        /* Navigation Pages */
+        .page { 
+            display: none; 
+            height: calc(100vh - 140px); 
+            padding: 20px; 
+            box-sizing: border-box; 
+            overflow-y: auto; 
+        }
+        .active-page { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dashboard Cards */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 10px; }
+
+        .main-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
             position: relative;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .menu-card:active { transform: scale(0.95); }
+        .main-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0,210,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
 
-        .card-icon-wrap {
-            width: 50px; height: 50px;
-            border: 2px solid var(--accent-blue);
-            border-radius: 50%;
+        .card-tag {
+            font-size: 10px; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--neon-blue); margin-bottom: 8px;
+        }
+
+        .card-title { font-size: 24px; font-weight: 800; margin: 0; }
+        .card-info { font-size: 14px; color: #888; margin-top: 8px; line-height: 1.4; }
+
+        .play-btn {
+            margin-top: 20px; width: 50px; height: 50px;
+            background: var(--neon-blue); border-radius: 15px;
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 15px;
-            color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
         }
 
-        .card-title { color: var(--text-dark); font-size: 20px; font-weight: 800; margin: 0; }
-        .card-desc { color: var(--text-gray); font-size: 13px; margin-top: 5px; }
-
-        .div-badge-corner {
-            position: absolute; bottom: -10px; right: -10px;
-            background: linear-gradient(135deg, #ff9d00, #ff5e00);
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            transform: rotate(-15deg);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        /* Battle UI */
+        /* Battle Overlay */
         #battle-screen {
-            position: fixed; top:0; left:0; width: 100%; height: 100%;
-            background: #000; z-index: 100; display: none;
-            flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; inset: 0; background: var(--bg-deep); z-index: 1000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        #display {
-            font-size: 80px; font-weight: 900; color: white;
-            font-variant-numeric: tabular-nums; letter-spacing: -2px;
+        .timer-ring {
+            width: 280px; height: 280px; border-radius: 50%;
+            border: 4px solid var(--glass-border);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
         }
-        .target-box { background: rgba(255,255,255,0.1); padding: 5px 20px; border-radius: 50px; margin-bottom: 20px; }
 
-        .btn-action {
-            width: 80%; max-width: 300px; padding: 20px; border-radius: 40px;
-            border: none; font-size: 24px; font-weight: bold; text-transform: uppercase;
-            margin-top: 40px; cursor: pointer;
+        #display { font-size: 56px; font-weight: 800; font-family: 'Monaco', monospace; margin-bottom: 10px; }
+        .target-label { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #666; }
+
+        .action-btn {
+            width: 200px; height: 200px; border-radius: 50%; border: none;
+            margin-top: 60px; font-size: 28px; font-weight: 900; color: white;
+            cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
-        .btn-start { background: var(--accent-blue); color: white; }
-        .btn-stop { background: #ff3b30; color: white; }
 
-        /* Navigation */
+        .btn-start { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: 8px solid rgba(0,210,255,0.2); }
+        .btn-stop { background: linear-gradient(135deg, #ff4757, #ff6b81); border: 8px solid rgba(255,71,87,0.2); transform: scale(1.05); }
+
+        /* Ranking UI */
+        .rank-card {
+            background: var(--glass); border-radius: 16px; padding: 15px;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 15px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .rank-num { font-size: 18px; font-weight: 900; color: #444; width: 25px; }
+        .rank-top { color: var(--neon-gold); }
+
+        /* Navigation Bar */
         .nav-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
-            background: rgba(0,0,0,0.9); display: flex; justify-content: space-around;
-            align-items: center; border-top: 1px solid #333;
+            position: fixed; bottom: 0; width: 100%; height: 80px;
+            background: rgba(10, 10, 12, 0.8); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid var(--glass-border); padding-bottom: 15px;
         }
-        .nav-item { color: #555; text-align: center; font-size: 11px; }
-        .nav-item.active { color: var(--accent-blue); }
-        .nav-item svg { width: 26px; height: 26px; }
 
-        /* Rating */
-        .rank-list { width: 100%; }
-        .rank-item {
-            background: rgba(255,255,255,0.05); margin-bottom: 10px;
-            padding: 15px; border-radius: 12px; display: flex; justify-content: space-between;
-        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #444; gap: 5px; transition: 0.3s; }
+        .nav-item.active { color: var(--neon-blue); }
+        .nav-item svg { width: 24px; height: 24px; transition: 0.3s; }
+        .nav-item.active svg { transform: translateY(-3px); filter: drop-shadow(0 0 5px var(--neon-blue)); }
     </style>
 </head>
 <body>
 
-    <div class="top-stats">
-        <div class="stat-item"><span class="coin-icon">●</span> <span id="user-pts-top">0</span></div>
-        <div class="stat-item"><span class="gp-icon">◆</span> <span id="user-div-top">Div 10</span></div>
-        <div style="margin-left: auto; font-size: 12px; color: #aaa;" id="user-display-name">O'yinchi</div>
+    <div class="header">
+        <div class="user-pill">
+            <div id="user-display-name" style="font-size: 12px; font-weight: 600;">Yuklanmoqda...</div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item"><span style="color:#555">PTS </span><span id="user-pts-top" class="stat-v">0</span></div>
+            <div class="stat-item"><span style="color:#555">DIV </span><span id="user-div-top" class="stat-v">10</span></div>
+        </div>
     </div>
 
     <div id="page-game" class="page active-page">
-        <div class="menu-container">
-            <div class="menu-card" onclick="openBattle()">
-                <div class="card-icon-wrap">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="30"><path d="M13,9.5H11V7.5H13V9.5M13,16.5H11V11.5H13V16.5M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/></svg>
-                </div>
-                <h2 class="card-title">VS Battle</h2>
-                <p class="card-desc">O'z mahoratingizni sinab ko'ring va vaqtni zabt eting.</p>
-                <div class="div-badge-corner">
-                    <span id="card-div-num" style="font-weight: 900; font-size: 20px;">10</span>
+        <div class="grid">
+            <div class="main-card" onclick="openBattle()">
+                <div class="card-tag">Hozir o'ynang</div>
+                <h2 class="card-title">BATTLE MODE</h2>
+                <p class="card-info">Vaqtni sekundning mingdan bir ulushigacha aniqlikda to'xtating.</p>
+                <div class="play-btn">
+                    <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
             </div>
 
-            <div class="menu-card" onclick="showPage('rating', document.querySelector('.nav-rating'))">
-                <div class="card-icon-wrap" style="border-color: #2ecc71; color: #2ecc71;">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="30"><path d="M12,12C14.21,12 16,10.21 16,8C16,5.79 14.21,4 12,4C9.79,4 8,5.79 8,8C8,10.21 9.79,12 12,12M12,14C9.33,14 4,15.33 4,18V20H20V18C20,15.33 14.67,14 12,14Z"/></svg>
-                </div>
-                <h2 class="card-title">Ranking</h2>
-                <p class="card-desc">Boshqa o'yinchilar bilan ballar bo'yicha kurashing.</p>
+            <div class="main-card" onclick="showPage('rating', document.querySelector('.nav-rating'))" style="border-color: rgba(46, 204, 113, 0.2);">
+                <div class="card-tag" style="color: var(--neon-green);">Global Rating</div>
+                <h2 class="card-title">RANKING</h2>
+                <p class="card-info">Sizning dunyo o'yinchilari orasidagi o'rningiz va rekordlaringiz.</p>
             </div>
         </div>
     </div>
 
     <div id="battle-screen">
-        <div class="target-box" id="target-label">Maqsad: 10.000s</div>
-        <div id="display">0.000</div>
-        <button id="actionBtn" class="btn-action btn-start" onclick="handleAction()">START</button>
-        <p id="last-result" style="margin-top: 30px; font-size: 20px; font-weight: bold;"></p>
-        <button onclick="closeBattle()" style="background:none; border:none; color:#555; margin-top:20px;">ORQAGA QAYTISH</button>
+        <div class="timer-ring">
+            <div class="target-label" id="target-label">Target: 10.000s</div>
+            <div id="display">0.000</div>
+            <div id="last-result" style="position: absolute; bottom: -40px; font-weight: 800;"></div>
+        </div>
+
+        <button id="actionBtn" class="action-btn btn-start" onclick="handleAction()">START</button>
+        
+        <div onclick="closeBattle()" style="margin-top: 40px; color: #444; font-size: 12px; font-weight: 700; letter-spacing: 2px;">
+            YOPISH
+        </div>
     </div>
 
     <div id="page-rating" class="page">
-        <h2 style="text-align: center; width: 100%;">Division Reytingi</h2>
-        <div id="leaderboard" class="rank-list"></div>
+        <h2 style="margin-bottom: 20px; letter-spacing: -1px;">Leaderboard</h2>
+        <div id="leaderboard"></div>
     </div>
 
     <nav class="nav-bar">
         <div class="nav-item active" onclick="showPage('game', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
-            <div>ASOSIY</div>
+            <span style="font-size: 10px; font-weight: 700;">DASHBOARD</span>
         </div>
         <div class="nav-item nav-rating" onclick="showPage('rating', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16,11V3H8V11H2V21H22V11H16M10,5H14V11H10V5M4,13H8V19H4V13M20,19H16V13H20V19Z"/></svg>
-            <div>REYTING</div>
+            <span style="font-size: 10px; font-weight: 700;">RANKING</span>
         </div>
     </nav>
 
@@ -219,8 +248,7 @@
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = snapshot.val();
-                document.getElementById('user-div-top').innerText = `Div ${myCurrentData.division || 10}`;
-                document.getElementById('card-div-num').innerText = myCurrentData.division || 10;
+                document.getElementById('user-div-top').innerText = myCurrentData.division || 10;
                 document.getElementById('user-pts-top').innerText = (myCurrentData.points || 0).toLocaleString();
                 updateGameUI();
             } else {
@@ -231,7 +259,7 @@
         function updateGameUI() {
             const d = myCurrentData.division || 10;
             if (divSettings && divSettings[d]) {
-                document.getElementById('target-label').innerText = `Maqsad: ${divSettings[d].target.toFixed(3)}s`;
+                document.getElementById('target-label').innerText = `Target: ${divSettings[d].target.toFixed(3)}s`;
             }
         }
 
@@ -257,7 +285,7 @@
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP";
-                btn.className = "btn-action btn-stop";
+                btn.className = "action-btn btn-stop";
                 tg.HapticFeedback.impactOccurred('medium');
                 timerInterval = setInterval(() => {
                     display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
@@ -268,32 +296,34 @@
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START";
-                btn.className = "btn-action btn-start";
+                btn.className = "action-btn btn-start";
 
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0;
 
+                const resultEl = document.getElementById('last-result');
+
                 if (diffStr === "0.000" && currentDiv > 1) {
                     newDivision = currentDiv - 1;
                     const targetDivRules = divSettings && divSettings[newDivision + 1] ? divSettings[newDivision + 1] : { promotionPoints: 500 };
                     newPoints = targetDivRules.promotionPoints;
-                    document.getElementById('last-result').style.color = "#f1c40f";
-                    document.getElementById('last-result').innerText = `PERFECT! UP!`;
+                    resultEl.style.color = var(--neon-gold);
+                    resultEl.innerText = `DIV UP!`;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints);
                     newPoints += pointChange;
-                    document.getElementById('last-result').style.color = "#2ecc71";
-                    document.getElementById('last-result').innerText = `EXCELLENT! +${pointChange}`;
+                    resultEl.style.color = "#2ecc71";
+                    resultEl.innerText = `+${pointChange} PTS`;
                     tg.HapticFeedback.notificationOccurred('success');
                     if (newPoints >= rules.promotionPoints && currentDiv > 1) newDivision = currentDiv - 1;
                 } else {
                     pointChange = -parseInt(rules.minusPoints);
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    document.getElementById('last-result').style.color = "#ff3b30";
-                    document.getElementById('last-result').innerText = `MISS! ${pointChange}`;
+                    resultEl.style.color = "#ff4757";
+                    resultEl.innerText = `${pointChange} PTS`;
                     tg.HapticFeedback.notificationOccurred('error');
                     if (currentDiv < 10) {
                         const prevDivRules = divSettings && divSettings[currentDiv + 1] ? divSettings[currentDiv + 1] : null;
@@ -326,12 +356,13 @@
             container.innerHTML = '';
             list.forEach((p, i) => {
                 container.innerHTML += `
-                    <div class="rank-item">
-                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div ${p.division || 10})</small></span>
-                        <div style="text-align: right">
-                            <div style="color:#f1c40f; font-weight:bold;">${(p.points || 0).toLocaleString()}</div>
-                            <div style="font-size:10px; color:#aaa;">Best: ${p.bestDiff || '0'}s</div>
+                    <div class="rank-card">
+                        <div class="rank-num ${i<3?'rank-top':''}">${i+1}</div>
+                        <div style="flex:1">
+                            <div style="font-weight:700">${p.name}</div>
+                            <div style="font-size:10px; color:#555">DIV ${p.division || 10} • BEST: ${p.bestDiff || '0'}s</div>
                         </div>
+                        <div style="color:var(--neon-gold); font-weight:800">${(p.points || 0).toLocaleString()}</div>
                     </div>`;
             });
         });
