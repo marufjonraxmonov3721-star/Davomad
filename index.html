@@ -3,211 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Sekund Battle - Premium Edition</title>
+    <title>10 Sekund Battle - Division Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-deep: #0a0a0c;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --neon-blue: #00d2ff;
-            --neon-gold: #f1c40f;
-            --neon-green: #2ecc71;
-            --neon-red: #ff4757;
+            --tg-theme-bg-color: #121212;
+            --tg-theme-button-color: #0088cc;
+            --accent-color: #f1c40f;
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            background-color: var(--bg-deep);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.05) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(241, 196, 15, 0.05) 0%, transparent 20%);
+            background-color: var(--tg-theme-bg-color);
             color: white;
-            height: 100vh;
             overflow: hidden;
             -webkit-user-select: none;
         }
 
-        /* Top Bar - Minimalist */
-        .header {
+        .page { display: none; height: calc(100vh - 70px); padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .active-page { display: block; }
+
+        /* MENU STYLE (Yangi qo'shilgan qism) */
+        .menu-container {
             display: flex;
-            justify-content: space-between;
+            gap: 15px;
+            justify-content: center;
             align-items: center;
-            padding: 15px 20px;
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
+            height: 80vh;
         }
 
-        .user-pill {
+        .menu-card {
+            background: white;
+            border-radius: 25px;
+            width: 160px;
+            height: 240px;
+            padding: 20px;
+            color: #333;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .menu-card:active { transform: scale(0.95); }
+
+        .menu-card.ai { background: white; }
+        .menu-card.pvp { background: white; }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #0088cc;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: rgba(0,0,0,0.3);
-            padding: 5px 12px;
+            justify-content: center;
+            margin-bottom: 15px;
+            color: #0088cc;
+        }
+
+        .card-title { font-weight: 800; font-size: 18px; margin-bottom: 5px; color: #000; }
+        .card-desc { font-size: 12px; color: #777; line-height: 1.3; }
+
+        .div-badge-mini {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: orange;
+            border-top-left-radius: 100%;
+            padding: 15px 10px 5px 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Taymer maydoni */
+        #timer-container {
+            width: 100%;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, #2c3e50 0%, #000 100%);
+            border-radius: 30px;
+            border: 2px solid #333;
+            margin-top: 10px;
+        }
+
+        #display {
+            font-size: 64px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+        }
+
+        .target-text { font-size: 14px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+
+        .btn-main {
+            width: 100%;
+            padding: 20px;
             border-radius: 20px;
-            border: 1px solid var(--glass-border);
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 30px;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        .header-stats { display: flex; gap: 15px; }
-        .stat-v { color: var(--neon-gold); font-weight: 800; }
+        .start { background: #2ecc71; color: white; }
+        .stop { background: #e74c3c; color: white; }
 
-        /* Navigation Pages */
-        .page { 
-            display: none; 
-            height: calc(100vh - 140px); 
-            padding: 20px; 
-            box-sizing: border-box; 
-            overflow-y: auto; 
-        }
-        .active-page { display: block; animation: fadeIn 0.3s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Dashboard Cards */
-        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 10px; }
-
-        .main-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-            border-radius: 24px;
-            padding: 25px;
-            border: 1px solid var(--glass-border);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .main-card::after {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(0,210,255,0.05) 0%, transparent 50%);
-            pointer-events: none;
-        }
-
-        .card-tag {
-            font-size: 10px; font-weight: 900; text-transform: uppercase;
-            letter-spacing: 1.5px; color: var(--neon-blue); margin-bottom: 8px;
-        }
-
-        .card-title { font-size: 24px; font-weight: 800; margin: 0; }
-        .card-info { font-size: 14px; color: #888; margin-top: 8px; line-height: 1.4; }
-
-        .play-btn {
-            margin-top: 20px; width: 50px; height: 50px;
-            background: var(--neon-blue); border-radius: 15px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
-        }
-
-        /* Battle Overlay */
-        #battle-screen {
-            position: fixed; inset: 0; background: var(--bg-deep); z-index: 1000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-        }
-
-        .timer-ring {
-            width: 280px; height: 280px; border-radius: 50%;
-            border: 4px solid var(--glass-border);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-        }
-
-        #display { font-size: 56px; font-weight: 800; font-family: 'Monaco', monospace; margin-bottom: 10px; }
-        .target-label { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #666; }
-
-        .action-btn {
-            width: 200px; height: 200px; border-radius: 50%; border: none;
-            margin-top: 60px; font-size: 28px; font-weight: 900; color: white;
-            cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        }
-
-        .btn-start { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: 8px solid rgba(0,210,255,0.2); }
-        .btn-stop { background: linear-gradient(135deg, #ff4757, #ff6b81); border: 8px solid rgba(255,71,87,0.2); transform: scale(1.05); }
-
-        /* Ranking UI */
-        .rank-card {
-            background: var(--glass); border-radius: 16px; padding: 15px;
-            margin-bottom: 10px; display: flex; align-items: center; gap: 15px;
-            border: 1px solid var(--glass-border);
-        }
-
-        .rank-num { font-size: 18px; font-weight: 900; color: #444; width: 25px; }
-        .rank-top { color: var(--neon-gold); }
-
-        /* Navigation Bar */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; height: 80px;
-            background: rgba(10, 10, 12, 0.8); backdrop-filter: blur(20px);
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid var(--glass-border); padding-bottom: 15px;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+            background: #1a1a1a; display: flex; justify-content: space-around;
+            align-items: center; border-top: 1px solid #333;
+            padding-bottom: env(safe-area-inset-bottom);
         }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #555; font-size: 11px; }
+        .nav-item.active { color: var(--tg-theme-button-color); }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
 
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #444; gap: 5px; transition: 0.3s; }
-        .nav-item.active { color: var(--neon-blue); }
-        .nav-item svg { width: 24px; height: 24px; transition: 0.3s; }
-        .nav-item.active svg { transform: translateY(-3px); filter: drop-shadow(0 0 5px var(--neon-blue)); }
+        .rank-item {
+            background: #1e1e1e; margin-bottom: 8px; padding: 15px;
+            border-radius: 15px; display: flex; justify-content: space-between;
+        }
+        .diff { font-size: 12px; color: #e74c3c; }
+
+        .user-stats {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; font-size: 14px;
+        }
+        .stat-badge { background: #333; padding: 5px 12px; border-radius: 20px; color: #f1c40f; font-weight: bold; }
+        
+        .back-btn {
+            background: #0088cc; color: white; border: none; padding: 8px 15px; 
+            border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="user-pill">
-            <div id="user-display-name" style="font-size: 12px; font-weight: 600;">Yuklanmoqda...</div>
-        </div>
-        <div class="header-stats">
-            <div class="stat-item"><span style="color:#555">PTS </span><span id="user-pts-top" class="stat-v">0</span></div>
-            <div class="stat-item"><span style="color:#555">DIV </span><span id="user-div-top" class="stat-v">10</span></div>
-        </div>
-    </div>
-
-    <div id="page-game" class="page active-page">
-        <div class="grid">
-            <div class="main-card" onclick="openBattle()">
-                <div class="card-tag">Hozir o'ynang</div>
-                <h2 class="card-title">BATTLE MODE</h2>
-                <p class="card-info">Vaqtni sekundning mingdan bir ulushigacha aniqlikda to'xtating.</p>
-                <div class="play-btn">
-                    <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div id="page-menu" class="page active-page">
+        <div class="menu-container">
+            <div class="menu-card ai" onclick="showPage('game')">
+                <div class="icon-circle">
+                    <svg viewBox="0 0 24 24" width="30" fill="currentColor"><path d="M13,2V4H11V2H13M15,10V12H9V10H15M19,13V15H17V13H19M7,13V15H5V13H7M12,6A6,6 0 0,1 18,12C18,14.22 16.79,16.16 15,17.2V19A2,2 0 0,1 13,21H11A2,2 0 0,1 9,19V17.2C7.21,16.16 6,14.22 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12C8,13.31 8.64,14.47 9.63,15.19L10,15.45V19H14V15.45L14.37,15.19C15.36,14.47 16,13.31 16,12A4,4 0 0,0 12,8Z"/></svg>
                 </div>
+                <div class="card-title">VS AI Category</div>
+                <div class="card-desc">Play Against the AI.</div>
+                <div class="div-badge-mini" id="menu-div-badge">Div 10</div>
             </div>
 
-            <div class="main-card" onclick="showPage('rating', document.querySelector('.nav-rating'))" style="border-color: rgba(46, 204, 113, 0.2);">
-                <div class="card-tag" style="color: var(--neon-green);">Global Rating</div>
-                <h2 class="card-title">RANKING</h2>
-                <p class="card-info">Sizning dunyo o'yinchilari orasidagi o'rningiz va rekordlaringiz.</p>
+            <div class="menu-card pvp" onclick="tg.showAlert('PvP bo\'limi tez kunda ishga tushadi!')">
+                <div class="icon-circle">
+                    <svg viewBox="0 0 24 24" width="30" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                </div>
+                <div class="card-title">PvP Category</div>
+                <div class="card-desc">Compete Against Other Users.</div>
             </div>
         </div>
     </div>
 
-    <div id="battle-screen">
-        <div class="timer-ring">
-            <div class="target-label" id="target-label">Target: 10.000s</div>
-            <div id="display">0.000</div>
-            <div id="last-result" style="position: absolute; bottom: -40px; font-weight: 800;"></div>
+    <div id="page-game" class="page">
+        <button class="back-btn" onclick="showPage('menu')">❮ Orqaga</button>
+        <div style="text-align: center;">
+            <p id="user-name" style="color: #aaa; margin: 0; margin-bottom: 5px;">Yuklanmoqda...</p>
+            <div class="user-stats">
+                <span class="stat-badge" id="user-div">Div: 10</span>
+                <span class="stat-badge" id="user-pts">Ball: 0</span>
+            </div>
         </div>
 
-        <button id="actionBtn" class="action-btn btn-start" onclick="handleAction()">START</button>
-        
-        <div onclick="closeBattle()" style="margin-top: 40px; color: #444; font-size: 12px; font-weight: 700; letter-spacing: 2px;">
-            YOPISH
+        <div id="timer-container">
+            <div class="target-text" id="target-label">Maqsad: 10.000s</div>
+            <div id="display">0.000</div>
         </div>
+
+        <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
+        <p id="last-result" style="text-align: center; margin-top: 20px; font-weight: bold;"></p>
     </div>
 
     <div id="page-rating" class="page">
-        <h2 style="margin-bottom: 20px; letter-spacing: -1px;">Leaderboard</h2>
+        <h2 style="text-align: center;">Division Reytingi</h2>
         <div id="leaderboard"></div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" onclick="showPage('game', this)">
+        <div class="nav-item active" onclick="showPage('menu', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
-            <span style="font-size: 10px; font-weight: 700;">DASHBOARD</span>
+            <span>Asosiy</span>
         </div>
-        <div class="nav-item nav-rating" onclick="showPage('rating', this)">
+        <div class="nav-item" onclick="showPage('rating', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16,11V3H8V11H2V21H22V11H16M10,5H14V11H10V5M4,13H8V19H4V13M20,19H16V13H20V19Z"/></svg>
-            <span style="font-size: 10px; font-weight: 700;">RANKING</span>
+            <span>Reyting</span>
         </div>
     </nav>
 
@@ -234,9 +227,11 @@
         const myId = user?.id || "guest_" + Math.random().toString(36).substring(7);
         const myName = (user?.first_name || "O'yinchi");
 
-        document.getElementById('user-display-name').innerText = myName;
+        document.getElementById('user-name').innerText = myName;
 
-        let startTime, timerInterval, isRunning = false;
+        let startTime;
+        let timerInterval;
+        let isRunning = false;
         let divSettings = {};
         let myCurrentData = { points: 0, division: 10 };
 
@@ -248,47 +243,45 @@
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = snapshot.val();
-                document.getElementById('user-div-top').innerText = myCurrentData.division || 10;
-                document.getElementById('user-pts-top').innerText = (myCurrentData.points || 0).toLocaleString();
+                document.getElementById('user-div').innerText = `Div: ${myCurrentData.division || 10}`;
+                document.getElementById('user-pts').innerText = `Ball: ${myCurrentData.points || 0}`;
+                document.getElementById('menu-div-badge').innerText = `Div ${myCurrentData.division || 10}`;
                 updateGameUI();
             } else {
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10 });
+                update(ref(db, 'leaderboard/' + myId), {
+                    name: myName,
+                    points: 100, 
+                    division: 10
+                });
             }
         });
 
         function updateGameUI() {
             const d = myCurrentData.division || 10;
             if (divSettings && divSettings[d]) {
-                document.getElementById('target-label').innerText = `Target: ${divSettings[d].target.toFixed(3)}s`;
+                document.getElementById('target-label').innerText = `Maqsad: ${divSettings[d].target.toFixed(3)}s`;
             }
         }
-
-        window.openBattle = () => {
-            document.getElementById('battle-screen').style.display = 'flex';
-            document.getElementById('last-result').innerText = '';
-            document.getElementById('display').innerText = '0.000';
-            tg.HapticFeedback.impactOccurred('light');
-        };
-
-        window.closeBattle = () => {
-            if(isRunning) handleAction();
-            document.getElementById('battle-screen').style.display = 'none';
-        };
 
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             const currentDiv = myCurrentData.division || 10;
-            const rules = divSettings && divSettings[currentDiv] ? divSettings[currentDiv] : { target: 10, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
+            
+            const rules = divSettings && divSettings[currentDiv] 
+                ? divSettings[currentDiv] 
+                : { target: 10, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
 
             if (!isRunning) {
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP";
-                btn.className = "action-btn btn-stop";
+                btn.className = "btn-main stop";
                 tg.HapticFeedback.impactOccurred('medium');
+
                 timerInterval = setInterval(() => {
-                    display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    display.innerText = elapsed.toFixed(3);
                 }, 10);
             } else {
                 isRunning = false;
@@ -296,44 +289,56 @@
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START";
-                btn.className = "action-btn btn-start";
+                btn.className = "btn-main start";
 
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
-                let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0;
-
-                const resultEl = document.getElementById('last-result');
+                let pointChange = 0;
+                let newDivision = currentDiv;
+                let newPoints = myCurrentData.points || 0;
 
                 if (diffStr === "0.000" && currentDiv > 1) {
                     newDivision = currentDiv - 1;
                     const targetDivRules = divSettings && divSettings[newDivision + 1] ? divSettings[newDivision + 1] : { promotionPoints: 500 };
                     newPoints = targetDivRules.promotionPoints;
-                    resultEl.style.color = var(--neon-gold);
-                    resultEl.innerText = `DIV UP!`;
+                    document.getElementById('last-result').style.color = "#f1c40f";
+                    document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH!`;
                     tg.HapticFeedback.notificationOccurred('success');
-                } else if (diffVal <= rules.nearLimit) {
+                } 
+                else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints);
                     newPoints += pointChange;
-                    resultEl.style.color = "#2ecc71";
-                    resultEl.innerText = `+${pointChange} PTS`;
+                    document.getElementById('last-result').style.color = "#2ecc71";
+                    document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('success');
-                    if (newPoints >= rules.promotionPoints && currentDiv > 1) newDivision = currentDiv - 1;
-                } else {
+                    if (newPoints >= rules.promotionPoints && currentDiv > 1) {
+                        newDivision = currentDiv - 1;
+                    }
+                } 
+                else {
                     pointChange = -parseInt(rules.minusPoints);
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    resultEl.style.color = "#ff4757";
-                    resultEl.innerText = `${pointChange} PTS`;
+                    document.getElementById('last-result').style.color = "#e74c3c";
+                    document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('error');
                     if (currentDiv < 10) {
                         const prevDivRules = divSettings && divSettings[currentDiv + 1] ? divSettings[currentDiv + 1] : null;
-                        if (prevDivRules && newPoints < prevDivRules.promotionPoints) newDivision = currentDiv + 1;
+                        if (prevDivRules && newPoints < prevDivRules.promotionPoints) {
+                            newDivision = currentDiv + 1;
+                        }
                     }
                 }
 
+                if (newDivision < 1) newDivision = 1;
+                if (newDivision > 10) newDivision = 10;
+
                 update(ref(db, 'leaderboard/' + myId), {
-                    name: myName, points: newPoints, division: newDivision,
-                    bestDiff: diffStr, lastTime: finalTime.toFixed(3)
+                    name: myName,
+                    points: newPoints,
+                    division: newDivision,
+                    bestDiff: diffStr,
+                    lastTime: finalTime.toFixed(3)
                 });
             }
         };
@@ -342,7 +347,7 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active-page');
-            el.classList.add('active');
+            if(el) el.classList.add('active');
         };
 
         onValue(ref(db, 'leaderboard'), (snapshot) => {
@@ -356,14 +361,14 @@
             container.innerHTML = '';
             list.forEach((p, i) => {
                 container.innerHTML += `
-                    <div class="rank-card">
-                        <div class="rank-num ${i<3?'rank-top':''}">${i+1}</div>
-                        <div style="flex:1">
-                            <div style="font-weight:700">${p.name}</div>
-                            <div style="font-size:10px; color:#555">DIV ${p.division || 10} • BEST: ${p.bestDiff || '0'}s</div>
+                    <div class="rank-item">
+                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div: ${p.division || 10})</small></span>
+                        <div style="text-align: right">
+                            <div style="color:#f1c40f; font-weight:bold;">${p.points || 0} pts</div>
+                            <div class="diff">Farq: ${p.bestDiff || '0'}s</div>
                         </div>
-                        <div style="color:var(--neon-gold); font-weight:800">${(p.points || 0).toLocaleString()}</div>
-                    </div>`;
+                    </div>
+                `;
             });
         });
     </script>
