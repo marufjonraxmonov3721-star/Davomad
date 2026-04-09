@@ -107,7 +107,7 @@
                 </div>
                 <div class="div-title">Division <span id="user-div-title">...</span></div>
             </div>
-            <div style="color: #aaa; font-size: 12px;" id="phase-date">Phase: 2026</div>
+            <div style="color: #aaa; font-size: 12px;" id="phase-date">Yuklanmoqda...</div>
         </div>
 
         <div class="stats-grid">
@@ -170,6 +170,15 @@
         let divSettings = {};
         let myCurrentData = { points: 0, division: 10 };
 
+        // Phase sanasini bazadan olish
+        onValue(ref(db, 'settings/phase'), (snapshot) => {
+            if (snapshot.exists()) {
+                document.getElementById('phase-date').innerText = snapshot.val();
+            } else {
+                document.getElementById('phase-date').innerText = "Phase: 2026";
+            }
+        });
+
         // 1. Division sozlamalarini olish
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
@@ -212,7 +221,6 @@
             const display = document.getElementById('display');
             const currentDiv = myCurrentData.division || 10;
             
-            // Bazadan olingan qoidalar yoki standart
             const rules = divSettings && divSettings[currentDiv] 
                 ? divSettings[currentDiv] 
                 : { target: 10.000, nearLimit: 0.050, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
@@ -242,15 +250,13 @@
                 let newDivision = currentDiv;
                 let newPoints = myCurrentData.points || 0;
 
-                // Mantiq: 0.000 bo'lsa
                 if (diffStr === "0.000" && currentDiv > 1) {
                     newDivision = currentDiv - 1;
-                    newPoints += 100; // Bonus
+                    newPoints += 100;
                     document.getElementById('last-result').style.color = "#f1c40f";
                     document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH!`;
                     tg.HapticFeedback.notificationOccurred('success');
                 } 
-                // Yaqin kelsa
                 else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints);
                     newPoints += pointChange;
@@ -262,7 +268,6 @@
                         newDivision = currentDiv - 1;
                     }
                 } 
-                // Uzoq bo'lsa
                 else {
                     pointChange = -parseInt(rules.minusPoints);
                     newPoints += pointChange;
@@ -289,7 +294,6 @@
             }
         };
 
-        // Reytingni yangilash
         onValue(ref(db, 'leaderboard'), (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
@@ -300,7 +304,6 @@
                     return (b.points || 0) - (a.points || 0);
                 });
 
-            // O'z o'rnini topish
             const myRankIndex = list.findIndex(p => p.id === myId);
             document.getElementById('user-rank-pos').innerText = myRankIndex !== -1 ? `#${(myRankIndex + 1).toLocaleString()}` : "#---";
 
