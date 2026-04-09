@@ -12,7 +12,6 @@
             --accent-color: #f1c40f;
             --card-bg: #1a1a1a;
             --win-green: #2ecc71;
-            --draw-gray: #7f8c8d;
             --loss-red: #e74c3c;
         }
 
@@ -23,6 +22,7 @@
             color: white;
             -webkit-user-select: none;
             padding: 15px;
+            overflow-x: hidden;
         }
 
         /* eFootball Style Header Card */
@@ -60,41 +60,61 @@
         /* Timer Section */
         #timer-container {
             width: 100%;
-            height: 180px;
+            height: 220px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #111;
-            border-radius: 20px;
+            background: #0f171e;
+            border-radius: 25px;
             border: 1px solid #222;
             margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
         }
-        #display { font-size: 50px; font-weight: bold; color: var(--accent-color); font-family: monospace; }
-        .target-text { font-size: 12px; color: #555; letter-spacing: 1px; }
+        #display { font-size: 64px; font-weight: bold; color: var(--accent-color); font-family: monospace; z-index: 2; }
+        .target-text { font-size: 14px; color: #555; letter-spacing: 1px; margin-bottom: 10px; z-index: 2; }
+        
+        /* Result Pop Animation */
+        #result-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: 900;
+            opacity: 0;
+            transition: 0.3s;
+            z-index: 3;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+        }
 
         .btn-main {
             width: 100%;
-            padding: 18px;
+            padding: 20px;
             border-radius: 12px;
             border: none;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
         }
-        .start { background: #2ecc71; color: white; }
-        .stop { background: #e74c3c; color: white; }
+        .start { background: #2ecc71; color: white; box-shadow: 0 4px 0 #27ae60; }
+        .stop { background: #e74c3c; color: white; box-shadow: 0 4px 0 #c0392b; }
+        .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
         /* Leaderboard */
-        .leaderboard-title { font-size: 16px; color: #aaa; margin-bottom: 10px; padding-left: 5px; }
+        .leaderboard-title { font-size: 16px; color: #aaa; margin-bottom: 15px; padding-left: 5px; text-transform: uppercase; letter-spacing: 1px;}
         .rank-item {
-            background: #161616; margin-bottom: 6px; padding: 12px;
-            border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
+            background: #161616; margin-bottom: 8px; padding: 15px;
+            border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
         }
-        .rank-info { display: flex; align-items: center; gap: 10px; }
-        .rank-pos { font-weight: bold; color: #f1c40f; min-width: 25px; }
+        .rank-info { display: flex; align-items: center; gap: 15px; }
+        .rank-pos { font-weight: bold; color: #f1c40f; min-width: 25px; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -107,7 +127,7 @@
                 </div>
                 <div class="div-title">Division <span id="user-div-title">...</span></div>
             </div>
-            <div style="color: #aaa; font-size: 12px;" id="phase-date">Phase: 2026</div>
+            <div style="color: #aaa; font-size: 12px;">Phase: 2026</div>
         </div>
 
         <div class="stats-grid">
@@ -131,13 +151,13 @@
     </div>
 
     <div id="timer-container">
+        <div id="result-popup"></div>
         <div class="target-text" id="target-label">MAQSAD: 10.000s</div>
         <div id="display">0.000</div>
     </div>
 
     <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
-    <p id="last-result" style="text-align: center; font-weight: bold; margin-bottom: 30px;"></p>
-
+    
     <div class="leaderboard-title">TOP O'YINCHILAR</div>
     <div id="leaderboard"></div>
 
@@ -170,13 +190,11 @@
         let divSettings = {};
         let myCurrentData = { points: 0, division: 10 };
 
-        // 1. Division sozlamalarini olish
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
             updateGameUI();
         });
 
-        // 2. Shaxsiy ma'lumotlarni olish
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = snapshot.val();
@@ -186,9 +204,7 @@
                 updateGameUI();
             } else {
                 update(ref(db, 'leaderboard/' + myId), {
-                    name: myName,
-                    points: 100, 
-                    division: 10
+                    name: myName, points: 0, division: 10
                 });
             }
         });
@@ -198,7 +214,6 @@
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
                 document.getElementById('target-label').innerText = `MAQSAD: ${rules.target.toFixed(3)}s`;
-                
                 if(d > 1) {
                     document.getElementById('promo-info').innerText = `Siz ${rules.promotionPoints.toLocaleString()} ball to'plasangiz, Division ${d-1}ga ko'tarilasiz.`;
                 } else {
@@ -207,12 +222,25 @@
             }
         }
 
+        function showResult(text, color) {
+            const popup = document.getElementById('result-popup');
+            const display = document.getElementById('display');
+            popup.innerText = text;
+            popup.style.color = color;
+            popup.style.opacity = '1';
+            display.style.opacity = '0.2';
+            
+            setTimeout(() => {
+                popup.style.opacity = '0';
+                display.style.opacity = '1';
+            }, 1500);
+        }
+
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             const currentDiv = myCurrentData.division || 10;
             
-            // Bazadan olingan qoidalar yoki standart
             const rules = divSettings && divSettings[currentDiv] 
                 ? divSettings[currentDiv] 
                 : { target: 10.000, nearLimit: 0.050, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
@@ -222,6 +250,7 @@
                 startTime = Date.now();
                 btn.innerText = "STOP";
                 btn.className = "btn-main stop";
+                display.style.color = "var(--accent-color)";
                 tg.HapticFeedback.impactOccurred('medium');
 
                 timerInterval = setInterval(() => {
@@ -242,45 +271,37 @@
                 let newDivision = currentDiv;
                 let newPoints = myCurrentData.points || 0;
 
-                // Mantiq: 0.000 bo'lsa
-                if (diffStr === "0.000" && currentDiv > 1) {
-                    newDivision = currentDiv - 1;
-                    newPoints += 100; // Bonus
-                    document.getElementById('last-result').style.color = "#f1c40f";
-                    document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH!`;
+                if (diffStr === "0.000") {
+                    pointChange = rules.plusPoints * 2;
+                    newPoints += pointChange;
+                    showResult(`+${pointChange} PERFECT!`, '#f1c40f');
                     tg.HapticFeedback.notificationOccurred('success');
                 } 
-                // Yaqin kelsa
                 else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints);
                     newPoints += pointChange;
-                    document.getElementById('last-result').style.color = "#2ecc71";
-                    document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
+                    showResult(`+${pointChange} BALL`, '#2ecc71');
                     tg.HapticFeedback.notificationOccurred('success');
-
-                    if (newPoints >= rules.promotionPoints && currentDiv > 1) {
-                        newDivision = currentDiv - 1;
-                    }
                 } 
-                // Uzoq bo'lsa
                 else {
                     pointChange = -parseInt(rules.minusPoints);
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    document.getElementById('last-result').style.color = "#e74c3c";
-                    document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
+                    showResult(`${pointChange} BALL`, '#e74c3c');
                     tg.HapticFeedback.notificationOccurred('error');
+                }
 
-                    if (currentDiv < 10) {
-                        const prevDivRules = divSettings && divSettings[currentDiv + 1] ? divSettings[currentDiv + 1] : null;
-                        if (prevDivRules && newPoints < prevDivRules.promotionPoints) {
-                            newDivision = currentDiv + 1;
-                        }
+                // Division logic
+                if (newPoints >= rules.promotionPoints && currentDiv > 1) {
+                    newDivision = currentDiv - 1;
+                } else if (currentDiv < 10) {
+                    const prevDivRules = divSettings[currentDiv + 1];
+                    if (prevDivRules && newPoints < prevDivRules.promotionPoints) {
+                        newDivision = currentDiv + 1;
                     }
                 }
 
                 update(ref(db, 'leaderboard/' + myId), {
-                    name: myName,
                     points: newPoints,
                     division: newDivision,
                     bestDiff: diffStr,
@@ -289,7 +310,6 @@
             }
         };
 
-        // Reytingni yangilash
         onValue(ref(db, 'leaderboard'), (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
@@ -300,26 +320,25 @@
                     return (b.points || 0) - (a.points || 0);
                 });
 
-            // O'z o'rnini topish
             const myRankIndex = list.findIndex(p => p.id === myId);
-            document.getElementById('user-rank-pos').innerText = myRankIndex !== -1 ? `#${(myRankIndex + 1).toLocaleString()}` : "#---";
+            document.getElementById('user-rank-pos').innerText = myRankIndex !== -1 ? `#${myRankIndex + 1}` : "#---";
 
             const container = document.getElementById('leaderboard');
             container.innerHTML = '';
 
-            list.slice(0, 50).forEach((p, i) => {
+            list.slice(0, 30).forEach((p, i) => {
                 container.innerHTML += `
                     <div class="rank-item" style="${p.id === myId ? 'border: 1px solid #f1c40f;' : ''}">
                         <div class="rank-info">
                             <span class="rank-pos">${i+1}</span>
                             <div style="display:flex; flex-direction:column">
-                                <span style="font-size:14px; font-weight:bold;">${p.name}</span>
-                                <span style="font-size:10px; color:#666;">Div ${p.division || 10}</span>
+                                <span style="font-size:15px; font-weight:bold;">${p.name}</span>
+                                <span style="font-size:11px; color:#666;">Div ${p.division || 10}</span>
                             </div>
                         </div>
                         <div style="text-align: right">
-                            <div style="color:#f1c40f; font-weight:bold; font-size:14px;">${(p.points || 0).toLocaleString()}</div>
-                            <div style="font-size:10px; color:#444;">${p.bestDiff || '0'}s</div>
+                            <div style="color:#f1c40f; font-weight:bold; font-size:16px;">${(p.points || 0).toLocaleString()}</div>
+                            <div style="font-size:11px; color:#444;">Farq: ${p.bestDiff || '0'}s</div>
                         </div>
                     </div>
                 `;
