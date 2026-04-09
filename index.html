@@ -7,178 +7,121 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg-color: #000000;
-            --card-bg: #ffffff;
-            --accent-blue: #007aff;
-            --accent-yellow: #f1c40f;
-            --text-dark: #333333;
-            --text-gray: #777777;
+            --tg-theme-bg-color: #121212;
+            --tg-theme-button-color: #0088cc;
+            --accent-color: #f1c40f;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             background-color: var(--tg-theme-bg-color);
-            background-image: radial-gradient(circle at top right, #001f3f, #000000);
             color: white;
-            height: 100vh;
             overflow: hidden;
             -webkit-user-select: none;
         }
 
-        /* Top Bar Stats */
-        .top-stats {
-            display: flex;
-            padding: 10px 20px;
-            gap: 15px;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-        }
-        .stat-item { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; }
-        .coin-icon { color: var(--accent-yellow); font-size: 18px; }
-        .gp-icon { color: #5dade2; font-size: 18px; }
+        .page { display: none; height: calc(100vh - 70px); padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .active-page { display: block; }
 
-        .page { display: none; height: calc(100vh - 120px); padding: 15px; box-sizing: border-box; overflow-y: auto; }
-        .active-page { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-
-        /* Menu Cards (eFootball Style) */
-        .menu-container {
-            display: flex;
-            gap: 15px;
+        /* Taymer maydoni */
+        #timer-container {
             width: 100%;
-            max-width: 500px;
-            perspective: 1000px;
-        }
-
-        .menu-card {
-            flex: 1;
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            min-height: 250px;
+            height: 300px;
             display: flex;
             flex-direction: column;
-            position: relative;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-            overflow: hidden;
-        }
-
-        .menu-card:active { transform: scale(0.95); }
-
-        .card-icon-wrap {
-            width: 50px; height: 50px;
-            border: 2px solid var(--accent-blue);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 15px;
-            color: var(--accent-blue);
-        }
-
-        .card-title { color: var(--text-dark); font-size: 20px; font-weight: 800; margin: 0; }
-        .card-desc { color: var(--text-gray); font-size: 13px; margin-top: 5px; }
-
-        .div-badge-corner {
-            position: absolute; bottom: -10px; right: -10px;
-            background: linear-gradient(135deg, #ff9d00, #ff5e00);
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            transform: rotate(-15deg);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        /* Battle UI */
-        #battle-screen {
-            position: fixed; top:0; left:0; width: 100%; height: 100%;
-            background: #000; z-index: 100; display: none;
-            flex-direction: column; align-items: center; justify-content: center;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, #2c3e50 0%, #000 100%);
+            border-radius: 30px;
+            border: 2px solid #333;
+            margin-top: 20px;
         }
 
         #display {
-            font-size: 80px; font-weight: 900; color: white;
-            font-variant-numeric: tabular-nums; letter-spacing: -2px;
+            font-size: 64px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
         }
-        .target-box { background: rgba(255,255,255,0.1); padding: 5px 20px; border-radius: 50px; margin-bottom: 20px; }
 
-        .btn-action {
-            width: 80%; max-width: 300px; padding: 20px; border-radius: 40px;
-            border: none; font-size: 24px; font-weight: bold; text-transform: uppercase;
-            margin-top: 40px; cursor: pointer;
+        .target-text { font-size: 14px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Tugmalar */
+        .btn-main {
+            width: 100%;
+            padding: 20px;
+            border-radius: 20px;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 30px;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        .btn-start { background: var(--accent-blue); color: white; }
-        .btn-stop { background: #ff3b30; color: white; }
 
-        /* Navigation */
+        .start { background: #2ecc71; color: white; }
+        .stop { background: #e74c3c; color: white; }
+
+        /* Navigatsiya */
         .nav-bar {
             position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
-            background: rgba(0,0,0,0.9); display: flex; justify-content: space-around;
+            background: #1a1a1a; display: flex; justify-content: space-around;
             align-items: center; border-top: 1px solid #333;
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .nav-item { color: #555; text-align: center; font-size: 11px; }
-        .nav-item.active { color: var(--accent-blue); }
-        .nav-item svg { width: 26px; height: 26px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #555; font-size: 11px; }
+        .nav-item.active { color: var(--tg-theme-button-color); }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
 
-        /* Rating */
-        .rank-list { width: 100%; }
+        /* Reyting */
         .rank-item {
-            background: rgba(255,255,255,0.05); margin-bottom: 10px;
-            padding: 15px; border-radius: 12px; display: flex; justify-content: space-between;
+            background: #1e1e1e; margin-bottom: 8px; padding: 15px;
+            border-radius: 15px; display: flex; justify-content: space-between;
         }
+        .diff { font-size: 12px; color: #e74c3c; } /* Xatolik ko'rsatkichi */
+
+        /* User Info Stats */
+        .user-stats {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; font-size: 14px;
+        }
+        .stat-badge { background: #333; padding: 5px 12px; border-radius: 20px; color: #f1c40f; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="top-stats">
-        <div class="stat-item"><span class="coin-icon">●</span> <span id="user-pts-top">0</span></div>
-        <div class="stat-item"><span class="gp-icon">◆</span> <span id="user-div-top">Div 10</span></div>
-        <div style="margin-left: auto; font-size: 12px; color: #aaa;" id="user-display-name">O'yinchi</div>
-    </div>
-
     <div id="page-game" class="page active-page">
-        <div class="menu-container">
-            <div class="menu-card" onclick="openBattle()">
-                <div class="card-icon-wrap">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="30"><path d="M13,9.5H11V7.5H13V9.5M13,16.5H11V11.5H13V16.5M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/></svg>
-                </div>
-                <h2 class="card-title">VS Battle</h2>
-                <p class="card-desc">O'z mahoratingizni sinab ko'ring va vaqtni zabt eting.</p>
-                <div class="div-badge-corner">
-                    <span id="card-div-num" style="font-weight: 900; font-size: 20px;">10</span>
-                </div>
-            </div>
-
-            <div class="menu-card" onclick="showPage('rating', document.querySelector('.nav-rating'))">
-                <div class="card-icon-wrap" style="border-color: #2ecc71; color: #2ecc71;">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="30"><path d="M12,12C14.21,12 16,10.21 16,8C16,5.79 14.21,4 12,4C9.79,4 8,5.79 8,8C8,10.21 9.79,12 12,12M12,14C9.33,14 4,15.33 4,18V20H20V18C20,15.33 14.67,14 12,14Z"/></svg>
-                </div>
-                <h2 class="card-title">Ranking</h2>
-                <p class="card-desc">Boshqa o'yinchilar bilan ballar bo'yicha kurashing.</p>
+        <div style="text-align: center;">
+            <p id="user-name" style="color: #aaa; margin: 0; margin-bottom: 5px;">Yuklanmoqda...</p>
+            <div class="user-stats">
+                <span class="stat-badge" id="user-div">Div: 10</span>
+                <span class="stat-badge" id="user-pts">Ball: 0</span>
             </div>
         </div>
-    </div>
 
-    <div id="battle-screen">
-        <div class="target-box" id="target-label">Maqsad: 10.000s</div>
-        <div id="display">0.000</div>
-        <button id="actionBtn" class="btn-action btn-start" onclick="handleAction()">START</button>
-        <p id="last-result" style="margin-top: 30px; font-size: 20px; font-weight: bold;"></p>
-        <button onclick="closeBattle()" style="background:none; border:none; color:#555; margin-top:20px;">ORQAGA QAYTISH</button>
+        <div id="timer-container">
+            <div class="target-text" id="target-label">Maqsad: 10.000s</div>
+            <div id="display">0.000</div>
+        </div>
+
+        <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
+        <p id="last-result" style="text-align: center; margin-top: 20px; font-weight: bold;"></p>
     </div>
 
     <div id="page-rating" class="page">
-        <h2 style="text-align: center; width: 100%;">Division Reytingi</h2>
-        <div id="leaderboard" class="rank-list"></div>
+        <h2 style="text-align: center;">Division Reytingi</h2>
+        <div id="leaderboard"></div>
     </div>
 
     <nav class="nav-bar">
         <div class="nav-item active" onclick="showPage('game', this)">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
-            <div>ASOSIY</div>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>
+            <span>O'yin</span>
         </div>
-        <div class="nav-item nav-rating" onclick="showPage('rating', this)">
+        <div class="nav-item" onclick="showPage('rating', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16,11V3H8V11H2V21H22V11H16M10,5H14V11H10V5M4,13H8V19H4V13M20,19H16V13H20V19Z"/></svg>
-            <div>REYTING</div>
+            <span>Reyting</span>
         </div>
     </nav>
 
@@ -205,28 +148,31 @@
         const myId = user?.id || "guest_" + Math.random().toString(36).substring(7);
         const myName = (user?.first_name || "O'yinchi");
 
-        document.getElementById('user-display-name').innerText = myName;
+        document.getElementById('user-name').innerText = myName;
 
-        let startTime, timerInterval, isRunning = false;
+        let startTime;
+        let timerInterval;
+        let isRunning = false;
         let divSettings = {};
         let myCurrentData = { points: 0, division: 10 };
 
-        // Bazadan barcha divizion sozlamalarini olish
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
             updateGameUI();
         });
 
-        // O'yinchi ma'lumotlarini olish
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = snapshot.val();
-                document.getElementById('user-div-top').innerText = `Div ${myCurrentData.division || 10}`;
-                document.getElementById('card-div-num').innerText = myCurrentData.division || 10;
-                document.getElementById('user-pts-top').innerText = (myCurrentData.points || 0).toLocaleString();
+                document.getElementById('user-div').innerText = `Div: ${myCurrentData.division || 10}`;
+                document.getElementById('user-pts').innerText = `Ball: ${myCurrentData.points || 0}`;
                 updateGameUI();
             } else {
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10 });
+                update(ref(db, 'leaderboard/' + myId), {
+                    name: myName,
+                    points: 100, 
+                    division: 10
+                });
             }
         });
 
@@ -237,24 +183,11 @@
             }
         }
 
-        window.openBattle = () => {
-            document.getElementById('battle-screen').style.display = 'flex';
-            document.getElementById('last-result').innerText = '';
-            document.getElementById('display').innerText = '0.000';
-            tg.HapticFeedback.impactOccurred('light');
-        };
-
-        window.closeBattle = () => {
-            if(isRunning) handleAction();
-            document.getElementById('battle-screen').style.display = 'none';
-        };
-
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             const currentDiv = myCurrentData.division || 10;
             
-            // Sozlamalarni bazadan olish, agar bo'lmasa standart qiymatlar
             const rules = divSettings && divSettings[currentDiv] 
                 ? divSettings[currentDiv] 
                 : { target: 10, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
@@ -263,10 +196,12 @@
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP";
-                btn.className = "btn-action btn-stop";
+                btn.className = "btn-main stop";
                 tg.HapticFeedback.impactOccurred('medium');
+
                 timerInterval = setInterval(() => {
-                    display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    display.innerText = elapsed.toFixed(3);
                 }, 10);
             } else {
                 isRunning = false;
@@ -274,47 +209,68 @@
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START";
-                btn.className = "btn-action btn-start";
+                btn.className = "btn-main start";
 
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
-                let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0;
+                let pointChange = 0;
+                let newDivision = currentDiv;
+                let newPoints = myCurrentData.points || 0;
 
-                // 100% aniqlik - Perfect sakrash
+                // 1. 100% ANIQLIK SAKRASH
                 if (diffStr === "0.000" && currentDiv > 1) {
                     newDivision = currentDiv - 1;
                     const targetDivRules = divSettings && divSettings[newDivision + 1] ? divSettings[newDivision + 1] : { promotionPoints: 500 };
                     newPoints = targetDivRules.promotionPoints;
+                    
                     document.getElementById('last-result').style.color = "#f1c40f";
-                    document.getElementById('last-result').innerText = `PERFECT! UP!`;
+                    document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH!`;
                     tg.HapticFeedback.notificationOccurred('success');
                 } 
-                // Ball qo'shish (Yaqinlik chegarasi bazadan)
+                // 2. BALL QO'SHISH
                 else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints);
                     newPoints += pointChange;
                     document.getElementById('last-result').style.color = "#2ecc71";
-                    document.getElementById('last-result').innerText = `EXCELLENT! +${pointChange}`;
+                    document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('success');
-                    if (newPoints >= rules.promotionPoints && currentDiv > 1) newDivision = currentDiv - 1;
+
+                    // KO'TARILISH: Agar ball joriy divizionning o'tish balidan oshsa
+                    if (newPoints >= rules.promotionPoints && currentDiv > 1) {
+                        newDivision = currentDiv - 1;
+                    }
                 } 
-                // Ball ayirish (Minus ball bazadan)
+                // 3. BALL AYIRISH VA TUSHISH
                 else {
                     pointChange = -parseInt(rules.minusPoints);
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    document.getElementById('last-result').style.color = "#ff3b30";
-                    document.getElementById('last-result').innerText = `MISS! ${pointChange}`;
+                    document.getElementById('last-result').style.color = "#e74c3c";
+                    document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('error');
+
+                    // TUSHISH MANTIQI:
+                    // Agar o'yinchi 10-diviziondan yuqorida bo'lsa
                     if (currentDiv < 10) {
+                        // Pastki divizionning o'tish balini tekshiramiz
+                        // Masalan 9-divda bo'lsa, 10-divdan 9-ga o'tish ballini (rules of Div 10) ko'ramiz
                         const prevDivRules = divSettings && divSettings[currentDiv + 1] ? divSettings[currentDiv + 1] : null;
-                        if (prevDivRules && newPoints < prevDivRules.promotionPoints) newDivision = currentDiv + 1;
+                        
+                        if (prevDivRules && newPoints < prevDivRules.promotionPoints) {
+                            newDivision = currentDiv + 1;
+                        }
                     }
                 }
 
+                if (newDivision < 1) newDivision = 1;
+                if (newDivision > 10) newDivision = 10;
+
                 update(ref(db, 'leaderboard/' + myId), {
-                    name: myName, points: newPoints, division: newDivision,
-                    bestDiff: diffStr, lastTime: finalTime.toFixed(3)
+                    name: myName,
+                    points: newPoints,
+                    division: newDivision,
+                    bestDiff: diffStr,
+                    lastTime: finalTime.toFixed(3)
                 });
             }
         };
@@ -326,27 +282,31 @@
             el.classList.add('active');
         };
 
-        // Global Reytingni yangilab turish
         onValue(ref(db, 'leaderboard'), (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
+
             const list = Object.values(data).sort((a, b) => {
                 if (a.division !== b.division) return a.division - b.division;
                 return (b.points || 0) - (a.points || 0);
             }).slice(0, 30);
+
             const container = document.getElementById('leaderboard');
             container.innerHTML = '';
+
             list.forEach((p, i) => {
                 container.innerHTML += `
                     <div class="rank-item">
-                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div ${p.division || 10})</small></span>
+                        <span><b>#${i+1}</b> ${p.name} <small style="color:#888">(Div: ${p.division || 10})</small></span>
                         <div style="text-align: right">
-                            <div style="color:#f1c40f; font-weight:bold;">${(p.points || 0).toLocaleString()}</div>
-                            <div style="font-size:10px; color:#aaa;">Best: ${p.bestDiff || '0'}s</div>
+                            <div style="color:#f1c40f; font-weight:bold;">${p.points || 0} pts</div>
+                            <div class="diff">Farq: ${p.bestDiff || '0'}s</div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
             });
         });
     </script>
 </body>
 </html>
+
