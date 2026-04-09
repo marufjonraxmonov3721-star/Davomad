@@ -50,7 +50,7 @@
             border-top-left-radius: 100%; padding: 15px 10px 5px 20px; color: white; font-weight: bold;
         }
 
-        /* DASHBOARD STYLE (Yangi qism) */
+        /* DASHBOARD STYLE */
         .dashboard-container {
             display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-top: 10px;
         }
@@ -65,8 +65,8 @@
 
         .div-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .div-logo { 
-            width: 50px; height: 50px; background: orange; border-radius: 10px; 
-            display: flex; align-items: center; justify-content: center; font-weight: 900;
+            width: 50px; height: 50px; background: #0088cc; border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; font-weight: 900; color: white;
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
@@ -80,26 +80,26 @@
 
         /* GAME AREA */
         #timer-container {
-            width: 100%; height: 200px; display: flex; flex-direction: column;
+            width: 100%; height: 250px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; background: radial-gradient(circle, #2c3e50 0%, #000 100%);
             border-radius: 20px; border: 2px solid #333; margin-top: 15px;
         }
-        #display { font-size: 48px; font-family: monospace; color: var(--accent-color); }
+        #display { font-size: 56px; font-family: monospace; color: var(--accent-color); font-weight: bold; }
 
         .play-footer {
             position: fixed; bottom: 20px; left: 15px; right: 15px; display: flex; gap: 10px;
         }
 
         .btn-footer {
-            flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 16px;
+            flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 16px; cursor: pointer;
         }
-        .btn-back { background: #0088cc; color: white; }
+        .btn-back { background: #333; color: white; }
         .btn-match { background: #0088cc; color: white; }
 
         /* RATING OVERLAY */
         #rating-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background: #000; z-index: 100; display: none; padding: 20px;
+            background: #000; z-index: 100; display: none; padding: 20px; overflow-y: auto;
         }
         .rank-item { background: #1e1e1e; margin-bottom: 8px; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; }
     </style>
@@ -110,7 +110,7 @@
         <div class="menu-container">
             <div class="menu-card ai" onclick="showPage('dashboard')">
                 <div class="icon-circle">
-                    <svg viewBox="0 0 24 24" width="30" fill="currentColor"><path d="M13,2V4H11V2H13M15,10V12H9V10H15M12,6A6,6 0 0,1 18,12C18,14.22 16.79,16.16 15,17.2V19A2,2 0 0,1 13,21H11A2,2 0 0,1 9,19V17.2C7.21,16.16 6,14.22 6,12A6,6 0 0,1 12,6Z"/></svg>
+                    <svg viewBox="0 0 24 24" width="30" fill="currentColor"><path d="M13,2V4H11V2H13M15,10V12H9V10H15M12,6A6,6 0 0,1 18,12C18,14.22 16.79,16.16 15,17.2V19A2,2 0 0,1 13,21H11A2,2 0 0,1 9,19V17.2C7.21,16.16 6,14.22 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12C8,13.31 8.64,14.47 9.63,15.19L10,15.45V19H14V15.45L14.37,15.19C15.36,14.47 16,13.31 16,12A4,4 0 0,0 12,8Z"/></svg>
                 </div>
                 <div class="card-title">VS AI Category</div>
                 <div class="card-desc">Play Against the AI.</div>
@@ -129,73 +129,75 @@
     <div id="page-dashboard" class="page">
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
             <div style="display: flex; gap: 10px; align-items: center;">
-                <span style="color: #f1c40f;">🪙 57</span>
+                <span style="color: #f1c40f;">🪙 <span id="user-coins">57</span></span>
                 <span style="color: #0088cc;">GP 35,318,911</span>
             </div>
-            <div onclick="showRating(true)" style="color: #0088cc; font-weight: bold; cursor: pointer;">📊 Ranking</div>
+            <div onclick="showRating(true)" style="color: #0088cc; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                📊 Ranking
+            </div>
         </div>
 
         <div class="dashboard-container">
             <div class="dash-left">
                 <div class="side-btn">⚽ Game Plan</div>
-                <div class="side-btn">📜 History</div>
-                <div class="side-btn">💡 Advice</div>
+                <div class="side-btn" onclick="tg.showAlert('Tez kunda...')">📜 History</div>
+                <div class="side-btn" onclick="tg.showAlert('Harakatda bo\'ling!')">💡 Advice</div>
             </div>
             <div class="dash-right">
                 <div class="div-header">
                     <div class="div-logo" id="dash-div-logo">10</div>
                     <div>
                         <div style="font-weight: 800; font-size: 18px; color: #f1c40f;">Division <span id="dash-div-num">10</span></div>
-                        <div style="font-size: 9px; color: #888;">PHASE 9: 02/04 - 30/04</div>
+                        <div style="font-size: 9px; color: #888;">PHASE 9: 2026-04-10</div>
                     </div>
                 </div>
 
                 <div class="stats-grid">
                     <div class="stat-box">
-                        <div class="stat-label">Rating</div>
+                        <div class="stat-label">Points</div>
                         <div class="stat-val" id="dash-rating">0</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Ranking</div>
+                        <div class="stat-label">Global Rank</div>
                         <div class="stat-val">#<span id="dash-rank">--</span></div>
                     </div>
                 </div>
                 
-                <p style="font-size: 10px; color: #aaa;">Maqsadga erishish orqali keyingi divizionga ko'tarilasiz.</p>
+                <p style="font-size: 10px; color: #aaa; margin-bottom: 5px;">Har bir g'alaba sizni yuqori ligaga yaqinlashtiradi.</p>
                 
                 <div class="win-rate-bar">
-                    <div style="width: 100%; background: #2ecc71;"></div>
+                    <div id="winrate-fill" style="width: 0%; background: #2ecc71; transition: 0.5s;"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                    <span>Win Rate</span>
-                    <span id="dash-winrate">100%</span>
+                    <span>Progress</span>
+                    <span id="dash-winrate">0%</span>
                 </div>
             </div>
         </div>
 
         <div class="play-footer">
-            <button class="btn-footer btn-back" onclick="showPage('menu')">Back</button>
+            <button class="btn-footer btn-back" onclick="showPage('menu')">Menu</button>
             <button class="btn-footer btn-match" onclick="showPage('game')">To Match ❯</button>
         </div>
     </div>
 
     <div id="page-game" class="page">
         <div style="text-align: center;">
-            <h2 id="game-div-title">Division 10</h2>
+            <h2 id="game-div-title" style="margin-top:0">Division 10</h2>
             <div id="timer-container">
                 <div class="target-text" id="target-label">Target: 10.000s</div>
                 <div id="display">0.000</div>
             </div>
-            <button id="actionBtn" class="btn-main start" style="width:100%; padding:30px; border-radius:20px; margin-top:20px; font-size:24px; font-weight:bold; background:#2ecc71; border:none; color:white;" onclick="handleAction()">START</button>
-            <p id="last-result" style="margin-top: 20px; font-weight: bold; font-size: 18px;"></p>
-            <button class="btn-footer btn-back" style="margin-top: 20px; width: 100%;" onclick="showPage('dashboard')">Stop & Return</button>
+            <button id="actionBtn" class="btn-main start" style="width:100%; padding:25px; border-radius:15px; margin-top:20px; font-size:24px; font-weight:bold; background:#2ecc71; border:none; color:white;" onclick="handleAction()">START</button>
+            <p id="last-result" style="margin-top: 20px; font-weight: bold; font-size: 18px; min-height: 24px;"></p>
+            <button class="btn-footer btn-back" style="margin-top: 20px; width: 100%; border-radius:15px;" onclick="showPage('dashboard')">Stop & Return</button>
         </div>
     </div>
 
     <div id="rating-overlay">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>Global Ranking</h2>
-            <button onclick="showRating(false)" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+            <h2 style="margin:0">Global Ranking</h2>
+            <button onclick="showRating(false)" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">✕</button>
         </div>
         <div id="leaderboard"></div>
     </div>
@@ -240,13 +242,19 @@
         function updateUI() {
             const d = myCurrentData.division || 10;
             const pts = myCurrentData.points || 0;
+            const rules = divSettings?.[d] || { promotionPoints: 500 };
             
-            // Menu & Dashboard Updates
+            // UI elementlarni yangilash
             document.getElementById('menu-div-badge').innerText = `Div ${d}`;
             document.getElementById('dash-div-num').innerText = d;
             document.getElementById('dash-div-logo').innerText = d;
             document.getElementById('dash-rating').innerText = pts;
             document.getElementById('game-div-title').innerText = `Division ${d}`;
+            
+            // Progress bar
+            const progress = Math.min(100, (pts / rules.promotionPoints) * 100);
+            document.getElementById('winrate-fill').style.width = progress + '%';
+            document.getElementById('dash-winrate').innerText = Math.floor(progress) + '%';
             
             if (divSettings && divSettings[d]) {
                 document.getElementById('target-label').innerText = `Target: ${divSettings[d].target.toFixed(3)}s`;
@@ -256,6 +264,7 @@
         window.showPage = (pageId) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.getElementById('page-' + pageId).classList.add('active-page');
+            tg.HapticFeedback.impactOccurred('light');
         };
 
         window.showRating = (show) => {
@@ -293,23 +302,26 @@
                     newPoints += 100;
                     document.getElementById('last-result').innerText = "PERFECT! PROMOTED!";
                     document.getElementById('last-result').style.color = "#f1c40f";
+                    tg.HapticFeedback.notificationOccurred('success');
                 } else if (diffVal <= rules.nearLimit) {
                     newPoints += parseInt(rules.plusPoints);
-                    document.getElementById('last-result').innerText = `Excellent! +${rules.plusPoints}`;
+                    document.getElementById('last-result').innerText = `Excellent! +${rules.plusPoints} pts`;
                     document.getElementById('last-result').style.color = "#2ecc71";
+                    tg.HapticFeedback.notificationOccurred('success');
                     if (newPoints >= rules.promotionPoints && currentDiv > 1) newDivision = currentDiv - 1;
                 } else {
                     newPoints = Math.max(0, newPoints - rules.minusPoints);
-                    document.getElementById('last-result').innerText = `Missed! -${rules.minusPoints}`;
+                    document.getElementById('last-result').innerText = `Too Far! -${rules.minusPoints} pts`;
                     document.getElementById('last-result').style.color = "#e74c3c";
+                    tg.HapticFeedback.notificationOccurred('error');
                     if (currentDiv < 10) {
                         const prevRules = divSettings?.[currentDiv + 1];
-                        if (prevRules && newPoints < (prevRules.promotionPoints * 0.8)) newDivision = currentDiv + 1;
+                        if (prevRules && newPoints < (prevRules.promotionPoints * 0.5)) newDivision = currentDiv + 1;
                     }
                 }
 
                 update(ref(db, 'leaderboard/' + myId), {
-                    points: newPoints, division: newDivision, lastTime: finalTime.toFixed(3)
+                    points: newPoints, division: newDivision, lastTime: finalTime.toFixed(3), bestDiff: diffStr
                 });
             }
         };
@@ -331,7 +343,10 @@
                 container.innerHTML += `
                     <div class="rank-item" style="${p.name === myName ? 'border: 1px solid #0088cc;' : ''}">
                         <span><b>#${i+1}</b> ${p.name} <small style="color:#888">Div ${p.division}</small></span>
-                        <span style="color:#f1c40f; font-weight:bold;">${p.points || 0}</span>
+                        <div style="text-align:right">
+                            <span style="color:#f1c40f; font-weight:bold;">${p.points || 0} pts</span>
+                            <div style="font-size:10px; color:#555">Best: ${p.bestDiff || '0'}s</div>
+                        </div>
                     </div>`;
             });
         });
