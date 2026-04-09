@@ -48,6 +48,30 @@
         .div-num { font-size: 28px; font-weight: 900; color: white; }
         .div-title { color: #f1c40f; font-size: 22px; font-weight: bold; }
 
+        /* Chiroyli Phase Badge */
+        .phase-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: right;
+        }
+        .phase-label {
+            display: block;
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+        .phase-time {
+            display: block;
+            color: #2ecc71;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .stat-box { display: flex; align-items: center; gap: 10px; }
         .stat-icon { width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; }
@@ -107,7 +131,10 @@
                 </div>
                 <div class="div-title">Division <span id="user-div-title">...</span></div>
             </div>
-            <div style="color: #aaa; font-size: 12px;" id="phase-date">Yuklanmoqda...</div>
+            <div class="phase-container">
+                <span class="phase-label">Mavsum Tugashi</span>
+                <span class="phase-time" id="phase-date">Yuklanmoqda...</span>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -175,7 +202,7 @@
             if (snapshot.exists()) {
                 document.getElementById('phase-date').innerText = snapshot.val();
             } else {
-                document.getElementById('phase-date').innerText = "Phase: 2026";
+                document.getElementById('phase-date').innerText = "2026";
             }
         });
 
