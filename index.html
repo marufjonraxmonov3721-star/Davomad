@@ -325,21 +325,6 @@
         <div class="modal-content">
             <div class="modal-title">Divizion Ma'lumotlari</div>
             
-            <div id="current-rules-section" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px dashed #333;">
-                <div class="rule-row">
-                    <div class="rule-name">⚡️ Yaqinlik:</div>
-                    <div class="rule-data" id="modal-limit">±0.000s</div>
-                </div>
-                <div class="rule-row">
-                    <div class="rule-name">✅ G'alaba:</div>
-                    <div class="rule-data" id="modal-plus" style="color: #2ecc71">+0 ball</div>
-                </div>
-                <div class="rule-row">
-                    <div class="rule-name">❌ Xato:</div>
-                    <div class="rule-data" id="modal-minus" style="color: #e74c3c">-0 ball</div>
-                </div>
-            </div>
-
             <div style="text-align: left; color: #888; font-size: 12px; margin-bottom: 8px; font-weight: bold;">BARCHA DIVIZIONLAR:</div>
             <table class="div-info-table">
                 <thead>
@@ -462,10 +447,6 @@
                 document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
                 document.getElementById('plus-label').innerText = `+${rules.plusPoints} ball`;
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
-                
-                document.getElementById('modal-limit').innerText = "±" + rules.nearLimit.toFixed(3) + "s";
-                document.getElementById('modal-plus').innerText = "+" + rules.plusPoints + " ball";
-                document.getElementById('modal-minus').innerText = "-" + rules.minusPoints + " ball";
 
                 let promoText = "";
                 if (d > 1) promoText += `🚀 Keyingi Divizion: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
@@ -589,4 +570,3 @@
     </script>
 </body>
 </html>
-
