@@ -397,7 +397,7 @@
                 <div class="stat-box">
                     <div class="stat-icon">📈</div>
                     <div class="stat-info">
-                        <span class="stat-label">Ballar</span>
+                        <span class="stat-label">Bal</span>
                         <span class="stat-value" id="user-pts">0</span>
                     </div>
                 </div>
@@ -599,7 +599,7 @@
 
                 let promoText = "";
                 if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
-                if (d < 10) promoText += `⚠️ Pastki Divizionga Tushib ketish chegarasi: Ballangiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
+                if (d < 10) promoText += `⚠️ Pastki Divizionga tushib ketish chegarasi: Ballangiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
 
                 const dangerZone = (rules.relegationPoints || 0) + 20;
