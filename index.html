@@ -25,11 +25,10 @@
             color: white;
             -webkit-user-select: none;
             padding: 15px;
-            padding-bottom: 80px; /* Navigatsiya uchun joy */
+            padding-bottom: 80px;
             overflow-x: hidden;
         }
 
-        /* Sahifalar boshqaruvi */
         .page { display: none; }
         .page.active { display: block; }
 
@@ -116,7 +115,6 @@
         .start { background: #2ecc71; color: white; }
         .stop { background: #e74c3c; color: white; }
 
-        /* Ranking System - New Style */
         .ef-header {
             padding: 10px 0;
             margin-bottom: 15px;
@@ -151,7 +149,6 @@
         }
         .ef-row.me .ef-rank-num { color: var(--accent-color); }
         
-        /* Top 3 coloring */
         .ef-row:nth-child(1) .ef-rank-num { color: #ffd700; font-size: 22px; }
         .ef-row:nth-child(2) .ef-rank-num { color: #c0c0c0; }
         .ef-row:nth-child(3) .ef-rank-num { color: #cd7f32; }
@@ -189,7 +186,6 @@
         .ef-points-val { font-weight: 900; font-size: 18px; color: #fff; font-family: 'Courier New', Courier, monospace; }
         .ef-points-label { display: block; font-size: 9px; color: var(--accent-color); font-weight: bold; }
 
-        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -364,17 +360,28 @@
 
         function updateGameUI() {
             const d = myCurrentData.division || 10;
+            const currentPoints = myCurrentData.points || 0;
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
                 document.getElementById('target-label').innerText = `MAQSAD: ${rules.target.toFixed(3)}s`;
-                document.getElementById('promo-info').innerText = d > 1 ? `Siz ${rules.promotionPoints.toLocaleString()} ball to'plasangiz, Divizion ${d-1}ga ko'tarilasiz.` : `Siz eng yuqori diviziondasiz!`;
+                
+                if (d > 1) {
+                    const diff = rules.promotionPoints - currentPoints;
+                    if (diff <= 0) {
+                        document.getElementById('promo-info').innerText = "Siz ko'tarilish uchun yetarli ball to'pladingiz! Keyingi urinishda divizion yangilanadi.";
+                    } else {
+                        document.getElementById('promo-info').innerText = `Siz ${rules.promotionPoints.toLocaleString()} ball to'plasangiz, Divizion ${d-1}ga ko'tarilasiz.`;
+                    }
+                } else {
+                    document.getElementById('promo-info').innerText = `Siz eng yuqori diviziondasiz!`;
+                }
             }
         }
 
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
-            const currentDiv = myCurrentData.division || 10;
+            let currentDiv = myCurrentData.division || 10;
             const rules = divSettings && divSettings[currentDiv] ? divSettings[currentDiv] : { target: 10.000, nearLimit: 0.050, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
 
             if (!isRunning) {
@@ -406,18 +413,29 @@
                     document.getElementById('last-result').style.color = "#2ecc71";
                     document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('success');
-                    if (newPoints >= rules.promotionPoints && currentDiv > 1) newDivision = currentDiv - 1;
                 } else {
                     pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
                     document.getElementById('last-result').style.color = "#e74c3c";
                     document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('error');
-                    if (currentDiv < 10) {
-                        const prevDivRules = divSettings && divSettings[currentDiv + 1] ? divSettings[currentDiv + 1] : null;
-                        if (prevDivRules && newPoints < prevDivRules.promotionPoints) newDivision = currentDiv + 1;
+                }
+
+                // Divizion ko'tarilishini tekshirish
+                if (newDivision > 1 && newPoints >= rules.promotionPoints) {
+                    newDivision -= 1;
+                }
+                
+                // Divizion tushishini tekshirish
+                if (newDivision < 10) {
+                    const nextDivRules = divSettings[newDivision + 1];
+                    const currentDivRules = divSettings[newDivision];
+                    if (nextDivRules && newPoints < currentDivRules.promotionPoints / 2) { 
+                        // Misol tariqasida: Ball juda kamayib ketsa bir pog'ona pastga
+                        newDivision += 1;
                     }
                 }
+
                 update(ref(db, 'leaderboard/' + myId), { 
                     name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3) 
                 });
@@ -433,7 +451,7 @@
                     return (b.points || 0) - (a.points || 0);
                 });
             
-            const myRankIndex = fullLeaderboard.findIndex(p => p.id == myId);
+            const myRankIndex = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
             document.getElementById('user-rank-pos').innerText = myRankIndex !== -1 ? `#${myRankIndex + 1}` : "#---";
             renderRanking();
         });
@@ -443,8 +461,8 @@
             container.innerHTML = '';
             fullLeaderboard.forEach((p, i) => {
                 const row = document.createElement('div');
-                row.className = `ef-row ${p.id == myId ? 'me' : ''}`;
-                if(p.id == myId) row.id = "my-rank-row";
+                row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
+                if(String(p.id) === String(myId)) row.id = "my-rank-row";
                 
                 row.innerHTML = `
                     <div class="ef-rank-num">${i+1}</div>
@@ -480,7 +498,7 @@
                 me.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
-                tg.showAlert("Siz hali reytingda emassiz. O'ynashni boshlang!");
+                tg.showAlert("Siz hali reytingda emassiz.");
             }
         };
 
