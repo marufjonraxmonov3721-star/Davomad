@@ -3,137 +3,426 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Texnik Ishlar</title>
+    <title>10 Sekund Battle - Division Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Telegram tizim ranglariga ulanish */
         :root {
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #000000);
-            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
+            --tg-theme-bg-color: #000000;
+            --tg-theme-button-color: #0088cc;
             --accent-color: #f1c40f;
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            --card-bg: #1a1a1a;
+            --win-green: #2ecc71;
+            --draw-gray: #7f8c8d;
+            --loss-red: #e74c3c;
+            --ef-blue: #004dff;
+            --nav-bg: #111111;
         }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: var(--bg-color); /* Butun fonni tizimga moslaydi */
-            color: var(--text-color);
+            background-color: var(--tg-theme-bg-color);
+            color: white;
+            -webkit-user-select: none;
+            padding: 15px;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Division Card Styling */
+        .div-card {
+            background: linear-gradient(145deg, #1e1e1e, #0a0a0a);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        
+        .div-badge {
+            background: linear-gradient(45deg, #2c3e50, #00008b);
+            border: 2px solid #f1c40f;
+            border-radius: 10px;
+            padding: 5px 12px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+            gap: 10px;
         }
+        .div-num { font-size: 28px; font-weight: 900; color: white; }
+        .div-title { color: #f1c40f; font-size: 22px; font-weight: bold; }
 
-        .maintenance-container {
-            padding: 30px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
+        .phase-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: right;
         }
+        .phase-label { display: block; font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .phase-time { display: block; color: #2ecc71; font-size: 11px; font-weight: bold; font-family: monospace; }
 
-        /* Tungi va kunduzgi rejim uchun karton effekti */
-        .card {
-            background-color: var(--secondary-bg);
-            padding: 40px 20px;
-            border-radius: 25px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            border: 1px solid rgba(128, 128, 128, 0.1);
-        }
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
+        .stat-box { display: flex; align-items: center; gap: 10px; }
+        .stat-icon { width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; font-size: 20px; }
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-label { font-size: 12px; color: #888; }
+        .stat-value { font-size: 18px; font-weight: bold; }
 
-        .icon-box {
-            font-size: 70px;
+        /* Game Rules & Info */
+        .game-guide {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 12px;
             margin-bottom: 20px;
-            display: inline-block;
-            animation: rotate 4s infinite linear;
+            font-size: 13px;
+            border-left: 3px solid var(--accent-color);
         }
+        .rule-item { display: flex; justify-content: space-between; margin-bottom: 5px; color: #bbb; }
+        .rule-val { color: #fff; font-weight: bold; }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .promotion-text { color: #888; font-size: 12px; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; line-height: 1.4; }
+        .relegation-warning { color: #e74c3c; font-weight: bold; display: none; margin-top: 8px; animation: blink 1s infinite; text-transform: uppercase; font-size: 11px; }
 
-        .status-badge {
-            display: inline-block;
-            border: 1.5px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-        }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        h1 {
-            font-size: 26px;
-            margin: 0 0 15px 0;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        p {
-            color: var(--hint-color);
-            font-size: 15px;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
-
-        .loading-bar {
+        /* Timer Section */
+        #timer-container {
             width: 100%;
-            height: 4px;
-            background: rgba(128, 128, 128, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            border-radius: 20px;
+            border: 1px solid #222;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
+        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
+        .target-text { font-size: 14px; color: #666; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
 
-        .loading-progress {
-            width: 40%;
-            height: 100%;
-            background: var(--accent-color);
-            position: absolute;
-            animation: loading 2s infinite ease-in-out;
-            border-radius: 10px;
+        /* Buttons */
+        .btn-main {
+            width: 100%;
+            padding: 20px;
+            border-radius: 15px;
+            border: none;
+            font-size: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+        .start { background: linear-gradient(to bottom, #2ecc71, #27ae60); color: white; box-shadow: 0 4px 0 #1e8449; }
+        .start:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
+        .stop { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #922b21; }
+        .stop:active { transform: translateY(2px); box-shadow: 0 2px 0 #922b21; }
 
-        @keyframes loading {
-            0% { left: -40%; }
-            100% { left: 100%; }
+        /* Ranking Styles */
+        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #222; }
+        .ef-main-title { color: #f1c40f; font-weight: 800; font-size: 24px; text-transform: uppercase; }
+        .ef-row {
+            background: linear-gradient(90deg, #1a1a1a 0%, #111 100%);
+            margin-bottom: 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-left: 4px solid transparent;
         }
+        .ef-row.me { border-left: 4px solid var(--accent-color); background: linear-gradient(90deg, #2c2c2c 0%, #1a1a1a 100%); }
+        .ef-rank-num { width: 35px; font-size: 18px; font-weight: 900; color: #888; font-style: italic; }
+        .ef-avatar { width: 48px; height: 48px; border-radius: 10px; background: #252525; display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative; }
+        .ef-div-tag { position: absolute; bottom: -5px; right: -5px; background: var(--accent-color); color: black; font-size: 9px; font-weight: 900; padding: 2px 4px; border-radius: 4px; }
+        .ef-info-main { flex: 1; margin: 0 15px; }
+        .ef-name { font-weight: 700; font-size: 16px; color: #fff; }
+        .ef-points-val { font-weight: 900; font-size: 18px; color: #fff; font-family: monospace; }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: var(--nav-bg);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #333;
+            z-index: 2000;
+        }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .nav-item.active { color: var(--accent-color); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+
+        .ef-mini-btn { width: 100%; background: #1a1a1a; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+
     </style>
 </head>
 <body>
 
-    <div class="maintenance-container">
-        <div class="card">
-            <div class="icon-box">⚙️</div>
-            <br>
-            <div class="status-badge">MAINTENANCE IN PROGRESS</div>
-            <h1>Texnik Ishlar</h1>
-            <p>
-                O'yin sifatini yaxshilash maqsadida qisqa tanaffus e'lon qilindi. 
-                Tez orada yangi imkoniyatlar bilan qaytamiz!
-            </p>
-            
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
+    <div id="game-page" class="page active">
+        <div class="div-card">
+            <div class="header-row">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="div-badge">
+                        <span class="div-num" id="user-div-icon">?</span>
+                    </div>
+                    <div class="div-title">Divizion <span id="user-div-title">...</span></div>
+                </div>
+                <div class="phase-container">
+                    <span class="phase-label">Mavsum Tugashi</span>
+                    <span class="phase-time" id="phase-date">Yuklanmoqda...</span>
+                </div>
             </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Reyting</span>
+                        <span class="stat-value" id="user-pts">0</span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">👑</div>
+                    <div class="stat-info">
+                        <span class="stat-label">O'rin</span>
+                        <span class="stat-value" id="user-rank-pos">#---</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="promotion-text" id="promo-info">Yuklanmoqda...</p>
+            <p class="relegation-warning" id="danger-info">DIQQAT: DIVIZIONDAN TUSHIB KETISH XAVFI!</p>
+        </div>
+
+        <div class="game-guide" id="game-guide">
+            <div class="rule-item"><span>🎯 Maqsad:</span> <span class="rule-val" id="guide-target">0.000s</span></div>
+            <div class="rule-item"><span>⚡️ Yaqinlik chegarasi:</span> <span class="rule-val" id="guide-limit">±0.000s</span></div>
+            <div class="rule-item"><span>✅ G'alaba uchun:</span> <span class="rule-val" style="color: #2ecc71" id="guide-plus">+0 ball</span></div>
+            <div class="rule-item"><span>❌ Xato uchun:</span> <span class="rule-val" style="color: #e74c3c" id="guide-minus">-0 ball</span></div>
+        </div>
+
+        <div id="timer-container">
+            <div class="target-text" id="target-label">MAQSAD: 10.000s</div>
+            <div id="display">0.000</div>
+        </div>
+
+        <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
+        <p id="last-result" style="text-align: center; font-weight: bold; margin-bottom: 10px; min-height: 20px;"></p>
+        <p style="text-align: center; font-size: 11px; color: #555;">To'xtatgan vaqtingiz maqsadga qancha yaqin bo'lsa, shuncha yaxshi!</p>
+    </div>
+
+    <div id="rank-page" class="page">
+        <div class="ef-header">
+            <span class="ef-main-title">Reyting</span>
+            <div style="color: #555; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
+        </div>
+        <div class="ef-ranking-list" id="ef-list-container"></div>
+        <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('game-page', this)">
+            <div class="nav-icon">🎮</div>
+            <span>O'yin</span>
+        </div>
+        <div class="nav-item" onclick="showPage('rank-page', this)">
+            <div class="nav-icon">🏆</div>
+            <span>Reyting</span>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
+            authDomain: "songlyrics-caption.firebaseapp.com",
+            projectId: "songlyrics-caption",
+            databaseURL: "https://songlyrics-caption-default-rtdb.firebaseio.com",
+            appId: "1:363615493684:web:35752e22517bfaedae7461"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-        
-        // Telegram tepasidagi (header) rangni ham tizimga moslaymiz
-        tg.setHeaderColor('bg_color');
-        tg.setBackgroundColor('bg_color');
+
+        const user = tg.initDataUnsafe?.user;
+        const myId = user?.id || "guest_" + Math.random().toString(36).substring(7);
+        const myName = (user?.first_name || "O'yinchi");
+
+        let startTime, timerInterval, isRunning = false;
+        let divSettings = {};
+        let myCurrentData = { points: 0, division: 10, isWarning: false };
+        let fullLeaderboard = [];
+
+        onValue(ref(db, 'settings/phase'), (s) => document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026");
+
+        onValue(ref(db, 'settings/divisions'), (snapshot) => {
+            divSettings = snapshot.val();
+            updateGameUI();
+        });
+
+        onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
+            if (snapshot.exists()) {
+                myCurrentData = snapshot.val();
+                document.getElementById('user-div-icon').innerText = myCurrentData.division || 10;
+                document.getElementById('user-div-title').innerText = myCurrentData.division || 10;
+                document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
+                updateGameUI();
+            } else {
+                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10, isWarning: false });
+            }
+        });
+
+        function updateGameUI() {
+            const d = myCurrentData.division || 10;
+            const pts = myCurrentData.points || 0;
+            if (divSettings && divSettings[d]) {
+                const rules = divSettings[d];
+                document.getElementById('target-label').innerText = `MAQSAD: ${rules.target.toFixed(3)}s`;
+                
+                // Guide Update
+                document.getElementById('guide-target').innerText = rules.target.toFixed(3) + "s";
+                document.getElementById('guide-limit').innerText = "±" + rules.nearLimit.toFixed(3) + "s";
+                document.getElementById('guide-plus').innerText = "+" + rules.plusPoints + " ball";
+                document.getElementById('guide-minus').innerText = "-" + rules.minusPoints + " ball";
+
+                let promoText = "";
+                if (d > 1) promoText += `🚀 Keyingi Divizion: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
+                if (d < 10) promoText += `⚠️ Pastki Divizion: Ballaringiz ${rules.relegationPoints} dan kamaysa tushib ketasiz.`;
+                document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
+
+                const dangerZone = (rules.relegationPoints || 0) + 20;
+                document.getElementById('danger-info').style.display = (d < 10 && pts <= dangerZone) ? 'block' : 'none';
+            }
+        }
+
+        window.handleAction = () => {
+            const btn = document.getElementById('actionBtn');
+            const display = document.getElementById('display');
+            let currentDiv = myCurrentData.division || 10;
+            const rules = divSettings[currentDiv] || { target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50 };
+
+            if (!isRunning) {
+                isRunning = true;
+                startTime = Date.now();
+                btn.innerText = "STOP"; btn.className = "btn-main stop";
+                tg.HapticFeedback.impactOccurred('medium');
+                timerInterval = setInterval(() => {
+                    display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
+                }, 10);
+                document.getElementById('last-result').innerText = "";
+            } else {
+                isRunning = false;
+                clearInterval(timerInterval);
+                const finalTime = (Date.now() - startTime) / 1000;
+                display.innerText = finalTime.toFixed(3);
+                btn.innerText = "START"; btn.className = "btn-main start";
+
+                const diffVal = Math.abs(rules.target - finalTime);
+                const diffStr = diffVal.toFixed(3);
+                let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
+
+                if (diffStr === "0.000") {
+                    pointChange = 100; newPoints += pointChange;
+                    if (currentDiv > 1) newDivision = currentDiv - 1;
+                    newWarning = false;
+                    showResult(`DAHSHAT! DIVIZIONGA SAKRASH! +${pointChange}`, "#f1c40f");
+                } else if (diffVal <= rules.nearLimit) {
+                    pointChange = parseInt(rules.plusPoints); newPoints += pointChange;
+                    newWarning = false;
+                    showResult(`Zo'r! +${pointChange} ball`, "#2ecc71");
+                } else {
+                    pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
+                    if (newPoints < 0) newPoints = 0;
+                    showResult(`Uzoq! ${pointChange} ball`, "#e74c3c");
+                }
+
+                if (newDivision > 1 && newPoints >= rules.promotionPoints) {
+                    newDivision -= 1; newWarning = false;
+                    tg.showAlert("Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
+                }
+                
+                if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
+                    if (newWarning) {
+                        newDivision += 1; newWarning = false;
+                        tg.showAlert("Afsus! Diviziondan tushib ketdingiz.");
+                    } else {
+                        newWarning = true;
+                        tg.showAlert("DIQQAT! Ballaringiz juda kam. Yana bir marta yutqazsangiz divizioningiz pasayadi!");
+                    }
+                }
+
+                update(ref(db, 'leaderboard/' + myId), { 
+                    name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
+                });
+            }
+        };
+
+        function showResult(txt, color) {
+            const el = document.getElementById('last-result');
+            el.innerText = txt; el.style.color = color;
+            tg.HapticFeedback.notificationOccurred(color === "#e74c3c" ? 'error' : 'success');
+        }
+
+        onValue(ref(db, 'leaderboard'), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+            fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
+                .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
+            
+            const idx = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
+            document.getElementById('user-rank-pos').innerText = idx !== -1 ? `#${idx + 1}` : "#---";
+            renderRanking();
+        });
+
+        function renderRanking() {
+            const container = document.getElementById('ef-list-container');
+            container.innerHTML = '';
+            fullLeaderboard.forEach((p, i) => {
+                const row = document.createElement('div');
+                row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
+                if(String(p.id) === String(myId)) row.id = "my-rank-row";
+                row.innerHTML = `
+                    <div class="ef-rank-num">${i+1}</div>
+                    <div class="ef-avatar">⏱️<div class="ef-div-tag">D${p.division || 10}</div></div>
+                    <div class="ef-info-main"><div class="ef-name">${p.name}</div></div>
+                    <div class="ef-points-val">${(p.points || 0).toLocaleString()}</div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        window.showPage = (pId, nav) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            nav.classList.add('active');
+            tg.HapticFeedback.selectionChanged();
+        };
+
+        window.scrollToMe = () => {
+            const me = document.getElementById('my-rank-row');
+            if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            else { tg.showAlert("Siz hali reytingda emassiz."); }
+        };
     </script>
 </body>
 </html>
