@@ -411,7 +411,7 @@
             </div>
 
             <p class="promotion-text" id="promo-info">Yuklanmoqda...</p>
-            <p class="relegation-warning" id="danger-info">DIQQAT: DIVIZIONDAN TUSHIB KETISH XAVFI!</p>
+            <p class="relegation-warning" id="danger-info">⚠️ Xavf! Diviziondan tushib ketishingiz mumkin!</p>
         </div>
 
         <div id="timer-container">
@@ -421,26 +421,26 @@
                     <div class="info-val" id="target-label">10.000s</div>
                 </div>
                 <div class="info-line">
-                    <div class="info-label">⚡️ Yaqinlik:</div>
+                    <div class="info-label">Xatolik chegarasi</div>
                     <div class="info-val" id="limit-label">±0.050s</div>
                 </div>
                 <div class="info-line">
-                    <div class="info-label">✅ G'alaba:</div>
+                    <div class="info-label">✔️To‘g‘ri urinish</div>
                     <div class="info-val" id="plus-label" style="color: #2ecc71">+30 ball</div>
                 </div>
                 <div class="info-line">
-                    <div class="info-label">❌ Xato:</div>
+                    <div class="info-label">❌Noto‘g‘ri urinish</div>
                     <div class="info-val" id="minus-label" style="color: #e74c3c">-30 ball</div>
                 </div>
             </div>
 
-            <div class="current-time-label">Hozirgi vaqt</div>
+            <div class="current-time-label">Sizning vaqtingiz</div>
             <div id="display">0.000</div>
         </div>
 
         <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
         <p id="last-result" style="text-align: center; font-weight: bold; margin-bottom: 10px; min-height: 20px;"></p>
-        <p style="text-align: center; font-size: 11px; color: #555;">To'xtatgan vaqtingiz maqsadga qancha yaqin bo'lsa, shuncha yaxshi!</p>
+        <p style="text-align: center; font-size: 11px; color: #555;">Vaqtni aynan nishonga yaqin to‘xtating — shunda ko‘proq ball olasiz!</p>
     </div>
 
     <div id="rulesModal" class="modal-overlay">
@@ -466,7 +466,7 @@
 
     <div id="rank-page" class="page">
         <div class="ef-header">
-            <span class="ef-main-title">REYTING 1-10 DIVIZION</span>
+            <span class="ef-main-title">REYTING (1-10 DIVIZION)</span>
             <div style="color: #555; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
         </div>
         <div class="ef-ranking-list" id="ef-list-container"></div>
@@ -637,29 +637,29 @@
                     pointChange = 100; newPoints += pointChange;
                     if (currentDiv > 1) newDivision = currentDiv - 1;
                     newWarning = false;
-                    showResult(`DAHSHAT! DIVIZIONGA SAKRASH! +${pointChange}`, "#f1c40f");
+                    showResult(`🔥 PERFECT! Divizionga ko‘tarildingiz! +${pointChange}`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); newPoints += pointChange;
                     newWarning = false;
-                    showResult(`Zo'r! +${pointChange} ball`, "#2ecc71");
+                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    showResult(`Uzoq! ${pointChange} ball`, "#e74c3c");
+                    showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
 
                 if (newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1; newWarning = false;
-                    tg.showAlert("Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
+                    tg.showAlert(🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
                         newDivision += 1; newWarning = false;
-                        tg.showAlert("Afsus! Diviziondan tushib ketdingiz.");
+                        tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz");
                     } else {
                         newWarning = true;
-                        tg.showAlert("DIQQAT! Ballaringiz juda kam. Yana bir marta yutqazsangiz divizioningiz pasayadi!");
+                        tg.showAlert("⚠️ Ogohlantirish! Ballaringiz juda kam. Yana yutqazsangiz divizioningiz pasayadi!");
                     }
                 }
 
@@ -716,7 +716,7 @@
             if(me) { 
                 me.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
             } else { 
-                tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinngiz. Buning uchun o'yinni kamida bir marta o'ynab, natijangizni qayd etishingiz kerak! 🚀"); 
+                tg.showAlert("Siz hali global reyting ro'yxatiga kirmadingiz. Buning uchun o'yinni kamida bir marta o'ynab, natijangizni qayd etishingiz kerak! 🚀"); 
             }
         };
     </script>
