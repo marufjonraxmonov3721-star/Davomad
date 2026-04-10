@@ -85,6 +85,11 @@
         .stat-value { font-size: 18px; font-weight: bold; }
 
         .promotion-text { color: #888; font-size: 12px; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; }
+        .relegation-warning { color: #e74c3c; font-weight: bold; display: none; margin-top: 5px; animation: blink 1s infinite; }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
 
         #timer-container {
             width: 100%;
@@ -268,6 +273,7 @@
                 </div>
             </div>
             <p class="promotion-text" id="promo-info">Yuklanmoqda...</p>
+            <p class="relegation-warning" id="danger-info">DIQQAT: DIVIZIONDAN TUSHIB KETISH XAVFI!</p>
         </div>
 
         <div id="timer-container">
@@ -331,7 +337,7 @@
         let timerInterval;
         let isRunning = false;
         let divSettings = {};
-        let myCurrentData = { points: 0, division: 10 };
+        let myCurrentData = { points: 0, division: 10, isWarning: false };
         let fullLeaderboard = [];
 
         const now = new Date();
@@ -354,7 +360,7 @@
                 document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
                 updateGameUI();
             } else {
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10 });
+                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10, isWarning: false });
             }
         });
 
@@ -365,15 +371,21 @@
                 const rules = divSettings[d];
                 document.getElementById('target-label').innerText = `MAQSAD: ${rules.target.toFixed(3)}s`;
                 
+                let text = "";
                 if (d > 1) {
-                    const diff = rules.promotionPoints - currentPoints;
-                    if (diff <= 0) {
-                        document.getElementById('promo-info').innerText = "Siz ko'tarilish uchun yetarli ball to'pladingiz! Keyingi urinishda divizion yangilanadi.";
-                    } else {
-                        document.getElementById('promo-info').innerText = `Siz ${rules.promotionPoints.toLocaleString()} ball to'plasangiz, Divizion ${d-1}ga ko'tarilasiz.`;
-                    }
+                    text += `YUQORIGA: ${rules.promotionPoints.toLocaleString()} ball. `;
+                }
+                if (d < 10) {
+                    text += `PASTGA: ${rules.relegationPoints.toLocaleString()} ball.`;
+                }
+                document.getElementById('promo-info').innerText = text || "Siz eng yuqori diviziondasiz!";
+
+                // Relegation warning check
+                const dangerZone = (rules.relegationPoints || 0) + 20;
+                if (d < 10 && currentPoints <= dangerZone) {
+                    document.getElementById('danger-info').style.display = 'block';
                 } else {
-                    document.getElementById('promo-info').innerText = `Siz eng yuqori diviziondasiz!`;
+                    document.getElementById('danger-info').style.display = 'none';
                 }
             }
         }
@@ -382,7 +394,7 @@
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             let currentDiv = myCurrentData.division || 10;
-            const rules = divSettings && divSettings[currentDiv] ? divSettings[currentDiv] : { target: 10.000, nearLimit: 0.050, plusPoints: 30, minusPoints: 30, promotionPoints: 500 };
+            const rules = divSettings && divSettings[currentDiv] ? divSettings[currentDiv] : { target: 10.000, nearLimit: 0.050, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50 };
 
             if (!isRunning) {
                 isRunning = true;
@@ -401,20 +413,23 @@
 
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
-                let pointChange = 0; let newDivision = currentDiv; let newPoints = myCurrentData.points || 0;
+                let pointChange = 0; 
+                let newDivision = currentDiv; 
+                let newPoints = myCurrentData.points || 0;
+                let newWarning = myCurrentData.isWarning || false;
 
                 if (diffStr === "0.000") {
-                    // Divizionga sakrashda ballaringiz kuymaydi, balki 100 ball qo'shiladi
                     pointChange = 100;
                     newPoints += pointChange;
                     if (currentDiv > 1) newDivision = currentDiv - 1;
-                    
+                    newWarning = false; // Sakraganda warning o'chadi
                     document.getElementById('last-result').style.color = "#f1c40f";
                     document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH! +${pointChange}`;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
                     newPoints += pointChange;
+                    newWarning = false; // Yutsa warning o'chadi
                     document.getElementById('last-result').style.color = "#2ecc71";
                     document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('success');
@@ -427,21 +442,28 @@
                     tg.HapticFeedback.notificationOccurred('error');
                 }
 
-                // Ball to'plangan bo'lsa darhol divizion ko'tarilishini tekshirish
+                // Promotion logic
                 if (newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1;
+                    newWarning = false;
                 }
                 
-                // Divizion tushishini tekshirish (agar ball juda tushib ketsa)
-                if (newDivision < 10) {
-                    const currentDivRules = divSettings[newDivision];
-                    if (currentDivRules && newPoints < (currentDivRules.promotionPoints / 2.5)) { 
+                // Relegation logic with 1-time warning
+                if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
+                    if (newWarning) {
+                        // Allaqachon ogohlantirilgan, endi tushadi
                         newDivision += 1;
+                        newWarning = false;
+                        tg.showAlert("Afsus! Ballaringiz kamligi sababli pastki divizionga tushdingiz.");
+                    } else {
+                        // Birinchi marta chegara ostiga tushdi - Ogohlantirish
+                        newWarning = true;
+                        tg.showAlert("DIQQAT! Ballaringiz tushish chegarasidan pastladi. Keyingi safar ham yutqazsangiz divizioningiz pasayadi!");
                     }
                 }
 
                 update(ref(db, 'leaderboard/' + myId), { 
-                    name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3) 
+                    name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
                 });
             }
         };
