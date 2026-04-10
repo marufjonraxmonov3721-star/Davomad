@@ -598,8 +598,8 @@
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
 
                 let promoText = "";
-                if (d > 1) promoText += `🚀 Keyingi Divizion: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
-                if (d < 10) promoText += `⚠️ Pastki Divizion: Ballaringiz ${rules.relegationPoints} dan kamaysa tushib ketasiz.`;
+                if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
+                if (d < 10) promoText += `⚠️ Pastki Divizionga Tushib ketish chegarasi: Ballangiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
 
                 const dangerZone = (rules.relegationPoints || 0) + 20;
