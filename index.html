@@ -403,35 +403,39 @@
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0; let newDivision = currentDiv; let newPoints = myCurrentData.points || 0;
 
-                if (diffStr === "0.000" && currentDiv > 1) {
-                    newDivision = currentDiv - 1; newPoints += 100;
+                if (diffStr === "0.000") {
+                    // Divizionga sakrashda ballaringiz kuymaydi, balki 100 ball qo'shiladi
+                    pointChange = 100;
+                    newPoints += pointChange;
+                    if (currentDiv > 1) newDivision = currentDiv - 1;
+                    
                     document.getElementById('last-result').style.color = "#f1c40f";
-                    document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH!`;
+                    document.getElementById('last-result').innerText = `DAHSHAT! DIVIZIONGA SAKRASH! +${pointChange}`;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else if (diffVal <= rules.nearLimit) {
-                    pointChange = parseInt(rules.plusPoints); newPoints += pointChange;
+                    pointChange = parseInt(rules.plusPoints); 
+                    newPoints += pointChange;
                     document.getElementById('last-result').style.color = "#2ecc71";
                     document.getElementById('last-result').innerText = `Zo'r! +${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
+                    pointChange = -parseInt(rules.minusPoints); 
+                    newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
                     document.getElementById('last-result').style.color = "#e74c3c";
                     document.getElementById('last-result').innerText = `Uzoq! ${pointChange} ball`;
                     tg.HapticFeedback.notificationOccurred('error');
                 }
 
-                // Divizion ko'tarilishini tekshirish
+                // Ball to'plangan bo'lsa darhol divizion ko'tarilishini tekshirish
                 if (newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1;
                 }
                 
-                // Divizion tushishini tekshirish
+                // Divizion tushishini tekshirish (agar ball juda tushib ketsa)
                 if (newDivision < 10) {
-                    const nextDivRules = divSettings[newDivision + 1];
                     const currentDivRules = divSettings[newDivision];
-                    if (nextDivRules && newPoints < currentDivRules.promotionPoints / 2) { 
-                        // Misol tariqasida: Ball juda kamayib ketsa bir pog'ona pastga
+                    if (currentDivRules && newPoints < (currentDivRules.promotionPoints / 2.5)) { 
                         newDivision += 1;
                     }
                 }
