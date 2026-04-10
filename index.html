@@ -111,29 +111,36 @@
 
         .modal-content {
             background: #111;
-            width: 85%;
-            max-width: 320px;
-            padding: 25px;
+            width: 90%;
+            max-width: 350px;
+            padding: 20px;
             border-radius: 20px;
             border: 1px solid #333;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-height: 85vh;
+            overflow-y: auto;
         }
-        .modal-title { color: var(--accent-color); font-size: 20px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; }
+        .modal-title { color: var(--accent-color); font-size: 18px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
         
+        /* Table Style for Modal */
+        .div-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+        .div-info-table th { color: #888; padding: 8px 4px; border-bottom: 1px solid #333; text-transform: uppercase; }
+        .div-info-table td { padding: 8px 4px; border-bottom: 1px solid #222; color: #eee; }
+        .current-div-row { background: rgba(241, 196, 15, 0.1); }
+
         .rule-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #222;
         }
-        .rule-row:last-child { border-bottom: none; }
-        .rule-name { color: #888; font-size: 14px; text-align: left; padding-right: 10px; }
-        .rule-data { color: #fff; font-weight: bold; font-family: monospace; font-size: 15px; text-align: right; }
+        .rule-name { color: #888; font-size: 13px; text-align: left; }
+        .rule-data { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
         .modal-close-btn {
-            margin-top: 25px;
+            margin-top: 20px;
             background: #222;
             color: white;
             border: 1px solid #444;
@@ -316,20 +323,35 @@
 
     <div id="rulesModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-title">Ma'lumotlar</div>
+            <div class="modal-title">Divizion Ma'lumotlari</div>
             
-            <div class="rule-row">
-                <div class="rule-name">⚡️ Yaqinlik chegarasi:</div>
-                <div class="rule-data" id="modal-limit">±0.000s</div>
+            <div id="current-rules-section" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px dashed #333;">
+                <div class="rule-row">
+                    <div class="rule-name">⚡️ Yaqinlik:</div>
+                    <div class="rule-data" id="modal-limit">±0.000s</div>
+                </div>
+                <div class="rule-row">
+                    <div class="rule-name">✅ G'alaba:</div>
+                    <div class="rule-data" id="modal-plus" style="color: #2ecc71">+0 ball</div>
+                </div>
+                <div class="rule-row">
+                    <div class="rule-name">❌ Xato:</div>
+                    <div class="rule-data" id="modal-minus" style="color: #e74c3c">-0 ball</div>
+                </div>
             </div>
-            <div class="rule-row">
-                <div class="rule-name">✅ G'alaba uchun:</div>
-                <div class="rule-data" id="modal-plus" style="color: #2ecc71">+0 ball</div>
-            </div>
-            <div class="rule-row">
-                <div class="rule-name">❌ Xato uchun:</div>
-                <div class="rule-data" id="modal-minus" style="color: #e74c3c">-0 ball</div>
-            </div>
+
+            <div style="text-align: left; color: #888; font-size: 12px; margin-bottom: 8px; font-weight: bold;">BARCHA DIVIZIONLAR:</div>
+            <table class="div-info-table">
+                <thead>
+                    <tr>
+                        <th>DIV</th>
+                        <th>O'TISH (🚀)</th>
+                        <th>TUSHISH (⚠️)</th>
+                    </tr>
+                </thead>
+                <tbody id="div-table-body">
+                    </tbody>
+            </table>
 
             <button class="modal-close-btn" onclick="closeRules()">Tushunarli</button>
         </div>
@@ -383,14 +405,33 @@
         let myCurrentData = { points: 0, division: 10, isWarning: false };
         let fullLeaderboard = [];
 
-        // Modal Functions
         window.openRules = () => {
+            renderDivTable();
             document.getElementById('rulesModal').style.display = 'flex';
             tg.HapticFeedback.impactOccurred('light');
         };
         window.closeRules = () => {
             document.getElementById('rulesModal').style.display = 'none';
         };
+
+        function renderDivTable() {
+            const tbody = document.getElementById('div-table-body');
+            tbody.innerHTML = '';
+            if(!divSettings) return;
+
+            Object.keys(divSettings).sort((a,b) => a-b).forEach(dNum => {
+                const s = divSettings[dNum];
+                const tr = document.createElement('tr');
+                if(parseInt(dNum) === myCurrentData.division) tr.className = 'current-div-row';
+                
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:var(--accent-color)">D${dNum}</td>
+                    <td>${s.promotionPoints || '-'}</td>
+                    <td>${s.relegationPoints || '0'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
         onValue(ref(db, 'settings/phase'), (s) => document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026");
 
@@ -417,13 +458,11 @@
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
                 
-                // Update Labels in Timer Container
                 document.getElementById('target-label').innerText = `${rules.target.toFixed(3)}s`;
                 document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
                 document.getElementById('plus-label').innerText = `+${rules.plusPoints} ball`;
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
                 
-                // Modal Content Update
                 document.getElementById('modal-limit').innerText = "±" + rules.nearLimit.toFixed(3) + "s";
                 document.getElementById('modal-plus').innerText = "+" + rules.plusPoints + " ball";
                 document.getElementById('modal-minus').innerText = "-" + rules.minusPoints + " ball";
