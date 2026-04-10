@@ -344,7 +344,7 @@
 
     <div id="rank-page" class="page">
         <div class="ef-header">
-            <span class="ef-main-title">Reyting</span>
+            <span class="ef-main-title">REYTING 1-10 DIVIZION</span>
             <div style="color: #555; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
         </div>
         <div class="ef-ranking-list" id="ef-list-container"></div>
@@ -433,7 +433,6 @@
                 document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
                 updateGameUI();
             } else {
-                // Yangi o'yinchi uchun default UI, lekin hali bazaga yozilmagan
                 myCurrentData = { name: myName, points: 100, division: 10, isWarning: false, isRegistered: false };
                 document.getElementById('user-div-icon').innerText = 10;
                 document.getElementById('user-div-title').innerText = 10;
@@ -519,7 +518,6 @@
                     }
                 }
 
-                // STOP bosilganda natijani bazaga yozish (shu yerda o'yinchi "ro'yxatdan o'tadi")
                 update(ref(db, 'leaderboard/' + myId), { 
                     name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
                 });
@@ -570,8 +568,11 @@
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-            else { tg.showAlert("Siz hali reytingda emassiz."); }
+            if(me) { 
+                me.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+            } else { 
+                tg.showAlert("Siz hali global reyting ro'yxatiga kirmadingiz. Buning uchun o'yinni kamida bir marta o'ynab, natijangizni qayd etishingiz kerak! 🚀"); 
+            }
         };
     </script>
 </body>
