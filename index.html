@@ -387,7 +387,7 @@
 
         let startTime, timerInterval, isRunning = false;
         let divSettings = {};
-        let myCurrentData = { points: 0, division: 10, isWarning: false };
+        let myCurrentData = { points: 100, division: 10, isWarning: false, isRegistered: false };
         let fullLeaderboard = [];
 
         window.openRules = () => {
@@ -427,13 +427,18 @@
 
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
-                myCurrentData = snapshot.val();
+                myCurrentData = { ...snapshot.val(), isRegistered: true };
                 document.getElementById('user-div-icon').innerText = myCurrentData.division || 10;
                 document.getElementById('user-div-title').innerText = myCurrentData.division || 10;
                 document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
                 updateGameUI();
             } else {
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10, isWarning: false });
+                // Yangi o'yinchi uchun default UI, lekin hali bazaga yozilmagan
+                myCurrentData = { name: myName, points: 100, division: 10, isWarning: false, isRegistered: false };
+                document.getElementById('user-div-icon').innerText = 10;
+                document.getElementById('user-div-title').innerText = 10;
+                document.getElementById('user-pts').innerText = "100";
+                updateGameUI();
             }
         });
 
@@ -514,6 +519,7 @@
                     }
                 }
 
+                // STOP bosilganda natijani bazaga yozish (shu yerda o'yinchi "ro'yxatdan o'tadi")
                 update(ref(db, 'leaderboard/' + myId), { 
                     name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
                 });
