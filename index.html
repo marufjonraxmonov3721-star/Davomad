@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Sekund Battle - Division Edition</title>
+    <title>Time League - Division Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -27,6 +27,37 @@
             padding: 15px;
             padding-bottom: 80px;
             overflow-x: hidden;
+        }
+
+        /* Loading Screen Styling */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .loader-clock {
+            font-size: 60px;
+            animation: rotateClock 2s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes rotateClock {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: var(--accent-color);
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .page { display: none; }
@@ -255,6 +286,11 @@
 </head>
 <body>
 
+    <div id="loading-screen">
+        <div class="loader-clock">🕒</div>
+        <div class="loader-text">Time League</div>
+    </div>
+
     <div id="game-page" class="page active">
         <div class="div-card">
             <div class="info-btn" onclick="openRules()">i</div>
@@ -389,6 +425,15 @@
         let divSettings = {};
         let myCurrentData = { points: 100, division: 10, isWarning: false, isRegistered: false };
         let fullLeaderboard = [];
+        let loadedResources = { settings: false, divisions: false, leaderboard: false };
+
+        function checkAllLoaded() {
+            if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard) {
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 500);
+            }
+        }
 
         window.openRules = () => {
             renderDivTable();
@@ -418,11 +463,17 @@
             });
         }
 
-        onValue(ref(db, 'settings/phase'), (s) => document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026");
+        onValue(ref(db, 'settings/phase'), (s) => {
+            document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026";
+            loadedResources.settings = true;
+            checkAllLoaded();
+        });
 
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
             updateGameUI();
+            loadedResources.divisions = true;
+            checkAllLoaded();
         });
 
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
@@ -439,6 +490,8 @@
                 document.getElementById('user-pts').innerText = "100";
                 updateGameUI();
             }
+            loadedResources.leaderboard = true;
+            checkAllLoaded();
         });
 
         function updateGameUI() {
