@@ -227,13 +227,14 @@
         .ef-mini-btn {
             flex: 1;
             background: #1a1a1a;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 13px;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
+            cursor: pointer;
         }
 
     </style>
@@ -292,8 +293,7 @@
             </div>
 
         <div class="ef-list-footer">
-            <button class="ef-mini-btn" onclick="scrollToMe()" style="border-color: var(--accent-color); color: var(--accent-color);">Mening o'rnim</button>
-            <button class="ef-mini-btn" onclick="toggleFilter()">Filtrlar</button>
+            <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
         </div>
     </div>
 
@@ -433,7 +433,7 @@
                     return (b.points || 0) - (a.points || 0);
                 });
             
-            const myRankIndex = fullLeaderboard.findIndex(p => p.id === myId);
+            const myRankIndex = fullLeaderboard.findIndex(p => p.id == myId);
             document.getElementById('user-rank-pos').innerText = myRankIndex !== -1 ? `#${myRankIndex + 1}` : "#---";
             renderRanking();
         });
@@ -443,8 +443,8 @@
             container.innerHTML = '';
             fullLeaderboard.forEach((p, i) => {
                 const row = document.createElement('div');
-                row.className = `ef-row ${p.id === myId ? 'me' : ''}`;
-                if(p.id === myId) row.id = "my-rank-row";
+                row.className = `ef-row ${p.id == myId ? 'me' : ''}`;
+                if(p.id == myId) row.id = "my-rank-row";
                 
                 row.innerHTML = `
                     <div class="ef-rank-num">${i+1}</div>
@@ -476,12 +476,14 @@
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if(me) {
+                me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                tg.showAlert("Siz hali reytingda emassiz. O'ynashni boshlang!");
+            }
         };
 
-        window.toggleFilter = () => {
-            tg.showPopup({ title: 'Filtrlar', message: 'Hozirda barcha divizionlar yagona reytingda saralangan.' });
-        };
     </script>
 </body>
 </html>
