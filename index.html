@@ -129,8 +129,8 @@
             border-bottom: 1px solid #222;
         }
         .rule-row:last-child { border-bottom: none; }
-        .rule-name { color: #888; font-size: 14px; }
-        .rule-data { color: #fff; font-weight: bold; font-family: monospace; font-size: 15px; }
+        .rule-name { color: #888; font-size: 14px; text-align: left; padding-right: 10px; }
+        .rule-data { color: #fff; font-weight: bold; font-family: monospace; font-size: 15px; text-align: right; }
 
         .modal-close-btn {
             margin-top: 25px;
@@ -281,19 +281,15 @@
             <div class="modal-title">Ma'lumotlar</div>
             
             <div class="rule-row">
-                <div class="rule-name">🎯 Maqsad:</div>
-                <div class="rule-data" id="modal-target">0.000s</div>
-            </div>
-            <div class="rule-row">
-                <div class="rule-name">⚡️ Chegara:</div>
+                <div class="rule-name">⚡️ Yaqinlik chegarasi:</div>
                 <div class="rule-data" id="modal-limit">±0.000s</div>
             </div>
             <div class="rule-row">
-                <div class="rule-name">✅ G'alaba:</div>
+                <div class="rule-name">✅ G'alaba uchun:</div>
                 <div class="rule-data" id="modal-plus" style="color: #2ecc71">+0 ball</div>
             </div>
             <div class="rule-row">
-                <div class="rule-name">❌ Xato:</div>
+                <div class="rule-name">❌ Xato uchun:</div>
                 <div class="rule-data" id="modal-minus" style="color: #e74c3c">-0 ball</div>
             </div>
 
@@ -384,8 +380,7 @@
                 const rules = divSettings[d];
                 document.getElementById('target-label').innerText = `MAQSAD: ${rules.target.toFixed(3)}s`;
                 
-                // Modal Content Update
-                document.getElementById('modal-target').innerText = rules.target.toFixed(3) + "s";
+                // Modal Content Update (Bazadan olingan malumotlar bilan)
                 document.getElementById('modal-limit').innerText = "±" + rules.nearLimit.toFixed(3) + "s";
                 document.getElementById('modal-plus').innerText = "+" + rules.plusPoints + " ball";
                 document.getElementById('modal-minus').innerText = "-" + rules.minusPoints + " ball";
