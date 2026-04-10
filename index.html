@@ -3,420 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Sekund Battle - Division Edition</title>
+    <title>Texnik Ishlar</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* Telegram tizim ranglariga ulanish */
         :root {
-            --tg-theme-bg-color: #000000;
-            --tg-theme-button-color: #0088cc;
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
             --accent-color: #f1c40f;
-            --card-bg: #1a1a1a;
-            --win-green: #2ecc71;
-            --loss-red: #e74c3c;
-            --nav-bg: #111111;
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
         }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            background-color: var(--tg-theme-bg-color);
-            color: white;
-            -webkit-user-select: none;
-            padding: 15px;
-            padding-bottom: 80px;
+            padding: 0;
+            background-color: var(--bg-color); /* Butun fonni tizimga moslaydi */
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
         }
 
-        .page { display: none; height: calc(100vh - 80px); overflow-y: auto; }
-        .page.active { display: block; }
-
-        /* Compact Header Card */
-        .mini-card {
-            background: linear-gradient(145deg, #1e1e1e, #0a0a0a);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .maintenance-container {
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
         }
 
-        .div-badge-small {
-            background: linear-gradient(45deg, #2c3e50, #00008b);
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 900;
-        }
-
-        .header-info { flex: 1; margin-left: 15px; }
-        .header-info h2 { margin: 0; font-size: 18px; color: var(--accent-color); }
-        .header-info p { margin: 2px 0 0; font-size: 12px; color: #888; }
-
-        .info-trigger {
-            background: #222;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            border: 1px solid #444;
-        }
-
-        /* Timer Section */
-        #timer-container {
-            width: 100%;
-            height: 220px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+        /* Tungi va kunduzgi rejim uchun karton effekti */
+        .card {
+            background-color: var(--secondary-bg);
+            padding: 40px 20px;
             border-radius: 25px;
-            border: 1px solid #222;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border: 1px solid rgba(128, 128, 128, 0.1);
         }
-        #display { font-size: 65px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 20px rgba(241, 196, 15, 0.4); }
-        .target-text { font-size: 14px; color: #666; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
 
-        /* Main Button */
-        .btn-main {
-            width: 100%;
-            padding: 22px;
-            border-radius: 18px;
-            border: none;
-            font-size: 22px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.2s;
+        .icon-box {
+            font-size: 70px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: rotate 4s infinite linear;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            border: 1.5px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin: 0 0 15px 0;
+            font-weight: 800;
             text-transform: uppercase;
         }
-        .start { background: linear-gradient(to bottom, #2ecc71, #27ae60); color: white; box-shadow: 0 5px 0 #1e8449; }
-        .stop { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: white; box-shadow: 0 5px 0 #922b21; }
-        .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
-        /* Modal / Info Overlay */
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 3000;
-            display: none;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
+        p {
+            color: var(--hint-color);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 30px;
         }
-        .overlay.active { display: block; }
-        .close-btn { float: right; font-size: 30px; color: #888; }
-        
-        .modal-title { color: var(--accent-color); font-size: 24px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .modal-section { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #222; }
-        .modal-label { color: #888; font-size: 12px; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .modal-value { font-size: 18px; font-weight: bold; color: #fff; }
 
-        /* Bottom Nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; width: 100%; height: 70px;
-            background: var(--nav-bg);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid #222;
-            z-index: 2000;
+        .loading-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(128, 128, 128, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
         }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #666; font-size: 11px; font-weight: bold; }
-        .nav-item.active { color: var(--accent-color); }
-        .nav-icon { font-size: 24px; margin-bottom: 4px; }
 
-        /* Ranking List */
-        .rank-item {
-            background: #111;
-            margin-bottom: 8px;
-            padding: 12px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            border-left: 4px solid transparent;
+        .loading-progress {
+            width: 40%;
+            height: 100%;
+            background: var(--accent-color);
+            position: absolute;
+            animation: loading 2s infinite ease-in-out;
+            border-radius: 10px;
         }
-        .rank-item.me { border-left-color: var(--accent-color); background: #1a1a1a; }
-        .rank-pos { width: 30px; font-weight: 900; color: #555; }
-        .rank-name { flex: 1; font-weight: bold; margin-left: 10px; }
-        .rank-pts { font-family: monospace; font-weight: 900; color: var(--accent-color); }
 
-        .relegation-warning { color: #e74c3c; font-weight: bold; display: none; margin-top: 10px; text-align: center; animation: blink 1s infinite; font-size: 12px; }
-        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes loading {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="game-page" class="page active">
-        <div class="mini-card">
-            <div class="div-badge-small" id="user-div-icon">?</div>
-            <div class="header-info">
-                <h2 id="user-div-title">Divizion ...</h2>
-                <p>Reyting: <span id="user-pts" style="color:white; font-weight:bold">0</span> | O'rin: <span id="user-rank-pos" style="color:white; font-weight:bold">#--</span></p>
-            </div>
-            <div class="info-trigger" onclick="toggleOverlay(true)">ℹ️</div>
-        </div>
-
-        <div id="timer-container">
-            <div class="target-text" id="target-label">MAQSAD: 10.000s</div>
-            <div id="display">0.000</div>
-        </div>
-
-        <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
-        <p id="last-result" style="text-align: center; font-weight: bold; margin-top: 15px; min-height: 24px; font-size: 18px;"></p>
-        
-        <p class="relegation-warning" id="danger-info">⚠️ DIQQAT: TUSHIB KETISH XAVFI!</p>
-    </div>
-
-    <div id="rank-page" class="page">
-        <div style="padding: 10px;">
-            <h2 style="color: var(--accent-color); text-transform: uppercase;">Top O'yinchilar</h2>
-            <div id="ef-list-container"></div>
-            <button style="width:100%; padding: 15px; background:#222; border: 1px solid #333; color:#fff; border-radius:12px; margin-top:10px;" onclick="scrollToMe()">Mening o'rnim</button>
-        </div>
-    </div>
-
-    <div id="info-overlay" class="overlay">
-        <span class="close-btn" onclick="toggleOverlay(false)">&times;</span>
-        <h1 class="modal-title">Divizion Ma'lumoti</h1>
-        
-        <div class="modal-section">
-            <span class="modal-label">🎯 Maqsad</span>
-            <span class="modal-value" id="guide-target">0.000s</span>
-        </div>
-        
-        <div class="modal-section">
-            <span class="modal-label">⚡️ G'alaba hududi (Yaqinlik)</span>
-            <span class="modal-value" id="guide-limit">±0.000s</span>
-        </div>
-
-        <div class="modal-section" style="display: flex; gap: 10px;">
-            <div style="flex:1">
-                <span class="modal-label">✅ Yutuq</span>
-                <span class="modal-value" style="color:var(--win-green)" id="guide-plus">+0 ball</span>
-            </div>
-            <div style="flex:1">
-                <span class="modal-label">❌ Xato</span>
-                <span class="modal-value" style="color:var(--loss-red)" id="guide-minus">-0 ball</span>
+    <div class="maintenance-container">
+        <div class="card">
+            <div class="icon-box">⚙️</div>
+            <br>
+            <div class="status-badge">MAINTENANCE IN PROGRESS</div>
+            <h1>Texnik Ishlar</h1>
+            <p>
+                O'yin sifatini yaxshilash maqsadida qisqa tanaffus e'lon qilindi. 
+                Tez orada yangi imkoniyatlar bilan qaytamiz!
+            </p>
+            
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
             </div>
         </div>
-
-        <div class="modal-section">
-            <span class="modal-label">📊 Divizion Qoidalari</span>
-            <p id="promo-info" style="font-size: 14px; line-height: 1.6; margin: 10px 0 0; color: #bbb;"></p>
-        </div>
-
-        <div class="modal-section">
-            <span class="modal-label">📅 Mavsum Tugashi</span>
-            <span class="modal-value" id="phase-date" style="color: var(--win-green)">...</span>
-        </div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="showPage('game-page', this)">
-            <div class="nav-icon">🎮</div>
-            <span>O'yin</span>
-        </div>
-        <div class="nav-item" onclick="showPage('rank-page', this)">
-            <div class="nav-icon">🏆</div>
-            <span>Reyting</span>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
-            authDomain: "songlyrics-caption.firebaseapp.com",
-            projectId: "songlyrics-caption",
-            databaseURL: "https://songlyrics-caption-default-rtdb.firebaseio.com",
-            appId: "1:363615493684:web:35752e22517bfaedae7461"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
+    <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-
-        const user = tg.initDataUnsafe?.user;
-        const myId = user?.id || "guest_" + Math.random().toString(36).substring(7);
-        const myName = (user?.first_name || "O'yinchi");
-
-        let startTime, timerInterval, isRunning = false;
-        let divSettings = {};
-        let myCurrentData = { points: 0, division: 10, isWarning: false };
-        let fullLeaderboard = [];
-
-        onValue(ref(db, 'settings/phase'), (s) => document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026");
-
-        onValue(ref(db, 'settings/divisions'), (snapshot) => {
-            divSettings = snapshot.val();
-            updateGameUI();
-        });
-
-        onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
-            if (snapshot.exists()) {
-                myCurrentData = snapshot.val();
-                document.getElementById('user-div-icon').innerText = myCurrentData.division || 10;
-                document.getElementById('user-div-title').innerText = "Divizion " + (myCurrentData.division || 10);
-                document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
-                updateGameUI();
-            } else {
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: 100, division: 10, isWarning: false });
-            }
-        });
-
-        function updateGameUI() {
-            const d = myCurrentData.division || 10;
-            const pts = myCurrentData.points || 0;
-            if (divSettings && divSettings[d]) {
-                const rules = divSettings[d];
-                document.getElementById('target-label').innerText = `MAQSAD: ${rules.target.toFixed(3)}s`;
-                document.getElementById('guide-target').innerText = rules.target.toFixed(3) + "s";
-                document.getElementById('guide-limit').innerText = "±" + rules.nearLimit.toFixed(3) + "s";
-                document.getElementById('guide-plus').innerText = "+" + rules.plusPoints + " ball";
-                document.getElementById('guide-minus').innerText = "-" + rules.minusPoints + " ball";
-
-                let promoText = "";
-                if (d > 1) promoText += `🚀 <b>Yuqoriga:</b> ${rules.promotionPoints} ball to'plashingiz kerak.<br>`;
-                if (d < 10) promoText += `⚠️ <b>Pastga:</b> Ballaringiz ${rules.relegationPoints} dan kamaysa xavf bor.`;
-                document.getElementById('promo-info').innerHTML = promoText || "Siz eng yuqori ligadasiz!";
-
-                const dangerZone = (rules.relegationPoints || 0) + 20;
-                document.getElementById('danger-info').style.display = (d < 10 && pts <= dangerZone) ? 'block' : 'none';
-            }
-        }
-
-        window.handleAction = () => {
-            const btn = document.getElementById('actionBtn');
-            const display = document.getElementById('display');
-            let currentDiv = myCurrentData.division || 10;
-            const rules = divSettings[currentDiv] || { target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50 };
-
-            if (!isRunning) {
-                isRunning = true;
-                startTime = Date.now();
-                btn.innerText = "STOP"; btn.className = "btn-main stop";
-                tg.HapticFeedback.impactOccurred('medium');
-                timerInterval = setInterval(() => {
-                    display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
-                }, 10);
-                document.getElementById('last-result').innerText = "";
-            } else {
-                isRunning = false;
-                clearInterval(timerInterval);
-                const finalTime = (Date.now() - startTime) / 1000;
-                display.innerText = finalTime.toFixed(3);
-                btn.innerText = "START"; btn.className = "btn-main start";
-
-                const diffVal = Math.abs(rules.target - finalTime);
-                const diffStr = diffVal.toFixed(3);
-                let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
-
-                if (diffStr === "0.000") {
-                    pointChange = 100; newPoints += pointChange;
-                    if (currentDiv > 1) newDivision = currentDiv - 1;
-                    showResult(`SUPER! SAKRASH! +${pointChange}`, "#f1c40f");
-                } else if (diffVal <= rules.nearLimit) {
-                    pointChange = parseInt(rules.plusPoints); newPoints += pointChange;
-                    showResult(`Zo'r! +${pointChange} ball`, "#2ecc71");
-                } else {
-                    pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
-                    if (newPoints < 0) newPoints = 0;
-                    showResult(`Uzoq! ${pointChange} ball`, "#e74c3c");
-                }
-
-                if (newDivision > 1 && newPoints >= rules.promotionPoints) {
-                    newDivision -= 1;
-                    tg.showAlert("TABRIKLAYMIZ! Siz Divizion " + newDivision + " ga chiqdingiz!");
-                }
-                
-                if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
-                    if (newWarning) {
-                        newDivision += 1; newWarning = false;
-                        tg.showAlert("Afsus, divizioningiz tushdi.");
-                    } else {
-                        newWarning = true;
-                        tg.showAlert("DIQQAT! Keyingi safar ham yutqazsangiz divizioningiz tushadi!");
-                    }
-                } else {
-                    newWarning = false;
-                }
-
-                update(ref(db, 'leaderboard/' + myId), { 
-                    name: myName, points: newPoints, division: newDivision, lastTime: finalTime.toFixed(3), isWarning: newWarning
-                });
-            }
-        };
-
-        function showResult(txt, color) {
-            const el = document.getElementById('last-result');
-            el.innerText = txt; el.style.color = color;
-            tg.HapticFeedback.notificationOccurred(color === "#e74c3c" ? 'error' : 'success');
-        }
-
-        onValue(ref(db, 'leaderboard'), (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
-                .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
-            
-            const idx = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
-            document.getElementById('user-rank-pos').innerText = idx !== -1 ? `#${idx + 1}` : "#---";
-            renderRanking();
-        });
-
-        function renderRanking() {
-            const container = document.getElementById('ef-list-container');
-            container.innerHTML = '';
-            fullLeaderboard.slice(0, 50).forEach((p, i) => {
-                const row = document.createElement('div');
-                row.className = `rank-item ${String(p.id) === String(myId) ? 'me' : ''}`;
-                if(String(p.id) === String(myId)) row.id = "my-rank-row";
-                row.innerHTML = `
-                    <div class="rank-pos">${i+1}</div>
-                    <div style="font-size:12px; background:#333; padding:2px 6px; border-radius:4px; margin-right:5px;">D${p.division}</div>
-                    <div class="rank-name">${p.name}</div>
-                    <div class="rank-pts">${(p.points || 0).toLocaleString()}</div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        window.toggleOverlay = (show) => {
-            document.getElementById('info-overlay').classList.toggle('active', show);
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        window.showPage = (pId, nav) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            nav.classList.add('active');
-            tg.HapticFeedback.selectionChanged();
-        };
-
-        window.scrollToMe = () => {
-            const me = document.getElementById('my-rank-row');
-            if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-        };
+        
+        // Telegram tepasidagi (header) rangni ham tizimga moslaymiz
+        tg.setHeaderColor('bg_color');
+        tg.setBackgroundColor('bg_color');
     </script>
 </body>
 </html>
