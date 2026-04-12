@@ -146,6 +146,8 @@
             border-bottom: 3px solid #333;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             position: relative;
+            border-width: 2px;
+            transition: 0.5s;
         }
 
         .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
@@ -258,6 +260,8 @@
             margin-bottom: 20px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
             padding: 20px 0;
+            border-width: 2px;
+            transition: 0.5s;
         }
 
         .embedded-info {
@@ -278,7 +282,7 @@
         .target-box .info-label { color: var(--accent-color); font-weight: 800; font-size: 11px; text-transform: uppercase; }
         .target-box .info-val { color: #fff; font-size: 16px; }
 
-        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
+        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); transition: 0.3s; }
         .current-time-label { font-size: 12px; color: #555; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
 
         .btn-main {
@@ -298,6 +302,29 @@
         .start:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
         .stop { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #922b21; }
         .stop:active { transform: translateY(2px); box-shadow: 0 2px 0 #922b21; }
+
+        /* Animated Effects CSS (Admin panel bilan bir xil) */
+        @keyframes neonPulse {
+            0% { box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00d2ff; }
+            50% { box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #3a7bd5; }
+            100% { box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00d2ff; }
+        }
+        @keyframes goldFlow {
+            0% { filter: drop-shadow(0 0 2px #ffd700); }
+            50% { filter: drop-shadow(0 0 10px #ffd700); border-color: #fff; }
+            100% { filter: drop-shadow(0 0 2px #ffd700); }
+        }
+        @keyframes rainbowBorder {
+            0% { border-color: red; }
+            20% { border-color: yellow; }
+            40% { border-color: green; }
+            60% { border-color: cyan; }
+            80% { border-color: blue; }
+            100% { border-color: magenta; }
+        }
+        .effect-neon { animation: neonPulse 2s infinite; }
+        .effect-gold { animation: goldFlow 2s infinite; }
+        .effect-rainbow { animation: rainbowBorder 3s infinite linear; }
 
         /* Ranking Styles */
         .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #222; }
@@ -369,7 +396,7 @@
     </div>
 
     <div id="game-page" class="page active">
-        <div class="div-card">
+        <div class="div-card" id="main-div-card">
             <div class="info-btn" onclick="openRules()">i</div>
             <div class="header-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -421,7 +448,7 @@
 
         <div id="timer-container">
             <div class="embedded-info">
-                <div class="info-line target-box">
+                <div class="info-line target-box" id="target-ui-box">
                     <div class="info-label">🎯 MAQSAD</div>
                     <div class="info-val" id="target-label">10.000s</div>
                 </div>
@@ -537,7 +564,6 @@
         let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null };
         let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
-        // Set initial toggle state
         document.getElementById('sound-toggle').checked = isSoundEnabled;
 
         window.toggleSound = (enabled) => {
@@ -624,7 +650,6 @@
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = { ...snapshot.val(), isRegistered: true };
-                // Default stats if missing
                 if (myCurrentData.wins === undefined) myCurrentData.wins = 0;
                 if (myCurrentData.losses === undefined) myCurrentData.losses = 0;
                 
@@ -657,11 +682,39 @@
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
                 
-                // Set Division Color from DB
+                // Divizion Rang va Effektlarini yangilash
                 const divColor = rules.color || '#f1c40f';
-                document.getElementById('div-badge-bg').style.background = `linear-gradient(45deg, #2c3e50, ${divColor})`;
-                document.getElementById('div-badge-bg').style.borderColor = divColor;
-                document.getElementById('user-div-title').parentElement.style.color = divColor;
+                const divEffect = rules.effect || 'none';
+
+                // Ranglarni UI elementlariga berish
+                document.getElementById('div-badge-bg').style.background = divColor.includes('gradient') ? divColor : `linear-gradient(45deg, #2c3e50, ${divColor})`;
+                document.getElementById('div-badge-bg').style.borderColor = divColor.includes('gradient') ? '#fff' : divColor;
+                document.getElementById('user-div-title').parentElement.style.color = divColor.includes('gradient') ? '#fff' : divColor;
+                
+                // TAYMER RANGINI VA BOXNI YANGILASH
+                const timerText = document.getElementById('display');
+                const timerBox = document.getElementById('timer-container');
+                const mainCard = document.getElementById('main-div-card');
+                const targetBox = document.getElementById('target-ui-box');
+
+                timerText.style.color = divColor.includes('gradient') ? '#fff' : divColor;
+                timerText.style.textShadow = `0 0 15px ${divColor.includes('gradient') ? 'rgba(255,255,255,0.5)' : divColor}`;
+                
+                // Effektlarni tozalash va yangisini berish
+                [timerBox, mainCard].forEach(el => {
+                    el.className = el.className.replace(/effect-\w+/g, '').trim();
+                    if(divEffect !== 'none') el.classList.add(divEffect);
+                    
+                    if(divColor.includes('gradient')) {
+                        el.style.borderImage = `${divColor} 1`;
+                    } else {
+                        el.style.borderImage = "none";
+                        el.style.borderColor = divColor;
+                    }
+                });
+
+                targetBox.style.borderColor = divColor.includes('gradient') ? 'rgba(255,255,255,0.2)' : divColor;
+                document.getElementById('target-label').style.color = divColor.includes('gradient') ? '#fff' : divColor;
 
                 document.getElementById('target-label').innerText = `${rules.target.toFixed(3)}s`;
                 document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
@@ -712,7 +765,6 @@
                 btn.innerText = "START"; btn.className = "btn-main start";
                 
                 let soundToPlay = 'click';
-
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
@@ -800,12 +852,11 @@
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
                 
-                // Get color for rank item from divSettings
                 const rowDivColor = (divSettings && divSettings[p.division]) ? divSettings[p.division].color : '#f1c40f';
 
                 row.innerHTML = `
                     <div class="ef-rank-num">${i+1}</div>
-                    <div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor}">D${p.division || 10}</div></div>
+                    <div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}; color: ${rowDivColor.includes('gradient') ? '#000' : '#000'}">D${p.division || 10}</div></div>
                     <div class="ef-info-main"><div class="ef-name">${p.name}</div></div>
                     <div class="ef-points-val">${(p.points || 0).toLocaleString()}</div>
                 `;
