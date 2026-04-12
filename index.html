@@ -336,22 +336,24 @@
         .ef-mini-btn { width: 100%; background: #1a1a1a; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
 
         /* --- SETTINGS PAGE STYLES --- */
-        .settings-container {
-            background: #111;
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid #222;
+        .settings-list {
+            margin-top: 20px;
         }
         .setting-item {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #222;
+            margin-bottom: 10px;
+            border: 1px solid #222;
         }
-        .setting-label { font-size: 16px; font-weight: bold; }
-        
-        /* Switch/Toggle */
+        .setting-info { display: flex; flex-direction: column; }
+        .setting-title { font-weight: bold; font-size: 16px; color: #fff; }
+        .setting-desc { font-size: 12px; color: #666; margin-top: 4px; }
+
+        /* Switch Styling */
         .switch {
             position: relative;
             display: inline-block;
@@ -370,13 +372,13 @@
         .slider:before {
             position: absolute;
             content: "";
-            height: 20px; width: 20px;
-            left: 3px; bottom: 3px;
+            height: 18px; width: 18px;
+            left: 4px; bottom: 4px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
         }
-        input:checked + .slider { background-color: var(--win-green); }
+        input:checked + .slider { background-color: var(--accent-color); }
         input:checked + .slider:before { transform: translateX(24px); }
 
     </style>
@@ -461,31 +463,6 @@
         <p style="text-align: center; font-size: 11px; color: #555;">Vaqtni aynan nishonga yaqin to‘xtating — shunda ko‘proq ball olasiz!</p>
     </div>
 
-    <div id="rank-page" class="page">
-        <div class="ef-header">
-            <span class="ef-main-title">REYTING (1-10 DIVIZION)</span>
-            <div style="color: #555; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
-        </div>
-        <div class="ef-ranking-list" id="ef-list-container"></div>
-        <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
-    </div>
-
-    <div id="settings-page" class="page">
-        <div class="ef-header">
-            <span class="ef-main-title">SOZLAMALAR</span>
-        </div>
-        <div class="settings-container">
-            <div class="setting-item">
-                <div class="setting-label">O'yin ovozlari</div>
-                <label class="switch">
-                    <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <p style="color: #555; font-size: 12px; margin-top: 15px;">Ovozni o'chirsangiz, o'yin davomidagi barcha effektlar to'xtatiladi.</p>
-        </div>
-    </div>
-
     <div id="rulesModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-title">Divizion Ma'lumotlari</div>
@@ -502,6 +479,34 @@
             </table>
             <button class="modal-close-btn" onclick="closeRules()">Tushunarli</button>
         </div>
+    </div>
+
+    <div id="rank-page" class="page">
+        <div class="ef-header">
+            <span class="ef-main-title">REYTING (1-10 DIVIZION)</span>
+            <div style="color: #555; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
+        </div>
+        <div class="ef-ranking-list" id="ef-list-container"></div>
+        <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
+    </div>
+
+    <div id="settings-page" class="page">
+        <div class="ef-header">
+            <span class="ef-main-title">SOZLAMALAR</span>
+        </div>
+        <div class="settings-list">
+            <div class="setting-item">
+                <div class="setting-info">
+                    <span class="setting-title">O'yin ovozlari</span>
+                    <span class="setting-desc">Effektlar va bildirishnomalar ovozi</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <p style="text-align: center; color: #444; font-size: 12px; margin-top: 30px;">Time League v2.0.0<br>Barcha huquqlar himoyalangan</p>
     </div>
 
     <div class="bottom-nav">
@@ -548,7 +553,16 @@
         let fullLeaderboard = [];
         let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
         let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null };
-        let soundEnabled = true;
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+
+        // Set initial toggle state
+        document.getElementById('sound-toggle').checked = soundEnabled;
+
+        window.toggleSound = (val) => {
+            soundEnabled = val;
+            localStorage.setItem('soundEnabled', val);
+            tg.HapticFeedback.selectionChanged();
+        };
 
         function checkAllLoaded() {
             if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard && loadedResources.sounds) {
@@ -556,7 +570,9 @@
                     const loader = document.getElementById('loading-screen');
                     loader.style.transition = "opacity 0.5s ease";
                     loader.style.opacity = "0";
-                    setTimeout(() => { loader.style.display = 'none'; }, 500);
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500);
                 }, 1000);
             }
         }
@@ -575,11 +591,6 @@
             checkAllLoaded();
         });
 
-        window.toggleSound = (el) => {
-            soundEnabled = el.checked;
-            tg.HapticFeedback.selectionChanged();
-        };
-
         function playSound(type) {
             if (soundEnabled && gameSounds[type]) {
                 gameSounds[type].currentTime = 0;
@@ -592,17 +603,25 @@
             document.getElementById('rulesModal').style.display = 'flex';
             tg.HapticFeedback.impactOccurred('light');
         };
-        window.closeRules = () => { document.getElementById('rulesModal').style.display = 'none'; };
+        window.closeRules = () => {
+            document.getElementById('rulesModal').style.display = 'none';
+        };
 
         function renderDivTable() {
             const tbody = document.getElementById('div-table-body');
             tbody.innerHTML = '';
             if(!divSettings) return;
+
             Object.keys(divSettings).sort((a,b) => a-b).forEach(dNum => {
                 const s = divSettings[dNum];
                 const tr = document.createElement('tr');
                 if(parseInt(dNum) === myCurrentData.division) tr.className = 'current-div-row';
-                tr.innerHTML = `<td style="font-weight:bold; color:var(--accent-color)">D${dNum}</td><td>${s.promotionPoints || '-'}</td><td>${s.relegationPoints || '0'}</td>`;
+                
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:var(--accent-color)">D${dNum}</td>
+                    <td>${s.promotionPoints || '-'}</td>
+                    <td>${s.relegationPoints || '0'}</td>
+                `;
                 tbody.appendChild(tr);
             });
         }
@@ -643,14 +662,17 @@
             const pts = myCurrentData.points || 0;
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
+                
                 document.getElementById('target-label').innerText = `${rules.target.toFixed(3)}s`;
                 document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
                 document.getElementById('plus-label').innerText = `+${rules.plusPoints} ball`;
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
+
                 let promoText = "";
-                if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish: ${rules.promotionPoints} ball. <br>`;
-                if (d < 10) promoText += `⚠️ Tushish chegarasi: ${rules.relegationPoints} ball.`;
+                if (d > 1) promoText += `🚀 Ko'tarilish: ${rules.promotionPoints} ball. <br>`;
+                if (d < 10) promoText += `⚠️ Tushib ketish: < ${rules.relegationPoints} ball.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
+
                 const dangerZone = (rules.relegationPoints || 0) + 20;
                 document.getElementById('danger-info').style.display = (d < 10 && pts <= dangerZone) ? 'block' : 'none';
             }
@@ -660,7 +682,9 @@
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             let currentDiv = myCurrentData.division || 10;
-            const rules = divSettings[currentDiv] || { target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50 };
+            const rules = divSettings[currentDiv] || { 
+                target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50, jackpotPoints: 100
+            };
 
             if (!isRunning) {
                 isRunning = true;
@@ -695,34 +719,34 @@
                     newPoints += pointChange;
                     newWarning = false;
                     soundToPlay = 'win';
-                    showResult(`✅ Zo‘r! +${pointChange} ball`, "#2ecc71");
+                    showResult(`✅ +${pointChange} ball`, "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); 
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
                     soundToPlay = 'lose';
-                    showResult(`❌ Xato! ${pointChange} ball`, "#e74c3c");
+                    showResult(`❌ ${pointChange} ball`, "#e74c3c");
                 }
 
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
-                    newDivision -= 1; 
-                    soundToPlay = 'promo';
+                    newDivision -= 1; newWarning = false; soundToPlay = 'promo';
                     tg.showAlert("🎉 Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
-                        newDivision += 1; newWarning = false;
-                        soundToPlay = 'relegate';
-                        tg.showAlert("😔 Divizioningiz pasaydi");
+                        newDivision += 1; newWarning = false; soundToPlay = 'relegate';
+                        tg.showAlert("😔 Pastki divizionga tushib ketdingiz");
                     } else {
                         newWarning = true;
-                        tg.showAlert("⚠️ Ogohlantirish! Yana yutqazsangiz divizioningiz pasayadi!");
+                        tg.showAlert("⚠️ Ogohlantirish! Yana yutqazsangiz divizion pasayadi!");
                     }
                 }
 
                 playSound(soundToPlay);
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning });
+                update(ref(db, 'leaderboard/' + myId), { 
+                    name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
+                });
             }
         };
 
@@ -749,7 +773,12 @@
                 const row = document.createElement('div');
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
-                row.innerHTML = `<div class="ef-rank-num">${i+1}</div><div class="ef-avatar">⏱️<div class="ef-div-tag">D${p.division || 10}</div></div><div class="ef-info-main"><div class="ef-name">${p.name}</div></div><div class="ef-points-val">${(p.points || 0).toLocaleString()}</div>`;
+                row.innerHTML = `
+                    <div class="ef-rank-num">${i+1}</div>
+                    <div class="ef-avatar">⏱️<div class="ef-div-tag">D${p.division || 10}</div></div>
+                    <div class="ef-info-main"><div class="ef-name">${p.name}</div></div>
+                    <div class="ef-points-val">${(p.points || 0).toLocaleString()}</div>
+                `;
                 container.appendChild(row);
             });
         }
@@ -764,8 +793,8 @@
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-            else { tg.showAlert("Siz hali reytingda yo'qsiz!"); }
+            if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            else tg.showAlert("Siz hali reytingda yo'qsiz!");
         };
     </script>
 </body>
