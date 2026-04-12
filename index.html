@@ -647,7 +647,7 @@
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP"; btn.className = "btn-main stop";
-                playSound('tick'); // START OVOZI
+                playSound('tick'); 
                 tg.HapticFeedback.impactOccurred('medium');
                 timerInterval = setInterval(() => {
                     display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
@@ -659,7 +659,9 @@
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START"; btn.className = "btn-main start";
-                playSound('click'); // STOP OVOZI
+                
+                // --- OVOZLAR UCHUN TANLOV (SOUND LOGIC) ---
+                let soundToPlay = 'click'; // Default stop ovozi
 
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
@@ -669,42 +671,46 @@
                     newPoints = parseInt(rules.jackpotPoints || 100); 
                     newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
                     newWarning = false;
-                    playSound('promo'); // JACKPOT BO'LSA PROMO OVOZI
+                    soundToPlay = 'promo'; // Jackpot ustun
                     showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
                     newPoints += pointChange;
                     newWarning = false;
-                    playSound('win'); // WIN OVOZI
+                    soundToPlay = 'win'; // Yutuq ovozi
                     showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); 
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    playSound('lose'); // LOSE OVOZI
+                    soundToPlay = 'lose'; // Mag'lubiyat ovozi
                     showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
 
-                // --- DIVIZION KO'TARILISH ---
+                // --- DIVIZION KO'TARILISH (SOUND OVERRIDE) ---
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1; 
                     newWarning = false;
-                    playSound('promo'); // PROMO OVOZI
+                    soundToPlay = 'promo'; // Promo yutuq ovozidan ustun
                     tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
-                // --- DIVIZION PASAYISH ---
+                // --- DIVIZION PASAYISH (SOUND OVERRIDE) ---
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
                         newDivision += 1; 
                         newWarning = false;
-                        playSound('relegate'); // RELEGATE OVOZI
+                        soundToPlay = 'relegate'; // Relegate mag'lubiyat ovozidan ustun
                         tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz");
                     } else {
                         newWarning = true;
+                        // soundToPlay o'zgarmaydi, lose bo'lib qolaveradi
                         tg.showAlert("⚠️ Ogohlantirish! Ballaringiz juda kam. Yana yutqazsangiz divizioningiz pasayadi!");
                     }
                 }
+
+                // --- FAQAT BITTA OVOZNI CHALISH ---
+                playSound(soundToPlay);
 
                 update(ref(db, 'leaderboard/' + myId), { 
                     name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
