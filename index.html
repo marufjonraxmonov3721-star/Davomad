@@ -161,8 +161,7 @@
             border-radius: 10px;
             padding: 5px 12px;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: center; gap: 10px;
         }
         .div-num { font-size: 28px; font-weight: 900; color: white; }
         .div-title { color: #f1c40f; font-size: 22px; font-weight: bold; }
@@ -511,10 +510,11 @@
         let divSettings = {};
         let myCurrentData = { points: 100, division: 10, isWarning: false, isRegistered: false };
         let fullLeaderboard = [];
-        let loadedResources = { settings: false, divisions: false, leaderboard: false };
+        let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
+        let gameSounds = { tick: null, click: null, win: null, lose: null };
 
         function checkAllLoaded() {
-            if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard) {
+            if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard && loadedResources.sounds) {
                 setTimeout(() => {
                     const loader = document.getElementById('loading-screen');
                     loader.style.transition = "opacity 0.5s ease";
@@ -523,6 +523,26 @@
                         loader.style.display = 'none';
                     }, 500);
                 }, 1000);
+            }
+        }
+
+        // --- OVOZLARNI BAZADAN YUKLASH ---
+        onValue(ref(db, 'settings/sounds'), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                if(data.tick) gameSounds.tick = new Audio(data.tick);
+                if(data.click) gameSounds.click = new Audio(data.click);
+                if(data.win) gameSounds.win = new Audio(data.win);
+                if(data.lose) gameSounds.lose = new Audio(data.lose);
+            }
+            loadedResources.sounds = true;
+            checkAllLoaded();
+        });
+
+        function playSound(type) {
+            if (gameSounds[type]) {
+                gameSounds[type].currentTime = 0;
+                gameSounds[type].play().catch(e => console.log("Sound play error:", e));
             }
         }
 
@@ -625,6 +645,7 @@
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP"; btn.className = "btn-main stop";
+                playSound('tick'); // START OVOZI
                 tg.HapticFeedback.impactOccurred('medium');
                 timerInterval = setInterval(() => {
                     display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
@@ -636,37 +657,37 @@
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START"; btn.className = "btn-main start";
+                playSound('click'); // STOP OVOZI
 
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
 
-                // --- YANGILANGAN JACKPOT MANTIQLARI ---
                 if (diffStr === "0.000") {
-                    // SIZNING TALABINGIZ: Aniq sekundda eski ball o'chib, bazadagi ball beriladi
                     newPoints = parseInt(rules.jackpotPoints || 100); 
                     newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
                     newWarning = false;
+                    playSound('win'); // WIN OVOZI
                     showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
                     newPoints += pointChange;
                     newWarning = false;
+                    playSound('win'); // WIN OVOZI
                     showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); 
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
+                    playSound('lose'); // LOSE OVOZI
                     showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
 
-                // Normal ko'tarilish
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1; newWarning = false;
                     tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
-                // Pastga tushish mantiqi
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
                         newDivision += 1; newWarning = false;
