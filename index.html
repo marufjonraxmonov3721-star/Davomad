@@ -515,7 +515,6 @@
 
         function checkAllLoaded() {
             if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard) {
-                // Silliq yo'qolish effekti uchun ozgina kutamiz
                 setTimeout(() => {
                     const loader = document.getElementById('loading-screen');
                     loader.style.transition = "opacity 0.5s ease";
@@ -611,7 +610,17 @@
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             let currentDiv = myCurrentData.division || 10;
-            const rules = divSettings[currentDiv] || { target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50 };
+            // Admin panelidan keladigan default Jackpot qiymatlari (agar bazada bo'lmasa)
+            const rules = divSettings[currentDiv] || { 
+                target: 10.0, 
+                nearLimit: 0.05, 
+                plusPoints: 30, 
+                minusPoints: 30, 
+                promotionPoints: 500, 
+                relegationPoints: 50,
+                jackpotPoints: 100,
+                jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1)
+            };
 
             if (!isRunning) {
                 isRunning = true;
@@ -633,26 +642,33 @@
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
 
+                // --- YANGILANGAN JACKPOT MANTIQI ---
                 if (diffStr === "0.000") {
-                    pointChange = 100; newPoints += pointChange;
-                    if (currentDiv > 1) newDivision = currentDiv - 1;
+                    pointChange = parseInt(rules.jackpotPoints || 100); 
+                    newPoints += pointChange;
+                    // Bazada ko'rsatilgan divizionga sakrash
+                    newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
                     newWarning = false;
-                    showResult(`🔥 PERFECT! Divizionga ko‘tarildingiz! +${pointChange}`, "#f1c40f");
+                    showResult(`🔥 JACKPOT! PERFECT 0.000! +${pointChange} ball va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
-                    pointChange = parseInt(rules.plusPoints); newPoints += pointChange;
+                    pointChange = parseInt(rules.plusPoints); 
+                    newPoints += pointChange;
                     newWarning = false;
                     showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
-                    pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
+                    pointChange = -parseInt(rules.minusPoints); 
+                    newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
                     showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
 
-                if (newDivision > 1 && newPoints >= rules.promotionPoints) {
+                // Normal ko'tarilish (Jackpot bo'lmagan holatda ball yig'ilsa)
+                if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1; newWarning = false;
                     tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
+                // Pastga tushish mantiqi
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
                         newDivision += 1; newWarning = false;
