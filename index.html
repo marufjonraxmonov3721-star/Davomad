@@ -51,6 +51,7 @@
             justify-content: center;
         }
 
+        /* Markaziy aylanayotgan neon halqa */
         .loader-ring {
             position: absolute;
             width: 100%;
@@ -72,6 +73,7 @@
             animation: spin 2s linear infinite reverse;
         }
 
+        /* Pulsatsiyalanuvchi soat */
         .loader-clock-main {
             font-size: 50px;
             filter: drop-shadow(0 0 10px var(--accent-color));
@@ -79,6 +81,7 @@
             z-index: 2;
         }
 
+        /* Orqa fondagi yorug'lik effekti */
         .loader-glow {
             position: absolute;
             width: 100px;
@@ -134,9 +137,12 @@
             50% { opacity: 0.3; }
         }
 
+        /* --- END LOADING STYLES --- */
+
         .page { display: none; }
         .page.active { display: block; }
 
+        /* Division Card Styling */
         .div-card {
             background: linear-gradient(145deg, #1e1e1e, #0a0a0a);
             border-radius: 15px;
@@ -170,6 +176,7 @@
         .phase-label { display: block; font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
         .phase-time { display: block; color: #2ecc71; font-size: 11px; font-weight: bold; font-family: monospace; }
 
+        /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
         .stat-box { display: flex; align-items: center; gap: 10px; }
         .stat-icon { width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; font-size: 20px; }
@@ -177,6 +184,7 @@
         .stat-label { font-size: 12px; color: #888; }
         .stat-value { font-size: 18px; font-weight: bold; }
 
+        /* Info Button Styling */
         .info-btn {
             position: absolute;
             top: -10px;
@@ -196,6 +204,7 @@
             border: 2px solid #000;
         }
 
+        /* Modern Modal Styling */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -223,10 +232,21 @@
         }
         .modal-title { color: var(--accent-color); font-size: 18px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
         
+        /* Table Style for Modal */
         .div-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
         .div-info-table th { color: #888; padding: 8px 4px; border-bottom: 1px solid #333; text-transform: uppercase; }
         .div-info-table td { padding: 8px 4px; border-bottom: 1px solid #222; color: #eee; }
         .current-div-row { background: rgba(241, 196, 15, 0.1); }
+
+        .rule-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #222;
+        }
+        .rule-name { color: #888; font-size: 13px; text-align: left; }
+        .rule-data { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
         .modal-close-btn {
             margin-top: 20px;
@@ -245,6 +265,7 @@
 
         @keyframes blink { 50% { opacity: 0.5; } }
 
+        /* Timer Section Container */
         #timer-container {
             width: 100%;
             display: flex;
@@ -258,6 +279,7 @@
             padding: 20px 0;
         }
 
+        /* Embedded Info Inside Dark Box */
         .embedded-info {
             width: 90%;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -279,6 +301,7 @@
         #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
         .current-time-label { font-size: 12px; color: #555; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
 
+        /* Buttons */
         .btn-main {
             width: 100%;
             padding: 20px;
@@ -297,6 +320,7 @@
         .stop { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #922b21; }
         .stop:active { transform: translateY(2px); box-shadow: 0 2px 0 #922b21; }
 
+        /* Ranking Styles */
         .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #222; }
         .ef-main-title { color: #f1c40f; font-weight: 800; font-size: 24px; text-transform: uppercase; }
         .ef-row {
@@ -316,6 +340,7 @@
         .ef-name { font-weight: 700; font-size: 16px; color: #fff; }
         .ef-points-val { font-weight: 900; font-size: 18px; color: #fff; font-family: monospace; }
         
+        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -334,52 +359,6 @@
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
         .ef-mini-btn { width: 100%; background: #1a1a1a; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
-
-        /* --- SETTINGS PAGE STYLES --- */
-        .settings-list {
-            margin-top: 20px;
-        }
-        .setting-item {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            border: 1px solid #222;
-        }
-        .setting-info { display: flex; flex-direction: column; }
-        .setting-title { font-weight: bold; font-size: 16px; color: #fff; }
-        .setting-desc { font-size: 12px; color: #666; margin-top: 4px; }
-
-        /* Switch Styling */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 26px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px; width: 18px;
-            left: 4px; bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--accent-color); }
-        input:checked + .slider:before { transform: translateX(24px); }
 
     </style>
 </head>
@@ -466,17 +445,20 @@
     <div id="rulesModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-title">Divizion Ma'lumotlari</div>
+            
             <div style="text-align: left; color: #888; font-size: 12px; margin-bottom: 8px; font-weight: bold;">BARCHA DIVIZIONLAR:</div>
             <table class="div-info-table">
                 <thead>
                     <tr>
                         <th>DIV</th>
-                        <th>🚀 O'tish</th>
-                        <th>⚠️ Tushish</th>
+                        <th>Keyingi Divizonga o'tish ballari (🚀)</th>
+                        <th>Pastki Divizonga tushish ballari (⚠️)</th>
                     </tr>
                 </thead>
-                <tbody id="div-table-body"></tbody>
+                <tbody id="div-table-body">
+                    </tbody>
             </table>
+
             <button class="modal-close-btn" onclick="closeRules()">Tushunarli</button>
         </div>
     </div>
@@ -490,25 +472,6 @@
         <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
     </div>
 
-    <div id="settings-page" class="page">
-        <div class="ef-header">
-            <span class="ef-main-title">SOZLAMALAR</span>
-        </div>
-        <div class="settings-list">
-            <div class="setting-item">
-                <div class="setting-info">
-                    <span class="setting-title">O'yin ovozlari</span>
-                    <span class="setting-desc">Effektlar va bildirishnomalar ovozi</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        <p style="text-align: center; color: #444; font-size: 12px; margin-top: 30px;">Time League v2.0.0<br>Barcha huquqlar himoyalangan</p>
-    </div>
-
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('game-page', this)">
             <div class="nav-icon">🎮</div>
@@ -517,10 +480,6 @@
         <div class="nav-item" onclick="showPage('rank-page', this)">
             <div class="nav-icon">🏆</div>
             <span>Reyting</span>
-        </div>
-        <div class="nav-item" onclick="showPage('settings-page', this)">
-            <div class="nav-icon">⚙️</div>
-            <span>Sozlamalar</span>
         </div>
     </div>
 
@@ -553,16 +512,6 @@
         let fullLeaderboard = [];
         let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
         let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null };
-        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
-
-        // Set initial toggle state
-        document.getElementById('sound-toggle').checked = soundEnabled;
-
-        window.toggleSound = (val) => {
-            soundEnabled = val;
-            localStorage.setItem('soundEnabled', val);
-            tg.HapticFeedback.selectionChanged();
-        };
 
         function checkAllLoaded() {
             if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard && loadedResources.sounds) {
@@ -577,6 +526,7 @@
             }
         }
 
+        // --- OVOZLARNI BAZADAN YUKLASH (YANGILANGAN) ---
         onValue(ref(db, 'settings/sounds'), (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -592,7 +542,7 @@
         });
 
         function playSound(type) {
-            if (soundEnabled && gameSounds[type]) {
+            if (gameSounds[type]) {
                 gameSounds[type].currentTime = 0;
                 gameSounds[type].play().catch(e => console.log("Sound play error:", e));
             }
@@ -669,8 +619,8 @@
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
 
                 let promoText = "";
-                if (d > 1) promoText += `🚀 Ko'tarilish: ${rules.promotionPoints} ball. <br>`;
-                if (d < 10) promoText += `⚠️ Tushib ketish: < ${rules.relegationPoints} ball.`;
+                if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
+                if (d < 10) promoText += `⚠️ Pastki Divizionga tushib ketish chegarasi: Ballangiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
 
                 const dangerZone = (rules.relegationPoints || 0) + 20;
@@ -683,7 +633,14 @@
             const display = document.getElementById('display');
             let currentDiv = myCurrentData.division || 10;
             const rules = divSettings[currentDiv] || { 
-                target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50, jackpotPoints: 100
+                target: 10.0, 
+                nearLimit: 0.05, 
+                plusPoints: 30, 
+                minusPoints: 30, 
+                promotionPoints: 500, 
+                relegationPoints: 50,
+                jackpotPoints: 100,
+                jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1)
             };
 
             if (!isRunning) {
@@ -703,7 +660,9 @@
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START"; btn.className = "btn-main start";
                 
-                let soundToPlay = 'click';
+                // --- OVOZLAR UCHUN TANLOV (SOUND LOGIC) ---
+                let soundToPlay = 'click'; // Default stop ovozi
+
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
@@ -712,38 +671,47 @@
                     newPoints = parseInt(rules.jackpotPoints || 100); 
                     newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
                     newWarning = false;
-                    soundToPlay = 'promo';
-                    showResult(`🔥 JACKPOT! PERFECT 0.000!`, "#f1c40f");
+                    soundToPlay = 'promo'; // Jackpot ustun
+                    showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
                     newPoints += pointChange;
                     newWarning = false;
-                    soundToPlay = 'win';
-                    showResult(`✅ +${pointChange} ball`, "#2ecc71");
+                    soundToPlay = 'win'; // Yutuq ovozi
+                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); 
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    soundToPlay = 'lose';
-                    showResult(`❌ ${pointChange} ball`, "#e74c3c");
+                    soundToPlay = 'lose'; // Mag'lubiyat ovozi
+                    showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
 
+                // --- DIVIZION KO'TARILISH (SOUND OVERRIDE) ---
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
-                    newDivision -= 1; newWarning = false; soundToPlay = 'promo';
-                    tg.showAlert("🎉 Divizion " + newDivision + " ga ko'tarildingiz!");
+                    newDivision -= 1; 
+                    newWarning = false;
+                    soundToPlay = 'promo'; // Promo yutuq ovozidan ustun
+                    tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
+                // --- DIVIZION PASAYISH (SOUND OVERRIDE) ---
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
-                        newDivision += 1; newWarning = false; soundToPlay = 'relegate';
-                        tg.showAlert("😔 Pastki divizionga tushib ketdingiz");
+                        newDivision += 1; 
+                        newWarning = false;
+                        soundToPlay = 'relegate'; // Relegate mag'lubiyat ovozidan ustun
+                        tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz");
                     } else {
                         newWarning = true;
-                        tg.showAlert("⚠️ Ogohlantirish! Yana yutqazsangiz divizion pasayadi!");
+                        // soundToPlay o'zgarmaydi, lose bo'lib qolaveradi
+                        tg.showAlert("⚠️ Ogohlantirish! Ballaringiz juda kam. Yana yutqazsangiz divizioningiz pasayadi!");
                     }
                 }
 
+                // --- FAQAT BITTA OVOZNI CHALISH ---
                 playSound(soundToPlay);
+
                 update(ref(db, 'leaderboard/' + myId), { 
                     name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning
                 });
@@ -761,6 +729,7 @@
             if (!data) return;
             fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
                 .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
+            
             const idx = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
             document.getElementById('user-rank-pos').innerText = idx !== -1 ? `#${idx + 1}` : "#---";
             renderRanking();
@@ -793,9 +762,14 @@
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            else tg.showAlert("Siz hali reytingda yo'qsiz!");
+            if(me) { 
+                me.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+            } else { 
+                tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinigiz!"); 
+            }
         };
     </script>
 </body>
 </html>
+
+  
