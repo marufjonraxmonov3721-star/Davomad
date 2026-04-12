@@ -511,7 +511,7 @@
         let myCurrentData = { points: 100, division: 10, isWarning: false, isRegistered: false };
         let fullLeaderboard = [];
         let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
-        let gameSounds = { tick: null, click: null, win: null, lose: null };
+        let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null };
 
         function checkAllLoaded() {
             if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard && loadedResources.sounds) {
@@ -526,7 +526,7 @@
             }
         }
 
-        // --- OVOZLARNI BAZADAN YUKLASH ---
+        // --- OVOZLARNI BAZADAN YUKLASH (YANGILANGAN) ---
         onValue(ref(db, 'settings/sounds'), (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -534,6 +534,8 @@
                 if(data.click) gameSounds.click = new Audio(data.click);
                 if(data.win) gameSounds.win = new Audio(data.win);
                 if(data.lose) gameSounds.lose = new Audio(data.lose);
+                if(data.promo) gameSounds.promo = new Audio(data.promo);
+                if(data.relegate) gameSounds.relegate = new Audio(data.relegate);
             }
             loadedResources.sounds = true;
             checkAllLoaded();
@@ -667,7 +669,7 @@
                     newPoints = parseInt(rules.jackpotPoints || 100); 
                     newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
                     newWarning = false;
-                    playSound('win'); // WIN OVOZI
+                    playSound('promo'); // JACKPOT BO'LSA PROMO OVOZI
                     showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
@@ -683,14 +685,20 @@
                     showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
 
+                // --- DIVIZION KO'TARILISH ---
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
-                    newDivision -= 1; newWarning = false;
+                    newDivision -= 1; 
+                    newWarning = false;
+                    playSound('promo'); // PROMO OVOZI
                     tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
                 
+                // --- DIVIZION PASAYISH ---
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
                     if (newWarning) {
-                        newDivision += 1; newWarning = false;
+                        newDivision += 1; 
+                        newWarning = false;
+                        playSound('relegate'); // RELEGATE OVOZI
                         tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz");
                     } else {
                         newWarning = true;
