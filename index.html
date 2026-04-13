@@ -7,17 +7,18 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
+            /* Tim qora va tilla rang mavzusi */
             --tg-theme-bg-color: #000000;
-            --tg-theme-button-color: #D4AF37;
+            --tg-theme-button-color: #0088cc;
             --accent-color: #D4AF37; /* Tilla rang */
+            --gold-light: #F9E27E;
             --card-bg: #000000;
             --win-green: #2ecc71;
             --draw-gray: #7f8c8d;
             --loss-red: #e74c3c;
             --ef-blue: #004dff;
             --nav-bg: #000000;
-            --gold-gradient: linear-gradient(145deg, #D4AF37, #8A6E2F);
-            --gold-text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+            --border-color: #222222;
         }
 
         body {
@@ -35,7 +36,7 @@
         #loading-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
+            background: #000000;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -61,35 +62,13 @@
             border-top: 2px solid var(--accent-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-        }
-
-        .loader-ring::before {
-            content: '';
-            position: absolute;
-            top: 5px; left: 5px; right: 5px; bottom: 5px;
-            border: 2px solid transparent;
-            border-left: 2px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 2s linear infinite reverse;
-            opacity: 0.5;
         }
 
         .loader-clock-main {
             font-size: 50px;
-            filter: drop-shadow(0 0 15px var(--accent-color));
+            filter: drop-shadow(0 0 10px var(--accent-color));
             animation: pulseClock 1.5s ease-in-out infinite;
             z-index: 2;
-        }
-
-        .loader-glow {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background: var(--accent-color);
-            filter: blur(50px);
-            opacity: 0.1;
-            animation: glowMove 3s infinite alternate;
         }
 
         @keyframes spin {
@@ -100,11 +79,6 @@
         @keyframes pulseClock {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.1); opacity: 0.7; }
-        }
-
-        @keyframes glowMove {
-            0% { transform: scale(1); opacity: 0.1; }
-            100% { transform: scale(1.5); opacity: 0.2; }
         }
 
         .loader-text-wrapper {
@@ -118,23 +92,8 @@
             font-weight: 900;
             letter-spacing: 5px;
             text-transform: uppercase;
-            text-shadow: var(--gold-text-shadow);
             margin: 0;
             font-style: italic;
-        }
-
-        .loader-subtext {
-            color: #444;
-            font-size: 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 5px;
-            animation: flicker 2s infinite;
-        }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
         }
 
         .page { display: none; }
@@ -142,12 +101,11 @@
 
         /* Division Card Styling */
         .div-card {
-            background: #000;
+            background: #000000;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid var(--accent-color);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--border-color);
             position: relative;
             transition: 0.5s;
         }
@@ -155,33 +113,29 @@
         .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         
         .div-badge {
-            background: transparent;
-            border: 1px solid var(--accent-color);
+            background: #000;
+            border: 2px solid var(--accent-color);
             border-radius: 10px;
             padding: 5px 12px;
             display: flex;
             align-items: center; gap: 10px;
-            transition: all 0.3s ease;
         }
-        .div-num { font-size: 28px; font-weight: 900; color: var(--accent-color); }
-        .div-title { color: var(--accent-color); font-size: 22px; font-weight: bold; text-shadow: var(--gold-text-shadow); }
+        .div-num { font-size: 28px; font-weight: 900; color: #fff; }
+        .div-title { color: var(--accent-color); font-size: 22px; font-weight: bold; }
 
         .phase-container {
-            background: rgba(212, 175, 55, 0.05);
             padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
             text-align: right;
         }
-        .phase-label { display: block; font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .phase-label { display: block; font-size: 9px; color: #555; text-transform: uppercase; }
         .phase-time { display: block; color: var(--accent-color); font-size: 11px; font-weight: bold; font-family: monospace; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
         .stat-box { display: flex; align-items: center; gap: 10px; }
-        .stat-icon { width: 40px; height: 40px; background: transparent; border: 1px solid var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-color); font-size: 20px; }
+        .stat-icon { width: 40px; height: 40px; background: transparent; border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .stat-info { display: flex; flex-direction: column; }
-        .stat-label { font-size: 12px; color: #666; }
-        .stat-value { font-size: 18px; font-weight: bold; color: var(--accent-color); }
+        .stat-label { font-size: 12px; color: #555; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #fff; }
 
         .info-btn {
             position: absolute;
@@ -197,7 +151,6 @@
             justify-content: center;
             font-weight: 900;
             font-size: 14px;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
             cursor: pointer;
             border: 2px solid #000;
         }
@@ -211,33 +164,29 @@
             z-index: 9999;
             align-items: center;
             justify-content: center;
-            animation: fadeIn 0.2s ease;
         }
 
         .modal-content {
             background: #000;
             width: 90%;
-            max-width: 350px;
             padding: 20px;
             border-radius: 20px;
             border: 1px solid var(--accent-color);
             text-align: center;
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
             max-height: 85vh;
             overflow-y: auto;
         }
         .modal-title { color: var(--accent-color); font-size: 18px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
         
-        .div-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; color: var(--accent-color); }
-        .div-info-table th { color: #666; padding: 8px 4px; border-bottom: 1px solid #222; text-transform: uppercase; }
-        .div-info-table td { padding: 8px 4px; border-bottom: 1px solid #111; }
-        .current-div-row { background: rgba(212, 175, 55, 0.1); }
+        .div-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+        .div-info-table th { color: #555; padding: 8px 4px; border-bottom: 1px solid var(--border-color); }
+        .div-info-table td { padding: 8px 4px; border-bottom: 1px solid var(--border-color); color: #fff; }
 
         .modal-close-btn {
             margin-top: 20px;
-            background: transparent;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
+            background: var(--accent-color);
+            color: black;
+            border: none;
             padding: 12px;
             width: 100%;
             border-radius: 12px;
@@ -245,10 +194,7 @@
             text-transform: uppercase;
         }
 
-        .promotion-text { color: #666; font-size: 12px; margin-top: 15px; border-top: 1px solid #222; padding-top: 10px; line-height: 1.4; }
-        .relegation-warning { color: var(--loss-red); font-weight: bold; display: none; margin-top: 8px; animation: blink 1s infinite; text-transform: uppercase; font-size: 11px; }
-
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .promotion-text { color: #555; font-size: 12px; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px; }
 
         #timer-container {
             width: 100%;
@@ -257,7 +203,7 @@
             align-items: center;
             background: #000;
             border-radius: 20px;
-            border: 1px solid var(--accent-color);
+            border: 1px solid var(--border-color);
             margin-bottom: 20px;
             padding: 20px 0;
             transition: 0.5s;
@@ -265,62 +211,36 @@
 
         .embedded-info {
             width: 90%;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
-        .info-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-        }
-        .info-label { color: #555; font-size: 12px; display: flex; align-items: center; gap: 5px; }
-        .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: var(--accent-color); }
-        .target-box { background: rgba(212, 175, 55, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(212, 175, 55, 0.2); }
-        .target-box .info-label { color: var(--accent-color); font-weight: 800; font-size: 11px; text-transform: uppercase; }
-        .target-box .info-val { color: var(--accent-color); font-size: 16px; text-shadow: var(--gold-text-shadow); }
+        .info-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+        .info-label { color: #555; font-size: 12px; }
+        .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: #fff; }
+        .target-box { border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; }
 
-        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); transition: 0.3s; }
-        .current-time-label { font-size: 12px; color: #444; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
+        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; transition: 0.3s; }
+        .current-time-label { font-size: 12px; color: #555; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
 
         .btn-main {
             width: 100%;
             padding: 20px;
             border-radius: 15px;
-            border: 1px solid var(--accent-color);
+            border: none;
             font-size: 20px;
             font-weight: 900;
             cursor: pointer;
             transition: 0.2s;
             margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            background: transparent;
         }
-        .start { color: var(--accent-color); box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2); }
-        .start:active { background: rgba(212, 175, 55, 0.1); transform: scale(0.98); }
-        .stop { background: var(--accent-color); color: black; }
-        .stop:active { opacity: 0.8; transform: scale(0.98); }
-
-        /* Animated Effects */
-        @keyframes neonPulse {
-            0% { box-shadow: 0 0 5px var(--accent-color); }
-            50% { box-shadow: 0 0 20px var(--accent-color); }
-            100% { box-shadow: 0 0 5px var(--accent-color); }
-        }
-        @keyframes goldFlow {
-            0% { border-color: #8A6E2F; }
-            50% { border-color: #D4AF37; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
-            100% { border-color: #8A6E2F; }
-        }
-        .effect-neon { animation: neonPulse 2s infinite; }
-        .effect-gold { animation: goldFlow 2s infinite; }
-        .effect-rainbow { border-color: var(--accent-color) !important; animation: goldFlow 3s infinite linear; }
+        .start { background: var(--accent-color); color: black; }
+        .stop { background: #fff; color: black; }
 
         /* Ranking Styles */
-        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #111; }
-        .ef-main-title { color: var(--accent-color); font-weight: 800; font-size: 24px; text-transform: uppercase; text-shadow: var(--gold-text-shadow); }
+        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .ef-main-title { color: var(--accent-color); font-weight: 800; font-size: 24px; text-transform: uppercase; }
         .ef-row {
             background: #000;
             margin-bottom: 10px;
@@ -328,28 +248,25 @@
             display: flex;
             align-items: center;
             padding: 12px 15px;
-            border: 1px solid #111;
+            border: 1px solid var(--border-color);
         }
-        .ef-row.me { border: 1px solid var(--accent-color); background: rgba(212, 175, 55, 0.05); }
-        .ef-rank-num { width: 35px; font-size: 18px; font-weight: 900; color: #444; font-style: italic; }
-        .ef-avatar { width: 48px; height: 48px; border-radius: 10px; background: #000; border: 1px solid #222; display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative; }
+        .ef-row.me { border: 1px solid var(--accent-color); }
+        .ef-rank-num { width: 35px; font-size: 18px; font-weight: 900; color: #555; }
+        .ef-avatar { width: 48px; height: 48px; border-radius: 10px; background: #111; display: flex; align-items: center; justify-content: center; position: relative; }
         .ef-div-tag { position: absolute; bottom: -5px; right: -5px; background: var(--accent-color); color: black; font-size: 9px; font-weight: 900; padding: 2px 4px; border-radius: 4px; }
         .ef-info-main { flex: 1; margin: 0 15px; }
-        .ef-name { font-weight: 700; font-size: 16px; color: var(--accent-color); }
+        .ef-name { font-weight: 700; font-size: 16px; color: #fff; }
         .ef-points-val { font-weight: 900; font-size: 18px; color: var(--accent-color); font-family: monospace; }
         
-        /* Settings Styles */
-        .settings-container { background: #000; border-radius: 15px; padding: 20px; border: 1px solid #111; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #111; }
-        .setting-label { font-size: 16px; font-weight: bold; color: var(--accent-color); }
-        
+        .settings-container { background: #000; border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
+
         /* Toggle Switch */
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #111; transition: .4s; border-radius: 34px; border: 1px solid #222; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #444; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: rgba(212, 175, 55, 0.2); border-color: var(--accent-color); }
-        input:checked + .slider:before { transform: translateX(24px); background-color: var(--accent-color); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #222; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: var(--accent-color); transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #111; border: 1px solid var(--accent-color); }
 
         /* Bottom Nav */
         .bottom-nav {
@@ -362,14 +279,20 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            border-top: 1px solid #111;
+            border-top: 1px solid var(--border-color);
             z-index: 2000;
         }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #444; font-size: 12px; font-weight: bold; cursor: pointer; }
         .nav-item.active { color: var(--accent-color); }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
-        .ef-mini-btn { width: 100%; background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; text-transform: uppercase; }
+        .ef-mini-btn { width: 100%; background: #000; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+
+        /* Effects - Faqat border va rangga ta'sir qiladi */
+        @keyframes neonPulse { 0%, 100% { border-color: var(--accent-color); box-shadow: 0 0 5px var(--accent-color); } 50% { border-color: #fff; box-shadow: 0 0 15px var(--accent-color); } }
+        .effect-neon { animation: neonPulse 2s infinite; }
+        .effect-gold { border-color: var(--accent-color) !important; filter: drop-shadow(0 0 5px var(--accent-color)); }
+        .effect-rainbow { border: 1px solid #fff !important; animation: blink 1s infinite; }
 
     </style>
 </head>
@@ -377,13 +300,11 @@
 
     <div id="loading-screen">
         <div class="loader-wrapper">
-            <div class="loader-glow"></div>
             <div class="loader-ring"></div>
-            <div class="loader-clock-main">🏆</div>
+            <div class="loader-clock-main">🕒</div>
         </div>
         <div class="loader-text-wrapper">
             <h1 class="loader-text">TIME LEAGUE</h1>
-            <div class="loader-subtext">Premium Gaming Experience...</div>
         </div>
     </div>
 
@@ -395,11 +316,11 @@
                     <div class="div-badge" id="div-badge-bg">
                         <span class="div-num" id="user-div-icon">?</span>
                     </div>
-                    <div class="div-title">Divizion <span id="user-div-title">...</span></div>
+                    <div class="div-title">Division <span id="user-div-title">...</span></div>
                 </div>
                 <div class="phase-container">
-                    <span class="phase-label">Mavsum yakuni</span>
-                    <span class="phase-time" id="phase-date">Yuklanmoqda...</span>
+                    <span class="phase-label">Season</span>
+                    <span class="phase-time" id="phase-date">...</span>
                 </div>
             </div>
             
@@ -407,21 +328,21 @@
                 <div class="stat-box">
                     <div class="stat-icon">📈</div>
                     <div class="stat-info">
-                        <span class="stat-label">Ball</span>
+                        <span class="stat-label">Points</span>
                         <span class="stat-value" id="user-pts">0</span>
                     </div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-icon">📊</div>
                     <div class="stat-info">
-                        <span class="stat-label">Win %</span>
+                        <span class="stat-label">Win Rate</span>
                         <span class="stat-value" id="user-win-rate">0%</span>
                     </div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-icon">👑</div>
                     <div class="stat-info">
-                        <span class="stat-label">Reyting o‘rni</span>
+                        <span class="stat-label">Rank</span>
                         <span class="stat-value" id="user-rank-pos">#---</span>
                     </div>
                 </div>
@@ -434,94 +355,78 @@
                 </div>
             </div>
 
-            <p class="promotion-text" id="promo-info">Yuklanmoqda...</p>
-            <p class="relegation-warning" id="danger-info">⚠️ Xavf! Diviziondan tushib ketishingiz mumkin!</p>
+            <p class="promotion-text" id="promo-info">Loading...</p>
+            <p id="danger-info" style="color:red; font-size:10px; display:none; text-align:center;">⚠️ RELEGATION DANGER</p>
         </div>
 
         <div id="timer-container">
             <div class="embedded-info">
                 <div class="info-line target-box" id="target-ui-box">
-                    <div class="info-label">🎯 MAQSAD</div>
+                    <div class="info-label">🎯 TARGET</div>
                     <div class="info-val" id="target-label">10.000s</div>
                 </div>
                 <div class="info-line">
-                    <div class="info-label">Xatolik chegarasi</div>
+                    <div class="info-label">Limit</div>
                     <div class="info-val" id="limit-label">±0.050s</div>
-                </div>
-                <div class="info-line">
-                    <div class="info-label">✔️To‘g‘ri urinish</div>
-                    <div class="info-val" id="plus-label" style="color: #2ecc71">+30 ball</div>
-                </div>
-                <div class="info-line">
-                    <div class="info-label">❌Noto‘g‘ri urinish</div>
-                    <div class="info-val" id="minus-label" style="color: #e74c3c">-30 ball</div>
                 </div>
             </div>
 
-            <div class="current-time-label">Sizning vaqtingiz</div>
+            <div class="current-time-label">Current Time</div>
             <div id="display">0.000</div>
         </div>
 
         <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
         <p id="last-result" style="text-align: center; font-weight: bold; margin-bottom: 10px; min-height: 20px;"></p>
-        <p style="text-align: center; font-size: 11px; color: #333;">Vaqtni aynan nishonga yaqin to‘xtating — shunda ko‘proq ball olasiz!</p>
     </div>
 
     <div id="rank-page" class="page">
         <div class="ef-header">
-            <span class="ef-main-title">REYTING (1-10 DIV)</span>
-            <div style="color: #444; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
+            <span class="ef-main-title">RANKING</span>
         </div>
         <div class="ef-ranking-list" id="ef-list-container"></div>
-        <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
+        <button class="ef-mini-btn" onclick="scrollToMe()">MY RANK</button>
     </div>
 
     <div id="settings-page" class="page">
         <div class="ef-header">
-            <span class="ef-main-title">SOZLAMALAR</span>
+            <span class="ef-main-title">SETTINGS</span>
         </div>
         <div class="settings-container">
             <div class="setting-item">
-                <span class="setting-label">O'yin ovozi</span>
+                <span class="setting-label">Sound</span>
                 <label class="switch">
                     <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)">
                     <span class="slider"></span>
                 </label>
             </div>
-            <p style="color: #333; font-size: 12px; margin-top: 20px;"></p>
         </div>
     </div>
 
     <div id="rulesModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-title">Divizion Ma'lumotlari</div>
-            <div style="text-align: left; color: #555; font-size: 12px; margin-bottom: 8px; font-weight: bold;">BARCHA DIVIZIONLAR:</div>
+            <div class="modal-title">Division Info</div>
             <table class="div-info-table">
                 <thead>
-                    <tr>
-                        <th>DIV</th>
-                        <th>🚀 O'tish</th>
-                        <th>⚠️ Tushish</th>
-                    </tr>
+                    <tr><th>DIV</th><th>PROMO</th><th>RELEG</th></tr>
                 </thead>
                 <tbody id="div-table-body"></tbody>
             </table>
-            <button class="modal-close-btn" onclick="closeRules()">Tushunarli</button>
+            <button class="modal-close-btn" onclick="closeRules()">CLOSE</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('game-page', this)">
             <div class="nav-icon">🎮</div>
-            <span>O'yin</span>
+            <span>Game</span>
         </div>
         <div class="nav-item" onclick="showPage('rank-page', this)">
             <div class="nav-icon">🏆</div>
-            <span>Reyting</span>
+            <span>Rank</span>
         </div>
         <div class="nav-item" onclick="showPage('settings-page', this)">
             <div class="nav-icon">⚙️</div>
-            <span>Sozlamalar</span>
+            <span>Settings</span>
         </div>
     </div>
 
@@ -568,11 +473,8 @@
             if (loadedResources.settings && loadedResources.divisions && loadedResources.leaderboard && loadedResources.sounds) {
                 setTimeout(() => {
                     const loader = document.getElementById('loading-screen');
-                    loader.style.transition = "opacity 0.5s ease";
                     loader.style.opacity = "0";
-                    setTimeout(() => {
-                        loader.style.display = 'none';
-                    }, 500);
+                    setTimeout(() => { loader.style.display = 'none'; }, 500);
                 }, 1000);
             }
         }
@@ -595,34 +497,24 @@
         function playSound(type) {
             if (isSoundEnabled && gameSounds[type]) {
                 gameSounds[type].currentTime = 0;
-                gameSounds[type].play().catch(e => console.log("Sound play error:", e));
+                gameSounds[type].play().catch(e => console.log(e));
             }
         }
 
         window.openRules = () => {
             renderDivTable();
             document.getElementById('rulesModal').style.display = 'flex';
-            tg.HapticFeedback.impactOccurred('light');
         };
-        window.closeRules = () => {
-            document.getElementById('rulesModal').style.display = 'none';
-        };
+        window.closeRules = () => { document.getElementById('rulesModal').style.display = 'none'; };
 
         function renderDivTable() {
             const tbody = document.getElementById('div-table-body');
             tbody.innerHTML = '';
             if(!divSettings) return;
-
             Object.keys(divSettings).sort((a,b) => a-b).forEach(dNum => {
                 const s = divSettings[dNum];
                 const tr = document.createElement('tr');
-                if(parseInt(dNum) === myCurrentData.division) tr.className = 'current-div-row';
-                
-                tr.innerHTML = `
-                    <td style="font-weight:bold; color:var(--accent-color)">D${dNum}</td>
-                    <td>${s.promotionPoints || '-'}</td>
-                    <td>${s.relegationPoints || '0'}</td>
-                `;
+                tr.innerHTML = `<td>D${dNum}</td><td>${s.promotionPoints || '-'}</td><td>${s.relegationPoints || '0'}</td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -643,26 +535,12 @@
         onValue(ref(db, 'leaderboard/' + myId), (snapshot) => {
             if (snapshot.exists()) {
                 myCurrentData = { ...snapshot.val(), isRegistered: true };
-                if (myCurrentData.wins === undefined) myCurrentData.wins = 0;
-                if (myCurrentData.losses === undefined) myCurrentData.losses = 0;
-                
                 document.getElementById('user-div-icon').innerText = myCurrentData.division || 10;
                 document.getElementById('user-div-title').innerText = myCurrentData.division || 10;
                 document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
-                
-                const total = myCurrentData.wins + myCurrentData.losses;
-                const wr = total > 0 ? Math.round((myCurrentData.wins / total) * 100) : 0;
-                document.getElementById('user-win-rate').innerText = wr + "%";
-                document.getElementById('user-wl-stat').innerText = `${myCurrentData.wins}/${myCurrentData.losses}`;
-                
-                updateGameUI();
-            } else {
-                myCurrentData = { name: myName, points: 100, division: 10, wins: 0, losses: 0, isWarning: false, isRegistered: false };
-                document.getElementById('user-div-icon').innerText = 10;
-                document.getElementById('user-div-title').innerText = 10;
-                document.getElementById('user-pts').innerText = "100";
-                document.getElementById('user-win-rate').innerText = "0%";
-                document.getElementById('user-wl-stat').innerText = "0/0";
+                const total = (myCurrentData.wins || 0) + (myCurrentData.losses || 0);
+                document.getElementById('user-win-rate').innerText = (total > 0 ? Math.round((myCurrentData.wins / total) * 100) : 0) + "%";
+                document.getElementById('user-wl-stat').innerText = `${myCurrentData.wins || 0}/${myCurrentData.losses || 0}`;
                 updateGameUI();
             }
             loadedResources.leaderboard = true;
@@ -674,33 +552,22 @@
             const pts = myCurrentData.points || 0;
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
-                
                 const divColor = rules.color || '#D4AF37';
-                const divEffect = rules.effect || 'none';
-
-                const timerText = document.getElementById('display');
+                
+                // Divizion badge rangini bazadan olish
+                document.getElementById('div-badge-bg').style.borderColor = divColor.includes('gradient') ? '#D4AF37' : divColor;
+                
                 const timerBox = document.getElementById('timer-container');
                 const mainCard = document.getElementById('main-div-card');
-                const targetBox = document.getElementById('target-ui-box');
 
                 [timerBox, mainCard].forEach(el => {
                     el.className = el.className.replace(/effect-\w+/g, '').trim();
-                    if(divEffect !== 'none') el.classList.add(divEffect);
-                    el.style.borderColor = 'var(--accent-color)';
+                    if(rules.effect && rules.effect !== 'none') el.classList.add(rules.effect);
+                    el.style.borderColor = divColor.includes('gradient') ? '#D4AF37' : divColor;
                 });
 
                 document.getElementById('target-label').innerText = `${rules.target.toFixed(3)}s`;
-                document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
-                document.getElementById('plus-label').innerText = `+${rules.plusPoints} ball`;
-                document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
-
-                let promoText = "";
-                if (d > 1) promoText += `🚀 Keyingi Divizionga o'tar ball: ${rules.promotionPoints}. <br>`;
-                if (d < 10) promoText += `⚠️ Tushib ketish chegarasi: ${rules.relegationPoints}.`;
-                document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
-
-                const dangerZone = (rules.relegationPoints || 0) + 20;
-                document.getElementById('danger-info').style.display = (d < 10 && pts <= dangerZone) ? 'block' : 'none';
+                document.getElementById('promo-info').innerText = `Next: ${rules.promotionPoints} pts | Releg: ${rules.relegationPoints} pts`;
             }
         }
 
@@ -708,28 +575,14 @@
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             let currentDiv = myCurrentData.division || 10;
-            const rules = divSettings[currentDiv] || { 
-                target: 10.0, 
-                nearLimit: 0.05, 
-                plusPoints: 30, 
-                minusPoints: 30, 
-                promotionPoints: 500, 
-                relegationPoints: 50,
-                jackpotPoints: 100,
-                jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1),
-                color: '#D4AF37'
-            };
+            const rules = divSettings[currentDiv] || { target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30 };
 
             if (!isRunning) {
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP"; btn.className = "btn-main stop";
                 playSound('tick'); 
-                tg.HapticFeedback.impactOccurred('medium');
-                timerInterval = setInterval(() => {
-                    display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
-                }, 10);
-                document.getElementById('last-result').innerText = "";
+                timerInterval = setInterval(() => { display.innerText = ((Date.now() - startTime) / 1000).toFixed(3); }, 10);
             } else {
                 isRunning = false;
                 clearInterval(timerInterval);
@@ -741,77 +594,44 @@
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
-                let newWins = myCurrentData.wins || 0, newLosses = myCurrentData.losses || 0;
 
                 if (diffStr === "0.000") {
                     newPoints = parseInt(rules.jackpotPoints || 100); 
                     newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
-                    newWarning = false;
-                    newWins++;
                     soundToPlay = 'jackpot';
-                    showResult(`🔥 JACKPOT! PERFECT 0.000!`, "var(--accent-color)");
                 } else if (diffVal <= rules.nearLimit) {
-                    pointChange = parseInt(rules.plusPoints); 
-                    newPoints += pointChange;
-                    newWarning = false;
-                    newWins++;
+                    newPoints += parseInt(rules.plusPoints);
                     soundToPlay = 'win';
-                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange}`, "#2ecc71");
                 } else {
-                    pointChange = -parseInt(rules.minusPoints); 
-                    newPoints += pointChange;
+                    newPoints -= parseInt(rules.minusPoints);
                     if (newPoints < 0) newPoints = 0;
-                    newLosses++;
                     soundToPlay = 'lose';
-                    showResult(`❌ Noto‘g‘ri! ${pointChange}`, "#e74c3c");
                 }
 
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
-                    newDivision -= 1; 
-                    newWarning = false;
-                    soundToPlay = 'promo';
-                    tg.showAlert("🎉 Tabriklaymiz! Siz D" + newDivision + " ga o'tdingiz!");
+                    newDivision -= 1; soundToPlay = 'promo';
                 }
                 
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
-                    if (newWarning) {
-                        newDivision += 1; 
-                        newWarning = false;
-                        soundToPlay = 'relegate';
-                        tg.showAlert("😔 Divizioningiz pasaydi");
-                    } else {
-                        newWarning = true;
-                        tg.showAlert("⚠️ Ogohlantirish! Yana yutqazsangiz tushib ketasiz!");
-                    }
+                    if (newWarning) { newDivision += 1; newWarning = false; soundToPlay = 'relegate'; }
+                    else { newWarning = true; }
                 }
 
                 playSound(soundToPlay);
-
                 update(ref(db, 'leaderboard/' + myId), { 
-                    name: myName, 
-                    points: newPoints, 
-                    division: newDivision, 
-                    bestDiff: diffStr, 
-                    lastTime: finalTime.toFixed(3), 
-                    isWarning: newWarning,
-                    wins: newWins,
-                    losses: newLosses
+                    name: myName, points: newPoints, division: newDivision, 
+                    lastTime: finalTime.toFixed(3), isWarning: newWarning,
+                    wins: (myCurrentData.wins || 0) + (diffVal <= rules.nearLimit ? 1 : 0),
+                    losses: (myCurrentData.losses || 0) + (diffVal > rules.nearLimit ? 1 : 0)
                 });
             }
         };
-
-        function showResult(txt, color) {
-            const el = document.getElementById('last-result');
-            el.innerText = txt; el.style.color = color;
-            tg.HapticFeedback.notificationOccurred(color === "#e74c3c" ? 'error' : 'success');
-        }
 
         onValue(ref(db, 'leaderboard'), (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
             fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
                 .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
-            
             const idx = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
             document.getElementById('user-rank-pos').innerText = idx !== -1 ? `#${idx + 1}` : "#---";
             renderRanking();
@@ -824,10 +644,10 @@
                 const row = document.createElement('div');
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
-                
+                const rowDivColor = (divSettings && divSettings[p.division]) ? divSettings[p.division].color : '#D4AF37';
                 row.innerHTML = `
                     <div class="ef-rank-num">${i+1}</div>
-                    <div class="ef-avatar">⏱️<div class="ef-div-tag">D${p.division || 10}</div></div>
+                    <div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor}">D${p.division || 10}</div></div>
                     <div class="ef-info-main"><div class="ef-name">${p.name}</div></div>
                     <div class="ef-points-val">${(p.points || 0).toLocaleString()}</div>
                 `;
@@ -840,16 +660,11 @@
             document.getElementById(pId).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             nav.classList.add('active');
-            tg.HapticFeedback.selectionChanged();
         };
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) { 
-                me.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-            } else { 
-                tg.showAlert("Hali ro'yxatda yo'qsiz!"); 
-            }
+            if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
     </script>
 </body>
