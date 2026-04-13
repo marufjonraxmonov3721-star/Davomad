@@ -723,7 +723,7 @@
 
                 let promoText = "";
                 if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
-                if (d < 10) promoText += `⚠️ Pastki Divizionga tushib ketish chegarasi: Ballangiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
+                if (d < 10) promoText += `⚠️ Pastki Divizionga tushib ketish chegarasi: Ballingiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
 
                 const dangerZone = (rules.relegationPoints || 0) + 20;
