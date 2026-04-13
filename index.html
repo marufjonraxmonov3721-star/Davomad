@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -561,7 +562,7 @@
         let myCurrentData = { points: 100, division: 10, isWarning: false, wins: 0, losses: 0, isRegistered: false };
         let fullLeaderboard = [];
         let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
-        let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null };
+        let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null, jackpot: null };
         let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
         document.getElementById('sound-toggle').checked = isSoundEnabled;
@@ -594,6 +595,7 @@
                 if(data.lose) gameSounds.lose = new Audio(data.lose);
                 if(data.promo) gameSounds.promo = new Audio(data.promo);
                 if(data.relegate) gameSounds.relegate = new Audio(data.relegate);
+                if(data.jackpot) gameSounds.jackpot = new Audio(data.jackpot);
             }
             loadedResources.sounds = true;
             checkAllLoaded();
@@ -775,7 +777,7 @@
                     newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
                     newWarning = false;
                     newWins++;
-                    soundToPlay = 'promo';
+                    soundToPlay = 'jackpot'; // Jackpot ovozi tanlandi
                     showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
