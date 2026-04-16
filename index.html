@@ -579,6 +579,7 @@
             }
         }
 
+        // --- ASOSIY O'ZGARISH: ADMIN PANELIDAGI OVOZLARNI O'QISH ---
         onValue(ref(db, 'settings/sounds'), (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -658,20 +659,25 @@
             });
         }
 
+        // --- ASOSIY O'ZGARISH: PHASE VA ISRESTARTING NI TEKSHIRISH ---
         onValue(ref(db, 'settings'), (s) => {
             if(s.exists()){
                 const data = s.val();
+                // Admin paneldagi Phase yozuvini chiqarish
                 document.getElementById('phase-date').innerText = data.phase || "2026";
                 currentSeason = data.seasonNum || 1;
                 document.querySelector('.history-btn').innerText = `🏆 TOP 10 (S${currentSeason})`;
                 document.querySelector('#historyModal .modal-title').innerText = `🏆 Season ${currentSeason} G'oliblari`;
-                if(data.isRestarting === true) { handleAutoSeasonEnd(); }
+                
+                // Agar Admin restartni bossa, foydalanuvchini reset qilish
+                if(data.isRestarting === true) { 
+                    handleAutoSeasonEnd(); 
+                }
             }
             loadedResources.settings = true;
             checkAllLoaded();
         });
 
-        // ADMIN TRIGGER
         window.triggerSeasonRestart = () => {
             tg.showConfirm("Haqiqatdan ham mavsumni yakunlab, reytingni yangilamoqchimisiz? Top 10 tarixga saqlanadi.", (ok) => {
                 if(ok) { update(ref(db, 'settings'), { isRestarting: true }); }
@@ -688,7 +694,6 @@
                 players.slice(0, 10).forEach(p => { top10[p.id] = { name: p.name, points: p.points, division: p.division }; });
                 await set(ref(db, `history/season_${currentSeason}`), top10);
 
-                // Hamma userlarni reset qilish
                 const updates = {};
                 players.forEach(p => {
                     updates[`leaderboard/${p.id}/points`] = 100;
@@ -870,3 +875,4 @@
     </script>
 </body>
 </html>
+
