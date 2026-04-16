@@ -618,7 +618,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
@@ -646,6 +646,7 @@
         let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
         let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null, jackpot: null };
         let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let currentSeason = 1;
 
         document.getElementById('sound-toggle').checked = isSoundEnabled;
 
@@ -702,13 +703,13 @@
         // HALL OF FAME FUNCTIONS
         window.openHistory = async () => {
             tg.HapticFeedback.impactOccurred('medium');
-            const historySnap = await get(ref(db, 'history/season_1'));
+            const historySnap = await get(ref(db, `history/season_${currentSeason}`));
             if(historySnap.exists()) {
                 const winners = historySnap.val();
                 renderHistory(winners);
                 document.getElementById('historyModal').style.display = 'flex';
             } else {
-                tg.showAlert("Hali birinchi mavsum yakunlanmagan. Tarix yaratish sizning qo'lingizda! ⚡");
+                tg.showAlert("Hali ushbu mavsum yakunlanmagan. Tarix yaratish sizning qo'lingizda! ⚡");
             }
         };
 
@@ -774,11 +775,48 @@
             });
         }
 
-        onValue(ref(db, 'settings/phase'), (s) => {
-            document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026";
+        onValue(ref(db, 'settings'), (s) => {
+            if(s.exists()){
+                const data = s.val();
+                document.getElementById('phase-date').innerText = data.phase || "2026";
+                currentSeason = data.seasonNum || 1;
+                document.querySelector('.history-btn').innerText = `🏆 TOP 10 (S${currentSeason})`;
+                document.querySelector('#historyModal .modal-title').innerText = `🏆 Season ${currentSeason} G'oliblari`;
+
+                // AUTO RESTART CHECK
+                if(data.isRestarting === true) {
+                    handleAutoSeasonEnd();
+                }
+            }
             loadedResources.settings = true;
             checkAllLoaded();
         });
+
+        async function handleAutoSeasonEnd() {
+            // Reytingni olish
+            const leaderboardSnap = await get(ref(db, 'leaderboard'));
+            if(leaderboardSnap.exists()) {
+                const players = Object.entries(leaderboardSnap.val()).map(([id, val]) => ({id, ...val}))
+                    .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
+                
+                // Top 10 ni ajratib olish
+                const top10 = {};
+                players.slice(0, 10).forEach(p => {
+                    top10[p.id] = { name: p.name, points: p.points, division: p.division };
+                });
+
+                // Top 10 ni History ga saqlash
+                await set(ref(db, `history/season_${currentSeason}`), top10);
+                
+                // Admin restartni tugatganini bildirish (faqat bitta client bajarsa kifoya, lekin xavfsizlik uchun update ishlatamiz)
+                await update(ref(db, 'settings'), { isRestarting: false, seasonNum: currentSeason + 1 });
+                
+                // Leaderboardni tozalash
+                await remove(ref(db, 'leaderboard'));
+                
+                tg.showAlert(`Mavsum ${currentSeason} yakunlandi! Top 10 g'oliblar tarixga muhrlandi. Yangi mavsum boshlandi! 🚀`);
+            }
+        }
 
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
@@ -971,7 +1009,11 @@
 
         onValue(ref(db, 'leaderboard'), (snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
+            if (!data) {
+                fullLeaderboard = [];
+                renderRanking();
+                return;
+            }
             fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
                 .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
             
@@ -983,6 +1025,10 @@
         function renderRanking() {
             const container = document.getElementById('ef-list-container');
             container.innerHTML = '';
+            if(fullLeaderboard.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#333; margin-top:20px;">Hali hech kim yo\'q. Birinchi bo\'ling!</p>';
+                return;
+            }
             fullLeaderboard.forEach((p, i) => {
                 const row = document.createElement('div');
                 const rowRules = (divSettings && divSettings[p.division]) ? divSettings[p.division] : { color: '#f1c40f', effect: 'none' };
