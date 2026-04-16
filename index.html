@@ -163,15 +163,36 @@
         .div-num { font-size: 28px; font-weight: 900; color: white; }
         .div-title { color: #f1c40f; font-size: 22px; font-weight: bold; }
 
+        /* --- IXCHAM MAVSUM SANA STILI --- */
         .phase-container {
-            background: rgba(241, 196, 15, 0.05);
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(241, 196, 15, 0.1);
+            background: rgba(241, 196, 15, 0.08);
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(241, 196, 15, 0.2);
             text-align: right;
+            min-width: 100px;
         }
-        .phase-label { display: block; font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-        .phase-time { display: block; color: #f1c40f; font-size: 11px; font-weight: bold; font-family: monospace; }
+        .phase-label { 
+            display: block; 
+            font-size: 8px; 
+            color: #777; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 3px; 
+            font-weight: 900;
+        }
+        .phase-time-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .phase-time { 
+            color: #fff; 
+            font-size: 10px; 
+            font-weight: bold; 
+            font-family: 'Courier New', monospace; 
+        }
+        .phase-icon { color: var(--accent-color); font-size: 9px; margin-right: 4px; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
         .stat-box { display: flex; align-items: center; gap: 10px; }
@@ -353,9 +374,12 @@
                     </div>
                     <div class="div-title">Divizion <span id="user-div-title">...</span></div>
                 </div>
-                <div class="phase-container">
-                    <span class="phase-label">Mavsum yakuni</span>
-                    <span class="phase-time" id="phase-date">Yuklanmoqda...</span>
+                <div class="phase-container" id="season-ui">
+                    <span class="phase-label">Mavsum Yakuni</span>
+                    <div class="phase-time-wrap">
+                        <span class="phase-time"><span class="phase-icon">📅</span><span id="season-date-val">--.--</span></span>
+                        <span class="phase-time"><span class="phase-icon">🕒</span><span id="season-time-val">--:--</span></span>
+                    </div>
                 </div>
             </div>
             
@@ -583,9 +607,7 @@
             });
         }
 
-        // --- MAVSUMNI TEKSHIRISH VA RESTART LOGIKASI ---
         function parseUzDate(dateStr) {
-            // Format: "16.04.2026 6:00"
             const [dmy, hm] = dateStr.split(' ');
             const [d, m, y] = dmy.split('.');
             const [h, min] = hm.split(':');
@@ -594,13 +616,15 @@
 
         onValue(ref(db, 'settings/season'), (s) => {
             if (s.exists()) {
-                const season = s.val(); // Masalan: { start: "16.04.2026 6:00", end: "20.04.2026 7:00", lastReset: "2026-04-16" }
-                document.getElementById('phase-date').innerText = `${season.start} - ${season.end}`;
+                const season = s.val();
+                // SANA VA VAQTNI BO'LIB KO'RSATISH
+                const parts = season.end.split(' ');
+                document.getElementById('season-date-val').innerText = parts[0];
+                document.getElementById('season-time-val').innerText = parts[1];
                 
                 const now = Date.now();
                 const endTime = parseUzDate(season.end);
 
-                // Agar mavsum tugagan bo'lsa va hali reset qilinmagan bo'lsa (yoki yangi mavsum bo'lsa)
                 if (now >= endTime && season.status !== "resetting") {
                     handleSeasonReset();
                 }
@@ -610,10 +634,8 @@
         });
 
         async function handleSeasonReset() {
-            // Bir vaqtning o'zida bir necha foydalanuvchi reset qilmasligi uchun statusni o'zgartiramiz
             await update(ref(db, 'settings/season'), { status: "resetting" });
             
-            // Barcha leaderboardni olish
             onValue(ref(db, 'leaderboard'), async (snapshot) => {
                 const allPlayers = snapshot.val();
                 if (allPlayers) {
@@ -626,11 +648,7 @@
                         updates[`leaderboard/${uid}/isWarning`] = false;
                     });
                     
-                    // Bazani yangilash
                     await update(ref(db), updates);
-                    
-                    // Yangi mavsum sanalarini serverda qo'lda yangilash kerak yoki avtomat mantiq:
-                    // Bu yerda hozircha faqat statusni qaytaramiz
                     await update(ref(db, 'settings/season'), { status: "active" });
                     tg.showAlert("Mavsum yakunlandi! Barcha natijalar qayta nolga tushirildi.");
                     window.location.reload();
