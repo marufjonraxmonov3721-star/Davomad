@@ -189,14 +189,10 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 14px;
             box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-            cursor: pointer;
-            border: 2px solid #000;
+            cursor: pointer; border: 2px solid #000;
         }
 
         .modal-overlay {
@@ -206,23 +202,18 @@
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(8px);
             z-index: 9999;
-            align-items: center;
-            justify-content: center;
+            align-items: center; justify-content: center;
             animation: fadeIn 0.2s ease;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal-content {
             background: #000;
-            width: 90%;
-            max-width: 350px;
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid #f1c40f;
-            text-align: center;
+            width: 90%; max-width: 350px;
+            padding: 20px; border-radius: 20px;
+            border: 1px solid #f1c40f; text-align: center;
             box-shadow: 0 10px 30px rgba(241, 196, 15, 0.2);
-            max-height: 85vh;
-            overflow-y: auto;
+            max-height: 85vh; overflow-y: auto;
         }
         .modal-title { color: var(--accent-color); font-size: 18px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
         
@@ -232,15 +223,10 @@
         .current-div-row { background: rgba(241, 196, 15, 0.05); }
 
         .modal-close-btn {
-            margin-top: 20px;
-            background: #f1c40f;
-            color: black;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
+            margin-top: 20px; background: #f1c40f;
+            color: black; border: none; padding: 12px;
+            width: 100%; border-radius: 12px;
+            font-weight: bold; text-transform: uppercase;
         }
 
         .promotion-text { color: #555; font-size: 12px; margin-top: 15px; border-top: 1px solid #1a1a1a; padding-top: 10px; line-height: 1.4; }
@@ -249,31 +235,18 @@
         @keyframes blink { 50% { opacity: 0.5; } }
 
         #timer-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #050505;
-            border-radius: 20px;
-            border: 1px solid #1a1a1a;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,1);
-            padding: 20px 0;
-            transition: 0.5s;
+            width: 100%; display: flex; flex-direction: column;
+            align-items: center; background: #050505;
+            border-radius: 20px; border: 1px solid #1a1a1a;
+            margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,1);
+            padding: 20px 0; transition: 0.5s;
         }
 
         .embedded-info {
-            width: 90%;
-            border-bottom: 1px solid rgba(241, 196, 15, 0.05);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            width: 90%; border-bottom: 1px solid rgba(241, 196, 15, 0.05);
+            margin-bottom: 20px; padding-bottom: 10px;
         }
-        .info-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-        }
+        .info-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
         .info-label { color: #444; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: #eee; }
         .target-box { background: rgba(241, 196, 15, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.1); }
@@ -284,17 +257,10 @@
         .current-time-label { font-size: 12px; color: #333; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
 
         .btn-main {
-            width: 100%;
-            padding: 20px;
-            border-radius: 15px;
-            border: none;
-            font-size: 20px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            width: 100%; padding: 20px; border-radius: 15px;
+            border: none; font-size: 20px; font-weight: 900;
+            cursor: pointer; transition: 0.2s; margin-bottom: 15px;
+            text-transform: uppercase; letter-spacing: 1px;
         }
         .start { background: #f1c40f; color: black; box-shadow: 0 4px 0 #9a7d0a; }
         .start:active { transform: translateY(2px); box-shadow: 0 2px 0 #9a7d0a; }
@@ -326,14 +292,10 @@
         .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #111; }
         .ef-main-title { color: #f1c40f; font-weight: 800; font-size: 24px; text-transform: uppercase; }
         .ef-row {
-            background: #0a0a0a;
-            margin-bottom: 10px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            border: 1px solid #111;
-            transition: transform 0.3s;
+            background: #0a0a0a; margin-bottom: 10px;
+            border-radius: 12px; display: flex;
+            align-items: center; padding: 12px 15px;
+            border: 1px solid #111; transition: transform 0.3s;
         }
         .ef-row.me { background: #111; }
         .ef-rank-num { width: 35px; font-size: 18px; font-weight: 900; color: #333; font-style: italic; }
@@ -355,17 +317,9 @@
         input:checked + .slider:before { transform: translateX(24px); }
 
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 65px;
-            background: #000;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid #111;
-            z-index: 2000;
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
+            background: #000; display: flex; justify-content: space-around;
+            align-items: center; border-top: 1px solid #111; z-index: 2000;
         }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #333; font-size: 12px; font-weight: bold; cursor: pointer; }
         .nav-item.active { color: var(--accent-color); }
@@ -529,7 +483,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
@@ -629,11 +583,60 @@
             });
         }
 
-        onValue(ref(db, 'settings/phase'), (s) => {
-            document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026";
+        // --- MAVSUMNI TEKSHIRISH VA RESTART LOGIKASI ---
+        function parseUzDate(dateStr) {
+            // Format: "16.04.2026 6:00"
+            const [dmy, hm] = dateStr.split(' ');
+            const [d, m, y] = dmy.split('.');
+            const [h, min] = hm.split(':');
+            return new Date(y, m - 1, d, h, min).getTime();
+        }
+
+        onValue(ref(db, 'settings/season'), (s) => {
+            if (s.exists()) {
+                const season = s.val(); // Masalan: { start: "16.04.2026 6:00", end: "20.04.2026 7:00", lastReset: "2026-04-16" }
+                document.getElementById('phase-date').innerText = `${season.start} - ${season.end}`;
+                
+                const now = Date.now();
+                const endTime = parseUzDate(season.end);
+
+                // Agar mavsum tugagan bo'lsa va hali reset qilinmagan bo'lsa (yoki yangi mavsum bo'lsa)
+                if (now >= endTime && season.status !== "resetting") {
+                    handleSeasonReset();
+                }
+            }
             loadedResources.settings = true;
             checkAllLoaded();
         });
+
+        async function handleSeasonReset() {
+            // Bir vaqtning o'zida bir necha foydalanuvchi reset qilmasligi uchun statusni o'zgartiramiz
+            await update(ref(db, 'settings/season'), { status: "resetting" });
+            
+            // Barcha leaderboardni olish
+            onValue(ref(db, 'leaderboard'), async (snapshot) => {
+                const allPlayers = snapshot.val();
+                if (allPlayers) {
+                    const updates = {};
+                    Object.keys(allPlayers).forEach(uid => {
+                        updates[`leaderboard/${uid}/points`] = 0;
+                        updates[`leaderboard/${uid}/division`] = 10;
+                        updates[`leaderboard/${uid}/wins`] = 0;
+                        updates[`leaderboard/${uid}/losses`] = 0;
+                        updates[`leaderboard/${uid}/isWarning`] = false;
+                    });
+                    
+                    // Bazani yangilash
+                    await update(ref(db), updates);
+                    
+                    // Yangi mavsum sanalarini serverda qo'lda yangilash kerak yoki avtomat mantiq:
+                    // Bu yerda hozircha faqat statusni qaytaramiz
+                    await update(ref(db, 'settings/season'), { status: "active" });
+                    tg.showAlert("Mavsum yakunlandi! Barcha natijalar qayta nolga tushirildi.");
+                    window.location.reload();
+                }
+            }, { onlyOnce: true });
+        }
 
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
@@ -659,10 +662,10 @@
                 
                 updateGameUI();
             } else {
-                myCurrentData = { name: myName, points: 100, division: 10, wins: 0, losses: 0, isWarning: false, isRegistered: false };
+                myCurrentData = { name: myName, points: 0, division: 10, wins: 0, losses: 0, isWarning: false, isRegistered: false };
                 document.getElementById('user-div-icon').innerText = 10;
                 document.getElementById('user-div-title').innerText = 10;
-                document.getElementById('user-pts').innerText = "100";
+                document.getElementById('user-pts').innerText = "0";
                 document.getElementById('user-win-rate').innerText = "0%";
                 document.getElementById('user-wl-stat').innerText = "0/0";
                 updateGameUI();
@@ -847,10 +850,8 @@
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
                 
-                // Divizion effektini qo'shish
                 if(rowDivEffect !== 'none') row.classList.add(rowDivEffect);
                 
-                // Divizion rangini qo'llash
                 if(rowDivColor.includes('gradient')) {
                     row.style.borderImage = `${rowDivColor} 1`;
                 } else {
