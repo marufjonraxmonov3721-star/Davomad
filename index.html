@@ -16,6 +16,9 @@
             --loss-red: #e74c3c;
             --ef-blue: #004dff;
             --nav-bg: #000000;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
         }
 
         body {
@@ -323,7 +326,7 @@
         .effect-gold { animation: goldFlow 2s infinite; }
         .effect-rainbow { animation: rainbowBorder 3s infinite linear; }
 
-        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #111; }
+        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
         .ef-main-title { color: #f1c40f; font-weight: 800; font-size: 24px; text-transform: uppercase; }
         .ef-row {
             background: #0a0a0a;
@@ -343,6 +346,75 @@
         .ef-name { font-weight: 700; font-size: 16px; color: #fff; }
         .ef-points-val { font-weight: 900; font-size: 18px; color: #f1c40f; font-family: monospace; }
         
+        /* HALL OF FAME STYLING */
+        .history-btn {
+            background: rgba(241, 196, 15, 0.1);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-top: 20px;
+        }
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+        .podium-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .podium-rank {
+            position: absolute;
+            top: -10px;
+            background: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .rank-1 { width: 80px; height: 80px; font-size: 35px; border: 3px solid var(--gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+        .rank-1 .podium-rank { color: var(--gold); border: 1px solid var(--gold); }
+        .rank-2 { border: 3px solid var(--silver); }
+        .rank-2 .podium-rank { color: var(--silver); border: 1px solid var(--silver); }
+        .rank-3 { border: 3px solid var(--bronze); }
+        .rank-3 .podium-rank { color: var(--bronze); border: 1px solid var(--bronze); }
+
+        .podium-name { color: #fff; font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+        .podium-pts { color: var(--accent-color); font-size: 12px; font-weight: 900; }
+
+        .history-list { margin-top: 15px; text-align: left; }
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #050505;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            border-left: 3px solid #333;
+        }
+
         .settings-container { background: #0a0a0a; border-radius: 15px; padding: 20px; border: 1px solid #1a1a1a; }
         .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #111; }
         .setting-label { font-size: 16px; font-weight: bold; color: #f1c40f; }
@@ -471,8 +543,11 @@
 
     <div id="rank-page" class="page">
         <div class="ef-header">
-            <span class="ef-main-title">REYTING (1-10 DIVIZION)</span>
-            <div style="color: #333; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
+            <div>
+                <span class="ef-main-title">REYTING</span>
+                <div style="color: #333; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
+            </div>
+            <button class="history-btn" onclick="openHistory()">🏆 TOP 10 (S1)</button>
         </div>
         <div class="ef-ranking-list" id="ef-list-container"></div>
         <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
@@ -512,6 +587,20 @@
         </div>
     </div>
 
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 380px;">
+            <div class="modal-title">🏆 Season 1 G'oliblari</div>
+            
+            <div class="podium-container" id="history-podium">
+                </div>
+
+            <div class="history-list" id="history-rest-list">
+                </div>
+
+            <button class="modal-close-btn" onclick="closeHistory()">Yopish</button>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('game-page', this)">
             <div class="nav-icon">🎮</div>
@@ -529,7 +618,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
@@ -609,6 +698,62 @@
         window.closeRules = () => {
             document.getElementById('rulesModal').style.display = 'none';
         };
+
+        // HALL OF FAME FUNCTIONS
+        window.openHistory = async () => {
+            tg.HapticFeedback.impactOccurred('medium');
+            const historySnap = await get(ref(db, 'history/season_1'));
+            if(historySnap.exists()) {
+                const winners = historySnap.val();
+                renderHistory(winners);
+                document.getElementById('historyModal').style.display = 'flex';
+            } else {
+                tg.showAlert("Hali birinchi mavsum yakunlanmagan. Tarix yaratish sizning qo'lingizda! ⚡");
+            }
+        };
+
+        window.closeHistory = () => {
+            document.getElementById('historyModal').style.display = 'none';
+        };
+
+        function renderHistory(winners) {
+            const podium = document.getElementById('history-podium');
+            const restList = document.getElementById('history-rest-list');
+            podium.innerHTML = ''; restList.innerHTML = '';
+
+            const sorted = Object.values(winners).sort((a,b) => (a.division !== b.division) ? a.division - b.division : b.points - a.points);
+            
+            // Top 3 Podium
+            const top3 = [sorted[1], sorted[0], sorted[2]]; // Joylashuv: 2, 1, 3
+            const labels = ["2nd", "1st", "3rd"];
+            const classes = ["rank-2", "rank-1", "rank-3"];
+
+            top3.forEach((p, i) => {
+                if(!p) return;
+                const item = document.createElement('div');
+                item.className = 'podium-item';
+                item.innerHTML = `
+                    <div class="podium-avatar ${classes[i]}">
+                        ${i===1 ? '👑' : '👤'}
+                        <div class="podium-rank">${labels[i]}</div>
+                    </div>
+                    <div class="podium-name">${p.name}</div>
+                    <div class="podium-pts">D${p.division} • ${p.points}</div>
+                `;
+                podium.appendChild(item);
+            });
+
+            // 4-10 o'rinlar
+            sorted.slice(3, 10).forEach((p, i) => {
+                const row = document.createElement('div');
+                row.className = 'history-row';
+                row.innerHTML = `
+                    <span style="color:#555; font-weight:bold;">#${i+4} ${p.name}</span>
+                    <span style="color:var(--accent-color); font-weight:bold;">D${p.division} • ${p.points}</span>
+                `;
+                restList.appendChild(row);
+            });
+        }
 
         function renderDivTable() {
             const tbody = document.getElementById('div-table-body');
@@ -847,10 +992,8 @@
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
                 
-                // Divizion effektini qo'shish
                 if(rowDivEffect !== 'none') row.classList.add(rowDivEffect);
                 
-                // Divizion rangini qo'llash
                 if(rowDivColor.includes('gradient')) {
                     row.style.borderImage = `${rowDivColor} 1`;
                 } else {
