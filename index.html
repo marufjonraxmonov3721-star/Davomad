@@ -149,51 +149,75 @@
             transition: 0.5s;
         }
 
-        .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        /* --- YANGILANGAN HEADER (Divizion va Mavsum alohida) --- */
+        .header-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
         
+        .division-info-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .div-badge {
             background: #111;
             border: 2px solid #f1c40f;
-            border-radius: 10px;
-            padding: 5px 12px;
-            display: flex;
-            align-items: center; gap: 10px;
-            transition: all 0.3s ease;
-        }
-        .div-num { font-size: 28px; font-weight: 900; color: white; }
-        .div-title { color: #f1c40f; font-size: 22px; font-weight: bold; }
-
-        /* --- YANGILANGAN MAVSUM UI --- */
-        .season-info-box {
-            background: rgba(241, 196, 15, 0.05);
-            border: 1px solid rgba(241, 196, 15, 0.15);
             border-radius: 12px;
-            padding: 8px 12px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.1);
+        }
+        .div-num { font-size: 32px; font-weight: 900; color: white; }
+        .div-title { color: #f1c40f; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+        .season-card {
+            background: rgba(241, 196, 15, 0.05);
+            border: 1px solid rgba(241, 196, 15, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .season-header-text {
+            font-size: 10px;
+            font-weight: 900;
+            color: #555;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            display: block;
+        }
+        .season-times-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .season-time-item {
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            min-width: 130px;
         }
-        .season-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-        }
-        .season-tag {
-            font-size: 8px;
-            font-weight: 900;
+        .season-label-small {
+            font-size: 9px;
+            font-weight: bold;
             text-transform: uppercase;
-            padding: 2px 5px;
+            padding: 2px 6px;
             border-radius: 4px;
-            letter-spacing: 0.5px;
+            width: fit-content;
         }
-        .tag-start { background: #2ecc71; color: #000; }
-        .tag-end { background: #e74c3c; color: #fff; }
-        .season-val {
+        .lbl-start { background: #2ecc71; color: #000; }
+        .lbl-end { background: #e74c3c; color: #fff; }
+        .season-value-text {
             font-family: 'Courier New', monospace;
-            font-size: 10px;
-            color: #eee;
+            font-size: 12px;
+            color: #fff;
             font-weight: bold;
         }
 
@@ -206,8 +230,8 @@
 
         .info-btn {
             position: absolute;
-            top: -10px;
-            right: -5px;
+            top: 10px;
+            right: 10px;
             background: var(--accent-color);
             color: black;
             width: 24px;
@@ -217,6 +241,7 @@
             font-weight: 900; font-size: 14px;
             box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
             cursor: pointer; border: 2px solid #000;
+            z-index: 10;
         }
 
         .modal-overlay {
@@ -370,21 +395,26 @@
     <div id="game-page" class="page active">
         <div class="div-card" id="main-div-card">
             <div class="info-btn" onclick="openRules()">i</div>
-            <div class="header-row">
-                <div style="display: flex; align-items: center; gap: 12px;">
+            
+            <div class="header-column">
+                <div class="division-info-row">
                     <div class="div-badge" id="div-badge-bg">
                         <span class="div-num" id="user-div-icon">?</span>
                     </div>
-                    <div class="div-title">Divizion <span id="user-div-title">...</span></div>
+                    <div class="div-title">DIVIZION <span id="user-div-title">...</span></div>
                 </div>
-                <div class="season-info-box" id="season-ui">
-                    <div class="season-row">
-                        <span class="season-tag tag-start">Start</span>
-                        <span class="season-val" id="season-start-val">--.-- --:--</span>
-                    </div>
-                    <div class="season-row">
-                        <span class="season-tag tag-end">Finish</span>
-                        <span class="season-val" id="season-end-val">--.-- --:--</span>
+
+                <div class="season-card">
+                    <span class="season-header-text">Mavsum vaqtlari</span>
+                    <div class="season-times-row">
+                        <div class="season-time-item">
+                            <span class="season-label-small lbl-start">Boshlanish</span>
+                            <span class="season-value-text" id="season-start-val">--.-- --:--</span>
+                        </div>
+                        <div class="season-time-item">
+                            <span class="season-label-small lbl-end">Yakunlanish</span>
+                            <span class="season-value-text" id="season-end-val">--.-- --:--</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -400,7 +430,7 @@
                 <div class="stat-box">
                     <div class="stat-icon">📊</div>
                     <div class="stat-info">
-                        <span class="stat-label">Win %</span>
+                        <span class="stat-label">G'alaba %</span>
                         <span class="stat-value" id="user-win-rate">0%</span>
                     </div>
                 </div>
@@ -414,7 +444,7 @@
                 <div class="stat-box">
                     <div class="stat-icon">⚡</div>
                     <div class="stat-info">
-                        <span class="stat-label">W/L</span>
+                        <span class="stat-label">G'/M</span>
                         <span class="stat-value" id="user-wl-stat">0/0</span>
                     </div>
                 </div>
@@ -486,8 +516,8 @@
                 <thead>
                     <tr>
                         <th>DIV</th>
-                        <th>Keyingi Divizonga o'tish ballari (🚀)</th>
-                        <th>Pastki Divizonga tushish ballari (⚠️)</th>
+                        <th>Keyingi Divizonga o'tish (🚀)</th>
+                        <th>Tushish chegarasi (⚠️)</th>
                     </tr>
                 </thead>
                 <tbody id="div-table-body"></tbody>
@@ -624,7 +654,6 @@
         onValue(ref(db, 'settings/season'), (s) => {
             if (s.exists()) {
                 const season = s.val();
-                // YANGILANGAN: Start va End vaqtlarini UI ga chiqarish
                 document.getElementById('season-start-val').innerText = season.start || "--.-- --:--";
                 document.getElementById('season-end-val').innerText = season.end || "--.-- --:--";
                 
@@ -741,7 +770,7 @@
 
                 let promoText = "";
                 if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
-                if (d < 10) promoText += `⚠️ Pastki Divizionga tushib ketish chegarasi: Ballingiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
+                if (d < 10) promoText += `⚠️ Pastki Divizionga tushish chegarasi: Ballingiz ${rules.relegationPoints} dan kamaysa pasayasiz.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
 
                 const dangerZone = (rules.relegationPoints || 0) + 20;
