@@ -16,9 +16,6 @@
             --loss-red: #e74c3c;
             --ef-blue: #004dff;
             --nav-bg: #000000;
-            --gold: #ffd700;
-            --silver: #c0c0c0;
-            --bronze: #cd7f32;
         }
 
         body {
@@ -192,27 +189,40 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 14px;
             box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-            cursor: pointer; border: 2px solid #000;
+            cursor: pointer;
+            border: 2px solid #000;
         }
 
         .modal-overlay {
-            display: none; position: fixed;
+            display: none;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(8px);
-            z-index: 9999; align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
             animation: fadeIn 0.2s ease;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal-content {
-            background: #000; width: 90%; max-width: 350px;
-            padding: 20px; border-radius: 20px;
-            border: 1px solid #f1c40f; text-align: center;
+            background: #000;
+            width: 90%;
+            max-width: 350px;
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid #f1c40f;
+            text-align: center;
             box-shadow: 0 10px 30px rgba(241, 196, 15, 0.2);
-            max-height: 85vh; overflow-y: auto;
+            max-height: 85vh;
+            overflow-y: auto;
         }
         .modal-title { color: var(--accent-color); font-size: 18px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
         
@@ -222,9 +232,15 @@
         .current-div-row { background: rgba(241, 196, 15, 0.05); }
 
         .modal-close-btn {
-            margin-top: 20px; background: #f1c40f; color: black;
-            border: none; padding: 12px; width: 100%;
-            border-radius: 12px; font-weight: bold; text-transform: uppercase;
+            margin-top: 20px;
+            background: #f1c40f;
+            color: black;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         .promotion-text { color: #555; font-size: 12px; margin-top: 15px; border-top: 1px solid #1a1a1a; padding-top: 10px; line-height: 1.4; }
@@ -233,17 +249,31 @@
         @keyframes blink { 50% { opacity: 0.5; } }
 
         #timer-container {
-            width: 100%; display: flex; flex-direction: column; align-items: center;
-            background: #050505; border-radius: 20px; border: 1px solid #1a1a1a;
-            margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,1);
-            padding: 20px 0; transition: 0.5s;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #050505;
+            border-radius: 20px;
+            border: 1px solid #1a1a1a;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,1);
+            padding: 20px 0;
+            transition: 0.5s;
         }
 
         .embedded-info {
-            width: 90%; border-bottom: 1px solid rgba(241, 196, 15, 0.05);
-            margin-bottom: 20px; padding-bottom: 10px;
+            width: 90%;
+            border-bottom: 1px solid rgba(241, 196, 15, 0.05);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
         }
-        .info-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
         .info-label { color: #444; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: #eee; }
         .target-box { background: rgba(241, 196, 15, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.1); }
@@ -254,9 +284,17 @@
         .current-time-label { font-size: 12px; color: #333; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
 
         .btn-main {
-            width: 100%; padding: 20px; border-radius: 15px; border: none;
-            font-size: 20px; font-weight: 900; cursor: pointer;
-            transition: 0.2s; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;
+            width: 100%;
+            padding: 20px;
+            border-radius: 15px;
+            border: none;
+            font-size: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .start { background: #f1c40f; color: black; box-shadow: 0 4px 0 #9a7d0a; }
         .start:active { transform: translateY(2px); box-shadow: 0 2px 0 #9a7d0a; }
@@ -285,12 +323,17 @@
         .effect-gold { animation: goldFlow 2s infinite; }
         .effect-rainbow { animation: rainbowBorder 3s infinite linear; }
 
-        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+        .ef-header { padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #111; }
         .ef-main-title { color: #f1c40f; font-weight: 800; font-size: 24px; text-transform: uppercase; }
         .ef-row {
-            background: #0a0a0a; margin-bottom: 10px; border-radius: 12px;
-            display: flex; align-items: center; padding: 12px 15px;
-            border: 1px solid #111; transition: transform 0.3s;
+            background: #0a0a0a;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 1px solid #111;
+            transition: transform 0.3s;
         }
         .ef-row.me { background: #111; }
         .ef-rank-num { width: 35px; font-size: 18px; font-weight: 900; color: #333; font-style: italic; }
@@ -300,37 +343,6 @@
         .ef-name { font-weight: 700; font-size: 16px; color: #fff; }
         .ef-points-val { font-weight: 900; font-size: 18px; color: #f1c40f; font-family: monospace; }
         
-        .history-btn {
-            background: rgba(241, 196, 15, 0.1); border: 1px solid var(--accent-color);
-            color: var(--accent-color); padding: 6px 12px; border-radius: 8px;
-            font-size: 10px; font-weight: 900; text-transform: uppercase;
-        }
-
-        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin-bottom: 25px; padding-top: 20px; }
-        .podium-item { display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; }
-        .podium-avatar {
-            width: 60px; height: 60px; border-radius: 50%; background: #111;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 25px; position: relative; margin-bottom: 10px;
-        }
-        .podium-rank { position: absolute; top: -10px; background: #000; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; }
-        .rank-1 { width: 80px; height: 80px; font-size: 35px; border: 3px solid var(--gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-        .rank-1 .podium-rank { color: var(--gold); border: 1px solid var(--gold); }
-        .rank-2 { border: 3px solid var(--silver); }
-        .rank-2 .podium-rank { color: var(--silver); border: 1px solid var(--silver); }
-        .rank-3 { border: 3px solid var(--bronze); }
-        .rank-3 .podium-rank { color: var(--bronze); border: 1px solid var(--bronze); }
-
-        .podium-name { color: #fff; font-size: 11px; font-weight: bold; margin-bottom: 2px; }
-        .podium-pts { color: var(--accent-color); font-size: 12px; font-weight: 900; }
-
-        .history-list { margin-top: 15px; text-align: left; }
-        .history-row {
-            display: flex; justify-content: space-between; padding: 10px;
-            background: #050505; border-radius: 8px; margin-bottom: 5px;
-            border-left: 3px solid #333;
-        }
-
         .settings-container { background: #0a0a0a; border-radius: 15px; padding: 20px; border: 1px solid #1a1a1a; }
         .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #111; }
         .setting-label { font-size: 16px; font-weight: bold; color: #f1c40f; }
@@ -343,9 +355,17 @@
         input:checked + .slider:before { transform: translateX(24px); }
 
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
-            background: #000; display: flex; justify-content: space-around;
-            align-items: center; border-top: 1px solid #111; z-index: 2000;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: #000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #111;
+            z-index: 2000;
         }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #333; font-size: 12px; font-weight: bold; cursor: pointer; }
         .nav-item.active { color: var(--accent-color); }
@@ -451,11 +471,8 @@
 
     <div id="rank-page" class="page">
         <div class="ef-header">
-            <div>
-                <span class="ef-main-title">REYTING</span>
-                <div style="color: #333; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
-            </div>
-            <button class="history-btn" onclick="openHistory()">🏆 TOP 10 (S1)</button>
+            <span class="ef-main-title">REYTING (1-10 DIVIZION)</span>
+            <div style="color: #333; font-size: 10px; font-weight: bold; margin-top: 4px;" id="ranking-time"></div>
         </div>
         <div class="ef-ranking-list" id="ef-list-container"></div>
         <button class="ef-mini-btn" onclick="scrollToMe()">Mening o'rnim</button>
@@ -473,10 +490,7 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <div id="admin-panel" style="display:none; margin-top: 20px; border-top: 1px solid #111; padding-top: 20px;">
-                 <span class="setting-label" style="color:#e74c3c">Admin: Season Restart</span>
-                 <button class="ef-mini-btn" style="border-color:#e74c3c; color:#e74c3c; margin-top:10px;" onclick="triggerSeasonRestart()">Mavsumni Yakunlash</button>
-            </div>
+            <p style="color: #333; font-size: 12px; margin-top: 20px;"></p>
         </div>
     </div>
 
@@ -498,15 +512,6 @@
         </div>
     </div>
 
-    <div id="historyModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 380px;">
-            <div class="modal-title">🏆 Season 1 G'oliblari</div>
-            <div class="podium-container" id="history-podium"></div>
-            <div class="history-list" id="history-rest-list"></div>
-            <button class="modal-close-btn" onclick="closeHistory()">Yopish</button>
-        </div>
-    </div>
-
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('game-page', this)">
             <div class="nav-icon">🎮</div>
@@ -524,7 +529,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCSzwEYIG54B2_ddgmA6QtkRp6a80s6gtM",
@@ -545,12 +550,6 @@
         const myId = user?.id || "guest_" + Math.random().toString(36).substring(7);
         const myName = (user?.first_name || "O'yinchi");
 
-        // Admin tekshiruvi (Sizning ID'ingizni shu yerga yozishingiz mumkin)
-        const ADMIN_ID = 5122978006; 
-        if(Number(myId) === ADMIN_ID) {
-            document.getElementById('admin-panel').style.display = 'block';
-        }
-
         let startTime, timerInterval, isRunning = false;
         let divSettings = {};
         let myCurrentData = { points: 100, division: 10, isWarning: false, wins: 0, losses: 0, isRegistered: false };
@@ -558,7 +557,6 @@
         let loadedResources = { settings: false, divisions: false, leaderboard: false, sounds: false };
         let gameSounds = { tick: null, click: null, win: null, lose: null, promo: null, relegate: null, jackpot: null };
         let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
-        let currentSeason = 1;
 
         document.getElementById('sound-toggle').checked = isSoundEnabled;
 
@@ -574,12 +572,13 @@
                     const loader = document.getElementById('loading-screen');
                     loader.style.transition = "opacity 0.5s ease";
                     loader.style.opacity = "0";
-                    setTimeout(() => { loader.style.display = 'none'; }, 500);
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500);
                 }, 1000);
             }
         }
 
-        // --- ASOSIY O'ZGARISH: ADMIN PANELIDAGI OVOZLARNI O'QISH ---
         onValue(ref(db, 'settings/sounds'), (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -607,106 +606,34 @@
             document.getElementById('rulesModal').style.display = 'flex';
             tg.HapticFeedback.impactOccurred('light');
         };
-        window.closeRules = () => { document.getElementById('rulesModal').style.display = 'none'; };
-
-        window.openHistory = async () => {
-            tg.HapticFeedback.impactOccurred('medium');
-            const historySnap = await get(ref(db, `history/season_${currentSeason}`));
-            if(historySnap.exists()) {
-                const winners = historySnap.val();
-                renderHistory(winners);
-                document.getElementById('historyModal').style.display = 'flex';
-            } else {
-                tg.showAlert("Hali ushbu mavsum yakunlanmagan. Tarix yaratish sizning qo'lingizda! ⚡");
-            }
+        window.closeRules = () => {
+            document.getElementById('rulesModal').style.display = 'none';
         };
-
-        window.closeHistory = () => { document.getElementById('historyModal').style.display = 'none'; };
-
-        function renderHistory(winners) {
-            const podium = document.getElementById('history-podium');
-            const restList = document.getElementById('history-rest-list');
-            podium.innerHTML = ''; restList.innerHTML = '';
-            const sorted = Object.values(winners).sort((a,b) => (a.division !== b.division) ? a.division - b.division : b.points - a.points);
-            const top3 = [sorted[1], sorted[0], sorted[2]];
-            const labels = ["2nd", "1st", "3rd"];
-            const classes = ["rank-2", "rank-1", "rank-3"];
-            top3.forEach((p, i) => {
-                if(!p) return;
-                const item = document.createElement('div');
-                item.className = 'podium-item';
-                item.innerHTML = `<div class="podium-avatar ${classes[i]}">${i===1 ? '👑' : '👤'}<div class="podium-rank">${labels[i]}</div></div><div class="podium-name">${p.name}</div><div class="podium-pts">D${p.division} • ${p.points}</div>`;
-                podium.appendChild(item);
-            });
-            sorted.slice(3, 10).forEach((p, i) => {
-                const row = document.createElement('div');
-                row.className = 'history-row';
-                row.innerHTML = `<span style="color:#555; font-weight:bold;">#${i+4} ${p.name}</span><span style="color:var(--accent-color); font-weight:bold;">D${p.division} • ${p.points}</span>`;
-                restList.appendChild(row);
-            });
-        }
 
         function renderDivTable() {
             const tbody = document.getElementById('div-table-body');
             tbody.innerHTML = '';
             if(!divSettings) return;
+
             Object.keys(divSettings).sort((a,b) => a-b).forEach(dNum => {
                 const s = divSettings[dNum];
                 const tr = document.createElement('tr');
                 if(parseInt(dNum) === myCurrentData.division) tr.className = 'current-div-row';
-                tr.innerHTML = `<td style="font-weight:bold; color:${s.color || 'var(--accent-color)'}">D${dNum}</td><td>${s.promotionPoints || '-'}</td><td>${s.relegationPoints || '0'}</td>`;
+                
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:${s.color || 'var(--accent-color)'}">D${dNum}</td>
+                    <td>${s.promotionPoints || '-'}</td>
+                    <td>${s.relegationPoints || '0'}</td>
+                `;
                 tbody.appendChild(tr);
             });
         }
 
-        // --- ASOSIY O'ZGARISH: PHASE VA ISRESTARTING NI TEKSHIRISH ---
-        onValue(ref(db, 'settings'), (s) => {
-            if(s.exists()){
-                const data = s.val();
-                // Admin paneldagi Phase yozuvini chiqarish
-                document.getElementById('phase-date').innerText = data.phase || "2026";
-                currentSeason = data.seasonNum || 1;
-                document.querySelector('.history-btn').innerText = `🏆 TOP 10 (S${currentSeason})`;
-                document.querySelector('#historyModal .modal-title').innerText = `🏆 Season ${currentSeason} G'oliblari`;
-                
-                // Agar Admin restartni bossa, foydalanuvchini reset qilish
-                if(data.isRestarting === true) { 
-                    handleAutoSeasonEnd(); 
-                }
-            }
+        onValue(ref(db, 'settings/phase'), (s) => {
+            document.getElementById('phase-date').innerText = s.exists() ? s.val() : "2026";
             loadedResources.settings = true;
             checkAllLoaded();
         });
-
-        window.triggerSeasonRestart = () => {
-            tg.showConfirm("Haqiqatdan ham mavsumni yakunlab, reytingni yangilamoqchimisiz? Top 10 tarixga saqlanadi.", (ok) => {
-                if(ok) { update(ref(db, 'settings'), { isRestarting: true }); }
-            });
-        };
-
-        async function handleAutoSeasonEnd() {
-            const leaderboardSnap = await get(ref(db, 'leaderboard'));
-            if(leaderboardSnap.exists()) {
-                const players = Object.entries(leaderboardSnap.val()).map(([id, val]) => ({id, ...val}))
-                    .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
-                
-                const top10 = {};
-                players.slice(0, 10).forEach(p => { top10[p.id] = { name: p.name, points: p.points, division: p.division }; });
-                await set(ref(db, `history/season_${currentSeason}`), top10);
-
-                const updates = {};
-                players.forEach(p => {
-                    updates[`leaderboard/${p.id}/points`] = 100;
-                    updates[`leaderboard/${p.id}/division`] = 10;
-                    updates[`leaderboard/${p.id}/wins`] = 0;
-                    updates[`leaderboard/${p.id}/losses`] = 0;
-                    updates[`leaderboard/${p.id}/isWarning`] = false;
-                });
-                await update(ref(db), updates);
-                await update(ref(db, 'settings'), { isRestarting: false, seasonNum: currentSeason + 1 });
-                tg.showAlert(`Mavsum ${currentSeason} yakunlandi! Yangi mavsum boshlandi! 🚀`);
-            }
-        }
 
         onValue(ref(db, 'settings/divisions'), (snapshot) => {
             divSettings = snapshot.val();
@@ -720,13 +647,16 @@
                 myCurrentData = { ...snapshot.val(), isRegistered: true };
                 if (myCurrentData.wins === undefined) myCurrentData.wins = 0;
                 if (myCurrentData.losses === undefined) myCurrentData.losses = 0;
+                
                 document.getElementById('user-div-icon').innerText = myCurrentData.division || 10;
                 document.getElementById('user-div-title').innerText = myCurrentData.division || 10;
                 document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
+                
                 const total = myCurrentData.wins + myCurrentData.losses;
                 const wr = total > 0 ? Math.round((myCurrentData.wins / total) * 100) : 0;
                 document.getElementById('user-win-rate').innerText = wr + "%";
                 document.getElementById('user-wl-stat').innerText = `${myCurrentData.wins}/${myCurrentData.losses}`;
+                
                 updateGameUI();
             } else {
                 myCurrentData = { name: myName, points: 100, division: 10, wins: 0, losses: 0, isWarning: false, isRegistered: false };
@@ -746,32 +676,47 @@
             const pts = myCurrentData.points || 0;
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
+                
                 const divColor = rules.color || '#f1c40f';
                 const divEffect = rules.effect || 'none';
+
                 document.getElementById('div-badge-bg').style.background = divColor.includes('gradient') ? divColor : `#111`;
                 document.getElementById('div-badge-bg').style.borderColor = divColor.includes('gradient') ? '#fff' : divColor;
                 document.getElementById('user-div-title').parentElement.style.color = divColor.includes('gradient') ? '#fff' : divColor;
+                
                 const timerText = document.getElementById('display');
                 const timerBox = document.getElementById('timer-container');
                 const mainCard = document.getElementById('main-div-card');
                 const targetBox = document.getElementById('target-ui-box');
+
                 timerText.style.color = divColor.includes('gradient') ? '#fff' : divColor;
                 timerText.style.textShadow = `0 0 15px ${divColor.includes('gradient') ? 'rgba(255,255,255,0.5)' : divColor}`;
+                
                 [timerBox, mainCard].forEach(el => {
                     el.className = el.className.replace(/effect-\w+/g, '').trim();
                     if(divEffect !== 'none') el.classList.add(divEffect);
-                    if(divColor.includes('gradient')) { el.style.borderImage = `${divColor} 1`; } else { el.style.borderImage = "none"; el.style.borderColor = divColor; }
+                    
+                    if(divColor.includes('gradient')) {
+                        el.style.borderImage = `${divColor} 1`;
+                    } else {
+                        el.style.borderImage = "none";
+                        el.style.borderColor = divColor;
+                    }
                 });
+
                 targetBox.style.borderColor = divColor.includes('gradient') ? 'rgba(255,255,255,0.2)' : divColor;
                 document.getElementById('target-label').style.color = divColor.includes('gradient') ? '#fff' : divColor;
+
                 document.getElementById('target-label').innerText = `${rules.target.toFixed(3)}s`;
                 document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
                 document.getElementById('plus-label').innerText = `+${rules.plusPoints} ball`;
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
+
                 let promoText = "";
                 if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
                 if (d < 10) promoText += `⚠️ Pastki Divizionga tushib ketish chegarasi: Ballingiz ${rules.relegationPoints} dan kamaysa pastki Divizionga tushib ketasiz.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
+
                 const dangerZone = (rules.relegationPoints || 0) + 20;
                 document.getElementById('danger-info').style.display = (d < 10 && pts <= dangerZone) ? 'block' : 'none';
             }
@@ -781,47 +726,95 @@
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
             let currentDiv = myCurrentData.division || 10;
-            const rules = divSettings[currentDiv] || { target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50, jackpotPoints: 100, jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1), color: '#f1c40f' };
+            const rules = divSettings[currentDiv] || { 
+                target: 10.0, 
+                nearLimit: 0.05, 
+                plusPoints: 30, 
+                minusPoints: 30, 
+                promotionPoints: 500, 
+                relegationPoints: 50,
+                jackpotPoints: 100,
+                jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1),
+                color: '#f1c40f'
+            };
+
             if (!isRunning) {
-                isRunning = true; startTime = Date.now();
+                isRunning = true;
+                startTime = Date.now();
                 btn.innerText = "STOP"; btn.className = "btn-main stop";
-                playSound('tick'); tg.HapticFeedback.impactOccurred('medium');
-                timerInterval = setInterval(() => { display.innerText = ((Date.now() - startTime) / 1000).toFixed(3); }, 10);
+                playSound('tick'); 
+                tg.HapticFeedback.impactOccurred('medium');
+                timerInterval = setInterval(() => {
+                    display.innerText = ((Date.now() - startTime) / 1000).toFixed(3);
+                }, 10);
                 document.getElementById('last-result').innerText = "";
             } else {
-                isRunning = false; clearInterval(timerInterval);
+                isRunning = false;
+                clearInterval(timerInterval);
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START"; btn.className = "btn-main start";
+                
                 let soundToPlay = 'click';
                 const diffVal = Math.abs(rules.target - finalTime);
                 const diffStr = diffVal.toFixed(3);
                 let pointChange = 0, newDivision = currentDiv, newPoints = myCurrentData.points || 0, newWarning = myCurrentData.isWarning || false;
                 let newWins = myCurrentData.wins || 0, newLosses = myCurrentData.losses || 0;
+
                 if (diffStr === "0.000") {
-                    newPoints = parseInt(rules.jackpotPoints || 100); newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
-                    newWarning = false; newWins++; soundToPlay = 'jackpot';
+                    newPoints = parseInt(rules.jackpotPoints || 100); 
+                    newDivision = parseInt(rules.jackpotJumpDiv || (currentDiv > 1 ? currentDiv - 1 : 1));
+                    newWarning = false;
+                    newWins++;
+                    soundToPlay = 'jackpot';
                     showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
-                    pointChange = parseInt(rules.plusPoints); newPoints += pointChange;
-                    newWarning = false; newWins++; soundToPlay = 'win';
+                    pointChange = parseInt(rules.plusPoints); 
+                    newPoints += pointChange;
+                    newWarning = false;
+                    newWins++;
+                    soundToPlay = 'win';
                     showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
-                    pointChange = -parseInt(rules.minusPoints); newPoints += pointChange;
+                    pointChange = -parseInt(rules.minusPoints); 
+                    newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
-                    newLosses++; soundToPlay = 'lose';
+                    newLosses++;
+                    soundToPlay = 'lose';
                     showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
                 }
+
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
-                    newDivision -= 1; newWarning = false; soundToPlay = 'promo';
+                    newDivision -= 1; 
+                    newWarning = false;
+                    soundToPlay = 'promo';
                     tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
                 }
+                
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
-                    if (newWarning) { newDivision += 1; newWarning = false; soundToPlay = 'relegate'; tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz"); }
-                    else { newWarning = true; tg.showAlert("⚠️ Ogohlantirish! Ballaringiz juda kam. Yana yutqazsangiz divizioningiz pasayadi!"); }
+                    if (newWarning) {
+                        newDivision += 1; 
+                        newWarning = false;
+                        soundToPlay = 'relegate';
+                        tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz");
+                    } else {
+                        newWarning = true;
+                        tg.showAlert("⚠️ Ogohlantirish! Ballaringiz juda kam. Yana yutqazsangiz divizioningiz pasayadi!");
+                    }
                 }
+
                 playSound(soundToPlay);
-                update(ref(db, 'leaderboard/' + myId), { name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, lastTime: finalTime.toFixed(3), isWarning: newWarning, wins: newWins, losses: newLosses });
+
+                update(ref(db, 'leaderboard/' + myId), { 
+                    name: myName, 
+                    points: newPoints, 
+                    division: newDivision, 
+                    bestDiff: diffStr, 
+                    lastTime: finalTime.toFixed(3), 
+                    isWarning: newWarning,
+                    wins: newWins,
+                    losses: newLosses
+                });
             }
         };
 
@@ -833,9 +826,10 @@
 
         onValue(ref(db, 'leaderboard'), (snapshot) => {
             const data = snapshot.val();
-            if (!data) { fullLeaderboard = []; renderRanking(); return; }
+            if (!data) return;
             fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
                 .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
+            
             const idx = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
             document.getElementById('user-rank-pos').innerText = idx !== -1 ? `#${idx + 1}` : "#---";
             renderRanking();
@@ -844,17 +838,31 @@
         function renderRanking() {
             const container = document.getElementById('ef-list-container');
             container.innerHTML = '';
-            if(fullLeaderboard.length === 0) { container.innerHTML = '<p style="text-align:center; color:#333; margin-top:20px;">Hali hech kim yo\'q. Birinchi bo\'ling!</p>'; return; }
             fullLeaderboard.forEach((p, i) => {
                 const row = document.createElement('div');
                 const rowRules = (divSettings && divSettings[p.division]) ? divSettings[p.division] : { color: '#f1c40f', effect: 'none' };
                 const rowDivColor = rowRules.color;
                 const rowDivEffect = rowRules.effect;
+
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
+                
+                // Divizion effektini qo'shish
                 if(rowDivEffect !== 'none') row.classList.add(rowDivEffect);
-                if(rowDivColor.includes('gradient')) { row.style.borderImage = `${rowDivColor} 1`; } else { row.style.borderColor = rowDivColor; }
-                row.innerHTML = `<div class="ef-rank-num">${i+1}</div><div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}; color: #000">D${p.division || 10}</div></div><div class="ef-info-main"><div class="ef-name">${p.name}</div></div><div class="ef-points-val" style="color: ${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}">${(p.points || 0).toLocaleString()}</div>`;
+                
+                // Divizion rangini qo'llash
+                if(rowDivColor.includes('gradient')) {
+                    row.style.borderImage = `${rowDivColor} 1`;
+                } else {
+                    row.style.borderColor = rowDivColor;
+                }
+
+                row.innerHTML = `
+                    <div class="ef-rank-num">${i+1}</div>
+                    <div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}; color: #000">D${p.division || 10}</div></div>
+                    <div class="ef-info-main"><div class="ef-name">${p.name}</div></div>
+                    <div class="ef-points-val" style="color: ${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}">${(p.points || 0).toLocaleString()}</div>
+                `;
                 container.appendChild(row);
             });
         }
@@ -869,10 +877,12 @@
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-            else { tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinigiz!"); }
+            if(me) { 
+                me.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+            } else { 
+                tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinigiz!"); 
+            }
         };
     </script>
 </body>
 </html>
-
