@@ -815,6 +815,9 @@
                 await update(ref(db, 'settings'), { isRestarting: false, seasonNum: currentSeason + 1 });
                 
                 tg.showAlert(`Mavsum ${currentSeason} yakunlandi! Top 10 g'oliblar tarixga muhrlandi. Yangi mavsum boshlandi! 🚀`);
+                
+                // Sahifani qayta yuklash (yangi mavsum uchun)
+                window.location.reload();
             }
         }
 
