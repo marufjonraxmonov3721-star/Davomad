@@ -235,10 +235,10 @@
         .countdown-label { font-size: 9px; color: var(--accent-color); font-weight: 900; text-transform: uppercase; }
         #season-countdown {
             font-family: 'Courier New', monospace;
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 900;
             color: #fff;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
@@ -438,7 +438,7 @@
                     </div>
                     <div class="countdown-wrapper">
                         <span class="countdown-label">TUGASHIGA:</span>
-                        <span id="season-countdown">00d 00:00:00</span>
+                        <span id="season-countdown">0 kun 0 soat 0 min 0 sek</span>
                     </div>
                 </div>
             </div>
@@ -676,7 +676,7 @@
             return new Date(y, m - 1, d, h, min).getTime();
         }
 
-        // TIMER FUNKSIYASI
+        // TIMER FUNKSIYASI (YANGILANGAN FORMAT)
         function startSeasonCountdown(endTimeMs) {
             if(countdownTimerId) clearInterval(countdownTimerId);
             
@@ -687,7 +687,8 @@
                 const diff = endTimeMs - now;
 
                 if (diff <= 0) {
-                    countdownEl.innerText = "YAKUNLANDI";
+                    countdownEl.innerText = "MAVSUM YAKUNLANDI";
+                    countdownEl.style.color = "#e74c3c";
                     clearInterval(countdownTimerId);
                     return;
                 }
@@ -697,7 +698,7 @@
                 const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-                countdownEl.innerText = `${days}k ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                countdownEl.innerText = `${days} kun ${hours} soat ${mins} min ${secs} sek`;
             }
 
             updateCounter();
