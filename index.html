@@ -149,7 +149,6 @@
             transition: 0.5s;
         }
 
-        /* --- YANGILANGAN HEADER (Divizion va Mavsum alohida) --- */
         .header-column {
             display: flex;
             flex-direction: column;
@@ -221,7 +220,6 @@
             font-weight: bold;
         }
 
-        /* --- YANGILANGAN TIMER STYLE --- */
         .countdown-wrapper {
             background: #000;
             border-radius: 10px;
@@ -340,28 +338,29 @@
             border-radius: 20px; border: 1px solid #1a1a1a;
             margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,1);
             padding: 20px 0; transition: 0.5s;
-            position: relative; /* Video uchun kerak */
-            overflow: hidden; /* Video chetdan chiqmasligi uchun */
+            position: relative;
+            overflow: hidden;
             min-height: 250px;
         }
 
-        /* VIDEO LAYER */
+        /* VIDEO LAYER - TUZATILDI */
         #video-bg {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
-            z-index: 1;
-            opacity: 0.5;
+            z-index: 0;
+            opacity: 0.8; /* Video aniqroq ko'rinishi uchun ko'paytirildi */
+            pointer-events: none;
         }
         .timer-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            z-index: 2;
+            background: rgba(0,0,0,0.2); /* Video ko'rinishi uchun overlay kamaytirildi */
+            z-index: 1;
         }
         .timer-content {
             position: relative;
-            z-index: 3;
+            z-index: 2;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -452,7 +451,7 @@
         .nav-item.active { color: var(--accent-color); }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
-        .ef-mini-btn { width: 100%; background: #000; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 166px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+        .ef-mini-btn { width: 100%; background: #000; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
 
     </style>
 </head>
@@ -673,6 +672,10 @@
             isSoundEnabled = enabled;
             localStorage.setItem('soundEnabled', enabled);
             tg.HapticFeedback.selectionChanged();
+            
+            // Videoni ovozini ham sozlamaga qarab o'zgartirish
+            const videoElement = document.getElementById('video-bg');
+            if (videoElement) videoElement.muted = !enabled;
         };
 
         function checkAllLoaded() {
@@ -746,27 +749,21 @@
             return new Date(y, m - 1, d, h, min).getTime();
         }
 
-        // --- YANGILANGAN TIMER FUNKSIYASI ---
         function startSeasonCountdown(endTimeMs) {
             if(countdownTimerId) clearInterval(countdownTimerId);
-            
             const countdownEl = document.getElementById('season-countdown');
-            
             function updateCounter() {
                 const now = Date.now();
                 const diff = endTimeMs - now;
-
                 if (diff <= 0) {
                     countdownEl.innerHTML = "<span style='color:#e74c3c; font-weight:900;'>MAVSUM YAKUNLANDI</span>";
                     clearInterval(countdownTimerId);
                     return;
                 }
-
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const s = Math.floor((diff % (1000 * 60)) / 1000);
-
                 countdownEl.innerHTML = `
                     <div class="time-unit"><span class="time-value">${d}</span><span class="time-label">kun</span></div>
                     <span class="time-separator">:</span>
@@ -777,7 +774,6 @@
                     <div class="time-unit"><span class="time-value">${s.toString().padStart(2, '0')}</span><span class="time-label">sek</span></div>
                 `;
             }
-
             updateCounter();
             countdownTimerId = setInterval(updateCounter, 1000);
         }
@@ -787,12 +783,9 @@
                 const season = s.val();
                 document.getElementById('season-start-val').innerText = season.start || "--.-- --:--";
                 document.getElementById('season-end-val').innerText = season.end || "--.-- --:--";
-                
                 const now = Date.now();
                 const endTime = parseUzDate(season.end);
-
                 startSeasonCountdown(endTime);
-
                 if (now >= endTime && season.status !== "resetting") {
                     handleSeasonReset();
                 }
@@ -803,7 +796,6 @@
 
         async function handleSeasonReset() {
             await update(ref(db, 'settings/season'), { status: "resetting" });
-            
             onValue(ref(db, 'leaderboard'), async (snapshot) => {
                 const allPlayers = snapshot.val();
                 if (allPlayers) {
@@ -815,7 +807,6 @@
                         updates[`leaderboard/${uid}/losses`] = 0;
                         updates[`leaderboard/${uid}/isWarning`] = false;
                     });
-                    
                     await update(ref(db), updates);
                     await update(ref(db, 'settings/season'), { status: "active" });
                     tg.showAlert("Mavsum yakunlandi! Barcha natijalar qayta nolga tushirildi.");
@@ -836,16 +827,13 @@
                 myCurrentData = { ...snapshot.val(), isRegistered: true };
                 if (myCurrentData.wins === undefined) myCurrentData.wins = 0;
                 if (myCurrentData.losses === undefined) myCurrentData.losses = 0;
-                
                 document.getElementById('user-div-icon').innerText = myCurrentData.division || 10;
                 document.getElementById('user-div-title').innerText = myCurrentData.division || 10;
                 document.getElementById('user-pts').innerText = (myCurrentData.points || 0).toLocaleString();
-                
                 const total = myCurrentData.wins + myCurrentData.losses;
                 const wr = total > 0 ? Math.round((myCurrentData.wins / total) * 100) : 0;
                 document.getElementById('user-win-rate').innerText = wr + "%";
                 document.getElementById('user-wl-stat').innerText = `${myCurrentData.wins}/${myCurrentData.losses}`;
-                
                 updateGameUI();
             } else {
                 myCurrentData = { name: myName, points: 0, division: 10, wins: 0, losses: 0, isWarning: false, isRegistered: false };
@@ -865,14 +853,14 @@
             const pts = myCurrentData.points || 0;
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
-                
-                // VIDEO UPDATE MANTIQI
                 const videoElement = document.getElementById('video-bg');
+                
+                // Video manzili va sozlamasi - TUZATILDI
                 if (rules.videoUrl) {
                     if (videoElement.src !== rules.videoUrl) {
                         videoElement.src = rules.videoUrl;
+                        videoElement.muted = !isSoundEnabled; 
                         videoElement.load();
-                        videoElement.play().catch(e => console.log("Video play block:", e));
                     }
                 } else {
                     videoElement.src = "";
@@ -896,7 +884,6 @@
                 [timerBox, mainCard].forEach(el => {
                     el.className = el.className.replace(/effect-\w+/g, '').trim();
                     if(divEffect !== 'none') el.classList.add(divEffect);
-                    
                     if(divColor.includes('gradient')) {
                         el.style.borderImage = `${divColor} 1`;
                     } else {
@@ -907,7 +894,6 @@
 
                 targetBox.style.borderColor = divColor.includes('gradient') ? 'rgba(255,255,255,0.2)' : divColor;
                 document.getElementById('target-label').style.color = divColor.includes('gradient') ? '#fff' : divColor;
-
                 document.getElementById('target-label').innerText = `${rules.target.toFixed(3)}s`;
                 document.getElementById('limit-label').innerText = `±${rules.nearLimit.toFixed(3)}s`;
                 document.getElementById('plus-label').innerText = `+${rules.plusPoints} ball`;
@@ -926,23 +912,24 @@
         window.handleAction = () => {
             const btn = document.getElementById('actionBtn');
             const display = document.getElementById('display');
+            const videoElement = document.getElementById('video-bg');
             let currentDiv = myCurrentData.division || 10;
             const rules = divSettings[currentDiv] || { 
-                target: 10.0, 
-                nearLimit: 0.05, 
-                plusPoints: 30, 
-                minusPoints: 30, 
-                promotionPoints: 500, 
-                relegationPoints: 50,
-                jackpotPoints: 100,
-                jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1),
-                color: '#f1c40f'
+                target: 10.0, nearLimit: 0.05, plusPoints: 30, minusPoints: 30, promotionPoints: 500, relegationPoints: 50,
+                jackpotPoints: 100, jackpotJumpDiv: (currentDiv > 1 ? currentDiv - 1 : 1), color: '#f1c40f'
             };
 
             if (!isRunning) {
                 isRunning = true;
                 startTime = Date.now();
                 btn.innerText = "STOP"; btn.className = "btn-main stop";
+                
+                // Video va ovozni ishga tushirish - TUZATILDI
+                if(videoElement.src) {
+                    videoElement.currentTime = 0;
+                    videoElement.play().catch(e => console.log("Video play block:", e));
+                }
+                
                 playSound('tick'); 
                 tg.HapticFeedback.impactOccurred('medium');
                 timerInterval = setInterval(() => {
@@ -952,6 +939,10 @@
             } else {
                 isRunning = false;
                 clearInterval(timerInterval);
+                
+                // Videoni to'xtatish
+                if(videoElement.src) videoElement.pause();
+                
                 const finalTime = (Date.now() - startTime) / 1000;
                 display.innerText = finalTime.toFixed(3);
                 btn.innerText = "START"; btn.className = "btn-main start";
@@ -975,7 +966,7 @@
                     newWarning = false;
                     newWins++;
                     soundToPlay = 'win';
-                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
+                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball", "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); 
                     newPoints += pointChange;
@@ -1007,14 +998,8 @@
                 playSound(soundToPlay);
 
                 update(ref(db, 'leaderboard/' + myId), { 
-                    name: myName, 
-                    points: newPoints, 
-                    division: newDivision, 
-                    bestDiff: diffStr, 
-                    lastTime: finalTime.toFixed(3), 
-                    isWarning: newWarning,
-                    wins: newWins,
-                    losses: newLosses
+                    name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, 
+                    lastTime: finalTime.toFixed(3), isWarning: newWarning, wins: newWins, losses: newLosses
                 });
             }
         };
@@ -1030,7 +1015,6 @@
             if (!data) return;
             fullLeaderboard = Object.entries(data).map(([id, val]) => ({id, ...val}))
                 .sort((a, b) => (a.division !== b.division) ? a.division - b.division : (b.points || 0) - (a.points || 0));
-            
             const idx = fullLeaderboard.findIndex(p => String(p.id) === String(myId));
             document.getElementById('user-rank-pos').innerText = idx !== -1 ? `#${idx + 1}` : "#---";
             renderRanking();
@@ -1044,18 +1028,14 @@
                 const rowRules = (divSettings && divSettings[p.division]) ? divSettings[p.division] : { color: '#f1c40f', effect: 'none' };
                 const rowDivColor = rowRules.color;
                 const rowDivEffect = rowRules.effect;
-
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
-                
                 if(rowDivEffect !== 'none') row.classList.add(rowDivEffect);
-                
                 if(rowDivColor.includes('gradient')) {
                     row.style.borderImage = `${rowDivColor} 1`;
                 } else {
                     row.style.borderColor = rowDivColor;
                 }
-
                 row.innerHTML = `
                     <div class="ef-rank-num">${i+1}</div>
                     <div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}; color: #000">D${p.division || 10}</div></div>
@@ -1076,11 +1056,8 @@
 
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
-            if(me) { 
-                me.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-            } else { 
-                tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinigiz!"); 
-            }
+            if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            else { tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinigiz!"); }
         };
     </script>
 </body>
