@@ -340,22 +340,21 @@
             padding: 20px 0; transition: 0.5s;
             position: relative;
             overflow: hidden;
-            min-height: 250px;
+            min-height: 280px;
         }
 
-        /* VIDEO LAYER - TUZATILDI */
         #video-bg {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
             z-index: 0;
-            opacity: 0.8; /* Video aniqroq ko'rinishi uchun ko'paytirildi */
+            opacity: 0.6;
             pointer-events: none;
         }
         .timer-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.2); /* Video ko'rinishi uchun overlay kamaytirildi */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8));
             z-index: 1;
         }
         .timer-content {
@@ -368,39 +367,39 @@
         }
 
         .embedded-info {
-            width: 90%; border-bottom: 1px solid rgba(241, 196, 15, 0.05);
+            width: 90%; border-bottom: 1px solid rgba(241, 196, 15, 0.1);
             margin-bottom: 20px; padding-bottom: 10px;
         }
         .info-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
         .info-label { color: #ccc; font-size: 12px; display: flex; align-items: center; gap: 5px; text-shadow: 1px 1px 2px #000; }
         .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: #eee; text-shadow: 1px 1px 2px #000; }
-        .target-box { background: rgba(0, 0, 0, 0.6); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.3); }
+        .target-box { background: rgba(0, 0, 0, 0.7); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.4); }
         .target-box .info-label { color: var(--accent-color); font-weight: 800; font-size: 11px; text-transform: uppercase; }
-        .target-box .info-val { color: #fff; font-size: 16px; }
+        .target-box .info-val { color: #fff; font-size: 18px; }
 
-        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(0, 0, 0, 1), 0 0 5px rgba(241, 196, 15, 0.5); transition: 0.3s; }
-        .current-time-label { font-size: 12px; color: #eee; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-shadow: 1px 1px 2px #000; }
+        #display { font-size: 65px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 20px rgba(0, 0, 0, 1), 0 0 10px rgba(241, 196, 15, 0.5); transition: 0.3s; margin: 10px 0; }
+        .current-time-label { font-size: 12px; color: #aaa; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-shadow: 1px 1px 2px #000; }
 
         .btn-main {
-            width: 100%; padding: 20px; border-radius: 15px;
-            border: none; font-size: 20px; font-weight: 900;
+            width: 100%; padding: 22px; border-radius: 18px;
+            border: none; font-size: 22px; font-weight: 900;
             cursor: pointer; transition: 0.2s; margin-bottom: 15px;
-            text-transform: uppercase; letter-spacing: 1px;
+            text-transform: uppercase; letter-spacing: 2px;
             z-index: 10; position: relative;
         }
-        .start { background: #f1c40f; color: black; box-shadow: 0 4px 0 #9a7d0a; }
+        .start { background: #f1c40f; color: black; box-shadow: 0 5px 0 #9a7d0a; }
         .start:active { transform: translateY(2px); box-shadow: 0 2px 0 #9a7d0a; }
-        .stop { background: #e74c3c; color: white; box-shadow: 0 4px 0 #922b21; }
+        .stop { background: #e74c3c; color: white; box-shadow: 0 5px 0 #922b21; }
         .stop:active { transform: translateY(2px); box-shadow: 0 2px 0 #922b21; }
 
         @keyframes neonPulse {
-            0% { box-shadow: 0 0 5px #f1c40f, 0 0 10px #f1c40f; }
-            50% { box-shadow: 0 0 10px #f1c40f, 0 0 20px #f1c40f; }
-            100% { box-shadow: 0 0 5px #f1c40f, 0 0 10px #f1c40f; }
+            0% { box-shadow: 0 0 5px #f1c40f; }
+            50% { box-shadow: 0 0 20px #f1c40f; }
+            100% { box-shadow: 0 0 5px #f1c40f; }
         }
         @keyframes goldFlow {
             0% { filter: drop-shadow(0 0 2px #ffd700); }
-            50% { filter: drop-shadow(0 0 10px #ffd700); border-color: #fff; }
+            50% { filter: drop-shadow(0 0 12px #ffd700); border-color: #fff; }
             100% { filter: drop-shadow(0 0 2px #ffd700); }
         }
         @keyframes rainbowBorder {
@@ -544,7 +543,7 @@
         </div>
 
         <div id="timer-container">
-            <video id="video-bg" loop muted playsinline></video>
+            <video id="video-bg" loop muted playsinline preload="auto"></video>
             <div class="timer-overlay"></div>
             <div class="timer-content">
                 <div class="embedded-info">
@@ -597,7 +596,7 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <p style="color: #333; font-size: 12px; margin-top: 20px;"></p>
+            <p style="color: #333; font-size: 12px; margin-top: 20px;">O'yin ovozini yoqib, o'yindan zavq oling!</p>
         </div>
     </div>
 
@@ -609,8 +608,8 @@
                 <thead>
                     <tr>
                         <th>DIV</th>
-                        <th>Keyingi Divizonga o'tish (🚀)</th>
-                        <th>Tushish chegarasi (⚠️)</th>
+                        <th>O'tish (🚀)</th>
+                        <th>Tushish (⚠️)</th>
                     </tr>
                 </thead>
                 <tbody id="div-table-body"></tbody>
@@ -672,8 +671,6 @@
             isSoundEnabled = enabled;
             localStorage.setItem('soundEnabled', enabled);
             tg.HapticFeedback.selectionChanged();
-            
-            // Videoni ovozini ham sozlamaga qarab o'zgartirish
             const videoElement = document.getElementById('video-bg');
             if (videoElement) videoElement.muted = !enabled;
         };
@@ -855,7 +852,6 @@
                 const rules = divSettings[d];
                 const videoElement = document.getElementById('video-bg');
                 
-                // Video manzili va sozlamasi - TUZATILDI
                 if (rules.videoUrl) {
                     if (videoElement.src !== rules.videoUrl) {
                         videoElement.src = rules.videoUrl;
@@ -900,8 +896,8 @@
                 document.getElementById('minus-label').innerText = `-${rules.minusPoints} ball`;
 
                 let promoText = "";
-                if (d > 1) promoText += `🚀 Keyingi Divizionga ko'tarilish uchun: ${rules.promotionPoints} ball to'plashingiz kerak. <br>`;
-                if (d < 10) promoText += `⚠️ Pastki Divizionga tushish chegarasi: Ballingiz ${rules.relegationPoints} dan kamaysa pasayasiz.`;
+                if (d > 1) promoText += `🚀 Keyingi Divizionga o'tarilish uchun: ${rules.promotionPoints} ball kerak. <br>`;
+                if (d < 10) promoText += `⚠️ Pastki Divizionga tushish: Ballingiz ${rules.relegationPoints} dan kam bo'lsa.`;
                 document.getElementById('promo-info').innerHTML = promoText || "Siz eng cho'qqidasiz! 🏆";
 
                 const dangerZone = (rules.relegationPoints || 0) + 20;
@@ -924,10 +920,10 @@
                 startTime = Date.now();
                 btn.innerText = "STOP"; btn.className = "btn-main stop";
                 
-                // Video va ovozni ishga tushirish - TUZATILDI
                 if(videoElement.src) {
                     videoElement.currentTime = 0;
-                    videoElement.play().catch(e => console.log("Video play block:", e));
+                    videoElement.muted = !isSoundEnabled;
+                    videoElement.play().catch(e => console.log("Autoplay block:", e));
                 }
                 
                 playSound('tick'); 
@@ -939,8 +935,6 @@
             } else {
                 isRunning = false;
                 clearInterval(timerInterval);
-                
-                // Videoni to'xtatish
                 if(videoElement.src) videoElement.pause();
                 
                 const finalTime = (Date.now() - startTime) / 1000;
@@ -959,28 +953,28 @@
                     newWarning = false;
                     newWins++;
                     soundToPlay = 'jackpot';
-                    showResult(`🔥 JACKPOT! PERFECT 0.000! Ballaringiz ${newPoints} ga yangilandi va D${newDivision} ga sakradingiz!`, "#f1c40f");
+                    showResult(`🔥 JACKPOT! PERFECT 0.000! D${newDivision} ga chiqdingiz!`, "#f1c40f");
                 } else if (diffVal <= rules.nearLimit) {
                     pointChange = parseInt(rules.plusPoints); 
                     newPoints += pointChange;
                     newWarning = false;
                     newWins++;
                     soundToPlay = 'win';
-                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball", "#2ecc71");
+                    showResult(`✅ Zo‘r! Aniq urinish! +${pointChange} ball`, "#2ecc71");
                 } else {
                     pointChange = -parseInt(rules.minusPoints); 
                     newPoints += pointChange;
                     if (newPoints < 0) newPoints = 0;
                     newLosses++;
                     soundToPlay = 'lose';
-                    showResult(`❌ Juda uzoq! Qayta urinib ko‘ring! ${pointChange} ball`, "#e74c3c");
+                    showResult(`❌ Juda uzoq! ${pointChange} ball`, "#e74c3c");
                 }
 
                 if (diffStr !== "0.000" && newDivision > 1 && newPoints >= rules.promotionPoints) {
                     newDivision -= 1; 
                     newWarning = false;
                     soundToPlay = 'promo';
-                    tg.showAlert("🎉 Tabriklaymiz! Siz Divizion " + newDivision + " ga ko'tarildingiz!");
+                    tg.showAlert("🎉 Tabriklaymiz! Divizion " + newDivision + " ga chiqdingiz!");
                 }
                 
                 if (newDivision < 10 && newPoints < (rules.relegationPoints || 0)) {
@@ -988,15 +982,14 @@
                         newDivision += 1; 
                         newWarning = false;
                         soundToPlay = 'relegate';
-                        tg.showAlert("😔 Afsus! Siz pastki divizionga tushib ketdingiz");
+                        tg.showAlert("😔 Divizioningiz pasaydi");
                     } else {
                         newWarning = true;
-                        tg.showAlert("⚠️ Ogohlantirish! Ballaringiz juda kam. Yana yutqazsangiz divizioningiz pasayadi!");
+                        tg.showAlert("⚠️ Ogohlantirish! Yana yutqazsangiz pastga tushasiz!");
                     }
                 }
 
                 playSound(soundToPlay);
-
                 update(ref(db, 'leaderboard/' + myId), { 
                     name: myName, points: newPoints, division: newDivision, bestDiff: diffStr, 
                     lastTime: finalTime.toFixed(3), isWarning: newWarning, wins: newWins, losses: newLosses
@@ -1031,11 +1024,8 @@
                 row.className = `ef-row ${String(p.id) === String(myId) ? 'me' : ''}`;
                 if(String(p.id) === String(myId)) row.id = "my-rank-row";
                 if(rowDivEffect !== 'none') row.classList.add(rowDivEffect);
-                if(rowDivColor.includes('gradient')) {
-                    row.style.borderImage = `${rowDivColor} 1`;
-                } else {
-                    row.style.borderColor = rowDivColor;
-                }
+                if(rowDivColor.includes('gradient')) { row.style.borderImage = `${rowDivColor} 1`; } 
+                else { row.style.borderColor = rowDivColor; }
                 row.innerHTML = `
                     <div class="ef-rank-num">${i+1}</div>
                     <div class="ef-avatar">⏱️<div class="ef-div-tag" style="background:${rowDivColor.includes('gradient') ? '#fff' : rowDivColor}; color: #000">D${p.division || 10}</div></div>
@@ -1057,7 +1047,7 @@
         window.scrollToMe = () => {
             const me = document.getElementById('my-rank-row');
             if(me) { me.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-            else { tg.showAlert("Siz hali global reyting ro'yxatiga kirmadinigiz!"); }
+            else { tg.showAlert("Siz reytingda yo'qsiz!"); }
         };
     </script>
 </body>
