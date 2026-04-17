@@ -340,6 +340,32 @@
             border-radius: 20px; border: 1px solid #1a1a1a;
             margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,1);
             padding: 20px 0; transition: 0.5s;
+            position: relative; /* Video uchun kerak */
+            overflow: hidden; /* Video chetdan chiqmasligi uchun */
+            min-height: 250px;
+        }
+
+        /* VIDEO LAYER */
+        #video-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            opacity: 0.5;
+        }
+        .timer-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .timer-content {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .embedded-info {
@@ -347,20 +373,21 @@
             margin-bottom: 20px; padding-bottom: 10px;
         }
         .info-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
-        .info-label { color: #444; font-size: 12px; display: flex; align-items: center; gap: 5px; }
-        .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: #eee; }
-        .target-box { background: rgba(241, 196, 15, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.1); }
+        .info-label { color: #ccc; font-size: 12px; display: flex; align-items: center; gap: 5px; text-shadow: 1px 1px 2px #000; }
+        .info-val { font-size: 13px; font-weight: bold; font-family: monospace; color: #eee; text-shadow: 1px 1px 2px #000; }
+        .target-box { background: rgba(0, 0, 0, 0.6); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(241, 196, 15, 0.3); }
         .target-box .info-label { color: var(--accent-color); font-weight: 800; font-size: 11px; text-transform: uppercase; }
         .target-box .info-val { color: #fff; font-size: 16px; }
 
-        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(241, 196, 15, 0.3); transition: 0.3s; }
-        .current-time-label { font-size: 12px; color: #333; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
+        #display { font-size: 60px; font-weight: bold; color: var(--accent-color); font-family: 'Courier New', monospace; text-shadow: 0 0 15px rgba(0, 0, 0, 1), 0 0 5px rgba(241, 196, 15, 0.5); transition: 0.3s; }
+        .current-time-label { font-size: 12px; color: #eee; letter-spacing: 2px; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-shadow: 1px 1px 2px #000; }
 
         .btn-main {
             width: 100%; padding: 20px; border-radius: 15px;
             border: none; font-size: 20px; font-weight: 900;
             cursor: pointer; transition: 0.2s; margin-bottom: 15px;
             text-transform: uppercase; letter-spacing: 1px;
+            z-index: 10; position: relative;
         }
         .start { background: #f1c40f; color: black; box-shadow: 0 4px 0 #9a7d0a; }
         .start:active { transform: translateY(2px); box-shadow: 0 2px 0 #9a7d0a; }
@@ -425,7 +452,7 @@
         .nav-item.active { color: var(--accent-color); }
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
 
-        .ef-mini-btn { width: 100%; background: #000; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 16px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+        .ef-mini-btn { width: 100%; background: #000; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 166px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
 
     </style>
 </head>
@@ -470,13 +497,13 @@
                     <div class="countdown-wrapper">
                         <span class="countdown-label">Mavsum yakuniga:</span>
                         <div id="season-countdown">
-                            <div class="time-unit"><span class="time-value">0</span><span class="time-label">k</span></div>
+                            <div class="time-unit"><span class="time-value">0</span><span class="time-label">kun</span></div>
                             <span class="time-separator">:</span>
-                            <div class="time-unit"><span class="time-value">00</span><span class="time-label">s</span></div>
+                            <div class="time-unit"><span class="time-value">00</span><span class="time-label">soat</span></div>
                             <span class="time-separator">:</span>
-                            <div class="time-unit"><span class="time-value">00</span><span class="time-label">m</span></div>
+                            <div class="time-unit"><span class="time-value">00</span><span class="time-label">min</span></div>
                             <span class="time-separator">:</span>
-                            <div class="time-unit"><span class="time-value">00</span><span class="time-label">s</span></div>
+                            <div class="time-unit"><span class="time-value">00</span><span class="time-label">sek</span></div>
                         </div>
                     </div>
                 </div>
@@ -518,27 +545,31 @@
         </div>
 
         <div id="timer-container">
-            <div class="embedded-info">
-                <div class="info-line target-box" id="target-ui-box">
-                    <div class="info-label">🎯 MAQSAD</div>
-                    <div class="info-val" id="target-label">10.000s</div>
+            <video id="video-bg" loop muted playsinline></video>
+            <div class="timer-overlay"></div>
+            <div class="timer-content">
+                <div class="embedded-info">
+                    <div class="info-line target-box" id="target-ui-box">
+                        <div class="info-label">🎯 MAQSAD</div>
+                        <div class="info-val" id="target-label">10.000s</div>
+                    </div>
+                    <div class="info-line">
+                        <div class="info-label">Xatolik chegarasi</div>
+                        <div class="info-val" id="limit-label">±0.050s</div>
+                    </div>
+                    <div class="info-line">
+                        <div class="info-label">✔️To‘g‘ri urinish</div>
+                        <div class="info-val" id="plus-label" style="color: #2ecc71">+30 ball</div>
+                    </div>
+                    <div class="info-line">
+                        <div class="info-label">❌Noto‘g‘ri urinish</div>
+                        <div class="info-val" id="minus-label" style="color: #e74c3c">-30 ball</div>
+                    </div>
                 </div>
-                <div class="info-line">
-                    <div class="info-label">Xatolik chegarasi</div>
-                    <div class="info-val" id="limit-label">±0.050s</div>
-                </div>
-                <div class="info-line">
-                    <div class="info-label">✔️To‘g‘ri urinish</div>
-                    <div class="info-val" id="plus-label" style="color: #2ecc71">+30 ball</div>
-                </div>
-                <div class="info-line">
-                    <div class="info-label">❌Noto‘g‘ri urinish</div>
-                    <div class="info-val" id="minus-label" style="color: #e74c3c">-30 ball</div>
-                </div>
-            </div>
 
-            <div class="current-time-label">Sizning vaqtingiz</div>
-            <div id="display">0.000</div>
+                <div class="current-time-label">Sizning vaqtingiz</div>
+                <div id="display">0.000</div>
+            </div>
         </div>
 
         <button id="actionBtn" class="btn-main start" onclick="handleAction()">START</button>
@@ -741,9 +772,9 @@
                     <span class="time-separator">:</span>
                     <div class="time-unit"><span class="time-value">${h.toString().padStart(2, '0')}</span><span class="time-label">soat</span></div>
                     <span class="time-separator">:</span>
-                    <div class="time-unit"><span class="time-value">${m.toString().padStart(2, '0')}</span><span class="time-label">minut</span></div>
+                    <div class="time-unit"><span class="time-value">${m.toString().padStart(2, '0')}</span><span class="time-label">min</span></div>
                     <span class="time-separator">:</span>
-                    <div class="time-unit"><span class="time-value">${s.toString().padStart(2, '0')}</span><span class="time-label">sekund</span></div>
+                    <div class="time-unit"><span class="time-value">${s.toString().padStart(2, '0')}</span><span class="time-label">sek</span></div>
                 `;
             }
 
@@ -835,6 +866,18 @@
             if (divSettings && divSettings[d]) {
                 const rules = divSettings[d];
                 
+                // VIDEO UPDATE MANTIQI
+                const videoElement = document.getElementById('video-bg');
+                if (rules.videoUrl) {
+                    if (videoElement.src !== rules.videoUrl) {
+                        videoElement.src = rules.videoUrl;
+                        videoElement.load();
+                        videoElement.play().catch(e => console.log("Video play block:", e));
+                    }
+                } else {
+                    videoElement.src = "";
+                }
+
                 const divColor = rules.color || '#f1c40f';
                 const divEffect = rules.effect || 'none';
 
