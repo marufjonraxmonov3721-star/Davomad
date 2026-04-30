@@ -3,126 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caption & Music Editor</title>
+    <title>Video Editor Web App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            padding: 20px;
-            margin: 0;
-        }
-        .container { max-width: 400px; margin: 0 auto; }
-        .section {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        h3 { margin-top: 0; font-size: 16px; color: var(--tg-theme-button-color); }
-        input[type="file"], input[type="number"], textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-        .row { display: flex; gap: 10px; }
-        .row div { flex: 1; }
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background-color: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        #status { margin-top: 10px; text-align: center; font-weight: bold; display: none; }
+        body { font-family: sans-serif; background: #000; color: #fff; padding: 20px; text-align: center; }
+        .card { background: #1c1c1e; padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        video, canvas { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+        input, textarea { width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; border: none; background: #2c2c2e; color: #fff; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #2481cc; color: white; border: none; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; }
+        #previewCanvas { display: block; background: #000; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="section">
-        <h3>1. Muzika tanlang</h3>
-        <input type="file" id="musicFile" accept="audio/*">
-        <div class="row">
-            <div>
-                <label>Boshlanishi (sekund):</label>
-                <input type="number" id="startTime" value="0" min="0">
-            </div>
-            <div>
-                <label>Davomiyligi (sek):</label>
-                <input type="number" id="duration" value="15" min="1">
-            </div>
-        </div>
+<div class="card">
+    <h2>Caption & Music Editor</h2>
+    
+    <label>Video tanlang:</label>
+    <input type="file" id="videoUpload" accept="video/*">
+
+    <label>Muzika tanlang:</label>
+    <input type="file" id="audioUpload" accept="audio/*">
+
+    <div style="display: flex; gap: 10px;">
+        <input type="number" id="startTime" placeholder="Boshlanishi (sek)" value="0">
+        <input type="number" id="duration" placeholder="Davomiyligi" value="15">
     </div>
 
-    <div class="section">
-        <h3>2. Matn (Caption)</h3>
-        <textarea id="captionInput" placeholder="Matnni kiriting..."></textarea>
-    </div>
+    <textarea id="captionInput" placeholder="Video ustidagi matnni yozing..."></textarea>
 
-    <button class="btn" id="mainBtn">Tayyorlash va Yuborish</button>
-    <div id="status"></div>
+    <canvas id="previewCanvas" width="640" height="360"></canvas>
+    
+    <button class="btn" id="renderBtn">Videoni Saqlash / Yuborish</button>
+    <p id="status"></p>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE";
-    
     tg.expand();
 
-    document.getElementById('mainBtn').addEventListener('click', async () => {
-        const music = document.getElementById('musicFile').files[0];
-        const start = document.getElementById('startTime').value;
-        const dur = document.getElementById('duration').value;
-        const caption = document.getElementById('captionInput').value;
-        const status = document.getElementById('status');
-        const chatId = tg.initDataUnsafe.user.id;
+    const videoInput = document.getElementById('videoUpload');
+    const audioInput = document.getElementById('audioUpload');
+    const captionInput = document.getElementById('captionInput');
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
 
-        if (!music || !caption) {
-            alert("Iltimos, qo'shiq va matnni kiriting!");
-            return;
-        }
+    let videoEl = document.createElement('video');
+    let audioEl = new Audio();
 
-        status.style.display = "block";
-        status.innerText = "Yuborilmoqda...";
+    // Video tanlanganda
+    videoInput.onchange = (e) => {
+        const file = e.target.files[0];
+        videoEl.src = URL.createObjectURL(file);
+        videoEl.muted = true;
+        videoEl.play();
+        drawFrame();
+    };
 
-        // Telegram Bot API orqali ma'lumotni yuborish
-        // Eslatma: To'g'ridan-to'g'ri HTMLdan katta fayllarni yuborish qiyin bo'lishi mumkin.
-        // Biz hozir matn va sozlamalarni botga yuboramiz.
+    // Canvasga matn va videoni chizish
+    function drawFrame() {
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
         
-        const textMsg = `🎵 **Yangi Buyurtma!**\n\n📝 Matn: ${caption}\n✂️ Kesish: ${start}-sekunddan, ${dur} sekund davomida.`;
+        // Matn sozlamalari
+        ctx.fillStyle = "white";
+        ctx.font = "bold 30px Arial";
+        ctx.textAlign = "center";
+        ctx.shadowBlur = 7;
+        ctx.shadowColor = "black";
+        
+        const text = captionInput.value;
+        ctx.fillText(text, canvas.width / 2, canvas.height - 50);
 
-        const url = `https://api.telegram.org/bot${token}/sendMessage`;
+        requestAnimationFrame(drawFrame);
+    }
 
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: textMsg,
-                    parse_mode: "Markdown"
-                })
-            });
+    // Videoni generatsiya qilish va saqlash
+    document.getElementById('renderBtn').onclick = () => {
+        status.innerText = "Tayyorlanmoqda... (Brauzerda ishlov berilyapti)";
+        
+        // Bu yerda MediaRecorder orqali canvashni videoga aylantirish mumkin
+        const stream = canvas.captureStream(30);
+        const recorder = new MediaRecorder(stream);
+        const chunks = [];
 
-            if (response.ok) {
-                status.innerText = "Ma'lumotlar botga yuborildi! Bot videoni tayyorlamoqda...";
-                setTimeout(() => tg.close(), 3000);
-            } else {
-                status.innerText = "Xatolik yuz berdi.";
-            }
-        } catch (error) {
-            status.innerText = "Aloqa xatosi.";
-        }
-    });
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            
+            // Yuklab olish uchun havola yaratish
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "caption_video.mp4";
+            a.click();
+            
+            status.innerText = "Tayyor! Video yuklab olindi.";
+        };
+
+        recorder.start();
+        videoEl.currentTime = 0;
+        videoEl.play();
+
+        // Belgilangan vaqtdan keyin to'xtatish
+        const duration = document.getElementById('duration').value * 1000;
+        setTimeout(() => {
+            recorder.stop();
+            videoEl.pause();
+        }, duration);
+    };
 </script>
 
 </body>
