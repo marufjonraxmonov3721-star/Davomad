@@ -6,36 +6,117 @@
     <title>Caption Video Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); }
-        .card { background: var(--tg-theme-secondary-bg-color); padding: 15px; border-radius: 10px; }
-        textarea { width: 100%; height: 100px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-        button { width: 100%; padding: 12px; background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 350px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 { text-align: center; font-size: 20px; }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>Video uchun Caption</h3>
-        <p>Pastga video ostida chiqishi kerak bo'lgan matnni yozing:</p>
-        <textarea id="captionText" placeholder="Matnni shu yerga yozing..."></textarea>
-        <button id="sendData">Videoni Matn bilan yuborish</button>
-    </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        const btn = document.getElementById('sendData');
-        const input = document.getElementById('captionText');
+<div class="card">
+    <h2>Caption Maker</h2>
+    <p>Videoga yoziladigan matnni kiriting:</p>
+    <textarea id="captionInput" placeholder="Masalan: Zo'r video!"></textarea>
+    <button class="btn" id="mainBtn">Videoni yuborish</button>
+    <div id="status">Yuborilmoqda...</div>
+</div>
 
-        tg.expand();
+<script>
+    const tg = window.Telegram.WebApp;
+    const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE"; // Sizning bot tokeningiz
+    
+    tg.expand();
 
-        btn.addEventListener('click', () => {
-            const val = input.value.trim();
-            if (val === "") {
-                alert("Iltimos, matn kiriting!");
-                return;
+    document.getElementById('mainBtn').addEventListener('click', async () => {
+        const caption = document.getElementById('captionInput').value;
+        const status = document.getElementById('status');
+        const chatId = tg.initDataUnsafe.user.id; // Ilovani ochgan foydalanuvchi ID-si
+
+        if (!caption) {
+            alert("Iltimos, matn yozing!");
+            return;
+        }
+
+        status.style.display = "block";
+        status.innerText = "Yuborilmoqda...";
+
+        // Video URL (O'zingizni video havolangizni qo'ying)
+        const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4"; 
+
+        // Telegram Bot API orqali yuborish
+        const url = `https://api.telegram.org/bot${token}/sendVideo`;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    video: videoUrl,
+                    caption: caption,
+                    parse_mode: "HTML"
+                })
+            });
+
+            if (response.ok) {
+                status.innerText = "Muvaffaqiyatli yuborildi!";
+                setTimeout(() => tg.close(), 1500); // 1.5 sekundan keyin yopiladi
+            } else {
+                status.innerText = "Xatolik yuz berdi!";
             }
-            // Botga ma'lumot yuborish
-            tg.sendData(val);
-        });
-    </script>
+        } catch (error) {
+            status.innerText = "Aloqa xatosi!";
+            console.error(error);
+        }
+    });
+</script>
+
 </body>
 </html>
