@@ -3,196 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caption Maker TWA</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Lyrics Video Maker</title>
     <style>
-        /* Toza qora AMOLED dizayn */
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .header {
-            text-align: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #222;
-        }
-
-        .upload-area {
-            background: #111;
-            border: 2px dashed #333;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            margin: 15px 0;
-            cursor: pointer;
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 10px;
-            height: 40px;
-        }
-
-        .lyrics-container {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-top: 15px;
-            padding-bottom: 80px;
-        }
-
-        .line-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #111;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #222;
-        }
-
-        .time-label {
-            background: #ffffff;
-            color: #000;
-            padding: 5px 8px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 12px;
-            min-width: 45px;
-            text-align: center;
-        }
-
-        input {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-        }
-
-        .footer-controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 15px;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        button {
-            border: none;
-            border-radius: 12px;
-            padding: 15px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .btn-add { background: #222; color: #fff; }
-        .btn-send { background: #fff; color: #000; }
-        
-        .btn-add:active { background: #333; }
-        .btn-send:active { background: #ccc; }
+        body { background: #000; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #111; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; border: 1px solid #333; }
+        h2 { color: #00f2ff; text-align: center; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #00f2ff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .note { font-size: 12px; color: #666; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <strong>Caption Builder</strong>
-</div>
-
-<div class="upload-area" onclick="document.getElementById('audioInput').click()">
-    <span id="fileStatus">🎵 Qo'shiqni tanlang (MP3)</span>
-    <input type="file" id="audioInput" accept="audio/*" style="display: none;">
-</div>
-
-<audio id="player" controls style="display: none;"></audio>
-
-<div class="lyrics-container" id="lyricsList">
-    </div>
-
-<div class="footer-controls">
-    <button class="btn-add" onclick="addNewLine()">➕ Hozirgi vaqtga matn qo'shish</button>
-    <button class="btn-send" onclick="sendDataToBot()">🚀 Videoni tayyorlash</button>
+<div class="card">
+    <h2>Video Maker</h2>
+    <input type="text" id="chatId" placeholder="Telegram Chat ID (masalan: 12345678)">
+    <textarea id="lrcInput" rows="10" placeholder="[00:03.15]Muhabbat yomon ekan..."></textarea>
+    <button onclick="sendRequest()">VIDEONI YARATISH</button>
+    <p class="note">Video tayyor bo'lgach, botingizga yuboriladi.</p>
 </div>
 
 <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.MainButton.hide();
+    async function sendRequest() {
+        const chatId = document.getElementById('chatId').value;
+        const lrc = document.getElementById('lrcInput').value;
 
-    const audioInput = document.getElementById('audioInput');
-    const player = document.getElementById('player');
-    const lyricsList = document.getElementById('lyricsList');
-    const fileStatus = document.getElementById('fileStatus');
+        if(!chatId || !lrc) return alert("Ma'lumotlarni to'ldiring!");
 
-    audioInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            player.src = URL.createObjectURL(file);
-            player.style.display = 'block';
-            fileStatus.innerText = "Fayl: " + file.name;
-        }
-    };
-
-    function addNewLine() {
-        if (!player.src) {
-            tg.showAlert("Avval qo'shiqni tanlang!");
-            return;
-        }
-        
-        const currentTime = player.currentTime.toFixed(2);
-        const div = document.createElement('div');
-        div.className = 'line-item';
-        div.innerHTML = `
-            <span class="time-label">${currentTime}s</span>
-            <input type="text" placeholder="Matnni yozing..." class="lyric-input" data-time="${currentTime}">
-        `;
-        lyricsList.appendChild(div);
-        div.querySelector('input').focus();
-        
-        // Pastga avtomatik skroll
-        lyricsList.scrollTop = lyricsList.scrollHeight;
-    }
-
-    function sendDataToBot() {
-        const inputs = document.querySelectorAll('.lyric-input');
-        const captions = [];
-
-        inputs.forEach(input => {
-            if (input.value.trim() !== "") {
-                captions.push({
-                    t: input.getAttribute('data-time'),
-                    text: input.value
-                });
-            }
+        const response = await fetch('http://localhost:8080/api/video/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId: chatId, lyrics: lrc })
         });
 
-        if (captions.length === 0) {
-            tg.showAlert("Hech bo'lmasa bitta qator matn yozing!");
-            return;
-        }
-
-        const result = {
-            bot_token: "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE",
-            file_name: audioInput.files[0].name,
-            data: captions
-        };
-
-        // Barcha ma'lumotni botga xabar sifatida yuboramiz
-        tg.sendData(JSON.stringify(result));
-        tg.close();
+        if(response.ok) alert("So'rov yuborildi! Kuting...");
+        else alert("Xatolik yuz berdi!");
     }
 </script>
 
