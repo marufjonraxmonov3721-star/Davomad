@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InstaCaption Pro | LRC Sync</title>
+    <title>InstaCaption Pro | LRC Sync Fixed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -175,14 +175,39 @@
     const bgOptions = document.querySelectorAll('.bg-option');
 
     let audioEl = new Audio();
+    audioEl.crossOrigin = "anonymous";
     let bgImage = new Image();
-    let lyrics = []; // Sinxronlangan matnlar uchun massiv
+    let lyrics = [];
     let currentText = "";
 
     bgImage.crossOrigin = "anonymous";
     bgImage.src = bgOptions[0].dataset.url;
 
-    // LRC Parser: [00:12.34] Matn -> {time: 12.34, text: "Matn"}
+    // Matnni uzunligiga qarab qatorlarga bo'lish
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        let words = text.split(' ');
+        let line = '';
+        let lines = [];
+
+        for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = context.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line);
+
+        let startY = y - ((lines.length - 1) * lineHeight) / 2;
+        for (let k = 0; k < lines.length; k++) {
+            context.fillText(lines[k], x, startY + (k * lineHeight));
+        }
+    }
+
     function parseLRC(lrcText) {
         const lines = lrcText.split('\n');
         const result = [];
@@ -243,21 +268,21 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
         
-        // Dark Overlay
-        let grad = ctx.createLinearGradient(0, canvas.height * 0.6, 0, canvas.height);
+        let grad = ctx.createLinearGradient(0, canvas.height * 0.5, 0, canvas.height);
         grad.addColorStop(0, "transparent");
         grad.addColorStop(1, "rgba(0,0,0,0.85)");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Lyrics Text
         ctx.fillStyle = "white";
-        ctx.font = "bold 72px 'SF Pro Display'";
+        ctx.font = "bold 60px 'SF Pro Display'"; // Shrinked for better fit
         ctx.textAlign = "center";
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 10;
         ctx.shadowColor = "rgba(0,0,0,0.8)";
         
-        ctx.fillText(currentText, canvas.width / 2, canvas.height / 2);
+        if (currentText) {
+            wrapText(ctx, currentText, canvas.width / 2, canvas.height / 2, canvas.width - 100, 80);
+        }
 
         requestAnimationFrame(drawFrame);
     }
@@ -273,10 +298,22 @@
         const quality = document.getElementById('videoQuality').value;
 
         tg.HapticFeedback.impactOccurred('medium');
-        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video tayyorlanmoqda...';
-        
-        const stream = canvas.captureStream(60); 
-        const recorder = new MediaRecorder(stream, { 
+        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video va Ovoz birlashtirilmoqda...';
+
+        // Audio streamni olish uchun Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(audioEl);
+        const dest = audioCtx.createMediaStreamDestination();
+        source.connect(dest);
+        source.connect(audioCtx.destination);
+
+        const videoStream = canvas.captureStream(60);
+        const combinedStream = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...dest.stream.getAudioTracks()
+        ]);
+
+        const recorder = new MediaRecorder(combinedStream, { 
             mimeType: 'video/webm;codecs=vp9',
             videoBitsPerSecond: parseInt(quality)
         });
@@ -288,24 +325,23 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user?.id);
-            formData.append('video', videoBlob, 'sync_video.mp4');
-            formData.append('caption', "🚀 LRC Sync orqali tayyorlandi!");
+            formData.append('video', videoBlob, 'result.mp4');
+            formData.append('caption', "🚀 HQ Video tayyor!");
 
             try {
-                status.innerHTML = 'Botga yuborilmoqda...';
-                const response = await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
+                status.innerHTML = 'Telegramga yuborilmoqda...';
+                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
                     method: 'POST',
                     body: formData
                 });
-                if(response.ok) {
-                    status.innerHTML = 'Muvaffaqiyatli yuborildi! ✅';
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
+                status.innerHTML = 'Muvaffaqiyatli yuborildi! ✅';
+                tg.HapticFeedback.notificationOccurred('success');
+                
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(videoBlob);
-                a.download = "caption_video.mp4";
+                a.download = "insta_pro.mp4";
                 a.click();
-            } catch (err) { status.innerText = "Xatolik!"; }
+            } catch (err) { status.innerText = "Yuborishda xatolik!"; }
         };
 
         audioEl.currentTime = startTime;
