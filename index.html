@@ -3,110 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caption Maker PRO</title>
+    <title>Caption Maker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; margin: 0; }
-        .card { background: #111; border-radius: 15px; padding: 20px; border: 1px solid #222; }
-        .upload-zone { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 15px; }
-        audio { width: 100%; margin: 10px 0; }
-        .line-row { display: flex; gap: 10px; margin-bottom: 10px; background: #000; padding: 10px; border-radius: 8px; }
-        input { flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 5px; }
-        .time { color: #1DB954; font-weight: bold; min-width: 50px; }
-        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-add { background: #222; color: #fff; }
-        .btn-make { background: #fff; color: #000; }
-        #loading { display: none; text-align: center; color: orange; margin: 10px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #222222);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--tg-theme-button-color, #2481cc);
+        }
+
+        .preview-box {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 10px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .caption-text {
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-size: 1.2rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="upload-zone" onclick="document.getElementById('audioInput').click()">
-        <span id="status">🎵 Musiqa yuklang (MP3)</span>
-        <input type="file" id="audioInput" accept="audio/*" style="display:none">
+<div class="container">
+    <h2>Caption Ilovasi</h2>
+    
+    <div class="preview-box" id="preview">
+        <span class="caption-text" id="output">Sizning matningiz bu yerda ko'rinadi</span>
     </div>
 
-    <audio id="player" controls></audio>
-
-    <div id="lyricsList"></div>
-
-    <div id="loading">Video tayyorlanmoqda... Iltimos kuting (1-2 daqiqa)</div>
-
-    <button class="btn btn-add" onclick="addLine()">➕ Matn va vaqt qo'shish</button>
-    <button class="btn btn-make" onclick="generateVideo()">🎬 Videoni telefonda yasash</button>
+    <textarea id="captionInput" placeholder="Matnni kiriting..."></textarea>
+    
+    <button class="btn" id="sendBtn">Botga yuborish</button>
 </div>
 
 <script>
-    let tg = window.Telegram.WebApp;
+    const tg = window.Telegram.WebApp;
+    const input = document.getElementById('captionInput');
+    const output = document.getElementById('output');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Ilovani kengaytirish
     tg.expand();
 
-    const { createFFmpeg, fetchFile } = FFmpeg;
-    const ffmpeg = createFFmpeg({ log: true });
+    // Matnni real vaqtda ko'rsatish
+    input.addEventListener('input', () => {
+        output.innerText = input.value || "Sizning matningiz bu yerda ko'rinadi";
+    });
 
-    const player = document.getElementById('player');
-    const audioInput = document.getElementById('audioInput');
-    const lyricsList = document.getElementById('lyricsList');
-    const loading = document.getElementById('loading');
-
-    audioInput.onchange = (e) => {
-        const file = e.target.files[0];
-        player.src = URL.createObjectURL(file);
-        document.getElementById('status').innerText = file.name;
-    };
-
-    function addLine() {
-        const time = player.currentTime.toFixed(1);
-        const div = document.createElement('div');
-        div.className = 'line-row';
-        div.innerHTML = `<span class="time">${time}s</span><input type="text" class="l-text" data-time="${time}" placeholder="Matn...">`;
-        lyricsList.appendChild(div);
-    }
-
-    async var generateVideo = async () => {
-        const file = audioInput.files[0];
-        if (!file) return alert("Avval musiqa yuklang!");
-
-        loading.style.display = "block";
-        if (!ffmpeg.isLoaded()) await ffmpeg.load();
-
-        const audioName = 'audio.mp3';
-        ffmpeg.FS('writeFile', audioName, await fetchFile(file));
-
-        // Drawtext filterini tayyorlash (faqat bitta matn misolida, JS orqali murakkablashtirish mumkin)
-        const inputs = document.querySelectorAll('.l-text');
-        let filter = "";
-        
-        inputs.forEach((input, index) => {
-            const startTime = input.getAttribute('data-time');
-            const text = input.value;
-            // Har bir matn uchun vaqt oralig'i (soddalashtirilgan)
-            filter += `drawtext=text='${text}':fontcolor=white:fontsize=40:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,${startTime},${parseFloat(startTime)+3})',`;
-        });
-        filter = filter.slice(0, -1); // oxirgi vergulni olib tashlash
-
-        // Video generatsiyasi (qora fon + audio + matn)
-        await ffmpeg.run(
-            '-f', 'lavfi', '-i', 'color=c=black:s=720x1280:d=10', 
-            '-i', audioName,
-            '-vf', filter || "drawtext=text='Caption Maker':fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2",
-            '-c:v', 'libx264', '-t', '10', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', 'out.mp4'
-        );
-
-        const data = ffmpeg.FS('readFile', 'out.mp4');
-        const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-        const videoUrl = URL.createObjectURL(videoBlob);
-        
-        // Tayyor videoni botga yuborish o'rniga foydalanuvchiga ko'rsatish/yuklatish
-        const a = document.createElement('a');
-        a.href = videoUrl;
-        a.download = "caption_video.mp4";
-        a.click();
-        
-        loading.style.display = "none";
-        tg.showAlert("Video tayyor! Uni botga qayta yuklab yuborishingiz mumkin.");
-    };
+    // Ma'lumotni botga yuborish
+    sendBtn.addEventListener('click', () => {
+        const data = {
+            caption: input.value
+        };
+        tg.sendData(JSON.stringify(data)); // Botga JSON formatda yuboradi
+        tg.close(); // Ilovani yopish
+    });
 </script>
 
 </body>
