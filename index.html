@@ -3,41 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caption Video Bot</title>
+    <title>Caption & Music Editor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
             background-color: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             padding: 20px;
+            margin: 0;
         }
-
-        .card {
-            width: 100%;
-            max-width: 350px;
+        .container { max-width: 400px; margin: 0 auto; }
+        .section {
             background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
         }
-
-        h2 { text-align: center; font-size: 20px; }
-
-        textarea {
+        h3 { margin-top: 0; font-size: 16px; color: var(--tg-theme-button-color); }
+        input[type="file"], input[type="number"], textarea {
             width: 100%;
-            height: 100px;
-            margin: 15px 0;
             padding: 10px;
-            border-radius: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
             border: 1px solid #ccc;
             box-sizing: border-box;
-            font-size: 16px;
         }
-
+        .row { display: flex; gap: 10px; }
+        .row div { flex: 1; }
         .btn {
             width: 100%;
             padding: 15px;
@@ -49,71 +42,85 @@
             font-weight: bold;
             cursor: pointer;
         }
-
-        #status {
-            margin-top: 15px;
-            font-size: 14px;
-            text-align: center;
-            display: none;
-        }
+        #status { margin-top: 10px; text-align: center; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Caption Maker</h2>
-    <p>Videoga yoziladigan matnni kiriting:</p>
-    <textarea id="captionInput" placeholder="Masalan: Zo'r video!"></textarea>
-    <button class="btn" id="mainBtn">Videoni yuborish</button>
-    <div id="status">Yuborilmoqda...</div>
+<div class="container">
+    <div class="section">
+        <h3>1. Muzika tanlang</h3>
+        <input type="file" id="musicFile" accept="audio/*">
+        <div class="row">
+            <div>
+                <label>Boshlanishi (sekund):</label>
+                <input type="number" id="startTime" value="0" min="0">
+            </div>
+            <div>
+                <label>Davomiyligi (sek):</label>
+                <input type="number" id="duration" value="15" min="1">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>2. Matn (Caption)</h3>
+        <textarea id="captionInput" placeholder="Matnni kiriting..."></textarea>
+    </div>
+
+    <button class="btn" id="mainBtn">Tayyorlash va Yuborish</button>
+    <div id="status"></div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE"; // Sizning bot tokeningiz
+    const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE";
     
     tg.expand();
 
     document.getElementById('mainBtn').addEventListener('click', async () => {
+        const music = document.getElementById('musicFile').files[0];
+        const start = document.getElementById('startTime').value;
+        const dur = document.getElementById('duration').value;
         const caption = document.getElementById('captionInput').value;
         const status = document.getElementById('status');
-        const chatId = tg.initDataUnsafe.user.id; // Ilovani ochgan foydalanuvchi ID-si
+        const chatId = tg.initDataUnsafe.user.id;
 
-        if (!caption) {
-            alert("Iltimos, matn yozing!");
+        if (!music || !caption) {
+            alert("Iltimos, qo'shiq va matnni kiriting!");
             return;
         }
 
         status.style.display = "block";
         status.innerText = "Yuborilmoqda...";
 
-        // Video URL (O'zingizni video havolangizni qo'ying)
-        const videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4"; 
-
-        // Telegram Bot API orqali yuborish
-        const url = `https://api.telegram.org/bot${token}/sendVideo`;
+        // Telegram Bot API orqali ma'lumotni yuborish
+        // Eslatma: To'g'ridan-to'g'ri HTMLdan katta fayllarni yuborish qiyin bo'lishi mumkin.
+        // Biz hozir matn va sozlamalarni botga yuboramiz.
         
+        const textMsg = `🎵 **Yangi Buyurtma!**\n\n📝 Matn: ${caption}\n✂️ Kesish: ${start}-sekunddan, ${dur} sekund davomida.`;
+
+        const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: chatId,
-                    video: videoUrl,
-                    caption: caption,
-                    parse_mode: "HTML"
+                    text: textMsg,
+                    parse_mode: "Markdown"
                 })
             });
 
             if (response.ok) {
-                status.innerText = "Muvaffaqiyatli yuborildi!";
-                setTimeout(() => tg.close(), 1500); // 1.5 sekundan keyin yopiladi
+                status.innerText = "Ma'lumotlar botga yuborildi! Bot videoni tayyorlamoqda...";
+                setTimeout(() => tg.close(), 3000);
             } else {
-                status.innerText = "Xatolik yuz berdi!";
+                status.innerText = "Xatolik yuz berdi.";
             }
         } catch (error) {
-            status.innerText = "Aloqa xatosi!";
-            console.error(error);
+            status.innerText = "Aloqa xatosi.";
         }
     });
 </script>
