@@ -2,77 +2,173 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Caption Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>InstaCaption Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; padding: 20px; text-align: center; margin: 0; }
-        .card { background: #121212; padding: 20px; border-radius: 20px; border: 1px solid #2481cc; max-width: 400px; margin: auto; }
-        
-        .preview-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9/16;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 15px;
-            border: 1px solid #333;
+        :root {
+            --primary-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --glass: rgba(255, 255, 255, 0.1);
+            --bg-color: #09090b;
+        }
+
+        body { 
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg-color); 
+            color: #fff; 
+            margin: 0; 
+            padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            text-align: left;
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { margin: 5px 0 0; font-size: 12px; color: #71717a; }
+
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+
+        /* Card Style */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        label { display: block; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #a1a1aa; }
+
+        /* Background Selector */
+        .bg-selector { display: flex; gap: 12px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
+        .bg-selector::-webkit-scrollbar { display: none; }
+        .bg-option { 
+            min-width: 70px; height: 110px; border-radius: 14px; cursor: pointer; 
+            border: 2px solid transparent; object-fit: cover; transition: 0.3s;
+            filter: brightness(0.7);
+        }
+        .bg-option.active { border-color: #bc1888; transform: scale(1.05); filter: brightness(1); }
+
+        /* Inputs */
+        input[type="file"] { display: none; }
+        .file-label {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: #27272a; padding: 15px; border-radius: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .file-label:active { background: #3f3f46; }
+
+        textarea, select, .num-input {
+            width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 14px;
+            padding: 15px; color: #fff; font-size: 16px; margin-top: 10px; box-sizing: border-box;
+        }
+
+        .row { display: flex; gap: 10px; }
+
+        /* Preview Canvas */
+        .preview-wrapper {
+            position: relative; width: 100%; aspect-ratio: 9/16; 
+            border-radius: 20px; overflow: hidden; margin-top: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
         canvas { width: 100%; height: 100%; object-fit: cover; }
 
-        input, textarea, select { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; border: none; background: #262626; color: #fff; box-sizing: border-box; }
-        
-        .bg-selector { display: flex; gap: 5px; margin-top: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .bg-option { width: 60px; height: 100px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; object-fit: cover; }
-        .bg-option.active { border-color: #0095f6; }
+        /* Action Button */
+        .btn-main {
+            width: 100%; padding: 18px; background: var(--primary-gradient);
+            color: white; border: none; border-radius: 16px; margin-top: 25px;
+            font-weight: 700; font-size: 16px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(220, 39, 67, 0.3);
+        }
 
-        .btn { width: 100%; padding: 16px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        #status { margin-top: 12px; font-size: 13px; color: #0095f6; font-weight: bold; }
+        /* Bottom Nav */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around; padding: 15px 0;
+            border-top: 1px solid #27272a; z-index: 1000;
+        }
+        .nav-item { color: #71717a; text-decoration: none; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .nav-item.active { color: #bc1888; }
+        .nav-item i { font-size: 20px; }
+
+        #status { margin-top: 15px; font-size: 13px; color: #bc1888; font-weight: 500; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2 style="margin:0; font-size: 22px;">Insta High Quality 💎</h2>
-    
-    <label style="display:block; margin-top:10px; font-size:12px; color:#aaa;">Orqa fonni tanlang:</label>
-    <div class="bg-selector" id="bgSelector">
-        <img src="https://picsum.photos/id/10/1080/1920" class="bg-option active" data-url="https://picsum.photos/id/10/1080/1920">
-        <img src="https://picsum.photos/id/15/1080/1920" class="bg-option" data-url="https://picsum.photos/id/15/1080/1920">
-        <img src="https://picsum.photos/id/22/1080/1920" class="bg-option" data-url="https://picsum.photos/id/22/1080/1920">
-        <img src="https://picsum.photos/id/28/1080/1920" class="bg-option" data-url="https://picsum.photos/id/28/1080/1920">
-        <img src="https://picsum.photos/id/37/1080/1920" class="bg-option" data-url="https://picsum.photos/id/37/1080/1920">
+    <div class="header">
+        <h1>InstaCaption</h1>
+        <p>1 mln prosmotr uchun ideal video yarating</p>
     </div>
 
-    <label style="display:block; margin-top:10px; font-size:12px; color:#aaa;">Muzika yuklang:</label>
-    <input type="file" id="audioUpload" accept="audio/*">
+    <div class="container">
+        <div class="glass-card">
+            <label><i class="fa-solid fa-image"></i> Orqa fonni tanlang</label>
+            <div class="bg-selector" id="bgSelector">
+                <img src="https://picsum.photos/id/10/1080/1920" class="bg-option active" data-url="https://picsum.photos/id/10/1080/1920">
+                <img src="https://picsum.photos/id/15/1080/1920" class="bg-option" data-url="https://picsum.photos/id/15/1080/1920">
+                <img src="https://picsum.photos/id/22/1080/1920" class="bg-option" data-url="https://picsum.photos/id/22/1080/1920">
+                <img src="https://picsum.photos/id/28/1080/1920" class="bg-option" data-url="https://picsum.photos/id/28/1080/1920">
+                <img src="https://picsum.photos/id/48/1080/1920" class="bg-option" data-url="https://picsum.photos/id/48/1080/1920">
+            </div>
 
-    <div style="display: flex; gap: 10px;">
-        <select id="videoQuality">
-            <option value="8000000">Ultra HD (High)</option>
-            <option value="4000000">HD (Medium)</option>
-            <option value="1500000">Low Quality</option>
-        </select>
-        <input type="number" id="duration" placeholder="Sekund" value="10">
+            <label><i class="fa-solid fa-music"></i> Muzika yuklash</label>
+            <label for="audioUpload" class="file-label" id="audioLabel">
+                <i class="fa-solid fa-cloud-arrow-up"></i> <span>Muzika tanlash</span>
+            </label>
+            <input type="file" id="audioUpload" accept="audio/*">
+        </div>
+
+        <div class="glass-card">
+            <label><i class="fa-solid fa-sliders"></i> Sozlamalar</label>
+            <div class="row">
+                <select id="videoQuality">
+                    <option value="8000000">Ultra HD (4K)</option>
+                    <option value="4000000">HD (1080p)</option>
+                    <option value="1500000">Standart (720p)</option>
+                </select>
+                <input type="number" id="duration" class="num-input" placeholder="Sekund" value="10">
+            </div>
+            
+            <textarea id="captionInput" rows="3" placeholder="Video ustidagi matnni yozing..."></textarea>
+        </div>
+
+        <div class="preview-wrapper">
+            <canvas id="previewCanvas" width="1080" height="1920"></canvas>
+        </div>
+        
+        <button class="btn-main" id="renderBtn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> VIDEONI TAYYORLASH
+        </button>
+        <div id="status"></div>
     </div>
 
-    <textarea id="captionInput" placeholder="Matnni yozing..."></textarea>
-
-    <div class="preview-container">
-        <canvas id="previewCanvas" width="1080" height="1920"></canvas>
-    </div>
-    
-    <button class="btn" id="renderBtn">HQ FORMATDA TAYYORLASH</button>
-    <div id="status"></div>
-</div>
+    <nav class="nav-bar">
+        <a href="#" class="nav-item active"><i class="fa-solid fa-house"></i>Asosiy</a>
+        <a href="#" class="nav-item" onclick="tg.showAlert('Tez kunda!')"><i class="fa-solid fa-layer-group"></i>Shablonlar</a>
+        <a href="#" class="nav-item" onclick="tg.showConfirm('Yordam kerakmi?')"><i class="fa-solid fa-circle-question"></i>Yordam</a>
+    </nav>
 
 <script>
     const tg = window.Telegram.WebApp;
     const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE";
     tg.expand();
+    tg.ready();
 
     const audioInput = document.getElementById('audioUpload');
+    const audioLabel = document.getElementById('audioLabel').querySelector('span');
     const captionInput = document.getElementById('captionInput');
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
@@ -84,51 +180,65 @@
     bgImage.crossOrigin = "anonymous";
     bgImage.src = bgOptions[0].dataset.url;
 
-    // Fon tanlash
+    // Fon tanlash logic
     bgOptions.forEach(opt => {
         opt.onclick = () => {
             bgOptions.forEach(b => b.classList.remove('active'));
             opt.classList.add('active');
             bgImage.src = opt.dataset.url;
+            tg.HapticFeedback.impactOccurred('light');
         };
     });
 
     audioInput.onchange = (e) => {
-        audioEl.src = URL.createObjectURL(e.target.files[0]);
+        const file = e.target.files[0];
+        if(file) {
+            audioEl.src = URL.createObjectURL(file);
+            audioLabel.innerText = file.name.substring(0, 15) + "...";
+        }
     };
 
     bgImage.onload = () => drawFrame();
 
     function drawFrame() {
-        // Fonni chizish
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
         
-        // Gradientli soya
-        let grad = ctx.createLinearGradient(0, canvas.height * 0.7, 0, canvas.height);
+        // Dark Overlay for readability
+        let grad = ctx.createLinearGradient(0, canvas.height * 0.6, 0, canvas.height);
         grad.addColorStop(0, "transparent");
-        grad.addColorStop(1, "rgba(0,0,0,0.8)");
+        grad.addColorStop(1, "rgba(0,0,0,0.85)");
         ctx.fillStyle = grad;
-        ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Matn
+        // Professional Caption
         ctx.fillStyle = "white";
-        ctx.font = "bold 65px sans-serif";
+        ctx.font = "bold 72px 'SF Pro Display'";
         ctx.textAlign = "center";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
         
-        const text = captionInput.value;
+        const text = captionInput.value || "Matn shu yerda bo'ladi";
         const lines = text.split('\n');
+        const lineHeight = 90;
+        const startY = (canvas.height / 2) - ((lines.length - 1) * lineHeight / 2);
+
         lines.forEach((line, i) => {
-            ctx.fillText(line, canvas.width / 2, (canvas.height / 2) + (i * 80));
+            ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight));
         });
 
         requestAnimationFrame(drawFrame);
     }
 
     document.getElementById('renderBtn').onclick = async () => {
-        if (!audioInput.files[0]) return alert("Muzika yuklang!");
+        if (!audioInput.files[0]) {
+            tg.HapticFeedback.notificationOccurred('error');
+            return tg.showPopup({message: "Iltimos, avval muzika yuklang!"});
+        }
         
+        tg.HapticFeedback.impactOccurred('medium');
         const quality = document.getElementById('videoQuality').value;
-        status.innerText = "Tayyorlanmoqda...";
+        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video ishlanmoqda... 0%';
         
         const stream = canvas.captureStream(60); 
         const recorder = new MediaRecorder(stream, { 
@@ -141,27 +251,34 @@
         
         recorder.onstop = async () => {
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
-            const chatId = tg.initDataUnsafe.user.id;
+            const chatId = tg.initDataUnsafe.user?.id;
             
             const formData = new FormData();
             formData.append('chat_id', chatId);
-            formData.append('video', videoBlob, 'video.mp4');
-            formData.append('caption', "🚀 Yangi video tayyor!");
+            formData.append('video', videoBlob, 'caption_pro.mp4');
+            formData.append('caption', "🚀 InstaCaption Pro orqali tayyorlandi!");
 
             try {
-                status.innerText = "Telegramga yuborilmoqda...";
-                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
+                status.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Botga yuborilmoqda...';
+                const response = await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
                     method: 'POST',
                     body: formData
                 });
-                status.innerText = "Tayyor! ✅ Botga yuborildi.";
+
+                if(response.ok) {
+                    status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Muvaffaqiyatli yuborildi!';
+                    tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    status.innerText = "Yuborishda xato!";
+                }
                 
+                // Telefonga saqlash
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(videoBlob);
-                a.download = "insta_pro.mp4";
+                a.download = "caption_pro.mp4";
                 a.click();
             } catch (err) {
-                status.innerText = "Xatolik yuz berdi.";
+                status.innerText = "Ulanish xatosi!";
             }
         };
 
@@ -169,10 +286,19 @@
         audioEl.play();
         recorder.start();
 
+        const totalDur = document.getElementById('duration').value * 1000;
+        let current = 0;
+        const progress = setInterval(() => {
+            current += 500;
+            let percent = Math.floor((current / totalDur) * 100);
+            if(percent <= 100) status.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Video ishlanmoqda... ${percent}%`;
+        }, 500);
+
         setTimeout(() => {
             recorder.stop();
             audioEl.pause();
-        }, document.getElementById('duration').value * 1000);
+            clearInterval(progress);
+        }, totalDur);
     };
 </script>
 
