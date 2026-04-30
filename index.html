@@ -9,7 +9,6 @@
         body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; padding: 20px; text-align: center; margin: 0; }
         .card { background: #121212; padding: 20px; border-radius: 20px; border: 1px solid #2481cc; max-width: 400px; margin: auto; }
         
-        /* Instagram 9:16 Preview Box */
         .preview-container {
             position: relative;
             width: 100%;
@@ -22,7 +21,12 @@
         }
         canvas { width: 100%; height: 100%; object-fit: cover; }
 
-        input, textarea { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; border: none; background: #262626; color: #fff; box-sizing: border-box; }
+        input, textarea, select { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; border: none; background: #262626; color: #fff; box-sizing: border-box; }
+        
+        .bg-selector { display: flex; gap: 5px; margin-top: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .bg-option { width: 60px; height: 100px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; object-fit: cover; }
+        .bg-option.active { border-color: #0095f6; }
+
         .btn { width: 100%; padding: 16px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; font-size: 16px; cursor: pointer; }
         #status { margin-top: 12px; font-size: 13px; color: #0095f6; font-weight: bold; }
     </style>
@@ -32,18 +36,28 @@
 <div class="card">
     <h2 style="margin:0; font-size: 22px;">Insta High Quality 💎</h2>
     
-    <label style="display:block; margin-top:10px; font-size:12px; color:#aaa;">Video (9:16 bo'lsa yaxshi):</label>
-    <input type="file" id="videoUpload" accept="video/*">
-    
-    <label style="display:block; margin-top:10px; font-size:12px; color:#aaa;">Muzika:</label>
+    <label style="display:block; margin-top:10px; font-size:12px; color:#aaa;">Orqa fonni tanlang:</label>
+    <div class="bg-selector" id="bgSelector">
+        <img src="https://picsum.photos/id/10/1080/1920" class="bg-option active" data-url="https://picsum.photos/id/10/1080/1920">
+        <img src="https://picsum.photos/id/15/1080/1920" class="bg-option" data-url="https://picsum.photos/id/15/1080/1920">
+        <img src="https://picsum.photos/id/22/1080/1920" class="bg-option" data-url="https://picsum.photos/id/22/1080/1920">
+        <img src="https://picsum.photos/id/28/1080/1920" class="bg-option" data-url="https://picsum.photos/id/28/1080/1920">
+        <img src="https://picsum.photos/id/37/1080/1920" class="bg-option" data-url="https://picsum.photos/id/37/1080/1920">
+    </div>
+
+    <label style="display:block; margin-top:10px; font-size:12px; color:#aaa;">Muzika yuklang:</label>
     <input type="file" id="audioUpload" accept="audio/*">
 
     <div style="display: flex; gap: 10px;">
-        <input type="number" id="startTime" placeholder="Boshlanishi" value="0">
+        <select id="videoQuality">
+            <option value="8000000">Ultra HD (High)</option>
+            <option value="4000000">HD (Medium)</option>
+            <option value="1500000">Low Quality</option>
+        </select>
         <input type="number" id="duration" placeholder="Sekund" value="10">
     </div>
 
-    <textarea id="captionInput" placeholder="Caption yozing (Masalan: Muhabbat yomon ekan...)"></textarea>
+    <textarea id="captionInput" placeholder="Matnni yozing..."></textarea>
 
     <div class="preview-container">
         <canvas id="previewCanvas" width="1080" height="1920"></canvas>
@@ -58,62 +72,47 @@
     const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE";
     tg.expand();
 
-    const videoInput = document.getElementById('videoUpload');
     const audioInput = document.getElementById('audioUpload');
     const captionInput = document.getElementById('captionInput');
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
+    const bgOptions = document.querySelectorAll('.bg-option');
 
-    let videoEl = document.createElement('video');
     let audioEl = new Audio();
-    let isDrawing = false;
+    let bgImage = new Image();
+    bgImage.crossOrigin = "anonymous";
+    bgImage.src = bgOptions[0].dataset.url;
 
-    videoInput.onchange = (e) => {
-        const file = e.target.files[0];
-        videoEl.src = URL.createObjectURL(file);
-        videoEl.muted = true;
-        videoEl.loop = true;
-        videoEl.play();
-        if(!isDrawing) { isDrawing = true; drawFrame(); }
-    };
+    // Fon tanlash
+    bgOptions.forEach(opt => {
+        opt.onclick = () => {
+            bgOptions.forEach(b => b.classList.remove('active'));
+            opt.classList.add('active');
+            bgImage.src = opt.dataset.url;
+        };
+    });
 
     audioInput.onchange = (e) => {
         audioEl.src = URL.createObjectURL(e.target.files[0]);
     };
 
+    bgImage.onload = () => drawFrame();
+
     function drawFrame() {
-        // Video-ni 9:16 formatda to'liq to'ldirib chizish (Cover effect)
-        const vWidth = videoEl.videoWidth;
-        const vHeight = videoEl.videoHeight;
-        const canvasRatio = canvas.width / canvas.height;
-        const videoRatio = vWidth / vHeight;
-
-        let sx, sy, sWidth, sHeight;
-        if (videoRatio > canvasRatio) {
-            sHeight = vHeight;
-            sWidth = vHeight * canvasRatio;
-            sx = (vWidth - sWidth) / 2;
-            sy = 0;
-        } else {
-            sWidth = vWidth;
-            sHeight = vWidth / canvasRatio;
-            sx = 0;
-            sy = (vHeight - sHeight) / 2;
-        }
-
-        ctx.drawImage(videoEl, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+        // Fonni chizish
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
         
-        // Kinematik qora soya (gradient) - matn yaxshi o'qilishi uchun
+        // Gradientli soya
         let grad = ctx.createLinearGradient(0, canvas.height * 0.7, 0, canvas.height);
         grad.addColorStop(0, "transparent");
         grad.addColorStop(1, "rgba(0,0,0,0.8)");
         ctx.fillStyle = grad;
         ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
 
-        // Professional Matn (Instagram uslubida)
+        // Matn
         ctx.fillStyle = "white";
-        ctx.font = "bold 65px sans-serif"; // Katta va aniq shrift
+        ctx.font = "bold 65px sans-serif";
         ctx.textAlign = "center";
         
         const text = captionInput.value;
@@ -126,15 +125,15 @@
     }
 
     document.getElementById('renderBtn').onclick = async () => {
-        if (!videoInput.files[0]) return alert("Video yuklang!");
+        if (!audioInput.files[0]) return alert("Muzika yuklang!");
         
-        status.innerText = "HQ Render boshlandi... 4K sifatda tayyorlanmoqda...";
+        const quality = document.getElementById('videoQuality').value;
+        status.innerText = "Tayyorlanmoqda...";
         
-        // Yuqori sifat (Video Bits per second ni oshiramiz)
-        const stream = canvas.captureStream(60); // 60 FPS silliq video uchun
+        const stream = canvas.captureStream(60); 
         const recorder = new MediaRecorder(stream, { 
             mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: 8000000 // 8 Mbps - High Quality
+            videoBitsPerSecond: parseInt(quality)
         });
         
         const chunks = [];
@@ -144,38 +143,34 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const chatId = tg.initDataUnsafe.user.id;
             
-            // Botga yuborish
             const formData = new FormData();
             formData.append('chat_id', chatId);
-            formData.append('video', videoBlob, 'insta_hq_video.mp4');
-            formData.append('caption', "🚀 1 Mln Prosmotr uradigan video tayyor!\n\n#instagram #viral #caption");
+            formData.append('video', videoBlob, 'video.mp4');
+            formData.append('caption', "🚀 Yangi video tayyor!");
 
             try {
-                status.innerText = "Telegramga yuklanmoqda...";
+                status.innerText = "Telegramga yuborilmoqda...";
                 await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
                     method: 'POST',
                     body: formData
                 });
-                status.innerText = "Tayyor! ✅ Video botga yuborildi.";
-                // Avtomatik telefonga ham saqlaydi
+                status.innerText = "Tayyor! ✅ Botga yuborildi.";
+                
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(videoBlob);
                 a.download = "insta_pro.mp4";
                 a.click();
             } catch (err) {
-                status.innerText = "Xatolik! Sifat juda balandlik qildi.";
+                status.innerText = "Xatolik yuz berdi.";
             }
         };
 
-        videoEl.currentTime = 0;
-        audioEl.currentTime = document.getElementById('startTime').value;
-        videoEl.play();
+        audioEl.currentTime = 0;
         audioEl.play();
         recorder.start();
 
         setTimeout(() => {
             recorder.stop();
-            videoEl.pause();
             audioEl.pause();
         }, document.getElementById('duration').value * 1000);
     };
