@@ -2,226 +2,112 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SongLyrics Video Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caption Maker PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <style>
-        :root { --accent: #1DB954; --bg: #000; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-
-        .list-screen { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
-        .song-card {
-            background: #111; padding: 15px; border-radius: 12px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #222; cursor: pointer;
-        }
-
-        #player-screen {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-        }
-
-        /* VIDEO QATLAMI - TO'LIQ EKRAN */
-        #video-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; overflow: hidden;
-        }
-        
-        /* Videoni cho'zib butun ekranga yoyish */
-        #video-layer iframe, #player {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100vw; height: 100vh;
-            transform: translate(-50%, -50%);
-            object-fit: cover; /* Bu videoni qirqmasdan to'liq yoyadi */
-        }
-
-        /* MATN QATLAMI - VIDEONI USTIDA */
-        #lyric-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 80%;
-            z-index: 2; display: flex; align-items: center; justify-content: center;
-            padding: 30px; box-sizing: border-box; text-align: center;
-            pointer-events: none; /* Video bosilishiga xalaqit bermaydi */
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.8) 100%);
-        }
-
-        #current-lyric {
-            font-size: 2.2rem; font-weight: 800; line-height: 1.2;
-            text-shadow: 0 4px 20px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.8);
-            transition: 0.3s ease;
-        }
-
-        /* SOZLAMALAR */
-        #style-panel {
-            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7);
-            padding: 20px; box-sizing: border-box; z-index: 3;
-            border-top: 1px solid #333; backdrop-filter: blur(10px);
-        }
-
-        .setting-row { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; }
-        .style-btn {
-            background: #222; border: 1px solid #444; color: #fff; padding: 8px 15px;
-            border-radius: 20px; font-size: 0.75rem; white-space: nowrap;
-        }
-        .style-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-        .close-btn {
-            position: absolute; top: 20px; left: 20px; z-index: 10001;
-            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #fff;
-            width: 40px; height: 40px; border-radius: 50%;
-        }
-
-        /* Animatsiyalar */
-        .anim-fade { animation: fadeIn 0.5s ease; }
-        .anim-slide { animation: slideIn 0.5s ease; }
-        .anim-zoom { animation: zoomIn 0.4s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; filter: blur(5px); } to { opacity: 1; filter: blur(0); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; margin: 0; }
+        .card { background: #111; border-radius: 15px; padding: 20px; border: 1px solid #222; }
+        .upload-zone { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 15px; }
+        audio { width: 100%; margin: 10px 0; }
+        .line-row { display: flex; gap: 10px; margin-bottom: 10px; background: #000; padding: 10px; border-radius: 8px; }
+        input { flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 5px; }
+        .time { color: #1DB954; font-weight: bold; min-width: 50px; }
+        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-add { background: #222; color: #fff; }
+        .btn-make { background: #fff; color: #000; }
+        #loading { display: none; text-align: center; color: orange; margin: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="list-screen" id="list-ui">
-        <h2 style="color: var(--accent); text-align:center;">SongLyrics Video</h2>
-        <div id="songs-list">Yuklanmoqda...</div>
+<div class="card">
+    <div class="upload-zone" onclick="document.getElementById('audioInput').click()">
+        <span id="status">🎵 Musiqa yuklang (MP3)</span>
+        <input type="file" id="audioInput" accept="audio/*" style="display:none">
     </div>
 
-    <div id="player-screen">
-        <button class="close-btn" onclick="closePlayer()">✕</button>
-        
-        <div id="video-layer">
-            <div id="player"></div>
-        </div>
-        
-        <div id="lyric-container">
-            <div id="current-lyric">Klipni yoqing...</div>
-        </div>
+    <audio id="player" controls></audio>
 
-        <div id="style-panel">
-            <div style="font-size: 0.7rem; color: #888;">SHRIFT</div>
-            <div class="setting-row" id="font-settings">
-                <button class="style-btn active" onclick="changeFont('sans-serif', this)">Oddiy</button>
-                <button class="style-btn" onclick="changeFont('serif', this)">Klassik</button>
-                <button class="style-btn" onclick="changeFont('cursive', this)">Qo'lyozma</button>
-                <button class="style-btn" onclick="changeFont('monospace', this)">Kod</button>
-            </div>
+    <div id="lyricsList"></div>
 
-            <div style="font-size: 0.7rem; color: #888; margin-top: 15px;">EFFEKT</div>
-            <div class="setting-row" id="anim-settings">
-                <button class="style-btn active" onclick="changeAnim('anim-fade', this)">Fade</button>
-                <button class="style-btn" onclick="changeAnim('anim-slide', this)">Slide</button>
-                <button class="style-btn" onclick="changeAnim('anim-zoom', this)">Zoom</button>
-            </div>
-        </div>
-    </div>
+    <div id="loading">Video tayyorlanmoqda... Iltimos kuting (1-2 daqiqa)</div>
+
+    <button class="btn btn-add" onclick="addLine()">➕ Matn va vaqt qo'shish</button>
+    <button class="btn btn-make" onclick="generateVideo()">🎬 Videoni telefonda yasash</button>
+</div>
 
 <script>
-    const tg = window.Telegram.WebApp;
+    let tg = window.Telegram.WebApp;
     tg.expand();
 
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({ log: true });
 
-    var ytPlayer, currentLyrics = [], syncInterval, activeAnim = 'anim-fade';
+    const player = document.getElementById('player');
+    const audioInput = document.getElementById('audioInput');
+    const lyricsList = document.getElementById('lyricsList');
+    const loading = document.getElementById('loading');
 
-    function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('player', {
-            height: '100%', width: '100%',
-            playerVars: { 'playsinline': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0 },
-            events: { 'onStateChange': onStateChange }
-        });
-    }
-
-    function onStateChange(event) {
-        if (event.data == 1) startSync(); else stopSync();
-    }
-
-    function startSync() {
-        stopSync();
-        syncInterval = setInterval(() => {
-            const now = ytPlayer.getCurrentTime();
-            const hit = currentLyrics.findLast(l => now >= l.time);
-            if (hit) {
-                const el = document.getElementById('current-lyric');
-                if (el.innerText !== hit.text) {
-                    el.innerText = hit.text;
-                    el.className = ''; void el.offsetWidth;
-                    el.classList.add(activeAnim);
-                }
-            }
-        }, 100);
-    }
-
-    function stopSync() { clearInterval(syncInterval); }
-
-    function openPlayer(data) {
-        currentLyrics = parseLRC(data.lyrics || "");
-        document.getElementById('list-ui').style.display = 'none';
-        document.getElementById('player-screen').style.display = 'block';
-        ytPlayer.loadVideoById(data.youtubeId);
-    }
-
-    function closePlayer() {
-        stopSync(); ytPlayer.stopVideo();
-        document.getElementById('list-ui').style.display = 'block';
-        document.getElementById('player-screen').style.display = 'none';
-    }
-
-    function changeFont(f, b) {
-        document.getElementById('current-lyric').style.fontFamily = f;
-        updateActiveBtn(b, 'font-settings');
-    }
-
-    function changeAnim(a, b) {
-        activeAnim = a;
-        updateActiveBtn(b, 'anim-settings');
-    }
-
-    function updateActiveBtn(btn, pId) {
-        const btns = document.getElementById(pId).getElementsByClassName('style-btn');
-        for(let b of btns) b.classList.remove('active');
-        btn.classList.add('active');
-    }
-
-    function parseLRC(lrc) {
-        return lrc.split('\n').map(line => {
-            const m = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
-        }).filter(x => x);
-    }
-</script>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDc9RDlt5PFtaL5Tpu0mv4Ctea9L0sPWac",
-        authDomain: "songlyrics-a5df9.firebaseapp.com",
-        projectId: "songlyrics-a5df9",
-        storageBucket: "songlyrics-a5df9.firebasestorage.app",
-        messagingSenderId: "322622967401",
-        appId: "1:322622967401:web:24569afce697e18edc9cf8"
+    audioInput.onchange = (e) => {
+        const file = e.target.files[0];
+        player.src = URL.createObjectURL(file);
+        document.getElementById('status').innerText = file.name;
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    function addLine() {
+        const time = player.currentTime.toFixed(1);
+        const div = document.createElement('div');
+        div.className = 'line-row';
+        div.innerHTML = `<span class="time">${time}s</span><input type="text" class="l-text" data-time="${time}" placeholder="Matn...">`;
+        lyricsList.appendChild(div);
+    }
 
-    onSnapshot(collection(db, "tracklist"), (snap) => {
-        const listDiv = document.getElementById('songs-list');
-        listDiv.innerHTML = '';
-        snap.forEach(doc => {
-            const data = doc.data();
-            const card = document.createElement('div');
-            card.className = 'song-card';
-            card.innerHTML = `<div><b>${data.track}</b><br><small>${data.artist}</small></div><div>▶</div>`;
-            card.onclick = () => openPlayer(data);
-            listDiv.appendChild(card);
+    async var generateVideo = async () => {
+        const file = audioInput.files[0];
+        if (!file) return alert("Avval musiqa yuklang!");
+
+        loading.style.display = "block";
+        if (!ffmpeg.isLoaded()) await ffmpeg.load();
+
+        const audioName = 'audio.mp3';
+        ffmpeg.FS('writeFile', audioName, await fetchFile(file));
+
+        // Drawtext filterini tayyorlash (faqat bitta matn misolida, JS orqali murakkablashtirish mumkin)
+        const inputs = document.querySelectorAll('.l-text');
+        let filter = "";
+        
+        inputs.forEach((input, index) => {
+            const startTime = input.getAttribute('data-time');
+            const text = input.value;
+            // Har bir matn uchun vaqt oralig'i (soddalashtirilgan)
+            filter += `drawtext=text='${text}':fontcolor=white:fontsize=40:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,${startTime},${parseFloat(startTime)+3})',`;
         });
-    });
+        filter = filter.slice(0, -1); // oxirgi vergulni olib tashlash
+
+        // Video generatsiyasi (qora fon + audio + matn)
+        await ffmpeg.run(
+            '-f', 'lavfi', '-i', 'color=c=black:s=720x1280:d=10', 
+            '-i', audioName,
+            '-vf', filter || "drawtext=text='Caption Maker':fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2",
+            '-c:v', 'libx264', '-t', '10', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', 'out.mp4'
+        );
+
+        const data = ffmpeg.FS('readFile', 'out.mp4');
+        const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+        const videoUrl = URL.createObjectURL(videoBlob);
+        
+        // Tayyor videoni botga yuborish o'rniga foydalanuvchiga ko'rsatish/yuklatish
+        const a = document.createElement('a');
+        a.href = videoUrl;
+        a.download = "caption_video.mp4";
+        a.click();
+        
+        loading.style.display = "none";
+        tg.showAlert("Video tayyor! Uni botga qayta yuklab yuborishingiz mumkin.");
+    };
 </script>
+
 </body>
 </html>
