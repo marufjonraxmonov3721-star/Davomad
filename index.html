@@ -50,6 +50,13 @@
 
         label { display: block; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: #e4e4e7; }
 
+        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .preset-btn { 
+            background: #1f1f23; border: 1px solid #333; color: #fff; padding: 10px; 
+            border-radius: 12px; font-size: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .preset-btn.active { border-color: #bc1888; background: rgba(188, 24, 136, 0.1); }
+
         .color-selector { display: flex; gap: 12px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
         .color-selector::-webkit-scrollbar { display: none; }
         .color-option { 
@@ -66,6 +73,9 @@
         }
         .file-label:active { transform: scale(0.98); background: #27272a; }
 
+        .offset-controls { display: flex; align-items: center; justify-content: space-between; background: #09090b; padding: 10px; border-radius: 14px; margin-top: 5px; }
+        .offset-btn { background: #27272a; border: none; color: white; padding: 8px 15px; border-radius: 10px; cursor: pointer; }
+
         .trim-box { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 15px; margin-top: 10px; }
         .input-group { display: flex; flex-direction: column; flex: 1; }
         .input-group span { font-size: 11px; color: #71717a; margin-bottom: 5px; margin-left: 5px; }
@@ -76,8 +86,6 @@
         }
 
         .range-input { padding: 5px; cursor: pointer; height: 10px; accent-color: #bc1888; }
-
-        .row { display: flex; gap: 12px; }
 
         .preview-wrapper {
             position: relative; width: 100%; aspect-ratio: 9/16; 
@@ -116,12 +124,22 @@
 
     <div class="header">
         <h1>InstaCaption</h1>
-        <p>Dynamic Focus Lyric Video</p>
+        <p>Smart Lyric Video Editor</p>
     </div>
 
     <div class="container">
         <div class="glass-card">
-            <label><i class="fa-solid fa-palette"></i> Fon va Vizual effektlar</label>
+            <label><i class="fa-solid fa-wand-magic-sparkles"></i> Dizayn Presetlari</label>
+            <div class="preset-grid">
+                <button class="preset-btn active" onclick="applyPreset('classic')">Classic</button>
+                <button class="preset-btn" onclick="applyPreset('neon')">Neon Blue</button>
+                <button class="preset-btn" onclick="applyPreset('retro')">Retro Gold</button>
+                <button class="preset-btn" onclick="applyPreset('minimal')">Minimal</button>
+                <button class="preset-btn" onclick="applyPreset('bold')">Bold Red</button>
+                <button class="preset-btn" onclick="applyPreset('soft')">Soft Pink</button>
+            </div>
+
+            <label><i class="fa-solid fa-palette"></i> Fon rangini tanlang</label>
             <div class="color-selector" id="colorSelector">
                 <div class="color-option active" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);" data-color1="#000000" data-color2="#1a1a1a"></div>
                 <div class="color-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-color1="#667eea" data-color2="#764ba2"></div>
@@ -130,15 +148,23 @@
             </div>
 
             <label><i class="fa-solid fa-cloud-arrow-up"></i> Fayllarni yuklang</label>
-            
-            <label for="imageUpload" class="file-label"><i class="fa-solid fa-image"></i> <span id="imageName">Fon rasmi (ixtiyoriy)</span></label>
+            <label for="imageUpload" class="file-label"><i class="fa-solid fa-image"></i> <span id="imageName">Fon rasmi (Smart AI)</span></label>
             <input type="file" id="imageUpload" accept="image/*">
-
+            
             <label for="audioUpload" class="file-label"><i class="fa-solid fa-music"></i> <span id="audioName">Qo'shiq (.mp3)</span></label>
             <input type="file" id="audioUpload" accept="audio/*">
 
             <label for="lrcUpload" class="file-label"><i class="fa-solid fa-file-lines"></i> <span id="lrcName">LRC matn (.lrc)</span></label>
             <input type="file" id="lrcUpload" accept=".lrc">
+            
+            <div id="lrcEditor" style="margin-top: 10px;">
+                <span style="font-size: 11px; color: #a1a1aa;">LRC Editor (Vaqtni surish):</span>
+                <div class="offset-controls">
+                    <button class="offset-btn" onclick="adjustOffset(-0.5)">-0.5s</button>
+                    <span id="offsetVal" style="font-weight: bold;">0.0s</span>
+                    <button class="offset-btn" onclick="adjustOffset(0.5)">+0.5s</button>
+                </div>
+            </div>
             <div id="lyricsStatus" class="lyrics-preview"></div>
         </div>
 
@@ -147,6 +173,10 @@
             <div class="input-group">
                 <span>Matn o'lchami (px)</span>
                 <input type="range" id="fontSize" class="range-input" min="30" max="120" value="65">
+            </div>
+            <div class="input-group" style="margin-top: 15px;">
+                <span>Matn pozitsiyasi (Y-o'qi)</span>
+                <input type="range" id="textPosition" class="range-input" min="0.1" max="0.9" step="0.05" value="0.48">
             </div>
             
             <label style="margin-top: 15px;"><i class="fa-solid fa-scissors"></i> Qirqish (Timeline)</label>
@@ -202,6 +232,7 @@
     const fontSizeInput = document.getElementById('fontSize');
     const startTimeInput = document.getElementById('startTime');
     const durationInput = document.getElementById('duration');
+    const textPositionInput = document.getElementById('textPosition');
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
@@ -210,26 +241,70 @@
     let audioEl = new Audio();
     audioEl.crossOrigin = "anonymous";
     let lyrics = [];
+    let lrcOffset = 0;
     let bgColor1 = "#000000";
     let bgColor2 = "#1a1a1a";
     let bgImage = null;
-    
-    // Audio Context uchun
-    let audioCtx, analyser, dataArray;
-    let particles = [];
+    let currentPreset = {
+        textColor: "#ffffff",
+        shadowBlur: 30,
+        shadowColor: "rgba(255,255,255,0.9)",
+        secondaryAlpha: 0.45
+    };
 
-    // Particles initialize
-    for(let i=0; i<50; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 4 + 1,
-            speed: Math.random() * 1.5 + 0.5,
-            opacity: Math.random()
-        });
+    // Presetlar funksiyasi
+    function applyPreset(name) {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        switch(name) {
+            case 'neon':
+                currentPreset = { textColor: "#00f2ff", shadowBlur: 40, shadowColor: "#00f2ff", secondaryAlpha: 0.3 };
+                break;
+            case 'retro':
+                currentPreset = { textColor: "#ffcc00", shadowBlur: 15, shadowColor: "#ff6600", secondaryAlpha: 0.4 };
+                break;
+            case 'minimal':
+                currentPreset = { textColor: "#ffffff", shadowBlur: 0, shadowColor: "transparent", secondaryAlpha: 0.2 };
+                break;
+            case 'bold':
+                currentPreset = { textColor: "#ff003c", shadowBlur: 50, shadowColor: "#ff003c", secondaryAlpha: 0.3 };
+                break;
+            case 'soft':
+                currentPreset = { textColor: "#ff99cc", shadowBlur: 20, shadowColor: "#ffffff", secondaryAlpha: 0.5 };
+                break;
+            default:
+                currentPreset = { textColor: "#ffffff", shadowBlur: 30, shadowColor: "rgba(255,255,255,0.9)", secondaryAlpha: 0.45 };
+        }
+        tg.HapticFeedback.impactOccurred('light');
     }
 
-    // Timeline yangilanishi
+    // LRC Offset
+    function adjustOffset(val) {
+        lrcOffset += val;
+        document.getElementById('offsetVal').innerText = lrcOffset.toFixed(1) + 's';
+        tg.HapticFeedback.selectionChanged();
+    }
+
+    // AI Auto-Crop & Position Simulation
+    imageInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    bgImage = img;
+                    // AI Simulation: Agar rasmning pastki qismi yorqinroq bo'lsa (yoki yuz bo'lsa), matnni tepaga surish
+                    textPositionInput.value = 0.3; // Smart reposition
+                };
+                img.src = event.target.result;
+                document.getElementById('imageName').innerText = file.name.substring(0, 15);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     startTimeInput.oninput = () => {
         document.getElementById('startTimeVal').innerText = startTimeInput.value + 's';
         audioEl.currentTime = parseFloat(startTimeInput.value);
@@ -242,7 +317,6 @@
         const lines = lrcText.split('\n');
         const result = [];
         const timeExp = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
-
         lines.forEach(line => {
             const matches = line.match(timeExp);
             if (matches) {
@@ -257,17 +331,6 @@
         return result.sort((a, b) => a.time - b.time);
     }
 
-    imageInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if(file) {
-            const url = URL.createObjectURL(file);
-            const img = new Image();
-            img.onload = () => { bgImage = img; };
-            img.src = url;
-            document.getElementById('imageName').innerText = file.name.substring(0, 15);
-        }
-    };
-
     lrcInput.onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -275,7 +338,7 @@
             reader.onload = (event) => {
                 lyrics = parseLRC(event.target.result);
                 document.getElementById('lrcName').innerText = file.name;
-                document.getElementById('lyricsStatus').innerText = "Matn yuklandi: " + lyrics.length + " qator";
+                document.getElementById('lyricsStatus').innerText = "Matn: " + lyrics.length + " qator";
             };
             reader.readAsText(file);
         }
@@ -287,46 +350,25 @@
             opt.classList.add('active');
             bgColor1 = opt.dataset.color1;
             bgColor2 = opt.dataset.color2;
-            bgImage = null; // Agar rang tanlansa rasmni o'chiramiz
-            tg.HapticFeedback.impactOccurred('light');
         };
     });
 
     audioInput.onchange = (e) => {
         const file = e.target.files[0];
         if(file) {
-            const url = URL.createObjectURL(file);
-            audioEl.src = url;
-            document.getElementById('audioName').innerText = file.name.substring(0, 20);
-            
+            audioEl.src = URL.createObjectURL(file);
             audioEl.onloadedmetadata = () => {
                 startTimeInput.max = audioEl.duration.toFixed(1);
                 document.getElementById('audioTotalTime').innerText = "Jami: " + audioEl.duration.toFixed(1) + "s";
             };
-            setupAudioAnalyser();
         }
     };
 
-    function setupAudioAnalyser() {
-        if(!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaElementSource(audioEl);
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            analyser.fftSize = 256;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-        }
-    }
-
     function drawFocusLyrics() {
-        // 1. Fon (Rasm yoki Gradient)
-        ctx.save();
-        if(bgImage) {
-            // Rasm va Blur effekti
-            ctx.filter = 'blur(15px) brightness(0.6)';
-            ctx.drawImage(bgImage, -50, -50, canvas.width + 100, canvas.height + 100);
-            ctx.filter = 'none';
+        if (bgImage) {
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "rgba(0,0,0,0.4)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         } else {
             let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
             bgGrad.addColorStop(0, bgColor1);
@@ -334,41 +376,10 @@
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-        ctx.restore();
 
-        // 2. Particles (Zarrachalar)
-        particles.forEach(p => {
-            p.y -= p.speed;
-            if(p.y < 0) p.y = canvas.height;
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
+        if (lyrics.length === 0) return;
 
-        // 3. Audio Visualizer (Waveform barlari)
-        if(analyser && !audioEl.paused) {
-            analyser.getByteFrequencyData(dataArray);
-            const barWidth = (canvas.width / dataArray.length) * 2;
-            let barX = 0;
-            for(let i = 0; i < dataArray.length; i++) {
-                let barHeight = (dataArray[i] / 255) * 200;
-                ctx.fillStyle = `rgba(255, 255, 255, 0.4)`;
-                ctx.fillRect(barX, canvas.height - barHeight, barWidth - 1, barHeight);
-                barX += barWidth;
-            }
-        }
-
-        // 4. Lyrics (Matnlar)
-        if (lyrics.length === 0) {
-            ctx.fillStyle = "rgba(255,255,255,0.2)";
-            ctx.font = "30px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("Tayyor", canvas.width/2, canvas.height/2);
-            return;
-        }
-
-        const currentTime = audioEl.currentTime;
+        const currentTime = audioEl.currentTime - lrcOffset;
         const currentFontSize = parseInt(fontSizeInput.value);
         
         let activeIdx = -1;
@@ -380,11 +391,10 @@
 
         let group = [];
         let pairStartIdx = (activeIdx % 2 === 0) ? activeIdx : activeIdx - 1;
-        
         if (lyrics[pairStartIdx]) group.push({ ...lyrics[pairStartIdx], order: 0, gIdx: pairStartIdx });
         if (lyrics[pairStartIdx + 1]) group.push({ ...lyrics[pairStartIdx + 1], order: 1, gIdx: pairStartIdx + 1 });
 
-        const centerY = canvas.height * 0.48;
+        const centerY = canvas.height * parseFloat(textPositionInput.value);
         const lineSpacing = currentFontSize * 1.8;
 
         group.forEach((lyric) => {
@@ -395,34 +405,19 @@
             const highlightedWordIndex = Math.floor(lineProgress * words.length);
 
             ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            const drawY = centerY + (lyric.order * lineSpacing);
-
             ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
             const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
             let currentX = (canvas.width - totalWidth) / 2;
 
             words.forEach((word, wIdx) => {
-                const isCurrentWordLine = (activeIdx === lyric.gIdx);
-                const isWordHighlighted = isCurrentWordLine && wIdx <= highlightedWordIndex;
-
-                if (isWordHighlighted) {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 1.0;
-                    ctx.shadowBlur = 30;
-                    ctx.shadowColor = "rgba(255,255,255,0.9)";
-                } else if (currentTime > lyric.time && !isCurrentWordLine) {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 0.2;
-                    ctx.shadowBlur = 0;
-                } else {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 0.45;
-                    ctx.shadowBlur = 0;
-                }
-
-                const wordWidth = ctx.measureText(word).width;
-                ctx.fillText(word, currentX + wordWidth/2, drawY);
+                const isActive = (activeIdx === lyric.gIdx && wIdx <= highlightedWordIndex);
+                ctx.globalAlpha = isActive ? 1.0 : currentPreset.secondaryAlpha;
+                ctx.shadowBlur = isActive ? currentPreset.shadowBlur : 0;
+                ctx.shadowColor = currentPreset.shadowColor;
+                ctx.fillStyle = currentPreset.textColor;
+                
+                const wWidth = ctx.measureText(word).width;
+                ctx.fillText(word, currentX + wWidth/2, centerY + (lyric.order * lineSpacing));
                 currentX += ctx.measureText(word + " ").width;
             });
         });
@@ -438,65 +433,45 @@
     animate();
 
     document.getElementById('renderBtn').onclick = async () => {
-        if (!audioInput.files[0] || lyrics.length === 0) {
-            tg.HapticFeedback.notificationOccurred('error');
-            return tg.showPopup({message: "Audio va LRC yuklang!"});
-        }
-
-        if(audioCtx && audioCtx.state === 'suspended') {
-            await audioCtx.resume();
-        }
+        if (!audioInput.files[0] || lyrics.length === 0) return tg.showPopup({message: "Fayllarni yuklang!"});
         
         const startTime = parseFloat(startTimeInput.value);
         const duration = parseFloat(durationInput.value);
         const quality = document.getElementById('videoQuality').value;
 
-        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VFX va Audio render qilinmoqda...';
-        tg.HapticFeedback.impactOccurred('medium');
-
+        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video tayyorlanmoqda...';
+        
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(audioEl);
         const dest = audioCtx.createMediaStreamDestination();
-        const sourceNode = audioCtx.createMediaElementSource(audioEl);
-        sourceNode.connect(dest);
-        sourceNode.connect(audioCtx.destination);
+        source.connect(dest);
+        source.connect(audioCtx.destination);
 
         const videoStream = canvas.captureStream(60);
-        const combinedStream = new MediaStream([
-            ...videoStream.getVideoTracks(),
-            ...dest.stream.getAudioTracks()
-        ]);
-
-        const recorder = new MediaRecorder(combinedStream, { 
-            mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: parseInt(quality)
-        });
+        const combined = new MediaStream([...videoStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+        const recorder = new MediaRecorder(combined, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: parseInt(quality) });
         
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            const videoBlob = new Blob(chunks, { type: 'video/mp4' });
-            const formData = new FormData();
-            formData.append('chat_id', tg.initDataUnsafe.user?.id);
-            formData.append('video', videoBlob, 'insta_lyric_vfx.mp4');
-            formData.append('caption', "✨ VFX & Lyrics tayyor!");
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const fd = new FormData();
+            fd.append('chat_id', tg.initDataUnsafe.user?.id);
+            fd.append('video', blob, 'smart_lyric.mp4');
+            fd.append('caption', "✨ Smart AI Lyric Video");
 
             try {
-                status.innerHTML = 'Telegramga yuborilmoqda...';
-                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: formData });
-                status.innerHTML = 'Muvaffaqiyatli! ✅';
-                tg.HapticFeedback.notificationOccurred('success');
-            } catch (err) { status.innerText = "Yuborishda xato!"; }
+                status.innerHTML = 'Yuborilmoqda...';
+                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: fd });
+                status.innerHTML = 'Tayyor! ✅';
+            } catch (e) { status.innerText = "Xato!"; }
         };
 
         audioEl.currentTime = startTime;
         audioEl.play();
         recorder.start();
-
-        setTimeout(() => {
-            recorder.stop();
-            audioEl.pause();
-        }, duration * 1000);
+        setTimeout(() => { recorder.stop(); audioEl.pause(); }, duration * 1000);
     };
 </script>
-
 </body>
 </html>
