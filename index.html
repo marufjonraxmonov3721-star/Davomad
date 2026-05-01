@@ -190,7 +190,6 @@
     let audioEl = new Audio();
     audioEl.crossOrigin = "anonymous";
     let lyrics = [];
-    let currentLyricIndex = -1;
     let bgColor1 = "#000000";
     let bgColor2 = "#1a1a1a";
 
@@ -245,7 +244,7 @@
     };
 
     function drawFocusLyrics() {
-        // Fon
+        // Background
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, bgColor1);
         bgGrad.addColorStop(1, bgColor2);
@@ -260,46 +259,58 @@
             if (currentTime >= lyrics[i].time) activeIdx = i;
         }
 
-        const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const lineHeight = 100;
+        const lineSpacing = 120;
 
-        // Faqat joriy va keyingi qatorni ko'rsatish (Focus effekti)
+        // Display current and next line
         [activeIdx, activeIdx + 1].forEach((idx, pos) => {
             if (idx >= 0 && idx < lyrics.length) {
-                const isCurrent = (idx === activeIdx);
+                const isCurrentLine = (idx === activeIdx);
                 const lyric = lyrics[idx];
-                
-                // Effekt sozlamalari
-                ctx.textAlign = "left";
-                const startX = 100;
-                const drawY = centerY + (pos * lineHeight) - 50;
-
-                // So'zlarni ajratish
                 const words = lyric.text.split(' ');
-                let currentX = startX;
+                
+                // Calculate word-by-word highlight within the current line
+                // Rough estimation: highlight progresses linearly until the next line starts
+                const nextTime = lyrics[idx + 1] ? lyrics[idx + 1].time : audioEl.duration;
+                const lineDuration = nextTime - lyric.time;
+                const progress = (currentTime - lyric.time) / lineDuration;
+                const highlightedWordIndex = Math.floor(progress * words.length);
 
-                words.forEach(word => {
-                    ctx.font = isCurrent ? "bold 75px 'SF Pro Display'" : "500 55px 'SF Pro Display'";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const drawY = centerY + (pos * lineSpacing) - 60;
+
+                // To draw word-by-word, we first need total width
+                ctx.font = "600 65px 'SF Pro Display'";
+                const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
+                let currentX = (canvas.width - totalWidth) / 2;
+
+                words.forEach((word, wIdx) => {
+                    const isHighlighted = isCurrentLine && wIdx <= highlightedWordIndex;
                     
-                    // Rang: aytilayotgan qator yorqin, qolganlari xira
-                    if (isCurrent) {
-                        ctx.fillStyle = "white";
-                        ctx.globalAlpha = 1.0;
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = "rgba(255,255,255,0.3)";
-                    } else {
+                    if (isHighlighted) {
                         ctx.fillStyle = "#ffffff";
-                        ctx.globalAlpha = 0.2; // Yashirin/Xira holati
+                        ctx.globalAlpha = 1.0;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = "rgba(255,255,255,0.6)";
+                    } else if (isCurrentLine) {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.globalAlpha = 0.3;
+                        ctx.shadowBlur = 0;
+                    } else {
+                        // Future line
+                        ctx.fillStyle = "#ffffff";
+                        ctx.globalAlpha = 0.15;
                         ctx.shadowBlur = 0;
                     }
 
-                    ctx.fillText(word, currentX, drawY);
+                    ctx.fillText(word, currentX + ctx.measureText(word).width/2, drawY);
                     currentX += ctx.measureText(word + " ").width;
                 });
             }
         });
         ctx.globalAlpha = 1.0;
+        ctx.shadowBlur = 0;
     }
 
     function animate() {
@@ -345,7 +356,7 @@
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user?.id);
             formData.append('video', videoBlob, 'focus_lyrics.mp4');
-            formData.append('caption', "🔥 Fokus effektli video tayyor!");
+            formData.append('caption', "🔥 Dinamik lyric video tayyor!");
 
             try {
                 status.innerHTML = 'Telegramga yuborilmoqda...';
