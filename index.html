@@ -271,10 +271,10 @@
         }
 
         const centerY = canvas.height / 2;
-        const lineSpacing = currentFontSize * 1.8;
+        const lineSpacing = currentFontSize * 2.2; // Qatorlar orasini biroz kengaytirdik
 
-        // Joriy va keyingi qatorni ko'rsatish
-        [activeIdx, activeIdx + 1].forEach((idx, pos) => {
+        // 3 ta qatorni chizamiz: oldingi (xira), joriy (yorqin) va keyingi (highlight bo'ladigan)
+        [activeIdx - 1, activeIdx, activeIdx + 1].forEach((idx, pos) => {
             if (idx >= 0 && idx < lyrics.length) {
                 const lyric = lyrics[idx];
                 const words = lyric.text.split(' ');
@@ -287,23 +287,32 @@
 
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.font = `600 ${currentFontSize}px 'SF Pro Display'`;
+                ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
                 
-                const drawY = centerY + (pos * lineSpacing) - (lineSpacing / 2);
+                // Matn o'rnini hisoblash (pos 0: tepa, 1: orta, 2: past)
+                const drawY = centerY + ((pos - 1) * lineSpacing);
+                
                 const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
                 let currentX = (canvas.width - totalWidth) / 2;
 
                 words.forEach((word, wIdx) => {
+                    // Agar joriy qator bo'lsa (idx === activeIdx), so'zlarni birma-bir yoqish
                     const isWordActive = (idx === activeIdx && wIdx <= highlightedWordIndex);
                     
                     if (isWordActive) {
                         ctx.fillStyle = "#ffffff";
                         ctx.globalAlpha = 1.0;
-                        ctx.shadowBlur = 20;
-                        ctx.shadowColor = "rgba(255,255,255,0.7)";
-                    } else {
+                        ctx.shadowBlur = 25;
+                        ctx.shadowColor = "rgba(255,255,255,0.8)";
+                    } else if (idx < activeIdx) {
+                        // O'tib ketgan qator
                         ctx.fillStyle = "#ffffff";
-                        ctx.globalAlpha = (idx === activeIdx) ? 0.3 : 0.15;
+                        ctx.globalAlpha = 0.15;
+                        ctx.shadowBlur = 0;
+                    } else {
+                        // Kelayotgan qator yoki joriy qatorning hali aytilmagan so'zlari
+                        ctx.fillStyle = "#ffffff";
+                        ctx.globalAlpha = 0.3;
                         ctx.shadowBlur = 0;
                     }
 
