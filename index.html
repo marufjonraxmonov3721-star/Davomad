@@ -400,31 +400,35 @@
             const y = canvas.height / 2;
             const elapsed = now - active.time;
 
-            // LRC matnni qatorlarga ajratish
-            const lines = active.text.split('\\n').join('\n').split('\n');
-            const lineHeight = fontSize * 1.2;
-            const totalHeight = lines.length * lineHeight;
-            let startY = y - (totalHeight / 2) + (lineHeight / 2);
+            // Matnni qatorlarga ajratish (\n yoki '\\n' bo'lsa ham)
+            const lines = active.text.split(/\\n|\n/);
+            const lineSpacing = fontSize * 1.3;
+            const totalHeight = lines.length * lineSpacing;
+            let startY = y - (totalHeight / 2) + (lineSpacing / 2);
+
+            const nextTime = lyrics[activeIndex + 1] ? lyrics[activeIndex + 1].time : active.time + 3;
+            const duration = (nextTime - active.time) / textSpeed;
+            const progress = Math.min(elapsed / duration, 1);
 
             lines.forEach((lineText, index) => {
-                const currentLineY = startY + (index * lineHeight);
+                const currentLineY = startY + (index * lineSpacing);
 
                 if (currentFx === 'highlight') {
-                    // Orqa fon (shaffof matn)
+                    // 1. Orqa fon (shaffof oq matn)
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                     ctx.fillText(lineText, x, currentLineY);
                     
-                    const nextTime = lyrics[activeIndex + 1] ? lyrics[activeIndex + 1].time : active.time + 3;
-                    const duration = (nextTime - active.time) / textSpeed;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Oldi fon (yonuvchi qism)
+                    // 2. Oldi fon (videodagi kabi yonib boruvchi matn)
                     ctx.save();
+                    const textWidth = ctx.measureText(lineText).width;
+                    const startX = x - (textWidth / 2);
+                    
                     ctx.beginPath();
-                    ctx.rect(0, currentLineY - lineHeight/2, canvas.width * progress, lineHeight);
+                    ctx.rect(startX, currentLineY - lineSpacing/2, textWidth * progress, lineSpacing);
                     ctx.clip();
+                    
                     ctx.fillStyle = 'white';
-                    ctx.shadowBlur = 15;
+                    ctx.shadowBlur = 20;
                     ctx.shadowColor = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                     ctx.restore();
