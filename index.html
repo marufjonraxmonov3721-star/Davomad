@@ -400,9 +400,9 @@
             const y = canvas.height / 2;
             const elapsed = now - active.time;
 
-            // Matnni qatorlarga ajratish (\n yoki '\\n' bo'lsa ham)
+            // Matnni qatorlarga ajratish (videodagidek 2 qatorli bo'lishi uchun)
             const lines = active.text.split(/\\n|\n/);
-            const lineSpacing = fontSize * 1.3;
+            const lineSpacing = fontSize * 1.4;
             const totalHeight = lines.length * lineSpacing;
             let startY = y - (totalHeight / 2) + (lineSpacing / 2);
 
@@ -414,34 +414,35 @@
                 const currentLineY = startY + (index * lineSpacing);
 
                 if (currentFx === 'highlight') {
-                    // 1. Orqa fon (shaffof oq matn)
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                    // 1. Orqa fon (shaffof xira matn ko'rinib turadi)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
                     ctx.fillText(lineText, x, currentLineY);
                     
-                    // 2. Oldi fon (videodagi kabi yonib boruvchi matn)
+                    // 2. Oldi fon (aytilayotgan qismi yorqin oq rangda yonib o'tadi)
                     ctx.save();
                     const textWidth = ctx.measureText(lineText).width;
                     const startX = x - (textWidth / 2);
                     
                     ctx.beginPath();
+                    // Clip maydoni: matn kengligi bo'ylab progressga qarab ochiladi
                     ctx.rect(startX, currentLineY - lineSpacing/2, textWidth * progress, lineSpacing);
                     ctx.clip();
                     
                     ctx.fillStyle = 'white';
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
                     ctx.fillText(lineText, x, currentLineY);
                     ctx.restore();
                 } else if (currentFx === 'minimal') {
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 } else if (currentFx === 'neon') {
-                    ctx.shadowBlur = 25;
+                    ctx.shadowBlur = 20;
                     ctx.shadowColor = '#ff0050';
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 } else if (currentFx === 'liquid') {
-                    const scale = 1 + Math.sin(elapsed * 5 + index) * 0.05;
+                    const scale = 1 + Math.sin(elapsed * 4 + index) * 0.04;
                     ctx.save();
                     ctx.translate(x, currentLineY);
                     ctx.scale(scale, scale);
@@ -449,9 +450,9 @@
                     ctx.fillText(lineText, 0, 0);
                     ctx.restore();
                 } else if (currentFx === 'glitch') {
-                    if (Math.random() > 0.8) {
+                    if (Math.random() > 0.85) {
                         ctx.fillStyle = '#ff0050';
-                        ctx.fillText(lineText, x + 4, currentLineY);
+                        ctx.fillText(lineText, x + 3, currentLineY);
                     }
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
@@ -459,10 +460,10 @@
             });
             ctx.restore();
         } else {
-            ctx.fillStyle = '#333';
-            ctx.font = '30px Inter';
+            ctx.fillStyle = '#222';
+            ctx.font = '24px Inter';
             ctx.textAlign = 'center';
-            ctx.fillText("PREVIEW AREA", canvas.width/2, canvas.height/2);
+            ctx.fillText("PREVIEW", canvas.width/2, canvas.height/2);
         }
         requestAnimationFrame(render);
     }
