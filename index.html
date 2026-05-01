@@ -70,10 +70,12 @@
         .input-group { display: flex; flex-direction: column; flex: 1; }
         .input-group span { font-size: 11px; color: #71717a; margin-bottom: 5px; margin-left: 5px; }
 
-        select, .num-input {
+        select, .num-input, .range-input {
             width: 100%; background: #09090b; border: 1px solid #27272a; border-radius: 14px;
             padding: 14px; color: #fff; font-size: 15px; box-sizing: border-box;
         }
+
+        .range-input { padding: 5px; cursor: pointer; }
 
         .row { display: flex; gap: 12px; }
 
@@ -135,7 +137,13 @@
         </div>
 
         <div class="glass-card">
-            <label><i class="fa-solid fa-scissors"></i> Qirqish va Sifat</label>
+            <label><i class="fa-solid fa-font"></i> Matn sozlamalari</label>
+            <div class="input-group">
+                <span>Matn o'lchami (px)</span>
+                <input type="range" id="fontSize" class="range-input" min="30" max="120" value="65">
+            </div>
+            
+            <label style="margin-top: 15px;"><i class="fa-solid fa-scissors"></i> Qirqish va Sifat</label>
             <div class="trim-box">
                 <div class="row">
                     <div class="input-group">
@@ -182,6 +190,7 @@
 
     const audioInput = document.getElementById('audioUpload');
     const lrcInput = document.getElementById('lrcUpload');
+    const fontSizeInput = document.getElementById('fontSize');
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
@@ -244,7 +253,7 @@
     };
 
     function drawFocusLyrics() {
-        // Background
+        // Fonni chizish
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, bgColor1);
         bgGrad.addColorStop(1, bgColor2);
@@ -254,53 +263,47 @@
         if (lyrics.length === 0) return;
 
         const currentTime = audioEl.currentTime;
+        const currentFontSize = parseInt(fontSizeInput.value);
         let activeIdx = -1;
+        
         for (let i = 0; i < lyrics.length; i++) {
             if (currentTime >= lyrics[i].time) activeIdx = i;
         }
 
         const centerY = canvas.height / 2;
-        const lineSpacing = 120;
+        const lineSpacing = currentFontSize * 1.8;
 
-        // Display current and next line
+        // Joriy va keyingi qatorni ko'rsatish
         [activeIdx, activeIdx + 1].forEach((idx, pos) => {
             if (idx >= 0 && idx < lyrics.length) {
-                const isCurrentLine = (idx === activeIdx);
                 const lyric = lyrics[idx];
                 const words = lyric.text.split(' ');
                 
-                // Calculate word-by-word highlight within the current line
-                // Rough estimation: highlight progresses linearly until the next line starts
-                const nextTime = lyrics[idx + 1] ? lyrics[idx + 1].time : audioEl.duration;
+                // So'zma-so'z vaqtni hisoblash
+                const nextTime = lyrics[idx + 1] ? lyrics[idx + 1].time : audioEl.duration || (lyric.time + 5);
                 const lineDuration = nextTime - lyric.time;
                 const progress = (currentTime - lyric.time) / lineDuration;
                 const highlightedWordIndex = Math.floor(progress * words.length);
 
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                const drawY = centerY + (pos * lineSpacing) - 60;
-
-                // To draw word-by-word, we first need total width
-                ctx.font = "600 65px 'SF Pro Display'";
+                ctx.font = `600 ${currentFontSize}px 'SF Pro Display'`;
+                
+                const drawY = centerY + (pos * lineSpacing) - (lineSpacing / 2);
                 const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
                 let currentX = (canvas.width - totalWidth) / 2;
 
                 words.forEach((word, wIdx) => {
-                    const isHighlighted = isCurrentLine && wIdx <= highlightedWordIndex;
+                    const isWordActive = (idx === activeIdx && wIdx <= highlightedWordIndex);
                     
-                    if (isHighlighted) {
+                    if (isWordActive) {
                         ctx.fillStyle = "#ffffff";
                         ctx.globalAlpha = 1.0;
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = "rgba(255,255,255,0.6)";
-                    } else if (isCurrentLine) {
-                        ctx.fillStyle = "#ffffff";
-                        ctx.globalAlpha = 0.3;
-                        ctx.shadowBlur = 0;
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = "rgba(255,255,255,0.7)";
                     } else {
-                        // Future line
                         ctx.fillStyle = "#ffffff";
-                        ctx.globalAlpha = 0.15;
+                        ctx.globalAlpha = (idx === activeIdx) ? 0.3 : 0.15;
                         ctx.shadowBlur = 0;
                     }
 
@@ -309,6 +312,7 @@
                 });
             }
         });
+        
         ctx.globalAlpha = 1.0;
         ctx.shadowBlur = 0;
     }
@@ -355,8 +359,8 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user?.id);
-            formData.append('video', videoBlob, 'focus_lyrics.mp4');
-            formData.append('caption', "🔥 Dinamik lyric video tayyor!");
+            formData.append('video', videoBlob, 'lyric_video.mp4');
+            formData.append('caption', "✅ Video tayyor bo'ldi!");
 
             try {
                 status.innerHTML = 'Telegramga yuborilmoqda...';
