@@ -75,7 +75,7 @@
             padding: 14px; color: #fff; font-size: 15px; box-sizing: border-box;
         }
 
-        .range-input { padding: 5px; cursor: pointer; }
+        .range-input { padding: 5px; cursor: pointer; height: 10px; accent-color: #bc1888; }
 
         .row { display: flex; gap: 12px; }
 
@@ -108,6 +108,8 @@
 
         #status { margin-top: 18px; text-align: center; font-size: 14px; color: #bc1888; font-weight: 600; }
         .lyrics-preview { font-size: 12px; color: #38bdf8; margin-top: 8px; text-align: center; font-weight: 500; }
+        
+        .timeline-info { display: flex; justify-content: space-between; font-size: 12px; color: #a1a1aa; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -143,17 +145,18 @@
                 <input type="range" id="fontSize" class="range-input" min="30" max="120" value="65">
             </div>
             
-            <label style="margin-top: 15px;"><i class="fa-solid fa-scissors"></i> Qirqish va Sifat</label>
+            <label style="margin-top: 15px;"><i class="fa-solid fa-scissors"></i> Qirqish (Timeline)</label>
             <div class="trim-box">
-                <div class="row">
-                    <div class="input-group">
-                        <span>Boshlanishi (sek)</span>
-                        <input type="number" id="startTime" class="num-input" value="0">
-                    </div>
-                    <div class="input-group">
-                        <span>Davomiyligi (sek)</span>
-                        <input type="number" id="duration" class="num-input" value="15">
-                    </div>
+                <div class="input-group">
+                    <span>Boshlanish nuqtasi: <b id="startTimeVal">0.0s</b></span>
+                    <input type="range" id="startTime" class="range-input" min="0" max="100" step="0.1" value="0">
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <span>Video davomiyligi: <b id="durationVal">15s</b></span>
+                    <input type="range" id="duration" class="range-input" min="5" max="60" step="1" value="15">
+                </div>
+                <div class="timeline-info">
+                    <span id="audioTotalTime">Audio yuklanmagan</span>
                 </div>
                 <div class="input-group" style="margin-top: 15px;">
                     <span>Video sifati</span>
@@ -166,8 +169,9 @@
             </div>
         </div>
 
-        <div class="preview-wrapper">
+        <div class="preview-wrapper" id="previewArea">
             <canvas id="previewCanvas" width="1080" height="1920"></canvas>
+            <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 10px; font-size: 12px;">PREVIEW</div>
         </div>
         
         <button class="btn-main" id="renderBtn">
@@ -191,6 +195,8 @@
     const audioInput = document.getElementById('audioUpload');
     const lrcInput = document.getElementById('lrcUpload');
     const fontSizeInput = document.getElementById('fontSize');
+    const startTimeInput = document.getElementById('startTime');
+    const durationInput = document.getElementById('duration');
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
@@ -201,6 +207,15 @@
     let lyrics = [];
     let bgColor1 = "#000000";
     let bgColor2 = "#1a1a1a";
+
+    // Timeline yangilanishi
+    startTimeInput.oninput = () => {
+        document.getElementById('startTimeVal').innerText = startTimeInput.value + 's';
+        audioEl.currentTime = parseFloat(startTimeInput.value);
+    };
+    durationInput.oninput = () => {
+        document.getElementById('durationVal').innerText = durationInput.value + 's';
+    };
 
     function parseLRC(lrcText) {
         const lines = lrcText.split('\n');
@@ -247,25 +262,35 @@
     audioInput.onchange = (e) => {
         const file = e.target.files[0];
         if(file) {
-            audioEl.src = URL.createObjectURL(file);
+            const url = URL.createObjectURL(file);
+            audioEl.src = url;
             document.getElementById('audioName').innerText = file.name.substring(0, 20);
+            
+            audioEl.onloadedmetadata = () => {
+                startTimeInput.max = audioEl.duration.toFixed(1);
+                document.getElementById('audioTotalTime').innerText = "Jami: " + audioEl.duration.toFixed(1) + "s";
+            };
         }
     };
 
     function drawFocusLyrics() {
-        // Fon
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, bgColor1);
         bgGrad.addColorStop(1, bgColor2);
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if (lyrics.length === 0) return;
+        if (lyrics.length === 0) {
+            ctx.fillStyle = "rgba(255,255,255,0.2)";
+            ctx.font = "30px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Matn yuklanmagan", canvas.width/2, canvas.height/2);
+            return;
+        }
 
         const currentTime = audioEl.currentTime;
         const currentFontSize = parseInt(fontSizeInput.value);
         
-        // Hozirgi faol indexni topish
         let activeIdx = -1;
         for (let i = 0; i < lyrics.length; i++) {
             if (currentTime >= lyrics[i].time) activeIdx = i;
@@ -273,29 +298,19 @@
 
         if (activeIdx === -1) return;
 
-        // Ikkita qatorni ko'rsatish mantiqi: 
-        // Agar activeIdx juft bo'lsa (0, 2, 4...) -> u tepada, keyingisi pastda.
-        // Agar activeIdx toq bo'lsa (1, 3, 5...) -> u pastda, oldingisi tepada.
         let group = [];
-        let isFirstLineActive = (activeIdx % 2 === 0);
+        let pairStartIdx = (activeIdx % 2 === 0) ? activeIdx : activeIdx - 1;
         
-        let pairStartIdx = isFirstLineActive ? activeIdx : activeIdx - 1;
-        
-        if (lyrics[pairStartIdx]) group.push({ ...lyrics[pairStartIdx], order: 0 });
-        if (lyrics[pairStartIdx + 1]) group.push({ ...lyrics[pairStartIdx + 1], order: 1 });
+        if (lyrics[pairStartIdx]) group.push({ ...lyrics[pairStartIdx], order: 0, gIdx: pairStartIdx });
+        if (lyrics[pairStartIdx + 1]) group.push({ ...lyrics[pairStartIdx + 1], order: 1, gIdx: pairStartIdx + 1 });
 
         const centerY = canvas.height * 0.48;
         const lineSpacing = currentFontSize * 1.8;
 
         group.forEach((lyric) => {
             const words = lyric.text.split(' ');
-            
-            // Haqiqiy qator davomiyligini hisoblash (keyingi qator vaqtigacha)
-            const globalIdx = lyrics.findIndex(l => l.time === lyric.time);
-            const nextTime = lyrics[globalIdx + 1] ? lyrics[globalIdx + 1].time : lyric.time + 2.5;
+            const nextTime = lyrics[lyric.gIdx + 1] ? lyrics[lyric.gIdx + 1].time : lyric.time + 3;
             const duration = nextTime - lyric.time;
-            
-            // Musiqaga mos progress (so'zlar yonishi uchun)
             const lineProgress = Math.max(0, Math.min(1, (currentTime - lyric.time) / duration));
             const highlightedWordIndex = Math.floor(lineProgress * words.length);
 
@@ -304,30 +319,25 @@
             const drawY = centerY + (lyric.order * lineSpacing);
 
             ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
-            
-            // Markazlash uchun umumiy kenglik
             const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
             let currentX = (canvas.width - totalWidth) / 2;
 
             words.forEach((word, wIdx) => {
-                const isCurrentActiveLine = (activeIdx === globalIdx);
-                const isWordHighlighted = isCurrentActiveLine && wIdx <= highlightedWordIndex;
+                const isCurrentWordLine = (activeIdx === lyric.gIdx);
+                const isWordHighlighted = isCurrentWordLine && wIdx <= highlightedWordIndex;
 
                 if (isWordHighlighted) {
-                    // Yonayotgan so'z
                     ctx.fillStyle = "#ffffff";
                     ctx.globalAlpha = 1.0;
-                    ctx.shadowBlur = 25;
-                    ctx.shadowColor = "rgba(255,255,255,0.8)";
-                } else if (currentTime > lyric.time && !isCurrentActiveLine) {
-                    // O'tib ketgan qator
+                    ctx.shadowBlur = 30;
+                    ctx.shadowColor = "rgba(255,255,255,0.9)";
+                } else if (currentTime > lyric.time && !isCurrentWordLine) {
                     ctx.fillStyle = "#ffffff";
                     ctx.globalAlpha = 0.2;
                     ctx.shadowBlur = 0;
                 } else {
-                    // Kelayotgan qator yoki joriy qatordagi hali aytilmagan so'zlar
                     ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 0.4;
+                    ctx.globalAlpha = 0.45;
                     ctx.shadowBlur = 0;
                 }
 
@@ -350,15 +360,15 @@
     document.getElementById('renderBtn').onclick = async () => {
         if (!audioInput.files[0] || lyrics.length === 0) {
             tg.HapticFeedback.notificationOccurred('error');
-            return tg.showPopup({message: "Iltimos, audio va LRC yuklang!"});
+            return tg.showPopup({message: "Audio va LRC yuklang!"});
         }
         
-        const startTime = parseFloat(document.getElementById('startTime').value);
-        const duration = parseFloat(document.getElementById('duration').value);
+        const startTime = parseFloat(startTimeInput.value);
+        const duration = parseFloat(durationInput.value);
         const quality = document.getElementById('videoQuality').value;
 
+        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video sinxronizatsiya qilinmoqda...';
         tg.HapticFeedback.impactOccurred('medium');
-        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video tayyorlanmoqda...';
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioCtx.createMediaElementSource(audioEl);
@@ -383,15 +393,15 @@
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user?.id);
-            formData.append('video', videoBlob, 'lyric_video.mp4');
-            formData.append('caption', "✅ Video tayyor bo'ldi!");
+            formData.append('video', videoBlob, 'insta_lyric.mp4');
+            formData.append('caption', "⚡️ InstaCaption orqali tayyorlandi");
 
             try {
                 status.innerHTML = 'Telegramga yuborilmoqda...';
                 await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: formData });
                 status.innerHTML = 'Muvaffaqiyatli! ✅';
                 tg.HapticFeedback.notificationOccurred('success');
-            } catch (err) { status.innerText = "Yuborishda xatolik!"; }
+            } catch (err) { status.innerText = "Xatolik yuz berdi!"; }
         };
 
         audioEl.currentTime = startTime;
