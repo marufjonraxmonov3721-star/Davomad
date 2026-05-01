@@ -519,7 +519,6 @@
         const startTime = parseFloat(startTimeInput.value);
         const duration = parseFloat(durationInput.value);
 
-        // Ovozni yozib olish uchun AudioContext sozlash
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaElementSource(audioEl);
         const destination = audioContext.createMediaStreamDestination();
@@ -529,18 +528,19 @@
         audioEl.pause();
         audioEl.currentTime = startTime;
 
-        const videoStream = canvas.captureStream(60);
+        // Render jarayonini optimallashtirish: 30 FPS barqarorroq va qotishlarni kamaytiradi
+        const videoStream = canvas.captureStream(30);
         const audioStream = destination.stream;
         
-        // Video va Audioni birlashtirish
         const combinedStream = new MediaStream([
             ...videoStream.getVideoTracks(),
             ...audioStream.getAudioTracks()
         ]);
 
+        // Bitreytni oshirish sifatni yaxshilaydi va "pixelation" qotishlarini oldini oladi
         const recorder = new MediaRecorder(combinedStream, { 
             mimeType: 'video/webm;codecs=vp9,opus', 
-            videoBitsPerSecond: 5000000 
+            videoBitsPerSecond: 8000000 
         });
         
         const chunks = [];
@@ -568,9 +568,11 @@
         audioEl.play();
 
         setTimeout(() => {
-            recorder.stop();
-            audioEl.pause();
-            playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            if (recorder.state === "recording") {
+                recorder.stop();
+                audioEl.pause();
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            }
         }, duration * 1000);
     };
 </script>
