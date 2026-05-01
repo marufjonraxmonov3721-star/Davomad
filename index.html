@@ -271,15 +271,14 @@
         }
 
         const centerY = canvas.height / 2;
-        const lineSpacing = currentFontSize * 2.2; // Qatorlar orasini biroz kengaytirdik
+        const lineSpacing = currentFontSize * 2.2;
 
-        // 3 ta qatorni chizamiz: oldingi (xira), joriy (yorqin) va keyingi (highlight bo'ladigan)
-        [activeIdx - 1, activeIdx, activeIdx + 1].forEach((idx, pos) => {
+        // activeIdx va activeIdx + 1 (keyingi qator) birga yonishi uchun mantiq
+        [activeIdx, activeIdx + 1].forEach((idx, pos) => {
             if (idx >= 0 && idx < lyrics.length) {
                 const lyric = lyrics[idx];
                 const words = lyric.text.split(' ');
                 
-                // So'zma-so'z vaqtni hisoblash
                 const nextTime = lyrics[idx + 1] ? lyrics[idx + 1].time : audioEl.duration || (lyric.time + 5);
                 const lineDuration = nextTime - lyric.time;
                 const progress = (currentTime - lyric.time) / lineDuration;
@@ -289,30 +288,25 @@
                 ctx.textBaseline = "middle";
                 ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
                 
-                // Matn o'rnini hisoblash (pos 0: tepa, 1: orta, 2: past)
-                const drawY = centerY + ((pos - 1) * lineSpacing);
+                // Joriy qator tepada, keyingi qator pastda turadi
+                const drawY = centerY + (pos * lineSpacing) - (lineSpacing / 2);
                 
                 const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
                 let currentX = (canvas.width - totalWidth) / 2;
 
                 words.forEach((word, wIdx) => {
-                    // Agar joriy qator bo'lsa (idx === activeIdx), so'zlarni birma-bir yoqish
-                    const isWordActive = (idx === activeIdx && wIdx <= highlightedWordIndex);
+                    // Qatorning aytilayotgan vaqtidagi so'zi yoki o'tib ketgan qatorning barcha so'zlari yonsin
+                    const isWordActive = (currentTime >= lyric.time && wIdx <= highlightedWordIndex);
                     
                     if (isWordActive) {
                         ctx.fillStyle = "#ffffff";
                         ctx.globalAlpha = 1.0;
                         ctx.shadowBlur = 25;
                         ctx.shadowColor = "rgba(255,255,255,0.8)";
-                    } else if (idx < activeIdx) {
-                        // O'tib ketgan qator
-                        ctx.fillStyle = "#ffffff";
-                        ctx.globalAlpha = 0.15;
-                        ctx.shadowBlur = 0;
                     } else {
-                        // Kelayotgan qator yoki joriy qatorning hali aytilmagan so'zlari
+                        // Hali aytilmagan so'zlar yoki kelayotgan qator
                         ctx.fillStyle = "#ffffff";
-                        ctx.globalAlpha = 0.3;
+                        ctx.globalAlpha = 0.25;
                         ctx.shadowBlur = 0;
                     }
 
