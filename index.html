@@ -27,148 +27,154 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 50px;
         }
 
         .preview-section {
             width: 100%;
-            height: 50vh;
+            height: 45vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            background: #000;
             position: relative;
-            overflow: hidden;
         }
 
         canvas {
-            height: 90%;
+            height: 95%;
             aspect-ratio: 9/16;
             background: #000;
-            border-radius: 15px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            border-radius: 12px;
             border: 1px solid var(--border);
         }
 
-        /* Video Trimmer Styles */
-        .trimmer-container {
+        /* Video Trimmer */
+        .trimmer-wrapper {
             width: 90%;
-            height: 60px;
+            padding: 10px 0;
+        }
+        .trimmer-container {
+            width: 100%;
+            height: 40px;
             background: #111;
-            border-radius: 10px;
-            margin: 15px 0;
+            border-radius: 8px;
             position: relative;
             border: 1px solid var(--border);
             overflow: hidden;
+            touch-action: none;
         }
         #trimmerIndicator {
             position: absolute;
             height: 100%;
             background: rgba(255, 0, 80, 0.3);
-            border-left: 3px solid var(--accent);
-            border-right: 3px solid var(--accent);
-            cursor: pointer;
+            border-left: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+            left: 0;
+            width: 30%;
         }
 
         .editor-sheet {
             width: 100%;
-            background: #0a0a0a;
-            border-top-left-radius: 30px;
-            border-top-right-radius: 30px;
-            padding: 20px;
+            background: #080808;
             border-top: 1px solid var(--border);
-            z-index: 10;
+            padding: 20px;
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            position: relative;
         }
 
         .section-title {
-            font-size: 13px;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #888;
-            margin: 20px 0 12px;
+            letter-spacing: 1.5px;
+            color: #555;
+            margin: 15px 0 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .scroll-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             overflow-x: auto;
-            padding: 5px 0;
+            padding-bottom: 5px;
             scrollbar-width: none;
         }
         .scroll-row::-webkit-scrollbar { display: none; }
 
         .choice-card {
-            min-width: 90px;
+            min-width: 85px;
             padding: 12px;
             background: var(--glass);
             border: 1px solid var(--border);
-            border-radius: 15px;
+            border-radius: 12px;
             text-align: center;
-            transition: 0.2s;
+            font-size: 12px;
             cursor: pointer;
-            font-size: 13px;
+            flex-shrink: 0;
         }
         .choice-card.active {
             border-color: var(--accent);
             background: rgba(255, 0, 80, 0.1);
+            color: white;
         }
 
         .control-group {
             background: var(--glass);
             padding: 15px;
-            border-radius: 20px;
-            margin-bottom: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
         }
 
         input[type="range"] {
             width: 100%;
             accent-color: var(--accent);
-            margin-top: 10px;
+            height: 6px;
+            border-radius: 5px;
+            background: #222;
+            outline: none;
         }
 
         .upload-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin-bottom: 10px;
         }
         .upload-btn {
             background: var(--glass);
-            border: 1px dashed #444;
-            padding: 15px;
-            border-radius: 15px;
+            border: 1px dashed #333;
+            padding: 12px;
+            border-radius: 12px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
+            cursor: pointer;
         }
 
-        .playback-controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
+        .playback-area {
             margin-bottom: 10px;
         }
-        .play-circle {
-            width: 45px; height: 45px;
+        .play-btn {
+            width: 40px; height: 40px;
             border-radius: 50%;
             background: var(--accent);
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
+            font-size: 16px; margin: 0 auto;
+            cursor: pointer;
         }
 
         .render-area {
-            padding: 20px 0;
-            text-align: center;
+            padding-top: 10px;
+            padding-bottom: 30px;
         }
-        .btn-glow {
+        .btn-main {
             background: white;
             color: black;
             border: none;
-            padding: 18px 40px;
-            border-radius: 40px;
-            font-weight: 900;
-            font-size: 15px;
+            padding: 16px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 14px;
             width: 100%;
             cursor: pointer;
         }
@@ -176,80 +182,82 @@
         #renderStatus {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.98);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
 
     <div id="renderStatus">
-        <i class="fas fa-circle-notch fa-spin" style="font-size: 50px; color: var(--accent);"></i>
-        <p id="statusMsg" style="margin-top: 20px; font-weight: bold; letter-spacing: 1px;">VIDEO TAYYORLANMOQDA...</p>
+        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--accent);"></i>
+        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">VIDEO TAYYORLANMOQDA...</p>
     </div>
 
     <div class="preview-section">
         <canvas id="mainCanvas" width="1080" height="1920"></canvas>
     </div>
 
-    <div class="trimmer-container" id="trimmer">
-        <div id="trimmerIndicator" style="left: 0; width: 30%;"></div>
+    <div class="trimmer-wrapper">
+        <div class="trimmer-container" id="trimmer">
+            <div id="trimmerIndicator"></div>
+        </div>
     </div>
 
-    <div class="playback-controls">
-        <div class="play-circle" id="masterPlay"><i class="fas fa-play"></i></div>
+    <div class="playback-area">
+        <div class="play-btn" id="masterPlay"><i class="fas fa-play"></i></div>
     </div>
 
     <div class="editor-sheet">
         <div class="upload-grid">
-            <div class="upload-btn" onclick="document.getElementById('audioIn').click()">
+            <div class="upload-btn" id="audioTrigger">
                 <i class="fas fa-music"></i> <br> <span id="audioLabel">Musiqa</span>
                 <input type="file" id="audioIn" hidden accept="audio/*">
             </div>
-            <div class="upload-btn" onclick="document.getElementById('lrcIn').click()">
+            <div class="upload-btn" id="lrcTrigger">
                 <i class="fas fa-file-alt"></i> <br> <span id="lrcLabel">LRC Matn</span>
                 <input type="file" id="lrcIn" hidden accept=".lrc">
             </div>
         </div>
 
-        <div class="section-title"><i class="fas fa-sliders"></i> Matn O'lchami</div>
+        <div class="section-title"><i class="fas fa-text-height"></i> Matn Sozlamalari</div>
         <div class="control-group">
-            <div style="display:flex; justify-content:space-between; font-size:12px;">
-                <span>Kattalik</span>
-                <span id="fontSizeDisplay">80px</span>
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom: 8px;">
+                <span>O'lcham</span>
+                <span id="fontSizeVal">80px</span>
             </div>
-            <input type="range" id="fontSizeIn" min="30" max="250" value="80">
+            <input type="range" id="fontSizeIn" min="30" max="220" value="80">
         </div>
 
-        <div class="section-title"><i class="fas fa-wand-magic-sparkles"></i> Effektlar</div>
+        <div class="section-title"><i class="fas fa-magic"></i> Vizual Effektlar</div>
         <div class="scroll-row" id="fxRow">
             <div class="choice-card active" data-fx="highlight">Highlight</div>
             <div class="choice-card" data-fx="minimal">Minimal</div>
-            <div class="choice-card" data-fx="liquid">Liquid</div>
             <div class="choice-card" data-fx="neon">Neon</div>
+            <div class="choice-card" data-fx="liquid">Liquid</div>
             <div class="choice-card" data-fx="glitch">Glitch</div>
         </div>
 
-        <div class="section-title"><i class="fas fa-font"></i> Shriftlar</div>
+        <div class="section-title"><i class="fas fa-font"></i> Shrift Turi</div>
         <div class="scroll-row" id="fontRow">
-            <div class="choice-card active" style="font-family: 'Inter'">Modern</div>
-            <div class="choice-card" style="font-family: 'Unbounded'">Bold</div>
-            <div class="choice-card" style="font-family: 'Playfair Display'">Luxury</div>
-            <div class="choice-card" style="font-family: 'Space Grotesk'">Tech</div>
+            <div class="choice-card active" data-font="'Inter', sans-serif">Modern</div>
+            <div class="choice-card" data-font="'Unbounded', sans-serif">Bold</div>
+            <div class="choice-card" data-font="'Playfair Display', serif">Luxury</div>
+            <div class="choice-card" data-font="'Space Grotesk', sans-serif">Tech</div>
         </div>
 
         <div class="render-area">
-            <button class="btn-glow" id="startRender">VIDEONI SAQLASH VA YUBORISH</button>
+            <button class="btn-main" id="startRender">EKSPORT QILISH</button>
         </div>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const token = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE";
+    const botToken = "8659683353:AAHboju3qieoKA9gSgMgKJtHHUSo12qO6dE";
     tg.expand();
 
     const canvas = document.getElementById('mainCanvas');
@@ -257,26 +265,40 @@
     const audio = new Audio();
     let lyrics = [];
     let currentFx = 'highlight';
-    let currentFont = 'Inter';
+    let currentFont = "'Inter', sans-serif";
     let fontSize = 80;
     
     let trimStart = 0;
     let trimDuration = 15;
 
-    // Trimmer Logikasi
+    // Fayl yuklash triggers
+    document.getElementById('audioTrigger').onclick = () => document.getElementById('audioIn').click();
+    document.getElementById('lrcTrigger').onclick = () => document.getElementById('lrcIn').click();
+
+    // Trimmer funksiyasi
     const trimmer = document.getElementById('trimmer');
     const indicator = document.getElementById('trimmerIndicator');
 
-    trimmer.onclick = (e) => {
-        const rect = trimmer.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const percent = x / rect.width;
-        trimStart = percent * audio.duration;
-        audio.currentTime = trimStart;
-        updateTrimmer();
-    };
+    trimmer.addEventListener('pointerdown', (e) => {
+        const move = (ev) => {
+            const rect = trimmer.getBoundingClientRect();
+            let x = ev.clientX - rect.left;
+            x = Math.max(0, Math.min(x, rect.width - (rect.width * (trimDuration/audio.duration))));
+            const percent = x / rect.width;
+            trimStart = percent * (audio.duration || 0);
+            audio.currentTime = trimStart;
+            updateTrimmerUI();
+        };
+        const stop = () => {
+            window.removeEventListener('pointermove', move);
+            window.removeEventListener('pointerup', stop);
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', stop);
+        move(e);
+    });
 
-    function updateTrimmer() {
+    function updateTrimmerUI() {
         if (!audio.duration) return;
         const startP = (trimStart / audio.duration) * 100;
         const widthP = (trimDuration / audio.duration) * 100;
@@ -284,8 +306,27 @@
         indicator.style.width = widthP + "%";
     }
 
-    const masterPlay = document.getElementById('masterPlay');
-    const fontSizeIn = document.getElementById('fontSizeIn');
+    // Audio va LRC yuklash
+    document.getElementById('audioIn').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        audio.src = URL.createObjectURL(file);
+        audio.onloadedmetadata = () => {
+            document.getElementById('audioLabel').innerText = "OK ✅";
+            updateTrimmerUI();
+        };
+    };
+
+    document.getElementById('lrcIn').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            lyrics = parseLRC(ev.target.result);
+            document.getElementById('lrcLabel').innerText = "OK ✅";
+        };
+        reader.readAsText(file);
+    };
 
     function parseLRC(text) {
         const lines = text.split('\n');
@@ -302,36 +343,24 @@
         return lrc.sort((a,b) => a.time - b.time);
     }
 
-    document.getElementById('audioIn').onchange = (e) => {
-        const file = e.target.files[0];
-        audio.src = URL.createObjectURL(file);
-        audio.onloadedmetadata = () => {
-            document.getElementById('audioLabel').innerText = "Tayyor ✅";
-            updateTrimmer();
-        };
+    // Controls logic
+    document.getElementById('fontSizeIn').oninput = function() {
+        fontSize = this.value;
+        document.getElementById('fontSizeVal').innerText = fontSize + "px";
     };
 
-    document.getElementById('lrcIn').onchange = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            lyrics = parseLRC(ev.target.result);
-            document.getElementById('lrcLabel').innerText = "Tayyor ✅";
-        };
-        reader.readAsText(file);
+    document.getElementById('masterPlay').onclick = () => {
+        if (audio.paused) {
+            audio.play();
+            document.getElementById('masterPlay').innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            audio.pause();
+            document.getElementById('masterPlay').innerHTML = '<i class="fas fa-play"></i>';
+        }
     };
 
-    fontSizeIn.oninput = () => {
-        fontSize = fontSizeIn.value;
-        document.getElementById('fontSizeDisplay').innerText = fontSize + "px";
-    };
-
-    masterPlay.onclick = () => {
-        if (audio.paused) { audio.play(); masterPlay.innerHTML = '<i class="fas fa-pause"></i>'; }
-        else { audio.pause(); masterPlay.innerHTML = '<i class="fas fa-play"></i>'; }
-    };
-
-    function renderFrame() {
+    // Render animatsiyasi
+    function render() {
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -350,78 +379,106 @@
             const elapsed = now - active.time;
 
             if (currentFx === 'highlight') {
-                // Asosiy xira matn
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                 ctx.fillText(active.text, x, y);
                 
-                // Yonuvchi effekt (Aktiv qism)
-                const progress = Math.min(elapsed * 1.5, 1); 
+                const nextTime = lyrics[activeIndex + 1] ? lyrics[activeIndex + 1].time : active.time + 3;
+                const duration = nextTime - active.time;
+                const progress = Math.min(elapsed / duration, 1);
+                
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(0, 0, canvas.width * progress, canvas.height);
                 ctx.clip();
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = 'white';
                 ctx.fillStyle = 'white';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = 'white';
                 ctx.fillText(active.text, x, y);
                 ctx.restore();
             } else if (currentFx === 'minimal') {
                 ctx.fillStyle = 'white';
                 ctx.fillText(active.text, x, y);
             } else if (currentFx === 'neon') {
-                ctx.shadowBlur = 30;
-                ctx.shadowColor = var(--accent);
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#ff0050';
                 ctx.fillStyle = 'white';
                 ctx.fillText(active.text, x, y);
             } else if (currentFx === 'liquid') {
-                const s = 1 + Math.sin(elapsed * 4) * 0.08;
+                const scale = 1 + Math.sin(elapsed * 5) * 0.05;
                 ctx.translate(x, y);
-                ctx.scale(s, s);
+                ctx.scale(scale, scale);
                 ctx.fillStyle = 'white';
                 ctx.fillText(active.text, 0, 0);
             } else if (currentFx === 'glitch') {
                 if (Math.random() > 0.8) {
-                    ctx.fillStyle = var(--accent);
-                    ctx.fillText(active.text, x + 5, y);
+                    ctx.fillStyle = '#ff0050';
+                    ctx.fillText(active.text, x + 4, y);
                 }
                 ctx.fillStyle = 'white';
                 ctx.fillText(active.text, x, y);
             }
             ctx.restore();
+        } else {
+            ctx.fillStyle = '#333';
+            ctx.font = '30px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText("PREVIEW AREA", canvas.width/2, canvas.height/2);
         }
-        requestAnimationFrame(renderFrame);
+        requestAnimationFrame(render);
     }
 
+    // Effekt va Shrift tanlash
+    document.querySelectorAll('.choice-card').forEach(card => {
+        card.onclick = function() {
+            const row = this.parentElement;
+            row.querySelectorAll('.choice-card').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            if (row.id === 'fxRow') currentFx = this.dataset.fx;
+            if (row.id === 'fontRow') currentFont = this.dataset.font;
+            
+            tg.HapticFeedback.impactOccurred('light');
+        };
+    });
+
+    // Eksport va Telegramga yuborish
     document.getElementById('startRender').onclick = async () => {
-        if (!audio.src || lyrics.length === 0) return tg.showAlert("Fayllarni yuklang!");
+        if (!audio.src || lyrics.length === 0) {
+            tg.showAlert("Musiqa va LRC faylini tanlang!");
+            return;
+        }
 
         const status = document.getElementById('renderStatus');
         status.style.display = 'flex';
 
         const stream = canvas.captureStream(30);
-        const audioCtx = new AudioContext();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const dest = audioCtx.createMediaStreamDestination();
         const source = audioCtx.createMediaElementSource(audio);
         source.connect(dest);
         source.connect(audioCtx.destination);
 
         const combined = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
-        const recorder = new MediaRecorder(combined, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8000000 });
+        const recorder = new MediaRecorder(combined, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 6000000 });
         
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            document.getElementById('statusMsg').innerText = "YUBORILMOQDA...";
+            document.getElementById('statusMsg').innerText = "BOTGA YUBORILMOQDA...";
             const blob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user.id);
-            formData.append('video', blob, 'insta_lyric.mp4');
+            formData.append('video', blob, 'lyric_video.mp4');
 
             try {
-                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: formData });
-                tg.showAlert("Tayyor! Botga yuborildi ✅");
+                const res = await fetch(`https://api.telegram.org/bot${botToken}/sendVideo`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if(res.ok) tg.showAlert("Video botga yuborildi! ✅");
+                else tg.showAlert("Yuborishda xato!");
             } catch (err) {
-                tg.showAlert("Xatolik yuz berdi!");
+                tg.showAlert("Tarmoq xatosi!");
             }
             status.style.display = 'none';
         };
@@ -433,20 +490,11 @@
         setTimeout(() => {
             recorder.stop();
             audio.pause();
+            audio.currentTime = trimStart;
         }, trimDuration * 1000);
     };
 
-    document.querySelectorAll('.choice-card').forEach(card => {
-        card.onclick = function() {
-            this.parentElement.querySelectorAll('.choice-card').forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            if (this.dataset.fx) currentFx = this.dataset.fx;
-            if (this.style.fontFamily) currentFont = this.style.fontFamily;
-            tg.HapticFeedback.impactOccurred('light');
-        };
-    });
-
-    renderFrame();
+    render();
 </script>
 </body>
 </html>
