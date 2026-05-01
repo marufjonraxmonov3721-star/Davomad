@@ -400,45 +400,59 @@
             const y = canvas.height / 2;
             const elapsed = now - active.time;
 
-            if (currentFx === 'highlight') {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                ctx.fillText(active.text, x, y);
-                
-                const nextTime = lyrics[activeIndex + 1] ? lyrics[activeIndex + 1].time : active.time + 3;
-                const duration = (nextTime - active.time) / textSpeed;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(0, 0, canvas.width * progress, canvas.height);
-                ctx.clip();
-                ctx.fillStyle = 'white';
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = 'white';
-                ctx.fillText(active.text, x, y);
-                ctx.restore();
-            } else if (currentFx === 'minimal') {
-                ctx.fillStyle = 'white';
-                ctx.fillText(active.text, x, y);
-            } else if (currentFx === 'neon') {
-                ctx.shadowBlur = 25;
-                ctx.shadowColor = '#ff0050';
-                ctx.fillStyle = 'white';
-                ctx.fillText(active.text, x, y);
-            } else if (currentFx === 'liquid') {
-                const scale = 1 + Math.sin(elapsed * 5) * 0.05;
-                ctx.translate(x, y);
-                ctx.scale(scale, scale);
-                ctx.fillStyle = 'white';
-                ctx.fillText(active.text, 0, 0);
-            } else if (currentFx === 'glitch') {
-                if (Math.random() > 0.8) {
-                    ctx.fillStyle = '#ff0050';
-                    ctx.fillText(active.text, x + 4, y);
+            // LRC matnni qatorlarga ajratish
+            const lines = active.text.split('\\n').join('\n').split('\n');
+            const lineHeight = fontSize * 1.2;
+            const totalHeight = lines.length * lineHeight;
+            let startY = y - (totalHeight / 2) + (lineHeight / 2);
+
+            lines.forEach((lineText, index) => {
+                const currentLineY = startY + (index * lineHeight);
+
+                if (currentFx === 'highlight') {
+                    // Orqa fon (shaffof matn)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.fillText(lineText, x, currentLineY);
+                    
+                    const nextTime = lyrics[activeIndex + 1] ? lyrics[activeIndex + 1].time : active.time + 3;
+                    const duration = (nextTime - active.time) / textSpeed;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Oldi fon (yonuvchi qism)
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(0, currentLineY - lineHeight/2, canvas.width * progress, lineHeight);
+                    ctx.clip();
+                    ctx.fillStyle = 'white';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'white';
+                    ctx.fillText(lineText, x, currentLineY);
+                    ctx.restore();
+                } else if (currentFx === 'minimal') {
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(lineText, x, currentLineY);
+                } else if (currentFx === 'neon') {
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = '#ff0050';
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(lineText, x, currentLineY);
+                } else if (currentFx === 'liquid') {
+                    const scale = 1 + Math.sin(elapsed * 5 + index) * 0.05;
+                    ctx.save();
+                    ctx.translate(x, currentLineY);
+                    ctx.scale(scale, scale);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(lineText, 0, 0);
+                    ctx.restore();
+                } else if (currentFx === 'glitch') {
+                    if (Math.random() > 0.8) {
+                        ctx.fillStyle = '#ff0050';
+                        ctx.fillText(lineText, x + 4, currentLineY);
+                    }
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(lineText, x, currentLineY);
                 }
-                ctx.fillStyle = 'white';
-                ctx.fillText(active.text, x, y);
-            }
+            });
             ctx.restore();
         } else {
             ctx.fillStyle = '#333';
