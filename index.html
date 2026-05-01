@@ -281,7 +281,6 @@
         secondaryAlpha: 0.45
     };
 
-    // Font and Effect Selectors
     function setFont(font) {
         currentFont = font;
         document.querySelectorAll('#fontGrid .select-btn').forEach(btn => {
@@ -298,7 +297,6 @@
         tg.HapticFeedback.impactOccurred('light');
     }
 
-    // UI Updates
     fontSizeInput.oninput = () => document.getElementById('fontSizeVal').innerText = fontSizeInput.value + 'px';
     textPositionInput.oninput = () => document.getElementById('textPosVal').innerText = Math.round(textPositionInput.value * 100) + '%';
     startTimeInput.oninput = () => {
@@ -308,7 +306,6 @@
     };
     durationInput.oninput = () => document.getElementById('durationVal').innerText = durationInput.value + 's';
 
-    // Player Logic
     playBtn.onclick = () => {
         if (audioEl.src) {
             if (audioEl.paused) {
@@ -330,37 +327,6 @@
     document.getElementById('prevBtn').onclick = () => {
         audioEl.currentTime = Math.max(0, audioEl.currentTime - 2);
     };
-
-    function applyPreset(name) {
-        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-        if (event) event.target.classList.add('active');
-        
-        switch(name) {
-            case 'neon':
-                currentPreset = { textColor: "#00f2ff", shadowBlur: 40, shadowColor: "#00f2ff", secondaryAlpha: 0.3 };
-                setEffect('neon');
-                break;
-            case 'retro':
-                currentPreset = { textColor: "#ffcc00", shadowBlur: 15, shadowColor: "#ff6600", secondaryAlpha: 0.4 };
-                setFont('Pacifico');
-                break;
-            case 'minimal':
-                currentPreset = { textColor: "#ffffff", shadowBlur: 0, shadowColor: "transparent", secondaryAlpha: 0.2 };
-                setFont('Inter');
-                break;
-            case 'bold':
-                currentPreset = { textColor: "#ff003c", shadowBlur: 50, shadowColor: "#ff003c", secondaryAlpha: 0.3 };
-                setFont('Anton');
-                break;
-            case 'soft':
-                currentPreset = { textColor: "#ff99cc", shadowBlur: 20, shadowColor: "#ffffff", secondaryAlpha: 0.5 };
-                setFont('Dancing Script');
-                break;
-            default:
-                currentPreset = { textColor: "#ffffff", shadowBlur: 30, shadowColor: "rgba(255,255,255,0.9)", secondaryAlpha: 0.45 };
-        }
-        tg.HapticFeedback.impactOccurred('light');
-    }
 
     function adjustOffset(val) {
         lrcOffset += val;
@@ -436,8 +402,6 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Background
         if (bgImage) {
             ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "rgba(0,0,0,0.5)";
@@ -461,7 +425,6 @@
 
         const currentTime = audioEl.currentTime - lrcOffset;
         const currentFontSize = parseInt(fontSizeInput.value);
-        
         let activeIdx = -1;
         for (let i = 0; i < lyrics.length; i++) {
             if (currentTime >= lyrics[i].time) activeIdx = i;
@@ -471,21 +434,15 @@
             const lyric = lyrics[activeIdx];
             const nextTime = lyrics[activeIdx + 1] ? lyrics[activeIdx + 1].time : lyric.time + 3;
             const progress = Math.max(0, Math.min(1, (currentTime - lyric.time) / (nextTime - lyric.time)));
-
             ctx.textAlign = "center";
             ctx.font = `bold ${currentFontSize}px "${currentFont}"`;
             ctx.fillStyle = currentPreset.textColor;
-            
             const x = canvas.width / 2;
             const y = canvas.height * parseFloat(textPositionInput.value);
-
             ctx.save();
             applyVisualEffect(currentEffect, progress, x, y, lyric.text, currentFontSize);
             ctx.restore();
         }
-
-        ctx.globalAlpha = 1.0;
-        ctx.shadowBlur = 0;
         requestAnimationFrame(draw);
     }
 
@@ -562,11 +519,29 @@
         const startTime = parseFloat(startTimeInput.value);
         const duration = parseFloat(durationInput.value);
 
+        // Ovozni yozib olish uchun AudioContext sozlash
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaElementSource(audioEl);
+        const destination = audioContext.createMediaStreamDestination();
+        source.connect(destination);
+        source.connect(audioContext.destination);
+
         audioEl.pause();
         audioEl.currentTime = startTime;
 
         const videoStream = canvas.captureStream(60);
-        const recorder = new MediaRecorder(videoStream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5000000 });
+        const audioStream = destination.stream;
+        
+        // Video va Audioni birlashtirish
+        const combinedStream = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...audioStream.getAudioTracks()
+        ]);
+
+        const recorder = new MediaRecorder(combinedStream, { 
+            mimeType: 'video/webm;codecs=vp9,opus', 
+            videoBitsPerSecond: 5000000 
+        });
         
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
@@ -586,6 +561,7 @@
                 status.innerText = "Xatolik yuz berdi."; 
             }
             isRendering = false;
+            audioContext.close();
         };
 
         recorder.start();
