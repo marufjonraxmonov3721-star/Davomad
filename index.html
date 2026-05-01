@@ -121,7 +121,7 @@
 
     <div class="container">
         <div class="glass-card">
-            <label><i class="fa-solid fa-palette"></i> Fon rangini tanlang</label>
+            <label><i class="fa-solid fa-palette"></i> Fon va Vizual effektlar</label>
             <div class="color-selector" id="colorSelector">
                 <div class="color-option active" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);" data-color1="#000000" data-color2="#1a1a1a"></div>
                 <div class="color-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-color1="#667eea" data-color2="#764ba2"></div>
@@ -130,6 +130,9 @@
             </div>
 
             <label><i class="fa-solid fa-cloud-arrow-up"></i> Fayllarni yuklang</label>
+            <label for="imageUpload" class="file-label"><i class="fa-solid fa-image"></i> <span id="imageName">Fon rasmi (ixtiyoriy)</span></label>
+            <input type="file" id="imageUpload" accept="image/*">
+
             <label for="audioUpload" class="file-label"><i class="fa-solid fa-music"></i> <span id="audioName">Qo'shiq (.mp3)</span></label>
             <input type="file" id="audioUpload" accept="audio/*">
 
@@ -171,7 +174,6 @@
 
         <div class="preview-wrapper" id="previewArea">
             <canvas id="previewCanvas" width="1080" height="1920"></canvas>
-            <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 10px; font-size: 12px;">PREVIEW</div>
         </div>
         
         <button class="btn-main" id="renderBtn">
@@ -194,6 +196,7 @@
 
     const audioInput = document.getElementById('audioUpload');
     const lrcInput = document.getElementById('lrcUpload');
+    const imageInput = document.getElementById('imageUpload');
     const fontSizeInput = document.getElementById('fontSize');
     const startTimeInput = document.getElementById('startTime');
     const durationInput = document.getElementById('duration');
@@ -207,8 +210,24 @@
     let lyrics = [];
     let bgColor1 = "#000000";
     let bgColor2 = "#1a1a1a";
+    let bgImage = null;
 
-    // Timeline yangilanishi
+    // Visualizer uchun o'zgaruvchilar
+    let audioContext, analyser, dataArray;
+    let isContextStarted = false;
+
+    // Particles system
+    const particles = [];
+    for(let i=0; i<50; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 3 + 1,
+            speed: Math.random() * 0.5 + 0.2,
+            opacity: Math.random()
+        });
+    }
+
     startTimeInput.oninput = () => {
         document.getElementById('startTimeVal').innerText = startTimeInput.value + 's';
         audioEl.currentTime = parseFloat(startTimeInput.value);
@@ -221,7 +240,6 @@
         const lines = lrcText.split('\n');
         const result = [];
         const timeExp = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
-
         lines.forEach(line => {
             const matches = line.match(timeExp);
             if (matches) {
@@ -235,6 +253,20 @@
         });
         return result.sort((a, b) => a.time - b.time);
     }
+
+    imageInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => { bgImage = img; };
+                img.src = event.target.result;
+                document.getElementById('imageName').innerText = file.name.substring(0, 20);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     lrcInput.onchange = (e) => {
         const file = e.target.files[0];
@@ -255,165 +287,171 @@
             opt.classList.add('active');
             bgColor1 = opt.dataset.color1;
             bgColor2 = opt.dataset.color2;
-            tg.HapticFeedback.impactOccurred('light');
+            bgImage = null; // Rang tanlansa rasmni o'chirish
         };
     });
 
     audioInput.onchange = (e) => {
         const file = e.target.files[0];
         if(file) {
-            const url = URL.createObjectURL(file);
-            audioEl.src = url;
-            document.getElementById('audioName').innerText = file.name.substring(0, 20);
-            
+            audioEl.src = URL.createObjectURL(file);
             audioEl.onloadedmetadata = () => {
                 startTimeInput.max = audioEl.duration.toFixed(1);
                 document.getElementById('audioTotalTime').innerText = "Jami: " + audioEl.duration.toFixed(1) + "s";
             };
+            initVisualizer();
         }
     };
 
-    function drawFocusLyrics() {
-        let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        bgGrad.addColorStop(0, bgColor1);
-        bgGrad.addColorStop(1, bgColor2);
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function initVisualizer() {
+        if (isContextStarted) return;
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(audioEl);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 128;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        isContextStarted = true;
+    }
 
-        if (lyrics.length === 0) {
-            ctx.fillStyle = "rgba(255,255,255,0.2)";
-            ctx.font = "30px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("Matn yuklanmagan", canvas.width/2, canvas.height/2);
-            return;
+    function drawScene() {
+        // 1. Fon chizish
+        if (bgImage) {
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "rgba(0,0,0,0.5)"; // Rasm ustidan qorong'ulik
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Blur effekti uchun (oddiy canvasda blur qimmat, shuning uchun overlay ishlatamiz)
+            ctx.backdropFilter = "blur(10px)"; 
+        } else {
+            let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, bgColor1);
+            bgGrad.addColorStop(1, bgColor2);
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        const currentTime = audioEl.currentTime;
-        const currentFontSize = parseInt(fontSizeInput.value);
-        
-        let activeIdx = -1;
-        for (let i = 0; i < lyrics.length; i++) {
-            if (currentTime >= lyrics[i].time) activeIdx = i;
-        }
-
-        if (activeIdx === -1) return;
-
-        let group = [];
-        let pairStartIdx = (activeIdx % 2 === 0) ? activeIdx : activeIdx - 1;
-        
-        if (lyrics[pairStartIdx]) group.push({ ...lyrics[pairStartIdx], order: 0, gIdx: pairStartIdx });
-        if (lyrics[pairStartIdx + 1]) group.push({ ...lyrics[pairStartIdx + 1], order: 1, gIdx: pairStartIdx + 1 });
-
-        const centerY = canvas.height * 0.48;
-        const lineSpacing = currentFontSize * 1.8;
-
-        group.forEach((lyric) => {
-            const words = lyric.text.split(' ');
-            const nextTime = lyrics[lyric.gIdx + 1] ? lyrics[lyric.gIdx + 1].time : lyric.time + 3;
-            const duration = nextTime - lyric.time;
-            const lineProgress = Math.max(0, Math.min(1, (currentTime - lyric.time) / duration));
-            const highlightedWordIndex = Math.floor(lineProgress * words.length);
-
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            const drawY = centerY + (lyric.order * lineSpacing);
-
-            ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
-            const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
-            let currentX = (canvas.width - totalWidth) / 2;
-
-            words.forEach((word, wIdx) => {
-                const isCurrentWordLine = (activeIdx === lyric.gIdx);
-                const isWordHighlighted = isCurrentWordLine && wIdx <= highlightedWordIndex;
-
-                if (isWordHighlighted) {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 1.0;
-                    ctx.shadowBlur = 30;
-                    ctx.shadowColor = "rgba(255,255,255,0.9)";
-                } else if (currentTime > lyric.time && !isCurrentWordLine) {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 0.2;
-                    ctx.shadowBlur = 0;
-                } else {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 0.45;
-                    ctx.shadowBlur = 0;
-                }
-
-                const wordWidth = ctx.measureText(word).width;
-                ctx.fillText(word, currentX + wordWidth/2, drawY);
-                currentX += ctx.measureText(word + " ").width;
-            });
+        // 2. Particles (Zarrachalar)
+        ctx.fillStyle = "#fff";
+        particles.forEach(p => {
+            p.y -= p.speed;
+            if(p.y < 0) p.y = canvas.height;
+            ctx.globalAlpha = p.opacity;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+            ctx.fill();
         });
+        ctx.globalAlpha = 1.0;
 
+        // 3. Audio Visualizer
+        if (analyser && !audioEl.paused) {
+            analyser.getByteFrequencyData(dataArray);
+            const barWidth = (canvas.width / dataArray.length) * 2;
+            let x = 0;
+            for(let i=0; i < dataArray.length; i++) {
+                let barHeight = dataArray[i] * 1.5;
+                ctx.fillStyle = `rgba(255, 255, 255, ${dataArray[i]/255 * 0.5})`;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+                x += barWidth;
+            }
+        }
+
+        // 4. Lyrics
+        if (lyrics.length > 0) {
+            const currentTime = audioEl.currentTime;
+            const currentFontSize = parseInt(fontSizeInput.value);
+            let activeIdx = -1;
+            for (let i = 0; i < lyrics.length; i++) {
+                if (currentTime >= lyrics[i].time) activeIdx = i;
+            }
+
+            if (activeIdx !== -1) {
+                let group = [];
+                let pairStartIdx = (activeIdx % 2 === 0) ? activeIdx : activeIdx - 1;
+                if (lyrics[pairStartIdx]) group.push({ ...lyrics[pairStartIdx], order: 0, gIdx: pairStartIdx });
+                if (lyrics[pairStartIdx + 1]) group.push({ ...lyrics[pairStartIdx + 1], order: 1, gIdx: pairStartIdx + 1 });
+
+                const centerY = canvas.height * 0.45;
+                const lineSpacing = currentFontSize * 1.8;
+
+                group.forEach((lyric) => {
+                    const words = lyric.text.split(' ');
+                    const nextTime = lyrics[lyric.gIdx + 1] ? lyrics[lyric.gIdx + 1].time : lyric.time + 3;
+                    const duration = nextTime - lyric.time;
+                    const lineProgress = Math.max(0, Math.min(1, (currentTime - lyric.time) / duration));
+                    const highlightedWordIndex = Math.floor(lineProgress * words.length);
+
+                    ctx.textAlign = "center";
+                    ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
+                    const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
+                    let currentX = (canvas.width - totalWidth) / 2;
+
+                    words.forEach((word, wIdx) => {
+                        const isActive = (activeIdx === lyric.gIdx && wIdx <= highlightedWordIndex);
+                        ctx.globalAlpha = isActive ? 1.0 : 0.3;
+                        if(isActive) {
+                            ctx.shadowBlur = 20;
+                            ctx.shadowColor = "#fff";
+                        } else {
+                            ctx.shadowBlur = 0;
+                        }
+                        ctx.fillStyle = "#fff";
+                        const wWidth = ctx.measureText(word).width;
+                        ctx.fillText(word, currentX + wWidth/2, centerY + (lyric.order * lineSpacing));
+                        currentX += ctx.measureText(word + " ").width;
+                    });
+                });
+            }
+        }
         ctx.globalAlpha = 1.0;
         ctx.shadowBlur = 0;
     }
 
     function animate() {
-        drawFocusLyrics();
+        drawScene();
         requestAnimationFrame(animate);
     }
     animate();
 
     document.getElementById('renderBtn').onclick = async () => {
-        if (!audioInput.files[0] || lyrics.length === 0) {
-            tg.HapticFeedback.notificationOccurred('error');
-            return tg.showPopup({message: "Audio va LRC yuklang!"});
-        }
+        if (!audioInput.files[0] || lyrics.length === 0) return tg.showPopup({message: "Audio va LRC yuklang!"});
         
         const startTime = parseFloat(startTimeInput.value);
         const duration = parseFloat(durationInput.value);
         const quality = document.getElementById('videoQuality').value;
 
-        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video sinxronizatsiya qilinmoqda...';
-        tg.HapticFeedback.impactOccurred('medium');
+        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VFX yuklanmoqda...';
+        
+        const stream = canvas.captureStream(60);
+        const audioStream = audioContext.createMediaStreamDestination();
+        const source = audioContext.createMediaElementSource(audioEl);
+        source.connect(audioStream);
+        source.connect(audioContext.destination);
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaElementSource(audioEl);
-        const dest = audioCtx.createMediaStreamDestination();
-        source.connect(dest);
-        source.connect(audioCtx.destination);
-
-        const videoStream = canvas.captureStream(60);
-        const combinedStream = new MediaStream([
-            ...videoStream.getVideoTracks(),
-            ...dest.stream.getAudioTracks()
-        ]);
-
-        const recorder = new MediaRecorder(combinedStream, { 
-            mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: parseInt(quality)
-        });
+        const combined = new MediaStream([...stream.getVideoTracks(), ...audioStream.stream.getAudioTracks()]);
+        const recorder = new MediaRecorder(combined, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: parseInt(quality) });
         
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            const videoBlob = new Blob(chunks, { type: 'video/mp4' });
-            const formData = new FormData();
-            formData.append('chat_id', tg.initDataUnsafe.user?.id);
-            formData.append('video', videoBlob, 'insta_lyric.mp4');
-            formData.append('caption', "⚡️ InstaCaption orqali tayyorlandi");
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const fd = new FormData();
+            fd.append('chat_id', tg.initDataUnsafe.user?.id);
+            fd.append('video', blob, 'vfx_lyric.mp4');
+            fd.append('caption', "✨ Dynamic VFX Lyric Video");
 
             try {
-                status.innerHTML = 'Telegramga yuborilmoqda...';
-                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: formData });
-                status.innerHTML = 'Muvaffaqiyatli! ✅';
-                tg.HapticFeedback.notificationOccurred('success');
-            } catch (err) { status.innerText = "Xatolik yuz berdi!"; }
+                status.innerHTML = 'Yuborilmoqda...';
+                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: fd });
+                status.innerHTML = 'Tayyor! ✅';
+            } catch (e) { status.innerText = "Xatolik!"; }
         };
 
         audioEl.currentTime = startTime;
         audioEl.play();
         recorder.start();
-
-        setTimeout(() => {
-            recorder.stop();
-            audioEl.pause();
-        }, duration * 1000);
+        setTimeout(() => { recorder.stop(); audioEl.pause(); }, duration * 1000);
     };
 </script>
-
 </body>
 </html>
