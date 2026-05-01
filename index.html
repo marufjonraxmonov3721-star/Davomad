@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InstaCaption Pro | Colors Edition</title>
+    <title>InstaCaption Pro | Lyric Focus</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -50,7 +50,6 @@
 
         label { display: block; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: #e4e4e7; }
 
-        /* Rangli fonlar selektori */
         .color-selector { display: flex; gap: 12px; overflow-x: auto; padding: 5px 0 15px; scrollbar-width: none; }
         .color-selector::-webkit-scrollbar { display: none; }
         .color-option { 
@@ -113,18 +112,16 @@
 
     <div class="header">
         <h1>InstaCaption</h1>
-        <p>Rangli fon va sinxron matnlar</p>
+        <p>Dynamic Focus Lyric Video</p>
     </div>
 
     <div class="container">
         <div class="glass-card">
-            <label><i class="fa-solid fa-palette"></i> Orqa fon rangini tanlang</label>
+            <label><i class="fa-solid fa-palette"></i> Fon rangini tanlang</label>
             <div class="color-selector" id="colorSelector">
-                <div class="color-option active" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-color1="#667eea" data-color2="#764ba2"></div>
-                <div class="color-option" style="background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);" data-color1="#ff9a9e" data-color2="#fad0c4"></div>
-                <div class="color-option" style="background: linear-gradient(135deg, #2af598 0%, #009efd 100%);" data-color1="#2af598" data-color2="#009efd"></div>
-                <div class="color-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-color1="#f093fb" data-color2="#f5576c"></div>
-                <div class="color-option" style="background: #000000;" data-color1="#000000" data-color2="#1a1a1a"></div>
+                <div class="color-option active" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);" data-color1="#000000" data-color2="#1a1a1a"></div>
+                <div class="color-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-color1="#667eea" data-color2="#764ba2"></div>
+                <div class="color-option" style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);" data-color1="#f5576c" data-color2="#f093fb"></div>
                 <div class="color-option" style="background: linear-gradient(135deg, #434343 0%, #000000 100%);" data-color1="#434343" data-color2="#000000"></div>
             </div>
 
@@ -138,7 +135,7 @@
         </div>
 
         <div class="glass-card">
-            <label><i class="fa-solid fa-scissors"></i> Qo'shiqni qirqish va Sifat</label>
+            <label><i class="fa-solid fa-scissors"></i> Qirqish va Sifat</label>
             <div class="trim-box">
                 <div class="row">
                     <div class="input-group">
@@ -193,30 +190,9 @@
     let audioEl = new Audio();
     audioEl.crossOrigin = "anonymous";
     let lyrics = [];
-    let currentText = "";
-    let bgColor1 = "#667eea";
-    let bgColor2 = "#764ba2";
-
-    function wrapText(context, text, x, y, maxWidth, lineHeight) {
-        let words = text.split(' ');
-        let line = '';
-        let lines = [];
-
-        for (let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            let metrics = context.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-                lines.push(line);
-                line = words[n] + ' ';
-            } else { line = testLine; }
-        }
-        lines.push(line);
-
-        let startY = y - ((lines.length - 1) * lineHeight) / 2;
-        lines.forEach((l, i) => {
-            context.fillText(l.trim(), x, startY + (i * lineHeight));
-        });
-    }
+    let currentLyricIndex = -1;
+    let bgColor1 = "#000000";
+    let bgColor2 = "#1a1a1a";
 
     function parseLRC(lrcText) {
         const lines = lrcText.split('\n');
@@ -230,7 +206,7 @@
                 matches.forEach(m => {
                     const parts = m.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
                     const time = parseInt(parts[1]) * 60 + parseInt(parts[2]) + parseInt(parts[3]) / 100;
-                    result.push({ time, text });
+                    if(text) result.push({ time, text });
                 });
             }
         });
@@ -268,46 +244,74 @@
         }
     };
 
-    function updateLyrics(currentTime) {
-        const active = lyrics.filter(l => l.time <= currentTime).pop();
-        currentText = active ? active.text : "";
-    }
-
-    function drawFrame() {
-        // Fonni chizish (Gradient)
+    function drawFocusLyrics() {
+        // Fon
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, bgColor1);
         bgGrad.addColorStop(1, bgColor2);
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Qorong'ulashtirish (Pastki qism uchun)
-        let shadow = ctx.createLinearGradient(0, canvas.height * 0.6, 0, canvas.height);
-        shadow.addColorStop(0, "transparent");
-        shadow.addColorStop(1, "rgba(0,0,0,0.4)");
-        ctx.fillStyle = shadow;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Matnni chizish
-        ctx.fillStyle = "white";
-        ctx.font = "bold 65px 'SF Pro Display'";
-        ctx.textAlign = "center";
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        
-        if (currentText) {
-            wrapText(ctx, currentText, canvas.width / 2, canvas.height / 2, canvas.width - 150, 90);
+        if (lyrics.length === 0) return;
+
+        const currentTime = audioEl.currentTime;
+        let activeIdx = -1;
+        for (let i = 0; i < lyrics.length; i++) {
+            if (currentTime >= lyrics[i].time) activeIdx = i;
         }
 
-        requestAnimationFrame(drawFrame);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const lineHeight = 100;
+
+        // Faqat joriy va keyingi qatorni ko'rsatish (Focus effekti)
+        [activeIdx, activeIdx + 1].forEach((idx, pos) => {
+            if (idx >= 0 && idx < lyrics.length) {
+                const isCurrent = (idx === activeIdx);
+                const lyric = lyrics[idx];
+                
+                // Effekt sozlamalari
+                ctx.textAlign = "left";
+                const startX = 100;
+                const drawY = centerY + (pos * lineHeight) - 50;
+
+                // So'zlarni ajratish
+                const words = lyric.text.split(' ');
+                let currentX = startX;
+
+                words.forEach(word => {
+                    ctx.font = isCurrent ? "bold 75px 'SF Pro Display'" : "500 55px 'SF Pro Display'";
+                    
+                    // Rang: aytilayotgan qator yorqin, qolganlari xira
+                    if (isCurrent) {
+                        ctx.fillStyle = "white";
+                        ctx.globalAlpha = 1.0;
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = "rgba(255,255,255,0.3)";
+                    } else {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.globalAlpha = 0.2; // Yashirin/Xira holati
+                        ctx.shadowBlur = 0;
+                    }
+
+                    ctx.fillText(word, currentX, drawY);
+                    currentX += ctx.measureText(word + " ").width;
+                });
+            }
+        });
+        ctx.globalAlpha = 1.0;
     }
 
-    drawFrame();
+    function animate() {
+        drawFocusLyrics();
+        requestAnimationFrame(animate);
+    }
+    animate();
 
     document.getElementById('renderBtn').onclick = async () => {
         if (!audioInput.files[0] || lyrics.length === 0) {
             tg.HapticFeedback.notificationOccurred('error');
-            return tg.showPopup({message: "Iltimos, audio va LRC faylni tanlang!"});
+            return tg.showPopup({message: "Iltimos, audio va LRC yuklang!"});
         }
         
         const startTime = parseFloat(document.getElementById('startTime').value);
@@ -315,7 +319,7 @@
         const quality = document.getElementById('videoQuality').value;
 
         tg.HapticFeedback.impactOccurred('medium');
-        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video ishlanmoqda...';
+        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video tayyorlanmoqda...';
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioCtx.createMediaElementSource(audioEl);
@@ -336,42 +340,28 @@
         
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
-        
         recorder.onstop = async () => {
             const videoBlob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user?.id);
-            formData.append('video', videoBlob, 'lyric_video.mp4');
-            formData.append('caption', "✨ InstaCaption orqali tayyorlandi");
+            formData.append('video', videoBlob, 'focus_lyrics.mp4');
+            formData.append('caption', "🔥 Fokus effektli video tayyor!");
 
             try {
                 status.innerHTML = 'Telegramga yuborilmoqda...';
-                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
-                    method: 'POST',
-                    body: formData
-                });
-                status.innerHTML = 'Tayyor! ✅';
+                await fetch(`https://api.telegram.org/bot${token}/sendVideo`, { method: 'POST', body: formData });
+                status.innerHTML = 'Muvaffaqiyatli! ✅';
                 tg.HapticFeedback.notificationOccurred('success');
-                
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(videoBlob);
-                a.download = "video.mp4";
-                a.click();
-            } catch (err) { status.innerText = "Xatolik yuz berdi!"; }
+            } catch (err) { status.innerText = "Yuborishda xatolik!"; }
         };
 
         audioEl.currentTime = startTime;
         audioEl.play();
         recorder.start();
 
-        const renderInterval = setInterval(() => {
-            updateLyrics(audioEl.currentTime);
-        }, 50);
-
         setTimeout(() => {
             recorder.stop();
             audioEl.pause();
-            clearInterval(renderInterval);
         }, duration * 1000);
     };
 </script>
