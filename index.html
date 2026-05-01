@@ -253,7 +253,7 @@
     };
 
     function drawFocusLyrics() {
-        // Fonni chizish
+        // Fon
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, bgColor1);
         bgGrad.addColorStop(1, bgColor2);
@@ -265,7 +265,7 @@
         const currentTime = audioEl.currentTime;
         const currentFontSize = parseInt(fontSizeInput.value);
         
-        // Hozirgi faol qatorni topish
+        // Hozirgi faol indexni topish
         let activeIdx = -1;
         for (let i = 0; i < lyrics.length; i++) {
             if (currentTime >= lyrics[i].time) activeIdx = i;
@@ -273,57 +273,66 @@
 
         if (activeIdx === -1) return;
 
-        // "Group" qilish: Agar qatorlar bir vaqtda yoki ketma-ket chiqishi kerak bo'lsa
-        // Biz hozirgi va keyingi qatorni birga guruhlaymiz (Double Line Focus)
+        // Ikkita qatorni ko'rsatish mantiqi: 
+        // Agar activeIdx juft bo'lsa (0, 2, 4...) -> u tepada, keyingisi pastda.
+        // Agar activeIdx toq bo'lsa (1, 3, 5...) -> u pastda, oldingisi tepada.
         let group = [];
+        let isFirstLineActive = (activeIdx % 2 === 0);
         
-        // Agar joriy qator juft bo'lsa, u va undan keyingisini olamiz
-        // Bu mantiq "Qatga bormasam..." va "Har kuni rasmga..." birga ko'rinishini ta'minlaydi
-        let startIdx = activeIdx % 2 === 0 ? activeIdx : activeIdx - 1;
+        let pairStartIdx = isFirstLineActive ? activeIdx : activeIdx - 1;
         
-        if (lyrics[startIdx]) group.push({ ...lyrics[startIdx], pos: 0 });
-        if (lyrics[startIdx + 1]) group.push({ ...lyrics[startIdx + 1], pos: 1 });
+        if (lyrics[pairStartIdx]) group.push({ ...lyrics[pairStartIdx], order: 0 });
+        if (lyrics[pairStartIdx + 1]) group.push({ ...lyrics[pairStartIdx + 1], order: 1 });
 
-        const centerY = canvas.height * 0.48; // Biroq yuqoriroq markaz
-        const lineSpacing = currentFontSize * 1.6;
+        const centerY = canvas.height * 0.48;
+        const lineSpacing = currentFontSize * 1.8;
 
         group.forEach((lyric) => {
             const words = lyric.text.split(' ');
-            const nextIdxInLyrics = lyrics.findIndex(l => l.time === lyric.time) + 1;
-            const nextTime = lyrics[nextIdxInLyrics] ? lyrics[nextIdxInLyrics].time : (lyric.time + 3);
             
-            const lineDuration = nextTime - lyric.time;
-            const progress = (currentTime - lyric.time) / lineDuration;
-            const highlightedWordIndex = Math.floor(progress * words.length);
+            // Haqiqiy qator davomiyligini hisoblash (keyingi qator vaqtigacha)
+            const globalIdx = lyrics.findIndex(l => l.time === lyric.time);
+            const nextTime = lyrics[globalIdx + 1] ? lyrics[globalIdx + 1].time : lyric.time + 2.5;
+            const duration = nextTime - lyric.time;
+            
+            // Musiqaga mos progress (so'zlar yonishi uchun)
+            const lineProgress = Math.max(0, Math.min(1, (currentTime - lyric.time) / duration));
+            const highlightedWordIndex = Math.floor(lineProgress * words.length);
 
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            const drawY = centerY + (lyric.pos * lineSpacing);
+            const drawY = centerY + (lyric.order * lineSpacing);
 
-            // Matn o'lchamini hisoblash
             ctx.font = `700 ${currentFontSize}px 'SF Pro Display'`;
+            
+            // Markazlash uchun umumiy kenglik
             const totalWidth = words.reduce((acc, word) => acc + ctx.measureText(word + " ").width, 0);
             let currentX = (canvas.width - totalWidth) / 2;
 
             words.forEach((word, wIdx) => {
-                const isLineActive = (currentTime >= lyric.time && currentTime < nextTime);
-                const isWordActive = isLineActive && wIdx <= highlightedWordIndex;
+                const isCurrentActiveLine = (activeIdx === globalIdx);
+                const isWordHighlighted = isCurrentActiveLine && wIdx <= highlightedWordIndex;
 
-                if (isWordActive) {
+                if (isWordHighlighted) {
+                    // Yonayotgan so'z
                     ctx.fillStyle = "#ffffff";
                     ctx.globalAlpha = 1.0;
-                    ctx.shadowBlur = 30;
-                    ctx.shadowColor = "rgba(255,255,255,0.9)";
-                } else {
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = "rgba(255,255,255,0.8)";
+                } else if (currentTime > lyric.time && !isCurrentActiveLine) {
+                    // O'tib ketgan qator
                     ctx.fillStyle = "#ffffff";
-                    ctx.globalAlpha = 0.25; // Yonmagan so'zlar xira
+                    ctx.globalAlpha = 0.2;
+                    ctx.shadowBlur = 0;
+                } else {
+                    // Kelayotgan qator yoki joriy qatordagi hali aytilmagan so'zlar
+                    ctx.fillStyle = "#ffffff";
+                    ctx.globalAlpha = 0.4;
                     ctx.shadowBlur = 0;
                 }
 
-                // Agar bu qator hali kelmagan bo'lsa juda xira bo'ladi
-                if (currentTime < lyric.time) ctx.globalAlpha = 0.1;
-
-                ctx.fillText(word, currentX + ctx.measureText(word).width/2, drawY);
+                const wordWidth = ctx.measureText(word).width;
+                ctx.fillText(word, currentX + wordWidth/2, drawY);
                 currentX += ctx.measureText(word + " ").width;
             });
         });
