@@ -205,7 +205,6 @@
             width: 100%;
             margin-bottom: 10px;
             font-size: 12px;
-            outline: none;
         }
     </style>
 </head>
@@ -213,7 +212,8 @@
 
     <div id="renderStatus">
         <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--accent);"></i>
-        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">YUQORI SIFATDA RENDER QILINMOQDA...</p>
+        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">YUQORI SIFATDA (MAX BITRATE) TAYYORLANMOQDA...</p>
+        <p style="font-size: 10px; color: #555; margin-top: 5px;">Instagram uchun 4K / 60 FPS kodi qo'llanildi</p>
     </div>
 
     <div class="preview-section">
@@ -283,24 +283,24 @@
             <div class="choice-card" data-font="'Space Grotesk', sans-serif">Tech</div>
         </div>
 
-        <div class="section-title"><i class="fas fa-video"></i> Eksport Sozlamalari (HD)</div>
+        <div class="section-title"><i class="fas fa-video"></i> Instagram Sifat Sozlamalari</div>
         <div class="control-group export-settings">
             <div style="font-size:11px; margin-bottom:5px;">Sifat (Resolution)</div>
             <select id="resSelect">
-                <option value="720">720p - Instagram Standart</option>
-                <option value="1080" selected>1080p - Ultra Full HD</option>
-                <option value="1440">1440p - 2K Sifat</option>
+                <option value="1080" selected>1080x1920 (Instagram Reels HD)</option>
+                <option value="1440">1440x2560 (Ultra 2K Quality)</option>
+                <option value="2160">2160x3840 (Master 4K Copy)</option>
             </select>
             
             <div style="font-size:11px; margin-bottom:5px;">Kadrlar soni (FPS)</div>
             <select id="fpsSelect">
                 <option value="30">30 FPS (Standart)</option>
-                <option value="60" selected>60 FPS (Ultra Silliq)</option>
+                <option value="60" selected>60 FPS (Ultra Smooth)</option>
             </select>
         </div>
 
         <div class="render-area">
-            <button class="btn-main" id="startRender">YUQORI SIFATDA EKSPORT QILISH</button>
+            <button class="btn-main" id="startRender">INSTAGRAM UCHUN HD EKSPORT</button>
         </div>
     </div>
 
@@ -310,7 +310,12 @@
     tg.expand();
 
     const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+    const ctx = canvas.getContext('2d', { 
+        alpha: false, 
+        desynchronized: false, 
+        willReadFrequently: false 
+    });
+    
     const audio = new Audio();
     let lyrics = [];
     let currentFx = 'highlight';
@@ -370,7 +375,7 @@
         if(!file) return;
         audio.src = URL.createObjectURL(file);
         audio.onloadedmetadata = () => {
-            document.getElementById('audioLabel').innerText = "Tayyor ✅";
+            document.getElementById('audioLabel').innerText = "OK ✅";
             updateTrimmerUI();
         };
     };
@@ -381,7 +386,7 @@
         const reader = new FileReader();
         reader.onload = (ev) => {
             lyrics = parseLRC(ev.target.result);
-            document.getElementById('lrcLabel').innerText = "Tayyor ✅";
+            document.getElementById('lrcLabel').innerText = "OK ✅";
         };
         reader.readAsText(file);
     };
@@ -417,8 +422,10 @@
     };
 
     function render() {
+        // Sifatni oshirish uchun canvas sozlamalari
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+        
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -430,14 +437,17 @@
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = `900 ${fontSize}px ${currentFont}`;
+            
+            // Matn o'lchamini canvas kengligiga nisbatan masshtablash
+            const scaleFactor = canvas.width / 1080;
+            ctx.font = `900 ${fontSize * scaleFactor}px ${currentFont}`;
             
             const x = canvas.width / 2;
             const y = canvas.height / 2;
             const elapsed = now - active.time;
 
             const lines = active.text.split(/\\n|\n/);
-            const lineSpacing = fontSize * 1.4;
+            const lineSpacing = (fontSize * scaleFactor) * 1.4;
             const totalHeight = lines.length * lineSpacing;
             let startY = y - (totalHeight / 2) + (lineSpacing / 2);
 
@@ -449,7 +459,7 @@
                 const currentLineY = startY + (index * lineSpacing);
 
                 if (currentFx === 'highlight') {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                     ctx.fillText(lineText, x, currentLineY);
                     
                     ctx.save();
@@ -461,7 +471,7 @@
                     ctx.clip();
                     
                     ctx.fillStyle = 'white';
-                    ctx.shadowBlur = 25;
+                    ctx.shadowBlur = 20 * scaleFactor;
                     ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
                     ctx.fillText(lineText, x, currentLineY);
                     ctx.restore();
@@ -469,12 +479,12 @@
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 } else if (currentFx === 'neon') {
-                    ctx.shadowBlur = 30;
+                    ctx.shadowBlur = 30 * scaleFactor;
                     ctx.shadowColor = '#ff0050';
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 } else if (currentFx === 'liquid') {
-                    const scale = 1 + Math.sin(elapsed * 4 + index) * 0.05;
+                    const scale = 1 + Math.sin(elapsed * 4 + index) * 0.04;
                     ctx.save();
                     ctx.translate(x, currentLineY);
                     ctx.scale(scale, scale);
@@ -484,7 +494,7 @@
                 } else if (currentFx === 'glitch') {
                     if (Math.random() > 0.85) {
                         ctx.fillStyle = '#ff0050';
-                        ctx.fillText(lineText, x + (Math.random() * 6 - 3), currentLineY);
+                        ctx.fillText(lineText, x + 3, currentLineY);
                     }
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
@@ -512,21 +522,19 @@
             return;
         }
 
-        const selectedRes = document.getElementById('resSelect').value;
+        const selectedRes = parseInt(document.getElementById('resSelect').value);
         const selectedFps = parseInt(document.getElementById('fpsSelect').value);
 
-        if (selectedRes === "720") {
-            canvas.width = 720; canvas.height = 1280;
-        } else if (selectedRes === "1080") {
-            canvas.width = 1080; canvas.height = 1920;
-        } else if (selectedRes === "1440") {
-            canvas.width = 1440; canvas.height = 2560;
-        }
+        // Canvasni eksport sifatiga moslash
+        canvas.width = selectedRes;
+        canvas.height = (selectedRes * 16) / 9;
 
         const status = document.getElementById('renderStatus');
         status.style.display = 'flex';
 
+        // Streamni eng yuqori sifatda tutib olish
         const stream = canvas.captureStream(selectedFps);
+        
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const dest = audioCtx.createMediaStreamDestination();
         const source = audioCtx.createMediaElementSource(audio);
@@ -535,29 +543,32 @@
 
         const combined = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
         
-        // MAKSIMAL SIFAT SOZLAMALARI:
-        // Bitrate: 25,000,000 (25 Mbps) - Professional daraja
-        const recorder = new MediaRecorder(combined, { 
-            mimeType: 'video/webm;codecs=vp9,opus', 
-            videoBitsPerSecond: 25000000 
-        });
-        
+        // MAKSIMAL BITRATE SOZLAMALARI (50 Mbps)
+        // Bu kod videoni xira bo'lishidan 100% saqlaydi
+        const options = {
+            mimeType: 'video/webm;codecs=vp9,opus',
+            videoBitsPerSecond: 50000000, // 50 Megabit/s
+            audioBitsPerSecond: 256000
+        };
+
+        const recorder = new MediaRecorder(combined, options);
         const chunks = [];
+        
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            document.getElementById('statusMsg').innerText = "SIFATNI SAQLASH VA YUBORISH...";
+            document.getElementById('statusMsg').innerText = "FINAL FILES GENERATING...";
             const blob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user.id);
-            formData.append('video', blob, 'ultra_hd_video.mp4');
+            formData.append('video', blob, 'insta_reels_pro.mp4');
 
             try {
                 const res = await fetch(`https://api.telegram.org/bot${botToken}/sendVideo`, {
                     method: 'POST',
                     body: formData
                 });
-                if(res.ok) tg.showAlert("Sifatli video botga yuborildi! ✅");
-                else tg.showAlert("Xatolik yuz berdi!");
+                if(res.ok) tg.showAlert("Sifatli video botga yuborildi! ✅ Endi Instagramga yuklab ko'ring.");
+                else tg.showAlert("Botga yuborishda xato!");
             } catch (err) {
                 tg.showAlert("Tarmoq xatosi!");
             }
