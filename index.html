@@ -205,6 +205,7 @@
             width: 100%;
             margin-bottom: 10px;
             font-size: 12px;
+            outline: none;
         }
     </style>
 </head>
@@ -212,7 +213,7 @@
 
     <div id="renderStatus">
         <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--accent);"></i>
-        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">VIDEO TAYYORLANMOQDA...</p>
+        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">YUQORI SIFATDA RENDER QILINMOQDA...</p>
     </div>
 
     <div class="preview-section">
@@ -282,24 +283,24 @@
             <div class="choice-card" data-font="'Space Grotesk', sans-serif">Tech</div>
         </div>
 
-        <div class="section-title"><i class="fas fa-video"></i> Eksport Sifati</div>
+        <div class="section-title"><i class="fas fa-video"></i> Eksport Sozlamalari (HD)</div>
         <div class="control-group export-settings">
             <div style="font-size:11px; margin-bottom:5px;">Sifat (Resolution)</div>
             <select id="resSelect">
-                <option value="720">720p (Recommended)</option>
-                <option value="1080" selected>1080p (High Quality)</option>
-                <option value="1440">2K (Ultra)</option>
+                <option value="720">720p - Instagram Standart</option>
+                <option value="1080" selected>1080p - Ultra Full HD</option>
+                <option value="1440">1440p - 2K Sifat</option>
             </select>
             
             <div style="font-size:11px; margin-bottom:5px;">Kadrlar soni (FPS)</div>
             <select id="fpsSelect">
-                <option value="30" selected>30 FPS (Standard)</option>
-                <option value="60">60 FPS (Super Smooth)</option>
+                <option value="30">30 FPS (Standart)</option>
+                <option value="60" selected>60 FPS (Ultra Silliq)</option>
             </select>
         </div>
 
         <div class="render-area">
-            <button class="btn-main" id="startRender">EKSPORT QILISH</button>
+            <button class="btn-main" id="startRender">YUQORI SIFATDA EKSPORT QILISH</button>
         </div>
     </div>
 
@@ -309,7 +310,7 @@
     tg.expand();
 
     const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     const audio = new Audio();
     let lyrics = [];
     let currentFx = 'highlight';
@@ -369,7 +370,7 @@
         if(!file) return;
         audio.src = URL.createObjectURL(file);
         audio.onloadedmetadata = () => {
-            document.getElementById('audioLabel').innerText = "OK ✅";
+            document.getElementById('audioLabel').innerText = "Tayyor ✅";
             updateTrimmerUI();
         };
     };
@@ -380,7 +381,7 @@
         const reader = new FileReader();
         reader.onload = (ev) => {
             lyrics = parseLRC(ev.target.result);
-            document.getElementById('lrcLabel').innerText = "OK ✅";
+            document.getElementById('lrcLabel').innerText = "Tayyor ✅";
         };
         reader.readAsText(file);
     };
@@ -416,6 +417,8 @@
     };
 
     function render() {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -458,20 +461,20 @@
                     ctx.clip();
                     
                     ctx.fillStyle = 'white';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
                     ctx.fillText(lineText, x, currentLineY);
                     ctx.restore();
                 } else if (currentFx === 'minimal') {
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 } else if (currentFx === 'neon') {
-                    ctx.shadowBlur = 20;
+                    ctx.shadowBlur = 30;
                     ctx.shadowColor = '#ff0050';
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 } else if (currentFx === 'liquid') {
-                    const scale = 1 + Math.sin(elapsed * 4 + index) * 0.04;
+                    const scale = 1 + Math.sin(elapsed * 4 + index) * 0.05;
                     ctx.save();
                     ctx.translate(x, currentLineY);
                     ctx.scale(scale, scale);
@@ -481,18 +484,13 @@
                 } else if (currentFx === 'glitch') {
                     if (Math.random() > 0.85) {
                         ctx.fillStyle = '#ff0050';
-                        ctx.fillText(lineText, x + 3, currentLineY);
+                        ctx.fillText(lineText, x + (Math.random() * 6 - 3), currentLineY);
                     }
                     ctx.fillStyle = 'white';
                     ctx.fillText(lineText, x, currentLineY);
                 }
             });
             ctx.restore();
-        } else {
-            ctx.fillStyle = '#222';
-            ctx.font = '24px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText("PREVIEW", canvas.width/2, canvas.height/2);
         }
         requestAnimationFrame(render);
     }
@@ -517,16 +515,12 @@
         const selectedRes = document.getElementById('resSelect').value;
         const selectedFps = parseInt(document.getElementById('fpsSelect').value);
 
-        // Sifatni o'zgartirish (Canvas o'lchamini yangilash)
         if (selectedRes === "720") {
-            canvas.width = 720;
-            canvas.height = 1280;
+            canvas.width = 720; canvas.height = 1280;
         } else if (selectedRes === "1080") {
-            canvas.width = 1080;
-            canvas.height = 1920;
+            canvas.width = 1080; canvas.height = 1920;
         } else if (selectedRes === "1440") {
-            canvas.width = 1440;
-            canvas.height = 2560;
+            canvas.width = 1440; canvas.height = 2560;
         }
 
         const status = document.getElementById('renderStatus');
@@ -541,28 +535,29 @@
 
         const combined = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
         
-        // Instagram uchun maksimal bitrate (10-15 Mbps)
+        // MAKSIMAL SIFAT SOZLAMALARI:
+        // Bitrate: 25,000,000 (25 Mbps) - Professional daraja
         const recorder = new MediaRecorder(combined, { 
-            mimeType: 'video/webm;codecs=vp9', 
-            videoBitsPerSecond: 15000000 
+            mimeType: 'video/webm;codecs=vp9,opus', 
+            videoBitsPerSecond: 25000000 
         });
         
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            document.getElementById('statusMsg').innerText = "BOTGA YUBORILMOQDA...";
+            document.getElementById('statusMsg').innerText = "SIFATNI SAQLASH VA YUBORISH...";
             const blob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user.id);
-            formData.append('video', blob, 'lyric_video.mp4');
+            formData.append('video', blob, 'ultra_hd_video.mp4');
 
             try {
                 const res = await fetch(`https://api.telegram.org/bot${botToken}/sendVideo`, {
                     method: 'POST',
                     body: formData
                 });
-                if(res.ok) tg.showAlert("Video botga yuborildi! ✅");
-                else tg.showAlert("Yuborishda xato!");
+                if(res.ok) tg.showAlert("Sifatli video botga yuborildi! ✅");
+                else tg.showAlert("Xatolik yuz berdi!");
             } catch (err) {
                 tg.showAlert("Tarmoq xatosi!");
             }
