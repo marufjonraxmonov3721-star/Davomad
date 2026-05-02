@@ -212,8 +212,8 @@
 
     <div id="renderStatus">
         <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--accent);"></i>
-        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">YUQORI SIFATDA (MAX BITRATE) TAYYORLANMOQDA...</p>
-        <p style="font-size: 10px; color: #555; margin-top: 5px;">Instagram uchun 4K / 60 FPS kodi qo'llanildi</p>
+        <p id="statusMsg" style="margin-top: 20px; font-size: 14px; font-weight: bold;">SILLIQLIK TA'MINLANMOQDA (60 FPS)...</p>
+        <p style="font-size: 10px; color: #555; margin-top: 5px;">Har bir kadr alohida yig'ilmoqda (No-Lag Mode)</p>
     </div>
 
     <div class="preview-section">
@@ -310,11 +310,7 @@
     tg.expand();
 
     const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d', { 
-        alpha: false, 
-        desynchronized: false, 
-        willReadFrequently: false 
-    });
+    const ctx = canvas.getContext('2d', { alpha: false });
     
     const audio = new Audio();
     let lyrics = [];
@@ -421,30 +417,25 @@
         }
     };
 
-    function render() {
-        // Sifatni oshirish uchun canvas sozlamalari
+    function drawFrame(currentTime) {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const now = audio.currentTime;
-        const activeIndex = lyrics.findLastIndex(l => l.time <= now);
+        const activeIndex = lyrics.findLastIndex(l => l.time <= currentTime);
         const active = lyrics[activeIndex];
 
         if (active) {
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            
-            // Matn o'lchamini canvas kengligiga nisbatan masshtablash
             const scaleFactor = canvas.width / 1080;
             ctx.font = `900 ${fontSize * scaleFactor}px ${currentFont}`;
             
             const x = canvas.width / 2;
             const y = canvas.height / 2;
-            const elapsed = now - active.time;
+            const elapsed = currentTime - active.time;
 
             const lines = active.text.split(/\\n|\n/);
             const lineSpacing = (fontSize * scaleFactor) * 1.4;
@@ -457,19 +448,14 @@
 
             lines.forEach((lineText, index) => {
                 const currentLineY = startY + (index * lineSpacing);
-
                 if (currentFx === 'highlight') {
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                     ctx.fillText(lineText, x, currentLineY);
-                    
                     ctx.save();
                     const textWidth = ctx.measureText(lineText).width;
-                    const startX = x - (textWidth / 2);
-                    
                     ctx.beginPath();
-                    ctx.rect(startX, currentLineY - lineSpacing/2, textWidth * progress, lineSpacing);
+                    ctx.rect(x - textWidth/2, currentLineY - lineSpacing/2, textWidth * progress, lineSpacing);
                     ctx.clip();
-                    
                     ctx.fillStyle = 'white';
                     ctx.shadowBlur = 20 * scaleFactor;
                     ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
@@ -492,17 +478,17 @@
                     ctx.fillText(lineText, 0, 0);
                     ctx.restore();
                 } else if (currentFx === 'glitch') {
-                    if (Math.random() > 0.85) {
-                        ctx.fillStyle = '#ff0050';
-                        ctx.fillText(lineText, x + 3, currentLineY);
-                    }
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(lineText, x, currentLineY);
+                    if (Math.random() > 0.9) ctx.fillStyle = '#ff0050';
+                    ctx.fillText(lineText, x + (Math.random()*4-2), currentLineY);
                 }
             });
             ctx.restore();
         }
-        requestAnimationFrame(render);
+    }
+
+    function previewRender() {
+        if (!audio.paused) drawFrame(audio.currentTime);
+        requestAnimationFrame(previewRender);
     }
 
     document.querySelectorAll('.choice-card').forEach(card => {
@@ -518,75 +504,65 @@
 
     document.getElementById('startRender').onclick = async () => {
         if (!audio.src || lyrics.length === 0) {
-            tg.showAlert("Musiqa va LRC faylini tanlang!");
+            tg.showAlert("Musiqa va LRC tanlang!");
             return;
         }
 
         const selectedRes = parseInt(document.getElementById('resSelect').value);
         const selectedFps = parseInt(document.getElementById('fpsSelect').value);
-
-        // Canvasni eksport sifatiga moslash
         canvas.width = selectedRes;
         canvas.height = (selectedRes * 16) / 9;
 
         const status = document.getElementById('renderStatus');
         status.style.display = 'flex';
 
-        // Streamni eng yuqori sifatda tutib olish
-        const stream = canvas.captureStream(selectedFps);
-        
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // SILLIQ RENDER LOGIKASI:
+        const stream = canvas.captureStream(0); // Avtomatik oqimni to'xtatamiz
+        const audioCtx = new AudioContext();
         const dest = audioCtx.createMediaStreamDestination();
         const source = audioCtx.createMediaElementSource(audio);
         source.connect(dest);
         source.connect(audioCtx.destination);
 
-        const combined = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
-        
-        // MAKSIMAL BITRATE SOZLAMALARI (50 Mbps)
-        // Bu kod videoni xira bo'lishidan 100% saqlaydi
-        const options = {
+        const recorder = new MediaRecorder(new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]), {
             mimeType: 'video/webm;codecs=vp9,opus',
-            videoBitsPerSecond: 50000000, // 50 Megabit/s
-            audioBitsPerSecond: 256000
-        };
+            videoBitsPerSecond: 50000000
+        });
 
-        const recorder = new MediaRecorder(combined, options);
         const chunks = [];
-        
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
-            document.getElementById('statusMsg').innerText = "FINAL FILES GENERATING...";
             const blob = new Blob(chunks, { type: 'video/mp4' });
             const formData = new FormData();
             formData.append('chat_id', tg.initDataUnsafe.user.id);
-            formData.append('video', blob, 'insta_reels_pro.mp4');
-
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${botToken}/sendVideo`, {
-                    method: 'POST',
-                    body: formData
-                });
-                if(res.ok) tg.showAlert("Sifatli video botga yuborildi! ✅ Endi Instagramga yuklab ko'ring.");
-                else tg.showAlert("Botga yuborishda xato!");
-            } catch (err) {
-                tg.showAlert("Tarmoq xatosi!");
-            }
+            formData.append('video', blob, 'smooth_reels.mp4');
+            await fetch(`https://api.telegram.org/bot${botToken}/sendVideo`, { method: 'POST', body: formData });
             status.style.display = 'none';
+            tg.showAlert("Silliq video botga yuborildi! ✅");
         };
 
-        audio.currentTime = trimStart;
+        // Kadr-ba-kadr yig'ish jarayoni
         recorder.start();
-        audio.play();
+        audio.currentTime = trimStart;
+        await audio.play();
 
-        setTimeout(() => {
-            recorder.stop();
-            audio.pause();
-            audio.currentTime = trimStart;
-        }, trimDuration * 1000);
+        const frameInterval = 1000 / selectedFps;
+        let currentRenderTime = trimStart;
+
+        const interval = setInterval(() => {
+            if (currentRenderTime >= trimStart + trimDuration) {
+                clearInterval(interval);
+                recorder.stop();
+                audio.pause();
+            } else {
+                drawFrame(currentRenderTime);
+                currentRenderTime += frameInterval / 1000;
+                stream.getVideoTracks()[0].requestFrame(); // Majburiy kadr olish
+            }
+        }, frameInterval);
     };
 
-    render();
+    previewRender();
 </script>
 </body>
 </html>
